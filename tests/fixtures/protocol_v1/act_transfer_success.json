@@ -1,0 +1,27 @@
+{
+  "id": "act_transfer_success",
+  "protocol": 1,
+  "description": "Valid typed transfer src->character; both inventories change by count.",
+  "setup": ["reset"],
+  "request": {
+    "protocol": 1,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {"action": "transfer", "from": "src", "to": "character", "item": "iron-plate", "count": 10}
+  },
+  "response": {
+    "protocol": 1,
+    "code": "ok",
+    "result": {
+      "status": "completed",
+      "action": "transfer",
+      "item": "iron-plate",
+      "count": 10,
+      "from": "src",
+      "to": "character",
+      "source_remaining": 40,
+      "destination_total": 10
+    }
+  }
+}

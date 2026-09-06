@@ -1,0 +1,45 @@
+# Phase 1 exit gate evidence
+# command: D:\FactorioRL\.venv\Scripts\python.exe -m pytest tests/engine -v --tb=short --require-engine -p no:cacheprovider
+# exit code: 0
+
+============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0 -- D:\FactorioRL\.venv\Scripts\python.exe
+rootdir: D:\FactorioRL
+configfile: pyproject.toml
+collecting ... collected 33 items
+
+tests/engine/test_lifecycle.py::test_exact_stepping_advances_and_no_drift PASSED [  3%]
+tests/engine/test_lifecycle.py::test_idle_between_requests_does_not_advance PASSED [  6%]
+tests/engine/test_lifecycle.py::test_observations_report_after_interval_completes PASSED [  9%]
+tests/engine/test_lifecycle.py::test_collision_blocks_movement PASSED    [ 12%]
+tests/engine/test_lifecycle.py::test_out_of_reach_transfer_fails PASSED  [ 15%]
+tests/engine/test_lifecycle.py::test_transfer_conserves_items PASSED     [ 18%]
+tests/engine/test_lifecycle.py::test_reset_repeatability_ten_cycles PASSED [ 21%]
+tests/engine/test_lifecycle.py::test_kill_is_classified_infrastructure_failure PASSED [ 24%]
+tests/engine/test_lifecycle.py::test_restart_does_not_overwrite_failed_evidence PASSED [ 27%]
+tests/engine/test_lifecycle.py::test_two_workers_independent PASSED      [ 30%]
+tests/engine/test_lifecycle.py::test_workers_close_when_the_parent_run_fails PASSED [ 33%]
+tests/engine/test_lifecycle.py::test_pool_restart_resumes_from_the_failed_workers_save PASSED [ 36%]
+tests/engine/test_lifecycle.py::test_startup_failure_classification_missing_executable PASSED [ 39%]
+tests/engine/test_lifecycle.py::test_startup_failure_classification_invalid_save PASSED [ 42%]
+tests/engine/test_lifecycle.py::test_port_unavailable_detection PASSED   [ 45%]
+tests/engine/test_lifecycle.py::test_engine_version_pin_enforced PASSED  [ 48%]
+tests/engine/test_protocol_fixtures.py::test_fixture_agreement[act_transfer_no_items] PASSED [ 51%]
+tests/engine/test_protocol_fixtures.py::test_fixture_agreement[act_transfer_success] PASSED [ 54%]
+tests/engine/test_protocol_fixtures.py::test_fixture_agreement[act_unknown_action] PASSED [ 57%]
+tests/engine/test_protocol_fixtures.py::test_fixture_agreement[advance_success] PASSED [ 60%]
+tests/engine/test_protocol_fixtures.py::test_fixture_agreement[error_bad_protocol] PASSED [ 63%]
+tests/engine/test_protocol_fixtures.py::test_fixture_agreement[error_missing_field] PASSED [ 66%]
+tests/engine/test_protocol_fixtures.py::test_fixture_agreement[error_unknown_request_type] PASSED [ 69%]
+tests/engine/test_protocol_fixtures.py::test_fixture_agreement[observe_snapshot] PASSED [ 72%]
+tests/engine/test_protocol_fixtures.py::test_fixture_agreement[reset_success] PASSED [ 75%]
+tests/engine/test_protocol_fixtures.py::test_fixture_agreement[stale_episode] PASSED [ 78%]
+tests/engine/test_protocol_fixtures.py::test_unknown_action_cannot_reach_arbitrary_execution PASSED [ 81%]
+tests/engine/test_protocol_fixtures.py::test_duplicate_transfer_applies_once PASSED [ 84%]
+tests/engine/test_protocol_fixtures.py::test_request_status_resolves_uncertain_advance PASSED [ 87%]
+tests/engine/test_protocol_fixtures.py::test_advance_settles_from_running_to_completed PASSED [ 90%]
+tests/engine/test_protocol_fixtures.py::test_reconnected_session_ids_do_not_collide PASSED [ 93%]
+tests/engine/test_protocol_fixtures.py::test_rejected_mutation_is_recorded_and_not_reexecuted PASSED [ 96%]
+tests/engine/test_protocol_fixtures.py::test_act_response_carries_a_typed_action_result PASSED [100%]
+
+======================= 33 passed in 195.87s (0:03:15) ========================

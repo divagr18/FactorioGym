@@ -1,0 +1,25 @@
+{
+  "id": "observe_snapshot",
+  "protocol": 1,
+  "description": "Observation carries episode, tick, character, inventory, scene entities, task.",
+  "setup": ["reset"],
+  "request": {
+    "protocol": 1,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "observe",
+    "payload": {}
+  },
+  "response": {
+    "protocol": 1,
+    "code": "ok",
+    "result": {
+      "character": {"present": true},
+      "entities": {
+        "src": {"valid": true, "name": "wooden-chest", "contents": {"iron-plate": 50}},
+        "dst": {"valid": true, "name": "wooden-chest", "contents": {}}
+      },
+      "task": {"transfers": 0, "items_moved": 0}
+    }
+  }
+}

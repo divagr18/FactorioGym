@@ -1,0 +1,18 @@
+{
+  "id": "act_unknown_action",
+  "protocol": 1,
+  "description": "Unknown action types are rejected; nothing is executed.",
+  "setup": ["reset"],
+  "request": {
+    "protocol": 1,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {"action": "fly"}
+  },
+  "response": {
+    "protocol": 1,
+    "code": "rejected",
+    "error": {"code": "unknown_action"}
+  }
+}

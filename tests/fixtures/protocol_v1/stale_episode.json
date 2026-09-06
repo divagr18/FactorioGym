@@ -1,0 +1,17 @@
+{
+  "id": "stale_episode",
+  "protocol": 1,
+  "description": "Requests naming an ended episode are rejected as stale.",
+  "request": {
+    "protocol": 1,
+    "request_id": "<auto>",
+    "episode_id": "ep-999999",
+    "type": "act",
+    "payload": {"action": "wait"}
+  },
+  "response": {
+    "protocol": 1,
+    "code": "stale_episode",
+    "error": {"code": "bad_episode"}
+  }
+}

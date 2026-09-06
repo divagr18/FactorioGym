@@ -1,0 +1,18 @@
+{
+  "id": "act_transfer_no_items",
+  "protocol": 1,
+  "description": "Overdrawing a source is rejected with no_items and mutates nothing.",
+  "setup": ["reset"],
+  "request": {
+    "protocol": 1,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {"action": "transfer", "from": "src", "to": "character", "item": "iron-plate", "count": 999}
+  },
+  "response": {
+    "protocol": 1,
+    "code": "rejected",
+    "error": {"code": "no_items"}
+  }
+}

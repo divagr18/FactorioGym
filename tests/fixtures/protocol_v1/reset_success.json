@@ -1,0 +1,17 @@
+{
+  "id": "reset_success",
+  "protocol": 1,
+  "description": "Reset rebuilds the reference scene and starts a fresh episode.",
+  "request": {
+    "protocol": 1,
+    "request_id": "<auto>",
+    "episode_id": "<current-or-empty>",
+    "type": "reset",
+    "payload": {}
+  },
+  "response": {
+    "protocol": 1,
+    "code": "ok",
+    "result_episode_id_pattern": "^ep-[0-9]+$"
+  }
+}

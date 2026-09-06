@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+
+# Worker runtime: saves, generated configs, credentials, engine output
+runtime/
+*.zip
+!**/mod/**
+.factoriorl.user.json
+*.credentials*
+*.token*
+
+# Experiment evidence (large): keep summaries under docs/evidence/
+checkpoints/
+trajectories/
+artifacts/
+*.log
+
+# Tooling
+.omo/
+.codegraph/
+opencode.json

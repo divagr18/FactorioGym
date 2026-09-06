@@ -1,0 +1,18 @@
+{
+  "id": "error_missing_field",
+  "protocol": 1,
+  "description": "Missing required payload fields yield a structured missing_field error.",
+  "setup": ["reset"],
+  "request": {
+    "protocol": 1,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {"action": "transfer", "from": "src"}
+  },
+  "response": {
+    "protocol": 1,
+    "code": "rejected",
+    "error": {"code": "missing_field"}
+  }
+}
