@@ -52,6 +52,22 @@ def cmd_worker_reap(args) -> int:
     return 0
 
 
+def cmd_bench_transport(args) -> int:
+    from factoriorl.bench import run_transport_bench
+
+    report = run_transport_bench(reps=args.reps)
+    print(json.dumps(report, indent=2))
+    return 0
+
+
+def cmd_bench_speed(_args) -> int:
+    from factoriorl.bench import run_speed_determinism
+
+    report = run_speed_determinism()
+    print(json.dumps({k: v for k, v in report.items() if k != "records"}, indent=2))
+    return 0 if report.get("identical") else 1
+
+
 def cmd_phase0_gate(_args) -> int:
     from factoriorl.gate_phase0 import run_phase0_gate
 
@@ -113,6 +129,12 @@ def main(argv: list[str] | None = None) -> int:
     reap = worker_sub.add_parser("reap", help="terminate engines orphaned by a dead parent")
     reap.add_argument("--dry-run", action="store_true", help="report orphans without killing")
 
+    bench = sub.add_parser("bench", help="measurement harnesses")
+    bench_sub = bench.add_subparsers(dest="bench_command", required=True)
+    bench_transport = bench_sub.add_parser("transport", help="RCON round-trip decomposition")
+    bench_transport.add_argument("--reps", type=int, default=15)
+    bench_sub.add_parser("speed", help="prove game.speed changes pacing, not outcomes")
+
     sub.add_parser("phase0-gate", help="run the Phase 0 exit gate")
     sub.add_parser("phase1-gate", help="run the Phase 1 exit gate and record evidence")
 
@@ -123,6 +145,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.worker_command == "reap":
             return cmd_worker_reap(args)
         return cmd_worker_start(args)
+    if args.command == "bench":
+        if args.bench_command == "speed":
+            return cmd_bench_speed(args)
+        return cmd_bench_transport(args)
     if args.command == "phase1-gate":
         return cmd_phase1_gate(args)
     return cmd_phase0_gate(args)

@@ -65,8 +65,57 @@ through the RCON transport the environment will use.
 ### Phase 0 exit gate
 
 One command: `uv run factoriorl phase0-gate` → `passed: true`, report written
-to `runtime/gate-phase0/report.json` with latency measurements (mean
-≈305 ms/cycle for the 6-request sequence).
+to `runtime/gate-phase0/report.json`.
+
+**Latency correction (2026-09-07).** The figure previously recorded here —
+"mean ≈305 ms/cycle for the 6-request sequence" — was wrong twice over. The gate
+averaged the *seven per-request* latencies and stored the result under a key
+named `mean_per_cycle_ms`, so 305 ms was the cost of one **request**; a cycle
+actually cost ~2423 ms. The metric is now reported as both
+`mean_per_request_ms` and a real `mean_per_cycle_ms`, with `requests_per_cycle`.
+
+After the Phase T transport work the same gate measures **90.61 ms per request
+and 634.25 ms per cycle** at `game.speed = 1`, still `passed: true` with mixed
+drift 0 and idle drift 0. See `docs/evidence/transport-roundtrip.md`.
+
+## Phase T — Transport throughput
+
+**Status: Accepted** (2026-09-07)
+
+Evidence: `docs/evidence/transport-roundtrip.md`.
+
+Three defects, each measured before and after as PLAN.md 11.4 requires:
+
+- **A 250 ms timeout on every call.** `RCONClient.command` waited out
+  `CONTINUATION_TIMEOUT` looking for an empty terminator chunk Factorio never
+  sends. Isolated on one connection, the stall was **250.03 ms** of a 266.69 ms
+  request. Replaced with **sentinel framing**: each call takes a fresh id pair
+  and follows the real command with one known to print nothing; in-order replies
+  make the sentinel's arrival proof of completion. Printing commands now cost
+  the same as empty ones — **266.69 ms → 16.66 ms**.
+- **`game.speed` was never set**, so a 30-tick interval cost a hard 500 ms at the
+  default 60 UPS. `advance(30)` went **818.57 ms → 25.56 ms (32×)**.
+  `uv run factoriorl bench speed` proves pacing-only: 5 cycles at speed 1 and 30,
+  compared field by field, **15.64× faster, zero mismatches, `identical: true`**.
+- **The published latency metric measured per-request cost under a per-cycle
+  name.** Corrected above; `WorkerSession._settle` now accounts for every probe
+  and sleep instead of only its first dispatch and last probe.
+
+Also fixed: per-call request ids, so a single timeout no longer desynchronizes
+the connection permanently (every call reused one id, and the late reply poisoned
+every subsequent call); and `TCP_NODELAY`, since each request is now two small
+back-to-back writes.
+
+**A latent bug this exposed.** `handle_reset` cleared the in-flight advance
+bookkeeping but never re-paused the world, so a reset landing mid-advance left
+the engine ticking. The 250 ms stall had masked it — an advance always settled
+and re-paused itself before the next observation. At 16 ms per request it does
+not, and `test_unknown_action_cannot_reach_arbitrary_execution` began failing
+with `assert 1 == 4`. `begin_episode` now sets `game.tick_paused = true`.
+
+Coverage: `tests/unit/test_rcon_framing.py`, six engine-free tests against a fake
+RCON server reproducing a missing terminator, packet splits, and a late reply
+from an abandoned call. Engine suite 33/33; Phase 0 gate `passed: true`.
 
 ## Phase 1 — Protocol and reliable worker lifecycle
 

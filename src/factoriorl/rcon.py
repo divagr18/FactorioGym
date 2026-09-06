@@ -36,9 +36,20 @@ TYPE_AUTH = 3
 TYPE_COMMAND = 2
 TYPE_RESPONSE_VALUE = 0
 
-REQUEST_ID = 10
 AUTH_REQUEST_ID = 3
-CONTINUATION_TIMEOUT = 0.25
+
+#: First id handed out by the per-call counter. Above AUTH_REQUEST_ID so an
+#: auth reply can never be mistaken for a command reply.
+FIRST_REQUEST_ID = 100
+#: Ids stay well inside int32 and never reach the -1 that marks auth failure.
+MAX_REQUEST_ID = 1 << 30
+
+#: A console command that runs successfully and prints nothing, so the server
+#: answers it with a single empty-bodied packet. Following every real command
+#: with one of these turns "have I received the whole response?" from a timeout
+#: guess into a fact: RCON replies in order on one connection, so the sentinel's
+#: reply cannot arrive before the real response is complete.
+SENTINEL_BODY = "/c local _ = 1"
 
 _LUA_BRIDGE = (
     'local ok, result = pcall(function() return remote.call("frrl_bridge", "run", {code}) end) '
@@ -85,6 +96,7 @@ class RCONClient:
     """Blocking client; one request/response per call."""
 
     def __init__(self, endpoint: RCONEndpoint, timeout: float = 10.0) -> None:
+        self._next_request_id = FIRST_REQUEST_ID
         self.endpoint = endpoint
         self.timeout = timeout
         self._sock: socket.socket | None = None
@@ -93,6 +105,10 @@ class RCONClient:
         self._sock = socket.create_connection(
             (self.endpoint.host, self.endpoint.port), timeout=self.timeout
         )
+        # Every request is one small write, and the sentinel makes it two back
+        # to back. Nagle would hold the second waiting for an ACK of the first --
+        # the classic ~40 ms delayed-ACK stall.
+        self._sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self._authenticate()
 
     def _authenticate(self) -> None:
@@ -138,38 +154,57 @@ class RCONClient:
         del packet_type
         return packet_id, body.rstrip(b"\x00")
 
-    def _read_packet_or_none(self) -> tuple[int, bytes] | None:
-        try:
-            return self._read_packet()
-        except TimeoutError:
-            return None
+    def _allocate_ids(self) -> tuple[int, int]:
+        """A fresh (command, sentinel) id pair for one call."""
+        request_id = self._next_request_id
+        sentinel_id = request_id + 1
+        self._next_request_id += 2
+        if self._next_request_id >= MAX_REQUEST_ID:
+            self._next_request_id = FIRST_REQUEST_ID
+        return request_id, sentinel_id
 
-    def command(self, body: str) -> str:
-        """Send a console command and reassemble the chunked response."""
-        self._send(REQUEST_ID, TYPE_COMMAND, body)
-        packet = self._read_packet()
-        packet_id, body_bytes = packet
-        if packet_id != REQUEST_ID:
-            raise RCONError(f"unexpected rcon packet id {packet_id}")
+    def command(self, body: str, expect_response: bool = True) -> str:
+        """Send a console command and reassemble its complete response.
+
+        Completion is determined by a **sentinel**, not by waiting: the real
+        command is followed immediately by a command known to print nothing.
+        A Source RCON server answers in order on one connection, so the arrival
+        of the sentinel's reply proves the real response is complete. That is
+        exact, and it costs one extra packet instead of a 250 ms timeout.
+
+        Per-call ids also make a timed-out call survivable. Every call used to
+        reuse a single id, so one timeout desynchronized the connection
+        permanently -- the late reply arrived during the *next* call and every
+        call after it raised "unexpected rcon packet id". Replies bearing an id
+        older than the current call are now drained as the stale packets they
+        are, which is what PLAN.md section 2 means by resolving an uncertain
+        transport outcome rather than poisoning the transport.
+
+        ``expect_response=False`` is for commands that end the session (``/quit``),
+        where waiting for a sentinel the server will never answer would hang.
+        """
+        request_id, sentinel_id = self._allocate_ids()
+        self._send(request_id, TYPE_COMMAND, body)
+        if not expect_response:
+            return ""
+        self._send(sentinel_id, TYPE_COMMAND, SENTINEL_BODY)
+
         chunks: list[bytes] = []
-        if body_bytes:
-            chunks.append(body_bytes)
-            # Multi-packet responses end with an empty chunk; a short
-            # continuation timeout handles servers that omit it.
-            self._sock.settimeout(CONTINUATION_TIMEOUT)
-            try:
-                while True:
-                    packet = self._read_packet_or_none()
-                    if packet is None:
-                        break
-                    chunk_id, chunk_body = packet
-                    if chunk_id != REQUEST_ID:
-                        raise RCONError(f"unexpected rcon packet id {chunk_id}")
-                    if not chunk_body:
-                        break
-                    chunks.append(chunk_body)
-            finally:
-                self._sock.settimeout(self.timeout)
+        while True:
+            packet_id, chunk = self._read_packet()
+            if packet_id == sentinel_id:
+                break
+            if packet_id == request_id:
+                if chunk:
+                    chunks.append(chunk)
+                continue
+            if packet_id < request_id:
+                # A reply to a call that already gave up. Drain it; the ids
+                # prove it is not ours.
+                continue
+            raise RCONError(
+                f"unexpected rcon packet id {packet_id} (awaiting {request_id}/{sentinel_id})"
+            )
         return b"".join(chunks).decode("utf-8").rstrip("\n")
 
     def lua(self, code: str) -> object:

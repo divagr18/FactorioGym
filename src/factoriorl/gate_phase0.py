@@ -86,7 +86,9 @@ def _episode_cycle(session: WorkerSession, index: int) -> dict:
         "src_contents": final.response.result["entities"]["src"]["contents"],
         "dst_contents": final.response.result["entities"]["dst"]["contents"],
         "task": final.response.result["task"],
-        "latency_ms_mean": sum(latencies) / len(latencies),
+        "latency_ms_mean_per_request": sum(latencies) / len(latencies),
+        "latency_ms_cycle_total": sum(latencies),
+        "requests_in_cycle": len(latencies),
     }
 
 
@@ -202,9 +204,15 @@ def run_phase0_gate(worker_id: str = "phase0-gate") -> dict:
                             )
                 report.cycles.append(record)
 
+            # Both numbers, named for what they are. The old single key held a
+            # per-*request* mean under a per-cycle name, which understated the
+            # cost of a decision cycle by the number of requests in it.
             report.latency_ms = {
-                "mean_per_cycle_ms": sum(c["latency_ms_mean"] for c in report.cycles)
+                "mean_per_request_ms": sum(c["latency_ms_mean_per_request"] for c in report.cycles)
                 / len(report.cycles),
+                "mean_per_cycle_ms": sum(c["latency_ms_cycle_total"] for c in report.cycles)
+                / len(report.cycles),
+                "requests_per_cycle": report.cycles[0]["requests_in_cycle"],
             }
             report.passed = not report.failures
     finally:

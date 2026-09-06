@@ -519,7 +519,8 @@ class WorkerManager:
             # Ask the engine to exit via the console; fall back to kill.
             try:
                 with RCONClient(handle.spec.rcon_endpoint, timeout=2.0) as client:
-                    client.command("/quit")
+                    # The server dies on /quit, so no sentinel reply is coming.
+                    client.command("/quit", expect_response=False)
             except (RCONError, OSError):
                 self._kill_process(handle.process)
             try:

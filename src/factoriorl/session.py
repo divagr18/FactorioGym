@@ -186,6 +186,11 @@ class WorkerSession:
         result = timed.response.result or {}
         if result.get("status") != "running":
             return timed
+        # Wall clock from the moment the advance was accepted. Reporting only
+        # the first dispatch plus the last probe -- as this did -- hid every
+        # intermediate probe and sleep, and understated a 30-tick advance by
+        # roughly 300 ms. Profiling built on that number would be fiction.
+        settle_started = time.perf_counter()
         deadline = time.monotonic() + self.settle_timeout
         while time.monotonic() < deadline:
             probe = self.request_status(request.request_id)
@@ -204,7 +209,9 @@ class WorkerSession:
                         result=stored.get("result", {}),
                         tick=stored.get("tick"),
                     ),
-                    round_trip_ms=timed.round_trip_ms + probe.round_trip_ms,
+                    round_trip_ms=(
+                        timed.round_trip_ms + (time.perf_counter() - settle_started) * 1000.0
+                    ),
                     request_type=timed.request_type,
                 )
             time.sleep(poll_interval)

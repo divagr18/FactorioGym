@@ -19,7 +19,7 @@ action matrix) has not started.
 | 0.3 exact stepping | ✅ | gate report: 1/30/120 exact, mixed-sequence drift 0, idle drift 0 |
 | 0.4 physical actions | ✅ | movement 4.45 tiles/30t; wall collision stops at y≈-5.0; transfer conservation (50→40+10); overdraw rejected `no_items`; out-of-reach rejected |
 | 0.5 reset repeatability | ✅ | 10 identical cycles over the RCON transport |
-| **Phase 0 exit gate** | ✅ `passed: true` | `uv run factoriorl phase0-gate` → `runtime/gate-phase0/report.json`, mean ≈305 ms per 6-request cycle |
+| **Phase 0 exit gate** | ✅ `passed: true` | `uv run factoriorl phase0-gate` → `runtime/gate-phase0/report.json`; 90.61 ms/request, 634.25 ms/cycle (7 requests) after Phase T. The old "≈305 ms per 6-request cycle" was a per-*request* mean under a per-cycle name — see `docs/evidence/transport-roundtrip.md` |
 | 1.1 protocol v1 frozen | ✅ | 10/10 fixtures agree with the live Lua runtime; vocabulary-agreement tests; typed `ActionResult` |
 | 1.2 duplicate/stale handling | ✅ | per-episode ledger (4096, FIFO, `storage`-backed); session-nonced request ids; every mutating outcome recorded; 4-state `request_status` |
 | 1.3 supervision | ✅ | every `SupervisionPolicy` knob consulted; restart from the failed worker's own save; kill → `InfrastructureFailure`; evidence preserved |
@@ -79,7 +79,9 @@ Bind failures now classify as `port_unavailable` instead of a generic
 ## Architecture decisions (and why)
 
 1. **One headless server per worker, versioned JSON over RCON.** Matches PLAN.md;
-   no transport experiments yet. RCON round-trip ≈50–60 ms.
+   no transport experiments yet. RCON round-trip **16.7 ms** measured (the earlier
+   "≈50–60 ms" was never supported by a measurement). Completion is determined by
+   sentinel framing, not a timeout.
 2. **Total isolation per worker** under `runtime/workers/<id>/`: own `write-data`
    (via `--config` with `[path] write-data=`), own `--mod-directory`, own save,
    ports, logs. The user's profile (heavy modpacks!) and the game install are

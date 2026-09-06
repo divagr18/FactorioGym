@@ -47,6 +47,12 @@ local function begin_episode()
   state.advance_until = nil
   state.pending_advance_request_id = nil
   state.pending_advance_start_tick = nil
+  -- Re-pause explicitly. Clearing the bookkeeping is not enough: if a reset
+  -- lands while an advance is still running, the world would keep ticking with
+  -- nothing left to stop it, and the next observation would report a tick the
+  -- caller never asked for. PLAN.md section 2: the world pauses between
+  -- decisions.
+  game.tick_paused = true
   return state.episode_id
 end
 
