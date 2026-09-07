@@ -1,7 +1,9 @@
 # FactorioRL handoff — Phase 1 closed, Phase 2 next
 
 **Date:** 2026-09-07
-**Machine:** this laptop (Ryzen 7 5800H, RTX 4060, Windows 11) — NOT the 4060 desktop.
+**Machine:** this laptop — Ryzen 7 5800H, **RTX 3050 Laptop GPU (4.3 GB)**, Windows 11.
+The repository previously recorded an RTX 4060 throughout; that was wrong, and
+run manifests now record the GPU at runtime rather than inheriting the claim.
 **Engine:** Factorio **2.0.60 (build 83512, win64)** at `D:\Factorio\bin\x64\factorio.exe`,
 pinned in `src/factoriorl/engine_config.py` (other builds refused at launch).
 

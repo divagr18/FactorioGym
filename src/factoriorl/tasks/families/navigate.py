@@ -69,13 +69,18 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
             if abs(offset) > 1:
                 entities.append(EntitySpec("stone-wall", (round(mid_x, 1), float(offset))))
     elif family.name == "pillar_field":
-        for _ in range(6):
-            entities.append(
-                EntitySpec(
-                    "stone-wall",
-                    (round(rng.uniform(-20, 20), 1), round(rng.uniform(-20, 20), 1)),
-                )
-            )
+        # Distinct tiles only. Sampling positions independently let two pillars
+        # land on the same tile roughly once in 130 seeds, which the engine
+        # would refuse to build -- a generator defect, not a task variation.
+        taken: set[tuple[int, int]] = {(0, 0), (round(goal[0]), round(goal[1]))}
+        attempts = 0
+        while len(taken) < 8 and attempts < 100:
+            attempts += 1
+            candidate = (rng.randint(-20, 20), rng.randint(-20, 20))
+            if candidate in taken:
+                continue
+            taken.add(candidate)
+            entities.append(EntitySpec("stone-wall", (float(candidate[0]), float(candidate[1]))))
     elif family.name == "wall_ring":
         for step in range(0, 360, 30):
             angle = math.radians(step)

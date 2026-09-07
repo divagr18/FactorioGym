@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import platform
 import subprocess
 import time
@@ -86,14 +87,43 @@ def host_info() -> dict:
     host is this laptop. A manifest that claimed the desktop's figures would be
     a false provenance record, so the host is read at runtime.
     """
-    return {
+    info = {
         "node": platform.node(),
         "system": platform.system(),
         "release": platform.release(),
         "machine": platform.machine(),
         "processor": platform.processor(),
         "python": platform.python_version(),
+        "cpu_count": os.cpu_count(),
     }
+    # Recorded, never assumed. Every document in this repo claimed an RTX 4060
+    # until torch was first asked: the machine actually has an RTX 3050 Laptop
+    # with 4.3 GB. A manifest that inherits a hardware claim from prose is a
+    # false provenance record.
+    # Broad on purpose. Importing torch pulls in multi-GB CUDA DLLs, and on a
+    # machine already near its commit limit that raises OSError
+    # ("the paging file is too small"), not ImportError. Writing the run
+    # manifest must never fail because the GPU could not be described -- losing
+    # the record of a run is far worse than recording an unknown GPU.
+    try:
+        import torch
+
+        if torch.cuda.is_available():
+            properties = torch.cuda.get_device_properties(0)
+            info["gpu"] = {
+                "name": properties.name,
+                "vram_gb": round(properties.total_memory / 1e9, 1),
+                "capability": f"sm_{properties.major}{properties.minor}",
+                "count": torch.cuda.device_count(),
+                "torch": torch.__version__,
+            }
+        else:
+            info["gpu"] = {"name": None, "reason": "cuda unavailable"}
+    except ImportError:
+        info["gpu"] = {"name": None, "reason": "torch not installed"}
+    except Exception as exc:  # noqa: BLE001 - see above
+        info["gpu"] = {"name": None, "reason": f"{type(exc).__name__}: {exc}"}
+    return info
 
 
 @dataclass

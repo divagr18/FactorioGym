@@ -138,6 +138,58 @@ def cmd_runs(args) -> int:
     return 0 if result["ok"] else 1
 
 
+def cmd_phase4_gate(args) -> int:
+    from factoriorl.gate_phase4 import run_phase4_gate
+
+    report = run_phase4_gate(mode=args.mode)
+    print(json.dumps({k: v for k, v in report.items() if k != "checks"}, indent=2))
+    for check in report.get("checks", []):
+        mark = "ok " if check["ok"] else "FAIL"
+        print(f"  [{mark}] {check['check']}")
+    return 0 if report.get("passed") else 1
+
+
+def cmd_train(args) -> int:
+    from factoriorl.learn.train import TrainConfig, train
+
+    result = train(
+        TrainConfig(
+            task_id=args.task,
+            total_steps=args.steps,
+            master_seed=args.seed,
+            shaping=not args.no_shaping,
+            eval_episodes=args.eval_episodes,
+            run_prefix=args.prefix,
+        )
+    )
+    print(json.dumps(result, indent=2))
+    return 0
+
+
+def cmd_doctor_train(_args) -> int:
+    """Fail loudly on a CPU-only wheel: the commonest Windows setup failure."""
+    try:
+        import torch
+    except ImportError:
+        print("torch is not installed; run: uv sync --group train", file=sys.stderr)
+        return 1
+    info = {
+        "torch": torch.__version__,
+        "cuda_available": torch.cuda.is_available(),
+        "cuda_version": torch.version.cuda,
+    }
+    if torch.cuda.is_available():
+        properties = torch.cuda.get_device_properties(0)
+        info["device"] = properties.name
+        info["vram_gb"] = round(properties.total_memory / 1e9, 1)
+        info["capability"] = f"sm_{properties.major}{properties.minor}"
+    print(json.dumps(info, indent=2))
+    if not torch.cuda.is_available():
+        print("CUDA is unavailable: this is a CPU-only torch wheel", file=sys.stderr)
+        return 1
+    return 0
+
+
 def cmd_action_matrix(args) -> int:
     from factoriorl.action_matrix import to_markdown
     from factoriorl.paths import workspace_root
@@ -222,6 +274,18 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("phase2-gate", help="run the Phase 2 exit gate (scripted embodied agent)")
     sub.add_parser("phase3-gate", help="run the Phase 3 exit gate (tasks, spaces, resets)")
 
+    train_cmd = sub.add_parser("train", help="train a policy on one task")
+    train_cmd.add_argument("--task", required=True)
+    train_cmd.add_argument("--steps", type=int, default=50_000)
+    train_cmd.add_argument("--seed", type=int, default=20260907)
+    train_cmd.add_argument("--eval-episodes", type=int, default=20)
+    train_cmd.add_argument("--no-shaping", action="store_true")
+    train_cmd.add_argument("--prefix", default="train")
+
+    sub.add_parser("doctor-train", help="check the training stack and CUDA")
+    gate4 = sub.add_parser("phase4-gate", help="run the Phase 4 exit gate")
+    gate4.add_argument("--mode", choices=("reproduce", "full"), default="reproduce")
+
     tasks_cmd = sub.add_parser("tasks", help="task registry")
     tasks_sub = tasks_cmd.add_subparsers(dest="tasks_command", required=True)
     tasks_sub.add_parser("list", help="list registered tasks")
@@ -257,6 +321,12 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_phase2_gate(args)
     if args.command == "phase3-gate":
         return cmd_phase3_gate(args)
+    if args.command == "train":
+        return cmd_train(args)
+    if args.command == "doctor-train":
+        return cmd_doctor_train(args)
+    if args.command == "phase4-gate":
+        return cmd_phase4_gate(args)
     if args.command == "tasks":
         return cmd_tasks(args)
     if args.command == "runs":

@@ -1,0 +1,309 @@
+"""Training and evaluation (PLAN.md 4.1-4.2).
+
+CSV is the source of truth for curves, not TensorBoard: release curves must be
+diffable across runs, and event files are not.
+
+The run manifest is written **before the first step**, so an interrupted run
+still has one, and it records the model configuration, the extractor version,
+the resolved task, the catalog digest and the seed plan -- everything needed to
+tell whether a checkpoint still means what it claimed to.
+"""
+
+from __future__ import annotations
+
+import csv
+import json
+import time
+from dataclasses import dataclass, field
+from pathlib import Path
+
+import numpy as np
+from sb3_contrib import MaskablePPO
+from stable_baselines3.common.callbacks import BaseCallback
+
+from factoriorl import manifest as manifest_module
+from factoriorl.env import FactorioEnv
+from factoriorl.learn.policy import EXTRACTOR_VERSION, describe, policy_kwargs
+from factoriorl.rcon import RCONClient
+from factoriorl.seeding import Branch, SeedPlan, seed_everything
+from factoriorl.session import WorkerSession
+from factoriorl.tasks import get
+from factoriorl.worker import WorkerManager
+
+TRAIN_SPEED = 30.0
+
+
+@dataclass
+class TrainConfig:
+    task_id: str
+    total_steps: int = 50_000
+    master_seed: int = 20260907
+    learning_rate: float = 3e-4
+    n_steps: int = 512
+    batch_size: int = 128
+    gamma: float = 0.99
+    ent_coef: float = 0.01
+    shaping: bool = True
+    eval_episodes: int = 20
+    device: str = "auto"
+    run_prefix: str = "train"
+    extra: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "task_id": self.task_id,
+            "total_steps": self.total_steps,
+            "master_seed": self.master_seed,
+            "learning_rate": self.learning_rate,
+            "n_steps": self.n_steps,
+            "batch_size": self.batch_size,
+            "gamma": self.gamma,
+            "ent_coef": self.ent_coef,
+            "shaping": self.shaping,
+            "eval_episodes": self.eval_episodes,
+        }
+
+
+class CurveLogger(BaseCallback):
+    """Append one row per episode. CSV, because curves must be diffable."""
+
+    def __init__(self, path: Path, started: float) -> None:
+        super().__init__()
+        self.path = path
+        self.started = started
+        self.rows: list[dict] = []
+        self._episode_reward = 0.0
+        self._episode_steps = 0
+
+    def _on_step(self) -> bool:
+        rewards = self.locals.get("rewards")
+        infos = self.locals.get("infos") or []
+        dones = self.locals.get("dones")
+        if rewards is not None:
+            self._episode_reward += float(np.asarray(rewards).sum())
+        self._episode_steps += 1
+        if dones is not None and bool(np.asarray(dones).any()):
+            info = infos[0] if infos else {}
+            self.rows.append(
+                {
+                    "timestep": int(self.num_timesteps),
+                    "wall_s": round(time.perf_counter() - self.started, 2),
+                    "episode_reward": round(self._episode_reward, 4),
+                    "episode_steps": self._episode_steps,
+                    "success": int(bool(info.get("success"))),
+                    "layout_family": info.get("layout_family"),
+                    "excluded": int(bool(info.get("excluded_from_metrics"))),
+                }
+            )
+            self._episode_reward = 0.0
+            self._episode_steps = 0
+        return True
+
+    def write(self) -> None:
+        if not self.rows:
+            return
+        with self.path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=list(self.rows[0]))
+            writer.writeheader()
+            writer.writerows(self.rows)
+
+
+def _make_session(manager: WorkerManager, worker_id: str) -> tuple:
+    handle = manager.launch(worker_id)
+    with RCONClient(handle.spec.rcon_endpoint, timeout=30.0) as client:
+        client.lua(f"game.speed = {TRAIN_SPEED} return game.speed")
+    session = WorkerSession(handle, timeout=30.0)
+    session.status()
+    return handle, session
+
+
+def evaluate(env: FactorioEnv, model, episodes: int, deterministic: bool = True) -> dict:
+    """Evaluate on the env's current split. Wilson interval, not a bare rate."""
+    successes = 0
+    counted = 0
+    lengths: list[int] = []
+    rewards: list[float] = []
+    for _ in range(episodes):
+        observation, _ = env.reset()
+        total = 0.0
+        steps = 0
+        while True:
+            masks = env.action_masks()
+            action, _ = model.predict(observation, action_masks=masks, deterministic=deterministic)
+            observation, reward, terminated, truncated, info = env.step(int(action))
+            total += reward
+            steps += 1
+            if terminated or truncated:
+                if info.get("excluded_from_metrics"):
+                    break
+                counted += 1
+                successes += int(bool(info.get("success")))
+                lengths.append(steps)
+                rewards.append(total)
+                break
+    rate = successes / counted if counted else 0.0
+    return {
+        "episodes": counted,
+        "successes": successes,
+        "success_rate": round(rate, 4),
+        "wilson_95": _wilson(successes, counted),
+        "mean_episode_reward": round(float(np.mean(rewards)), 4) if rewards else 0.0,
+        "mean_episode_steps": round(float(np.mean(lengths)), 1) if lengths else 0.0,
+    }
+
+
+def _wilson(successes: int, total: int, z: float = 1.96) -> list[float]:
+    """PLAN.md section 3 wants aggregate uncertainty, not a bare point estimate."""
+    if total == 0:
+        return [0.0, 0.0]
+    p = successes / total
+    denominator = 1 + z**2 / total
+    centre = (p + z**2 / (2 * total)) / denominator
+    margin = z * np.sqrt(p * (1 - p) / total + z**2 / (4 * total**2)) / denominator
+    return [round(max(0.0, centre - margin), 4), round(min(1.0, centre + margin), 4)]
+
+
+def random_baseline(env: FactorioEnv, episodes: int, rng: np.random.Generator) -> dict:
+    """Uniform over the masked catalog. The floor every curve is read against."""
+    successes = 0
+    for _ in range(episodes):
+        env.reset()
+        while True:
+            legal = np.flatnonzero(env.action_masks())
+            _, _, terminated, truncated, info = env.step(int(rng.choice(legal)))
+            if terminated or truncated:
+                successes += int(bool(info.get("success")))
+                break
+    return {
+        "episodes": episodes,
+        "successes": successes,
+        "success_rate": round(successes / episodes, 4),
+        "wilson_95": _wilson(successes, episodes),
+    }
+
+
+def train(config: TrainConfig) -> dict:
+    started = time.perf_counter()
+    run_id = manifest_module.new_run_id(config.run_prefix)
+    run_dir = manifest_module.runs_dir() / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    seeded = seed_everything(config.master_seed)
+    plan = SeedPlan(master=config.master_seed, run_id=run_id)
+    task = get(config.task_id)
+
+    manager = WorkerManager()
+    handle, session = _make_session(manager, f"train-{config.task_id}")
+    status = {"run_id": run_id, "state": "running"}
+    (run_dir / "status.json").write_text(json.dumps(status, indent=2), encoding="utf-8")
+
+    try:
+        env = FactorioEnv(
+            task, session, plan, branch=Branch.TRAIN, split="train", shaping=config.shaping
+        )
+        model = MaskablePPO(
+            "MultiInputPolicy",
+            env,
+            policy_kwargs=policy_kwargs(),
+            learning_rate=config.learning_rate,
+            n_steps=config.n_steps,
+            batch_size=config.batch_size,
+            gamma=config.gamma,
+            ent_coef=config.ent_coef,
+            seed=config.master_seed,
+            device=config.device,
+            verbose=0,
+        )
+
+        # Written before the first step, so an interrupted run still has one.
+        manifest_module.RunManifest(
+            run_id=run_id,
+            engine=handle.engine.to_dict(),
+            task={
+                "id": task.spec.id,
+                "version": task.spec.version,
+                "config_digest": manifest_module.config_digest(task.spec.to_dict()),
+                "resolved": task.spec.to_dict(),
+            },
+            profiles={
+                "observation": task.spec.observation_profile,
+                "action": task.spec.action_profile,
+                "assistance": "none",
+                "catalog": env.catalog.name,
+                "catalog_digest": env.catalog.digest(),
+                "resolved_catalog": list(env.catalog.keys()),
+            },
+            reward={
+                "shaping_enabled": config.shaping,
+                "config_digest": manifest_module.config_digest([r.name for r in task.spec.rewards]),
+                "components": [
+                    {"name": r.name, "kind": r.kind.value, "weight": r.weight, "shaping": r.shaping}
+                    for r in task.spec.rewards
+                ],
+            },
+            seeds={**plan.to_dict(), "seeded": seeded},
+            budgets={
+                "max_decision_steps": task.spec.max_decision_steps,
+                "max_game_ticks": task.spec.max_game_ticks,
+                "total_steps": config.total_steps,
+            },
+            workers=[handle.spec.manifest()],
+            model={**describe(model), "extractor_version": EXTRACTOR_VERSION},
+            extra={"config": config.to_dict()},
+        ).write()
+
+        curve = CurveLogger(run_dir / "curve.csv", started)
+        model.learn(total_timesteps=config.total_steps, callback=curve, progress_bar=False)
+        curve.write()
+        model.save(run_dir / "model")
+
+        # Evaluation runs on the held-out split and a disjoint seed branch, so
+        # an evaluation episode can never be one the policy trained on.
+        eval_env = FactorioEnv(
+            task, session, plan, branch=Branch.EVAL, split="test", shaping=config.shaping
+        )
+        held_out = evaluate(eval_env, model, config.eval_episodes)
+        baseline = random_baseline(
+            FactorioEnv(task, session, plan, branch=Branch.EVAL, split="test"),
+            min(config.eval_episodes, 10),
+            np.random.default_rng(config.master_seed),
+        )
+
+        result = {
+            "run_id": run_id,
+            "task": config.task_id,
+            "total_steps": config.total_steps,
+            "wall_seconds": round(time.perf_counter() - started, 1),
+            "steps_per_second": round(
+                config.total_steps / max(time.perf_counter() - started, 1e-9), 2
+            ),
+            "held_out": held_out,
+            "random_baseline": baseline,
+            "episodes_logged": len(curve.rows),
+            "final_train_success_rate": round(
+                float(np.mean([r["success"] for r in curve.rows[-20:]])), 4
+            )
+            if curve.rows
+            else 0.0,
+        }
+        (run_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+        status = {"run_id": run_id, "state": "completed"}
+        return result
+    except Exception as exc:  # noqa: BLE001 - a failed run must stay inspectable
+        import traceback
+
+        status = {
+            "run_id": run_id,
+            "state": "failed",
+            "error": f"{type(exc).__name__}: {exc}",
+            "traceback": traceback.format_exc(),
+        }
+        raise
+    finally:
+        # Never delete a failed run; its directory is the evidence.
+        (run_dir / "status.json").write_text(json.dumps(status, indent=2), encoding="utf-8")
+        try:
+            session.close()
+        except OSError:
+            pass
+        manager.cleanup(handle)

@@ -9,9 +9,25 @@ A phase is marked Accepted only *after* its gate has run and passed with the
 transcript committed under `docs/evidence/`. The ledger entry is downstream of
 the evidence, never ahead of it — see the correction note at the end of Phase 1.
 
-Engine pin: Factorio **2.0.60 (build 83512, win64)** — see
+Engine pin: Factorio **2.0.60 (build 83512, win64)** - see
 `src/factoriorl/engine_config.py`. Verified on this workstation
-(AMD Ryzen 7 5800H, RTX 4060, Windows 11).
+(AMD Ryzen 7 5800H, **NVIDIA RTX 3050 Laptop GPU 4.3 GB**, Windows 11).
+
+> **Hardware correction (2026-09-07).** Every document in this repository -
+> PLAN.md, this ledger, and HANDOFF.md - recorded the training GPU as an
+> **RTX 4060**. It is not. The machine has an **NVIDIA GeForce RTX 3050 Laptop
+> GPU, 4.3 GB VRAM, sm_86**, alongside a Ryzen 7 5800H (the CPU claim was
+> correct). This was discovered the first time torch was asked rather than
+> assumed, and confirmed against `torch.cuda`, `Win32_VideoController` and
+> `Win32_Processor`.
+>
+> Consequences: PLAN 4.5's "overnight introductory training recipe on the 4060"
+> refers to hardware that is not present, and any figure published against "the
+> 4060" would be a false provenance record. Run manifests now capture the GPU
+> name, VRAM, capability and torch version at runtime, so this cannot drift
+> again. In practice the environment is the bottleneck at ~24 ms per step, not
+> the GPU, so the correction matters for honesty more than for feasibility.
+
 
 ## Phase 0 — Repository foundation and engine feasibility
 
@@ -572,6 +588,80 @@ before and which is exactly where cross-episode leakage hides.
 invariants per family, reward-component sums, shaping-off parity, held-out split
 reachability, the 504-reset leakage run with a fresh-worker comparison, and the
 throughput numbers Phase 4.3 builds on. **65/65, 16 seconds.**
+
+## Phase 4 - Compact RL baseline
+
+**Status: Needs correction** (2026-09-07) - the pipeline is built and a pilot
+ran end to end; the release learning result (4.5) is not yet produced.
+
+### 4.1 - Baseline policy
+
+MaskablePPO with a custom SB3 features extractor: a small CNN over the 6x65x65
+grid, a **masked** per-entity MLP, and an MLP over the self/inventory/goal
+vectors. Masked pooling matters: padding rows must not drag the mean toward zero
+or win the max, or a scene with three entities would encode differently from the
+same scene padded to thirty-two.
+
+`266070` parameters, extractor version
+`1`, recorded in every manifest - a silent
+encoder change invalidates every checkpoint trained on it.
+
+`factoriorl doctor-train` fails loudly on a CPU-only wheel, the commonest
+Windows setup failure.
+
+**The environment never imports the training stack.** A subprocess test imports
+`factoriorl.env`, `encoders`, `tasks` and `cli`, discovers every task, and
+asserts torch, stable_baselines3 and sb3_contrib are absent from `sys.modules`.
+That test *is* PLAN 4.1's "evaluation runs without training dependencies
+changing environment behaviour", made mechanical.
+
+### 4.2 - Pilot: one family, one seed
+
+Run `pilot-20260907T061820-e3cdf3b6`, task `navigate`, 40,000 steps,
+1851 s wall, **21.6 steps/s**
+end to end (policy forward, PPO updates, evaluation and the random baseline all
+included; the environment alone measures 41.6 steps/s).
+
+| | success rate | Wilson 95% |
+|---|---|---|
+| Held-out (`test` split, EVAL seed branch) | **0.40** (12/30) | [0.2459, 0.5768] |
+| Random baseline, same split | 0.00 (0/10) | [0.0, 0.2775] |
+
+Evaluation uses the **held-out layout family** and a **disjoint seed branch**, so
+an evaluation episode can never be one the policy trained on - asserted by a
+unit test over 2000 indices per branch.
+
+### 4.3 / 4.4 / 4.5 - not yet done
+
+Worker-count profiling, the shaping-dependence comparison and the three-seed
+release result remain. The throughput needed for them is in hand (a 300k-step
+run is roughly two hours on a single worker), and the memory ceiling that
+motivated multi-worker scaling is much less pressing now that one worker
+sustains 41.6 env steps/s.
+
+### Phase 4 exit gate
+
+`uv run factoriorl phase4-gate` checks **mechanics, never a stochastic training
+outcome** - a gate that depends on a policy reaching a success rate is a flaky
+gate. It verifies the training stack resolves with real CUDA, that published
+checkpoints load *and their manifests still verify against current code*, that
+the manifest carries every field PLAN section 2 requires including the measured
+GPU, that train and evaluation seed branches are disjoint, and that a short
+training run completes unattended.
+
+### Defects found while building Phase 4
+
+- **Validation was seeded with Python's `hash()`**, which is randomised per
+  process, so `tasks validate` sampled different blueprints on every run and the
+  suite passed or failed at random - roughly one run in eight. Worse than a
+  failing check, because it hid one: with stable seeding, `navigate/pillar_field`
+  turned out to place overlapping pillars in 3 of 400 seeds. Both fixed; 24,000
+  generated scenes now come back clean.
+- **The manifest could fail to be written at all.** `host_info()` imports torch
+  to describe the GPU, and on a machine near its commit limit that raises
+  `OSError: the paging file is too small`, not `ImportError`. Losing the record
+  of a run is far worse than recording an unknown GPU, so the probe now degrades
+  to a reason string.
 
 ## Engine facts worth remembering
 

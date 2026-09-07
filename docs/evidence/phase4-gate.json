@@ -1,0 +1,91 @@
+{
+  "passed": true,
+  "failures": [],
+  "measurements": {
+    "gpu": {
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "vram_gb": 4.3
+    },
+    "smoke_steps_per_second": 12.22,
+    "wall_seconds": 116.6
+  },
+  "checks": [
+    {
+      "check": "training dependencies resolve",
+      "ok": true,
+      "torch": "2.6.0+cu124"
+    },
+    {
+      "check": "CUDA is available (not a CPU-only wheel)",
+      "ok": true,
+      "device": "NVIDIA GeForce RTX 3050 Laptop GPU"
+    },
+    {
+      "check": "train and evaluation seed branches are disjoint",
+      "ok": true,
+      "overlap": 0
+    },
+    {
+      "check": "at least one published checkpoint exists",
+      "ok": true,
+      "count": 2
+    },
+    {
+      "check": "pilot-20260907T061820-e3cdf3b6: manifest verifies against current code",
+      "ok": true,
+      "problems": []
+    },
+    {
+      "check": "pilot-20260907T061820-e3cdf3b6: manifest records the extractor version",
+      "ok": true,
+      "recorded": 1,
+      "current": 1
+    },
+    {
+      "check": "pilot-20260907T061820-e3cdf3b6: manifest records the measured host GPU",
+      "ok": true,
+      "gpu": "NVIDIA GeForce RTX 3050 Laptop GPU"
+    },
+    {
+      "check": "pilot-20260907T061820-e3cdf3b6: checkpoint loads for inference",
+      "ok": true
+    },
+    {
+      "check": "smoke-20260907T061459-6e54ab08: manifest verifies against current code",
+      "ok": true,
+      "problems": []
+    },
+    {
+      "check": "smoke-20260907T061459-6e54ab08: manifest records the extractor version",
+      "ok": true,
+      "recorded": 1,
+      "current": 1
+    },
+    {
+      "check": "smoke-20260907T061459-6e54ab08: manifest records the measured host GPU",
+      "ok": true,
+      "gpu": "NVIDIA GeForce RTX 3050 Laptop GPU"
+    },
+    {
+      "check": "smoke-20260907T061459-6e54ab08: checkpoint loads for inference",
+      "ok": true
+    },
+    {
+      "check": "the newest manifest carries every field PLAN section 2 requires",
+      "ok": true,
+      "missing": []
+    },
+    {
+      "check": "a short training run completes unattended",
+      "ok": true,
+      "steps_per_second": 12.22
+    },
+    {
+      "check": "the smoke run's manifest verifies",
+      "ok": true,
+      "problems": []
+    }
+  ],
+  "completed_at": "2026-09-07T06:58:01",
+  "mode": "reproduce"
+}

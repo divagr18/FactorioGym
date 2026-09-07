@@ -75,6 +75,17 @@ def validate_all(sample_seeds: int = 16) -> dict:
     initial conditions.
     """
     import random
+    import zlib
+
+    def stable_seed(*parts: object) -> int:
+        """Deterministic across processes.
+
+        Python's built-in hash() is randomized per process (PYTHONHASHSEED), so
+        seeding validation with it sampled different blueprints on every run and
+        made the suite pass or fail at random -- which is worse than a failing
+        check, because it hides one.
+        """
+        return zlib.crc32("|".join(str(p) for p in parts).encode()) & 0xFFFFFFFF
 
     tasks = all_tasks()
     report: dict = {"tasks": {}, "ok": True}
@@ -102,7 +113,7 @@ def validate_all(sample_seeds: int = 16) -> dict:
 
         for family in spec.layout_families:
             for index in range(sample_seeds):
-                rng = random.Random(hash((task_id, family.name, index)) & 0xFFFFFFFF)
+                rng = random.Random(stable_seed(task_id, family.name, index))
                 try:
                     blueprint = task.generate(family, rng)
                 except Exception as exc:  # noqa: BLE001 - report, do not raise
