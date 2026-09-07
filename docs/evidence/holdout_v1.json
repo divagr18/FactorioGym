@@ -3073,9 +3073,13 @@
   "generated_at": "2026-09-07T20:15:54Z",
   "git_commit": "1e5bf47c6d2b4dd9fd9786a7b0024a3c8df2230b",
   "declaration": {
-    "candidate_families": null,
-    "declared_at": null,
-    "declared_at_commit": null,
+    "candidate_families": [
+      "navigate",
+      "deliver",
+      "mine_smelt"
+    ],
+    "declared_at": "2026-09-07T20:21:20Z",
+    "declared_at_commit": "89bcb6cc72205e549fdc6abefae3e0f22799d138",
     "note": "The candidate set must be recorded here before any result on this holdout is read. Adding it afterwards produces the same JSON and a different claim."
   },
   "notes": {
