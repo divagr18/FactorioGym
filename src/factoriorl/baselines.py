@@ -23,14 +23,14 @@ from factoriorl.paths import runtime_dir
 
 #: Bump when the *meaning* of a stored baseline changes -- a different episode
 #: termination rule, say -- so entries written by older code are not reused.
-CACHE_VERSION = 1
+CACHE_VERSION = 2
 
 
 def baselines_dir() -> Path:
     return runtime_dir() / "baselines"
 
 
-def cache_key(task: Any, split: str, master_seed: int, episodes: int) -> str:
+def cache_key(task: Any, split: str, master_seed: int, episodes: int, action_space: str) -> str:
     """Everything that can move the floor, and nothing that cannot.
 
     Correctness is the whole point of this key. A baseline is the number every
@@ -41,6 +41,16 @@ def cache_key(task: Any, split: str, master_seed: int, episodes: int) -> str:
     layouts, budgets or rewards moves its version, and adding or removing an
     action changes the catalog digest, and either one changes what a random
     agent achieves.
+
+    `action_space` is here because the first version of that claim was wrong in
+    a way that mattered. Skills are added by a wrapper around the environment,
+    not by the catalog, so a flat run and a skill-augmented run resolve to the
+    *same* catalog digest and shared a cache entry. In the Phase 4b ablation the
+    flat arm ran first and cached a floor of 0.12 measured over primitive
+    actions; all three skill arms then reported that number, and `deliver` was
+    published as 1.00 against 0.12 when its true floor with skills is nearer
+    0.80. A random policy over temporally extended actions is a different agent,
+    and the floor is a property of the action space as much as of the task.
     """
     spec = task.spec
     resolved = catalog.resolve(spec.catalog, spec.catalog_subset)
@@ -53,6 +63,7 @@ def cache_key(task: Any, split: str, master_seed: int, episodes: int) -> str:
             "master_seed": master_seed,
             "episodes": episodes,
             "catalog_digest": resolved.digest(),
+            "action_space": action_space,
         },
         sort_keys=True,
         separators=(",", ":"),
@@ -94,6 +105,7 @@ def cached_random_baseline(
     master_seed: int,
     episodes: int,
     compute,
+    action_space: str = "primitive",
 ) -> dict:
     """Return the cached floor for this key, or compute and store it.
 
@@ -102,7 +114,7 @@ def cached_random_baseline(
     at all. The returned dict carries ``cached`` so a result file says whether
     its floor was measured in that run or recalled.
     """
-    digest = cache_key(task, split, master_seed, episodes)
+    digest = cache_key(task, split, master_seed, episodes, action_space)
     path = baselines_dir() / f"{digest}.json"
     hit = _read(path)
     if hit is not None:

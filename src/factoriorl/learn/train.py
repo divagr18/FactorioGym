@@ -552,7 +552,15 @@ def train(config: TrainConfig) -> dict:
                 return random_baseline(floor_env, config.eval_episodes, rng)
 
             rows[label]["random_baseline"] = cached_random_baseline(
-                task, split, config.master_seed, config.eval_episodes, measure_baseline
+                task,
+                split,
+                config.master_seed,
+                config.eval_episodes,
+                measure_baseline,
+                # The floor belongs to the action space, not just the task: a
+                # random policy over skills is a different agent from a random
+                # policy over primitives.
+                action_space=SKILL_PROFILE if config.skills else task.spec.action_profile,
             )
 
         # Coverage, not just citation. If this run claims a frozen holdout, say

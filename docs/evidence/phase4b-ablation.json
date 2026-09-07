@@ -417,5 +417,15 @@
         ]
       }
     }
-  ]
+  ],
+  "correction_2026_09_08": {
+    "what": "The random_success_rate recorded for every skills arm is a primitive-action floor, not a skills floor.",
+    "why": "The baseline cache keyed on the resolved catalog digest, and skills are added by a wrapper rather than by the catalog, so flat and skill-augmented runs of the same task shared a cache entry. The flat arm ran first and cached 0.12; the skill arms read it back.",
+    "measured_true_floor": {
+      "deliver_structures_with_skills": 0.8,
+      "source_run": "shaped-20260908T002112-c810e1bd"
+    },
+    "what_survives": "The flat-versus-skills comparison itself: both arms were scored on the same evaluation episodes, and 0.00 against 1.00 on the structural split is unaffected by an error in the floor they were both compared to.",
+    "fixed_by": "cache key now carries the action space; CACHE_VERSION bumped to 2"
+  }
 }

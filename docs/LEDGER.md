@@ -856,8 +856,31 @@ At 25k this read as evidence that skills were not enough for a production task.
 It was evidence of nothing but the budget.
 
 Three families now clear the 80% structural bar, with a production qualifier
-among them - `navigate` 1.00 (random 0.20), `deliver` 1.00 (random 0.12),
-`mine_smelt` 1.00 (random 0.24). **This does not meet PLAN 4.5**, which
+among them - `navigate` 1.00, `deliver` 1.00, `mine_smelt` 1.00.
+
+> **Correction (2026-09-08): the random baselines quoted for the skill arms
+> were wrong, and wrong in the flattering direction.** The baseline cache key
+> contained the resolved *catalog* digest, but skills are added by a wrapper
+> around the environment rather than by the catalog, so a flat run and a
+> skill-augmented run of the same task resolved to the same key. In the
+> ablation the flat arm ran first and cached a floor of **0.12** measured over
+> primitive actions; all three skill arms then read that entry and reported it
+> as their own. A later run under a different seed missed the cache, recomputed
+> honestly, and returned **0.80**.
+>
+> So `deliver` with skills is 1.00 against a floor near 0.80, not against 0.12.
+> The 4b conclusion survives -- flat 0.00 and skills 1.00 were measured on the
+> same evaluation episodes, and that gap is real -- but "far above chance" does
+> not, and the margins for `navigate` and `mine_smelt` are unverified for the
+> same reason.
+>
+> This is the third time the same fact has bitten: **a random floor is a
+> property of the action space, not of the task.** `mine_smelt`'s floor went
+> 0.00 to 0.80 when skills were added, `supply_furnace`'s to 0.88, and here a
+> cache built to save recomputation is what hid it. The key now carries the
+> action space and a test asserts the two spaces cannot share an entry.
+
+**This does not meet PLAN 4.5**, which
 requires three training seeds per family; every number above is a single seed,
 on a benchmark where two runs at the same seed and budget scored 1.00 and 0.72.
 The bar is cleared on one sample and the claim needs nine runs.

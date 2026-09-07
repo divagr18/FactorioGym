@@ -544,3 +544,22 @@ def test_truncation_does_not_zero_the_potential():
 
     assert truncated_value != terminated_value, "terminated and truncated scored identically"
     assert terminated_value < truncated_value, "terminating should forfeit the remaining potential"
+
+
+def test_the_baseline_cache_key_separates_action_spaces():
+    """A random policy over skills is a different agent from a random policy
+    over primitives, so they must not share a cached floor.
+
+    They did. In the Phase 4b ablation the flat arm ran first and cached a
+    floor of 0.12 measured over primitive actions; the skill arms then reported
+    that number as their own, and `deliver` was published as 1.00 against 0.12
+    when its true floor with skills is nearer 0.80. Skills are added by a
+    wrapper rather than by the catalog, so the catalog digest -- which the key
+    already contained -- could not tell the two apart.
+    """
+    from factoriorl.baselines import cache_key
+
+    task = get("deliver")
+    flat = cache_key(task, "test", 11, 25, "primitive-v1")
+    skills = cache_key(task, "test", 11, 25, "skills-v1")
+    assert flat != skills, "a skills floor would be served from the primitive cache entry"
