@@ -1,5 +1,5 @@
 {
-  "content_hash": "672130c9dc6c28f77c1371f795e35657f1cef2cf857614df1fd9eab9519a863f",
+  "content_hash": "f77aa2c291f720f9601e8d94fa0f9b9daa4a90de37e1d4629c53aeac126135f4",
   "holdout": {
     "schema": "factoriorl.holdout/1",
     "holdout_id": "holdout_v1",
@@ -16,7 +16,7 @@
     "tasks": {
       "deliver": {
         "task_id": "deliver",
-        "task_version": "1.0.0",
+        "task_version": "1.1.0",
         "families_in_split": [
           "screened_depot"
         ],
@@ -24,502 +24,502 @@
           {
             "episode_index": 1000,
             "layout_family": "screened_depot",
-            "blueprint_digest": "2675bb0c9644cc92"
+            "blueprint_digest": "4bd57bdba47988f7"
           },
           {
             "episode_index": 1001,
             "layout_family": "screened_depot",
-            "blueprint_digest": "8d3b848c04566cd1"
+            "blueprint_digest": "1fe032828ae3f0d7"
           },
           {
             "episode_index": 1002,
             "layout_family": "screened_depot",
-            "blueprint_digest": "9754cbdf89cd04a8"
+            "blueprint_digest": "a3effb7279d08177"
           },
           {
             "episode_index": 1003,
             "layout_family": "screened_depot",
-            "blueprint_digest": "53d40bd54ea7ae81"
+            "blueprint_digest": "6909d1b8911e2ef2"
           },
           {
             "episode_index": 1004,
             "layout_family": "screened_depot",
-            "blueprint_digest": "98c5f9c94c8a5593"
+            "blueprint_digest": "ab5d7fc3340b3bbc"
           },
           {
             "episode_index": 1005,
             "layout_family": "screened_depot",
-            "blueprint_digest": "5c4e103a6bda48ba"
+            "blueprint_digest": "c6f35c142c8e8f84"
           },
           {
             "episode_index": 1006,
             "layout_family": "screened_depot",
-            "blueprint_digest": "08e6daa796ae3d7e"
+            "blueprint_digest": "0b20ceba89c5d4b2"
           },
           {
             "episode_index": 1007,
             "layout_family": "screened_depot",
-            "blueprint_digest": "066802b78efbd790"
+            "blueprint_digest": "dbaaba727b9e9a52"
           },
           {
             "episode_index": 1008,
             "layout_family": "screened_depot",
-            "blueprint_digest": "a522ad0290928e59"
+            "blueprint_digest": "610604c6cf45c634"
           },
           {
             "episode_index": 1009,
             "layout_family": "screened_depot",
-            "blueprint_digest": "17f9be709e283f03"
+            "blueprint_digest": "b04deddb01d788c2"
           },
           {
             "episode_index": 1010,
             "layout_family": "screened_depot",
-            "blueprint_digest": "fab875647f18e682"
+            "blueprint_digest": "d88c90ef167c8fd7"
           },
           {
             "episode_index": 1011,
             "layout_family": "screened_depot",
-            "blueprint_digest": "c14216067a8c1496"
+            "blueprint_digest": "b941f1c9bff0d364"
           },
           {
             "episode_index": 1012,
             "layout_family": "screened_depot",
-            "blueprint_digest": "c15f9135bf98e8c9"
+            "blueprint_digest": "3dc84ccb96e761df"
           },
           {
             "episode_index": 1013,
             "layout_family": "screened_depot",
-            "blueprint_digest": "41726873c82fdcf2"
+            "blueprint_digest": "b22fd6d1d74ab258"
           },
           {
             "episode_index": 1014,
             "layout_family": "screened_depot",
-            "blueprint_digest": "c95c6f0492dc66bc"
+            "blueprint_digest": "6c048b44701c6071"
           },
           {
             "episode_index": 1015,
             "layout_family": "screened_depot",
-            "blueprint_digest": "d5988b8f3bb8a69c"
+            "blueprint_digest": "a52cf40902c74f72"
           },
           {
             "episode_index": 1016,
             "layout_family": "screened_depot",
-            "blueprint_digest": "faaf3e7642dad4a0"
+            "blueprint_digest": "0694044131bf2871"
           },
           {
             "episode_index": 1017,
             "layout_family": "screened_depot",
-            "blueprint_digest": "60da87501cd7b025"
+            "blueprint_digest": "783dc765604d3c04"
           },
           {
             "episode_index": 1018,
             "layout_family": "screened_depot",
-            "blueprint_digest": "e6166cd21e8a5303"
+            "blueprint_digest": "61106702e3a08cf6"
           },
           {
             "episode_index": 1019,
             "layout_family": "screened_depot",
-            "blueprint_digest": "98af9fd98fca8e63"
+            "blueprint_digest": "684382f0f52fcb9f"
           },
           {
             "episode_index": 1020,
             "layout_family": "screened_depot",
-            "blueprint_digest": "8fe7101828b90d9c"
+            "blueprint_digest": "f32abac2c42366f6"
           },
           {
             "episode_index": 1021,
             "layout_family": "screened_depot",
-            "blueprint_digest": "8ab241d2a7ffa536"
+            "blueprint_digest": "082e32536bda37f2"
           },
           {
             "episode_index": 1022,
             "layout_family": "screened_depot",
-            "blueprint_digest": "cb801b80ad371ce0"
+            "blueprint_digest": "862f4555c4403270"
           },
           {
             "episode_index": 1023,
             "layout_family": "screened_depot",
-            "blueprint_digest": "cb41a25d9e0139b6"
+            "blueprint_digest": "259b164fc1899f4c"
           },
           {
             "episode_index": 1024,
             "layout_family": "screened_depot",
-            "blueprint_digest": "9dc5d7450e1b13a7"
+            "blueprint_digest": "9adf4c8b172b7b1d"
           },
           {
             "episode_index": 1025,
             "layout_family": "screened_depot",
-            "blueprint_digest": "51f6cb21ea082c8e"
+            "blueprint_digest": "7e135b3d3dd7fd4e"
           },
           {
             "episode_index": 1026,
             "layout_family": "screened_depot",
-            "blueprint_digest": "b9a34a0fbf7f1867"
+            "blueprint_digest": "6bec724921112a6f"
           },
           {
             "episode_index": 1027,
             "layout_family": "screened_depot",
-            "blueprint_digest": "f8d259a755bc8ad0"
+            "blueprint_digest": "b375953fdc0f8692"
           },
           {
             "episode_index": 1028,
             "layout_family": "screened_depot",
-            "blueprint_digest": "95c50ad168ab7dc3"
+            "blueprint_digest": "f90002c51857fdda"
           },
           {
             "episode_index": 1029,
             "layout_family": "screened_depot",
-            "blueprint_digest": "778e7d05eb88d062"
+            "blueprint_digest": "a9be58af1aeccb65"
           },
           {
             "episode_index": 1030,
             "layout_family": "screened_depot",
-            "blueprint_digest": "f0f14aec185c5117"
+            "blueprint_digest": "3e0b11b5e228193a"
           },
           {
             "episode_index": 1031,
             "layout_family": "screened_depot",
-            "blueprint_digest": "7de0aa0072d6fdfe"
+            "blueprint_digest": "419f959cbdeb5ab6"
           },
           {
             "episode_index": 1032,
             "layout_family": "screened_depot",
-            "blueprint_digest": "0b8d0e677f2e50b9"
+            "blueprint_digest": "da40ae1cffc5ee10"
           },
           {
             "episode_index": 1033,
             "layout_family": "screened_depot",
-            "blueprint_digest": "a754059f61c1ea64"
+            "blueprint_digest": "4f67d27285d170a9"
           },
           {
             "episode_index": 1034,
             "layout_family": "screened_depot",
-            "blueprint_digest": "aba4718765a7df6f"
+            "blueprint_digest": "a923209d790d9a44"
           },
           {
             "episode_index": 1035,
             "layout_family": "screened_depot",
-            "blueprint_digest": "0d57ea03237649f2"
+            "blueprint_digest": "4613a59bd54a9847"
           },
           {
             "episode_index": 1036,
             "layout_family": "screened_depot",
-            "blueprint_digest": "b5fceb58dc3414c4"
+            "blueprint_digest": "dfbca19b40c70619"
           },
           {
             "episode_index": 1037,
             "layout_family": "screened_depot",
-            "blueprint_digest": "f765262a7494c0c3"
+            "blueprint_digest": "7224f4ff429d8893"
           },
           {
             "episode_index": 1038,
             "layout_family": "screened_depot",
-            "blueprint_digest": "82692713f5a4cb77"
+            "blueprint_digest": "8f5816a2c1d67064"
           },
           {
             "episode_index": 1039,
             "layout_family": "screened_depot",
-            "blueprint_digest": "09389c403be24943"
+            "blueprint_digest": "ff069df343dc2c78"
           },
           {
             "episode_index": 1040,
             "layout_family": "screened_depot",
-            "blueprint_digest": "d998e6000de46f95"
+            "blueprint_digest": "7bdaeae5313b0ce3"
           },
           {
             "episode_index": 1041,
             "layout_family": "screened_depot",
-            "blueprint_digest": "4dd3114d91daee8c"
+            "blueprint_digest": "d80973d07da5c6a8"
           },
           {
             "episode_index": 1042,
             "layout_family": "screened_depot",
-            "blueprint_digest": "0c460592328be63e"
+            "blueprint_digest": "29563dfe020a7e18"
           },
           {
             "episode_index": 1043,
             "layout_family": "screened_depot",
-            "blueprint_digest": "2fe4f17ef556491a"
+            "blueprint_digest": "5838e4f4a8af01f0"
           },
           {
             "episode_index": 1044,
             "layout_family": "screened_depot",
-            "blueprint_digest": "b97a02475fee351d"
+            "blueprint_digest": "74aee85d305f3fa0"
           },
           {
             "episode_index": 1045,
             "layout_family": "screened_depot",
-            "blueprint_digest": "bb6fd01a3d2ca87a"
+            "blueprint_digest": "18445f13b75f6cab"
           },
           {
             "episode_index": 1046,
             "layout_family": "screened_depot",
-            "blueprint_digest": "4b8e51c6ca25f7d6"
+            "blueprint_digest": "5356d2775683aeec"
           },
           {
             "episode_index": 1047,
             "layout_family": "screened_depot",
-            "blueprint_digest": "649ddff9dfc995bf"
+            "blueprint_digest": "d8b5af5d4f6a01f6"
           },
           {
             "episode_index": 1048,
             "layout_family": "screened_depot",
-            "blueprint_digest": "a8226eb20287c961"
+            "blueprint_digest": "6eb8240f3ac9f80d"
           },
           {
             "episode_index": 1049,
             "layout_family": "screened_depot",
-            "blueprint_digest": "7deb5037f21a6141"
+            "blueprint_digest": "638fde17d206e9b7"
           },
           {
             "episode_index": 1050,
             "layout_family": "screened_depot",
-            "blueprint_digest": "61a9fa079b9131c5"
+            "blueprint_digest": "51c65963ccbb6c3c"
           },
           {
             "episode_index": 1051,
             "layout_family": "screened_depot",
-            "blueprint_digest": "fe6722817e792bbe"
+            "blueprint_digest": "487923bd4454f140"
           },
           {
             "episode_index": 1052,
             "layout_family": "screened_depot",
-            "blueprint_digest": "617742fac107842b"
+            "blueprint_digest": "d9059b9f9f93c958"
           },
           {
             "episode_index": 1053,
             "layout_family": "screened_depot",
-            "blueprint_digest": "a6d30d5b6bd91b46"
+            "blueprint_digest": "bbc0f08820349a1d"
           },
           {
             "episode_index": 1054,
             "layout_family": "screened_depot",
-            "blueprint_digest": "ebed999b1376ed73"
+            "blueprint_digest": "f55354eb9a5f9eba"
           },
           {
             "episode_index": 1055,
             "layout_family": "screened_depot",
-            "blueprint_digest": "f7ae536cece8b61c"
+            "blueprint_digest": "10e1360bb1570e93"
           },
           {
             "episode_index": 1056,
             "layout_family": "screened_depot",
-            "blueprint_digest": "4c6fc90dde7373f2"
+            "blueprint_digest": "a4d0d300e406630b"
           },
           {
             "episode_index": 1057,
             "layout_family": "screened_depot",
-            "blueprint_digest": "530bcb9946a4d56f"
+            "blueprint_digest": "8145247d17b7f6cf"
           },
           {
             "episode_index": 1058,
             "layout_family": "screened_depot",
-            "blueprint_digest": "bf66c63f99e55e96"
+            "blueprint_digest": "e99a6f6829c6d2d2"
           },
           {
             "episode_index": 1059,
             "layout_family": "screened_depot",
-            "blueprint_digest": "522cfa930dc169e2"
+            "blueprint_digest": "883926ce56589b1a"
           },
           {
             "episode_index": 1060,
             "layout_family": "screened_depot",
-            "blueprint_digest": "08676e23559ca474"
+            "blueprint_digest": "4d1c17d06e1e9183"
           },
           {
             "episode_index": 1061,
             "layout_family": "screened_depot",
-            "blueprint_digest": "2b286f38a62719de"
+            "blueprint_digest": "5cb03d301464553b"
           },
           {
             "episode_index": 1062,
             "layout_family": "screened_depot",
-            "blueprint_digest": "3ea0cc68e4b76dab"
+            "blueprint_digest": "75b6a6858369ce01"
           },
           {
             "episode_index": 1063,
             "layout_family": "screened_depot",
-            "blueprint_digest": "233b89be2c4229d8"
+            "blueprint_digest": "540b4e43c02056c2"
           },
           {
             "episode_index": 1064,
             "layout_family": "screened_depot",
-            "blueprint_digest": "6b07fdeb61cb286c"
+            "blueprint_digest": "85bd4bf61dd5e621"
           },
           {
             "episode_index": 1065,
             "layout_family": "screened_depot",
-            "blueprint_digest": "fcd52c0386112996"
+            "blueprint_digest": "61f83b34db3f93ae"
           },
           {
             "episode_index": 1066,
             "layout_family": "screened_depot",
-            "blueprint_digest": "fb901b8d1f50fa43"
+            "blueprint_digest": "b6ea067791d00305"
           },
           {
             "episode_index": 1067,
             "layout_family": "screened_depot",
-            "blueprint_digest": "d290928f698b55eb"
+            "blueprint_digest": "7b6642fd01020a6c"
           },
           {
             "episode_index": 1068,
             "layout_family": "screened_depot",
-            "blueprint_digest": "497768e55fa501cf"
+            "blueprint_digest": "0a10153ac69ab130"
           },
           {
             "episode_index": 1069,
             "layout_family": "screened_depot",
-            "blueprint_digest": "386c93b65b121503"
+            "blueprint_digest": "0cf379368f8469bb"
           },
           {
             "episode_index": 1070,
             "layout_family": "screened_depot",
-            "blueprint_digest": "731424b763803ded"
+            "blueprint_digest": "cc86bf36d2af49dd"
           },
           {
             "episode_index": 1071,
             "layout_family": "screened_depot",
-            "blueprint_digest": "810678ec4ec08cbc"
+            "blueprint_digest": "913e084402337db4"
           },
           {
             "episode_index": 1072,
             "layout_family": "screened_depot",
-            "blueprint_digest": "d0af0e946f5e6d30"
+            "blueprint_digest": "50bc0c4cd0606481"
           },
           {
             "episode_index": 1073,
             "layout_family": "screened_depot",
-            "blueprint_digest": "a034bbe42609e57a"
+            "blueprint_digest": "8642fa20e5073af2"
           },
           {
             "episode_index": 1074,
             "layout_family": "screened_depot",
-            "blueprint_digest": "d9c01e7835ecd08e"
+            "blueprint_digest": "3093c6f29b24f937"
           },
           {
             "episode_index": 1075,
             "layout_family": "screened_depot",
-            "blueprint_digest": "ee0ea7b274e2d231"
+            "blueprint_digest": "93d61d46549fcc6e"
           },
           {
             "episode_index": 1076,
             "layout_family": "screened_depot",
-            "blueprint_digest": "813868be7ba63682"
+            "blueprint_digest": "20bcb7be8a0aaa42"
           },
           {
             "episode_index": 1077,
             "layout_family": "screened_depot",
-            "blueprint_digest": "b50c3d1c3b7b08c3"
+            "blueprint_digest": "ad379871d9ad3497"
           },
           {
             "episode_index": 1078,
             "layout_family": "screened_depot",
-            "blueprint_digest": "096b3d4f031299c7"
+            "blueprint_digest": "66265659858067f2"
           },
           {
             "episode_index": 1079,
             "layout_family": "screened_depot",
-            "blueprint_digest": "43fd7f6c88bfd6f7"
+            "blueprint_digest": "c2f0e61bec25b4a0"
           },
           {
             "episode_index": 1080,
             "layout_family": "screened_depot",
-            "blueprint_digest": "409153577eed6b5c"
+            "blueprint_digest": "d52ddbfaf21e8358"
           },
           {
             "episode_index": 1081,
             "layout_family": "screened_depot",
-            "blueprint_digest": "96a824482732c388"
+            "blueprint_digest": "a5ec072aa841e0a0"
           },
           {
             "episode_index": 1082,
             "layout_family": "screened_depot",
-            "blueprint_digest": "5869903e0f656d7d"
+            "blueprint_digest": "6afce1f1af6d2d45"
           },
           {
             "episode_index": 1083,
             "layout_family": "screened_depot",
-            "blueprint_digest": "c650a93910adc9c8"
+            "blueprint_digest": "c974667833379787"
           },
           {
             "episode_index": 1084,
             "layout_family": "screened_depot",
-            "blueprint_digest": "3d9c69d9631c0766"
+            "blueprint_digest": "8f53ebf8f43111b2"
           },
           {
             "episode_index": 1085,
             "layout_family": "screened_depot",
-            "blueprint_digest": "2735d2cb8f84792a"
+            "blueprint_digest": "fe3019369a5f2310"
           },
           {
             "episode_index": 1086,
             "layout_family": "screened_depot",
-            "blueprint_digest": "6675dc5447ad1577"
+            "blueprint_digest": "fd7f47af70025e29"
           },
           {
             "episode_index": 1087,
             "layout_family": "screened_depot",
-            "blueprint_digest": "51789273fab7c4b7"
+            "blueprint_digest": "c281cbe6e769f5a2"
           },
           {
             "episode_index": 1088,
             "layout_family": "screened_depot",
-            "blueprint_digest": "c0ff43d244ab9626"
+            "blueprint_digest": "62fec93d3ae42560"
           },
           {
             "episode_index": 1089,
             "layout_family": "screened_depot",
-            "blueprint_digest": "85bab56106378901"
+            "blueprint_digest": "a4f2bc7463cdf2d5"
           },
           {
             "episode_index": 1090,
             "layout_family": "screened_depot",
-            "blueprint_digest": "87f05852480bae84"
+            "blueprint_digest": "1833b77285674f85"
           },
           {
             "episode_index": 1091,
             "layout_family": "screened_depot",
-            "blueprint_digest": "169872730bfac1ff"
+            "blueprint_digest": "84538b88a8691b4a"
           },
           {
             "episode_index": 1092,
             "layout_family": "screened_depot",
-            "blueprint_digest": "5d8f82823640c281"
+            "blueprint_digest": "f76ad688b3de7200"
           },
           {
             "episode_index": 1093,
             "layout_family": "screened_depot",
-            "blueprint_digest": "4ce7c0a0d279c4d2"
+            "blueprint_digest": "0a8e786df7a937aa"
           },
           {
             "episode_index": 1094,
             "layout_family": "screened_depot",
-            "blueprint_digest": "c4a32e5915dbf547"
+            "blueprint_digest": "f03cc58f2e0d8051"
           },
           {
             "episode_index": 1095,
             "layout_family": "screened_depot",
-            "blueprint_digest": "465682bab61fa11e"
+            "blueprint_digest": "6077ceb28bfff106"
           },
           {
             "episode_index": 1096,
             "layout_family": "screened_depot",
-            "blueprint_digest": "9467485f58f376cd"
+            "blueprint_digest": "d9aa967594da10bb"
           },
           {
             "episode_index": 1097,
             "layout_family": "screened_depot",
-            "blueprint_digest": "d7e01a8792383502"
+            "blueprint_digest": "581fe94e39251810"
           },
           {
             "episode_index": 1098,
             "layout_family": "screened_depot",
-            "blueprint_digest": "fb7691560d3f7a74"
+            "blueprint_digest": "38fd2ce55ba15764"
           },
           {
             "episode_index": 1099,
             "layout_family": "screened_depot",
-            "blueprint_digest": "80258fa475436cf1"
+            "blueprint_digest": "a1e57d5ec72a0458"
           }
         ]
       },
@@ -3070,8 +3070,8 @@
       }
     }
   },
-  "generated_at": "2026-09-07T19:13:26Z",
-  "git_commit": "b25d7c5e3146188f9ab4eb822f53a4ac19abbdf2",
+  "generated_at": "2026-09-07T20:15:54Z",
+  "git_commit": "1e5bf47c6d2b4dd9fd9786a7b0024a3c8df2230b",
   "declaration": {
     "candidate_families": null,
     "declared_at": null,
@@ -3090,7 +3090,7 @@
   },
   "summary": {
     "deliver": {
-      "task_version": "1.0.0",
+      "task_version": "1.1.0",
       "families_in_split": [
         "screened_depot"
       ],

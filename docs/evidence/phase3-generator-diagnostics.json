@@ -10,7 +10,7 @@
   },
   "tasks": {
     "deliver": {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "goal_marker": "dst",
       "goal_marker_source": "success/failure predicate",
       "layout_families": {
@@ -42,21 +42,21 @@
             },
             "budget_slack": {
               "available": 200,
-              "min": 31.25,
-              "mean": 47.006,
-              "max": 83.3333
+              "min": 15.0,
+              "mean": 22.5629,
+              "max": 40.0
             },
             "obstacle_count": {
               "available": 200,
-              "min": 2.0,
-              "mean": 2.0,
-              "max": 2.0
+              "min": 4.0,
+              "mean": 4.0,
+              "max": 4.0
             },
             "occupancy_fraction": {
               "available": 200,
-              "min": 0.0013,
-              "mean": 0.0019,
-              "max": 0.0028
+              "min": 0.0015,
+              "mean": 0.0021,
+              "max": 0.003
             },
             "entity_type_count": {
               "available": 200,
@@ -66,21 +66,21 @@
             },
             "distractor_count": {
               "available": 200,
-              "min": 0.0,
-              "mean": 0.0,
-              "max": 0.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 15.0336,
-              "mean": 23.4628,
-              "max": 31.4097
-            },
-            "content_tile_count": {
-              "available": 200,
               "min": 2.0,
               "mean": 2.0,
               "max": 2.0
+            },
+            "goal_isolation": {
+              "available": 200,
+              "min": 11.3146,
+              "mean": 19.636,
+              "max": 28.6276
+            },
+            "content_tile_count": {
+              "available": 200,
+              "min": 4.0,
+              "mean": 4.0,
+              "max": 4.0
             }
           }
         },
@@ -112,21 +112,21 @@
             },
             "budget_slack": {
               "available": 200,
-              "min": 31.25,
-              "mean": 47.006,
-              "max": 83.3333
+              "min": 15.0,
+              "mean": 22.5629,
+              "max": 40.0
             },
             "obstacle_count": {
               "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
+              "min": 4.0,
+              "mean": 4.0,
+              "max": 4.0
             },
             "occupancy_fraction": {
               "available": 200,
-              "min": 0.0019,
-              "mean": 0.0026,
-              "max": 0.0035
+              "min": 0.0015,
+              "mean": 0.0021,
+              "max": 0.003
             },
             "entity_type_count": {
               "available": 200,
@@ -136,21 +136,21 @@
             },
             "distractor_count": {
               "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
+              "min": 2.0,
+              "mean": 2.0,
+              "max": 2.0
             },
             "goal_isolation": {
               "available": 200,
-              "min": 7.0661,
-              "mean": 15.2792,
-              "max": 23.9232
+              "min": 11.3146,
+              "mean": 19.636,
+              "max": 28.6276
             },
             "content_tile_count": {
               "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
+              "min": 4.0,
+              "mean": 4.0,
+              "max": 4.0
             }
           }
         },
@@ -182,21 +182,21 @@
             },
             "budget_slack": {
               "available": 200,
-              "min": 31.25,
-              "mean": 47.006,
-              "max": 83.3333
+              "min": 15.0,
+              "mean": 22.5629,
+              "max": 40.0
             },
             "obstacle_count": {
               "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
+              "min": 4.0,
+              "mean": 4.0,
+              "max": 4.0
             },
             "occupancy_fraction": {
               "available": 200,
-              "min": 0.0019,
+              "min": 0.0018,
               "mean": 0.0028,
-              "max": 0.0042
+              "max": 0.0043
             },
             "entity_type_count": {
               "available": 200,
@@ -206,9 +206,9 @@
             },
             "distractor_count": {
               "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
+              "min": 2.0,
+              "mean": 2.0,
+              "max": 2.0
             },
             "goal_isolation": {
               "available": 200,
@@ -218,9 +218,9 @@
             },
             "content_tile_count": {
               "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
+              "min": 4.0,
+              "mean": 4.0,
+              "max": 4.0
             }
           }
         },
@@ -252,21 +252,21 @@
             },
             "budget_slack": {
               "available": 200,
-              "min": 31.25,
-              "mean": 44.9792,
-              "max": 62.5
+              "min": 15.0,
+              "mean": 21.59,
+              "max": 30.0
             },
             "obstacle_count": {
               "available": 200,
-              "min": 6.0,
-              "mean": 6.84,
-              "max": 7.0
+              "min": 8.0,
+              "mean": 8.84,
+              "max": 9.0
             },
             "occupancy_fraction": {
               "available": 200,
-              "min": 0.0039,
-              "mean": 0.0065,
-              "max": 0.0096
+              "min": 0.0031,
+              "mean": 0.0047,
+              "max": 0.0069
             },
             "entity_type_count": {
               "available": 200,
@@ -276,9 +276,9 @@
             },
             "distractor_count": {
               "available": 200,
-              "min": 4.0,
-              "mean": 4.84,
-              "max": 5.0
+              "min": 6.0,
+              "mean": 6.84,
+              "max": 7.0
             },
             "goal_isolation": {
               "available": 200,
@@ -288,9 +288,9 @@
             },
             "content_tile_count": {
               "available": 200,
-              "min": 6.0,
-              "mean": 6.84,
-              "max": 7.0
+              "min": 8.0,
+              "mean": 8.84,
+              "max": 9.0
             }
           }
         }
@@ -304,10 +304,10 @@
       },
       "structural_overlap": {
         "obstacle_count": 0.0,
-        "occupancy_fraction": 0.005,
+        "occupancy_fraction": 0.015,
         "entity_type_count": 0.0,
         "distractor_count": 0.0,
-        "goal_isolation": 0.045,
+        "goal_isolation": 0.0,
         "content_tile_count": 0.0
       },
       "failures": [],
@@ -326,8 +326,8 @@
           "test": 1.2205
         },
         "budget_slack": {
-          "train": 47.006,
-          "test": 44.9792
+          "train": 22.5629,
+          "test": 21.59
         }
       },
       "difficulty_parity": "ok",
@@ -340,1653 +340,11 @@
         "occupancy_fraction"
       ],
       "verdict": "pass"
-    },
-    "mine_smelt": {
-      "version": "1.1.0",
-      "goal_marker": "patch",
-      "goal_marker_source": "declared",
-      "layout_families": {
-        "near_patch": {
-          "split": "train",
-          "samples": 200,
-          "distinct_scenes": 158,
-          "distinct_fraction": 0.79,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 7.8102,
-              "mean": 10.895,
-              "max": 14.3178
-            },
-            "path_length": {
-              "available": 200,
-              "min": 7.0,
-              "mean": 12.06,
-              "max": 17.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.8682,
-              "mean": 1.1019,
-              "max": 1.2636
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 100.0,
-              "mean": 128.1666,
-              "max": 200.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0043,
-              "mean": 0.0053,
-              "max": 0.0065
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 0.0,
-              "mean": 0.0,
-              "max": 0.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 9.8489,
-              "mean": 12.5267,
-              "max": 16.0312
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 13.0,
-              "mean": 13.0,
-              "max": 13.0
-            }
-          }
-        },
-        "fuelled_furnace": {
-          "split": "train",
-          "samples": 200,
-          "distinct_scenes": 158,
-          "distinct_fraction": 0.79,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 7.8102,
-              "mean": 10.895,
-              "max": 14.3178
-            },
-            "path_length": {
-              "available": 200,
-              "min": 7.0,
-              "mean": 12.06,
-              "max": 17.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.8682,
-              "mean": 1.1019,
-              "max": 1.2636
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 100.0,
-              "mean": 128.1666,
-              "max": 200.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0043,
-              "mean": 0.0053,
-              "max": 0.0065
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 0.0,
-              "mean": 0.0,
-              "max": 0.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 9.8489,
-              "mean": 12.5267,
-              "max": 16.0312
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 13.0,
-              "mean": 13.0,
-              "max": 13.0
-            }
-          }
-        },
-        "split_patch": {
-          "split": "val",
-          "samples": 200,
-          "distinct_scenes": 158,
-          "distinct_fraction": 0.79,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 7.8102,
-              "mean": 10.895,
-              "max": 14.3178
-            },
-            "path_length": {
-              "available": 200,
-              "min": 7.0,
-              "mean": 12.06,
-              "max": 17.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.8682,
-              "mean": 1.1019,
-              "max": 1.2636
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 100.0,
-              "mean": 128.1666,
-              "max": 200.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0033,
-              "mean": 0.0045,
-              "max": 0.0062
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 0.0,
-              "mean": 0.0,
-              "max": 0.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 9.8489,
-              "mean": 12.5267,
-              "max": 16.0312
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 16.0,
-              "mean": 16.0,
-              "max": 16.0
-            }
-          }
-        },
-        "screened_patch": {
-          "split": "test",
-          "samples": 200,
-          "distinct_scenes": 158,
-          "distinct_fraction": 0.79,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 7.8102,
-              "mean": 10.895,
-              "max": 14.3178
-            },
-            "path_length": {
-              "available": 200,
-              "min": 7.0,
-              "mean": 12.06,
-              "max": 17.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.8682,
-              "mean": 1.1019,
-              "max": 1.2636
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 100.0,
-              "mean": 128.1666,
-              "max": 200.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.004,
-              "mean": 0.005,
-              "max": 0.0062
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 0.0,
-              "mean": 0.0,
-              "max": 0.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 9.8489,
-              "mean": 12.5267,
-              "max": 16.0312
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 17.0,
-              "mean": 17.0,
-              "max": 17.0
-            }
-          }
-        }
-      },
-      "duplicate_families": [],
-      "difficulty_overlap": {
-        "goal_distance": 1.0,
-        "path_length": 1.0,
-        "detour_factor": 1.0,
-        "budget_slack": 1.0
-      },
-      "structural_overlap": {
-        "obstacle_count": 1.0,
-        "occupancy_fraction": 0.71,
-        "entity_type_count": 1.0,
-        "distractor_count": 1.0,
-        "goal_isolation": 1.0,
-        "content_tile_count": 0.0
-      },
-      "failures": [],
-      "distinct_scenes_total": 632,
-      "difficulty_means": {
-        "goal_distance": {
-          "train": 10.895,
-          "test": 10.895
-        },
-        "path_length": {
-          "train": 12.06,
-          "test": 12.06
-        },
-        "detour_factor": {
-          "train": 1.1019,
-          "test": 1.1019
-        },
-        "budget_slack": {
-          "train": 128.1666,
-          "test": 128.1666
-        }
-      },
-      "difficulty_parity": "ok",
-      "separating_descriptors": [
-        "content_tile_count"
-      ],
-      "verdict": "pass"
-    },
-    "navigate": {
-      "version": "1.0.0",
-      "goal_marker": "goal",
-      "goal_marker_source": "success/failure predicate",
-      "layout_families": {
-        "open": {
-          "split": "train",
-          "samples": 200,
-          "distinct_scenes": 200,
-          "distinct_fraction": 1.0,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 12.015,
-              "mean": 20.7878,
-              "max": 29.9803
-            },
-            "path_length": {
-              "available": 200,
-              "min": 11.0,
-              "mean": 24.74,
-              "max": 40.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.8602,
-              "mean": 1.1832,
-              "max": 1.3823
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 16.6667,
-              "mean": 26.8152,
-              "max": 50.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0007,
-              "mean": 0.0011,
-              "max": 0.0019
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 0.0,
-              "mean": 0.0,
-              "max": 0.0
-            },
-            "goal_isolation": {
-              "available": 0
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            }
-          }
-        },
-        "wall_corridor": {
-          "split": "train",
-          "samples": 200,
-          "distinct_scenes": 200,
-          "distinct_fraction": 1.0,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 12.015,
-              "mean": 20.7878,
-              "max": 29.9803
-            },
-            "path_length": {
-              "available": 200,
-              "min": 11.0,
-              "mean": 24.78,
-              "max": 40.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.8602,
-              "mean": 1.1854,
-              "max": 1.3823
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 16.6667,
-              "mean": 26.7152,
-              "max": 50.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 7.0,
-              "mean": 7.0,
-              "max": 7.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0043,
-              "mean": 0.0069,
-              "max": 0.0118
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 2.0,
-              "mean": 2.0,
-              "max": 2.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 6.0,
-              "mean": 6.0,
-              "max": 6.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 5.9008,
-              "mean": 12.8202,
-              "max": 25.3071
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 7.0,
-              "mean": 7.0,
-              "max": 7.0
-            }
-          }
-        },
-        "pillar_field": {
-          "split": "val",
-          "samples": 200,
-          "distinct_scenes": 200,
-          "distinct_fraction": 1.0,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 12.015,
-              "mean": 20.7878,
-              "max": 29.9803
-            },
-            "path_length": {
-              "available": 200,
-              "min": 11.0,
-              "mean": 24.745,
-              "max": 40.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.8602,
-              "mean": 1.1834,
-              "max": 1.3823
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 16.6667,
-              "mean": 26.8152,
-              "max": 50.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 7.0,
-              "mean": 7.0,
-              "max": 7.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.002,
-              "mean": 0.0029,
-              "max": 0.0051
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 2.0,
-              "mean": 2.0,
-              "max": 2.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 6.0,
-              "mean": 6.0,
-              "max": 6.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 1.2042,
-              "mean": 11.3855,
-              "max": 33.1789
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 7.0,
-              "mean": 7.0,
-              "max": 7.0
-            }
-          }
-        },
-        "wall_arc": {
-          "split": "test",
-          "samples": 200,
-          "distinct_scenes": 200,
-          "distinct_fraction": 1.0,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 12.015,
-              "mean": 20.7878,
-              "max": 29.9803
-            },
-            "path_length": {
-              "available": 200,
-              "min": 11.0,
-              "mean": 24.805,
-              "max": 40.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.8602,
-              "mean": 1.1866,
-              "max": 1.3823
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 16.6667,
-              "mean": 26.7152,
-              "max": 50.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 10.0,
-              "mean": 10.0,
-              "max": 10.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0047,
-              "mean": 0.0081,
-              "max": 0.0132
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 2.0,
-              "mean": 2.0,
-              "max": 2.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 9.0,
-              "mean": 9.0,
-              "max": 9.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 5.0249,
-              "mean": 9.3466,
-              "max": 13.5801
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 10.0,
-              "mean": 10.0,
-              "max": 10.0
-            }
-          }
-        }
-      },
-      "duplicate_families": [],
-      "difficulty_overlap": {
-        "goal_distance": 1.0,
-        "path_length": 0.9875,
-        "detour_factor": 0.9675,
-        "budget_slack": 0.99
-      },
-      "structural_overlap": {
-        "obstacle_count": 0.0,
-        "occupancy_fraction": 0.4625,
-        "entity_type_count": 0.5,
-        "distractor_count": 0.0,
-        "goal_isolation": 0.615,
-        "content_tile_count": 0.0
-      },
-      "failures": [],
-      "distinct_scenes_total": 800,
-      "difficulty_means": {
-        "goal_distance": {
-          "train": 20.7878,
-          "test": 20.7878
-        },
-        "path_length": {
-          "train": 24.76,
-          "test": 24.805
-        },
-        "detour_factor": {
-          "train": 1.1843,
-          "test": 1.1866
-        },
-        "budget_slack": {
-          "train": 26.7652,
-          "test": 26.7152
-        }
-      },
-      "difficulty_parity": "ok",
-      "separating_descriptors": [
-        "content_tile_count",
-        "distractor_count",
-        "obstacle_count"
-      ],
-      "verdict": "pass"
-    },
-    "repair_belt": {
-      "version": "1.1.0",
-      "goal_marker": "sink",
-      "goal_marker_source": "success/failure predicate",
-      "layout_families": {
-        "gap": {
-          "split": "train",
-          "samples": 200,
-          "distinct_scenes": 172,
-          "distinct_fraction": 0.86,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 10.4403,
-              "mean": 16.0022,
-              "max": 21.4709
-            },
-            "path_length": {
-              "available": 200,
-              "min": 11.0,
-              "mean": 18.885,
-              "max": 27.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 1.0398,
-              "mean": 1.1751,
-              "max": 1.2804
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 42.8571,
-              "mean": 64.7679,
-              "max": 100.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 4.0,
-              "mean": 4.0,
-              "max": 4.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0041,
-              "mean": 0.0055,
-              "max": 0.0074
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 8.0,
-              "mean": 9.93,
-              "max": 12.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 9.0,
-              "mean": 10.93,
-              "max": 13.0
-            }
-          }
-        },
-        "gap_far": {
-          "split": "train",
-          "samples": 200,
-          "distinct_scenes": 145,
-          "distinct_fraction": 0.725,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 16.2788,
-              "mean": 20.7745,
-              "max": 25.0799
-            },
-            "path_length": {
-              "available": 200,
-              "min": 17.0,
-              "mean": 24.035,
-              "max": 31.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 1.0347,
-              "mean": 1.154,
-              "max": 1.272
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 42.8571,
-              "mean": 51.925,
-              "max": 75.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 4.0,
-              "mean": 4.0,
-              "max": 4.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0037,
-              "mean": 0.0047,
-              "max": 0.0061
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 14.0,
-              "mean": 15.08,
-              "max": 16.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 15.0,
-              "mean": 16.08,
-              "max": 17.0
-            }
-          }
-        },
-        "misrotation": {
-          "split": "val",
-          "samples": 200,
-          "distinct_scenes": 172,
-          "distinct_fraction": 0.86,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 10.4403,
-              "mean": 16.0022,
-              "max": 21.4709
-            },
-            "path_length": {
-              "available": 200,
-              "min": 11.0,
-              "mean": 18.885,
-              "max": 27.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 1.0398,
-              "mean": 1.1751,
-              "max": 1.2804
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 42.8571,
-              "mean": 64.7679,
-              "max": 100.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 4.0,
-              "mean": 4.0,
-              "max": 4.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0041,
-              "mean": 0.0055,
-              "max": 0.0074
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 8.0,
-              "mean": 9.93,
-              "max": 12.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 9.0,
-              "mean": 10.93,
-              "max": 13.0
-            }
-          }
-        },
-        "double_gap": {
-          "split": "test",
-          "samples": 200,
-          "distinct_scenes": 189,
-          "distinct_fraction": 0.945,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 10.4403,
-              "mean": 18.0318,
-              "max": 25.0799
-            },
-            "path_length": {
-              "available": 200,
-              "min": 11.0,
-              "mean": 21.095,
-              "max": 31.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 1.0384,
-              "mean": 1.1658,
-              "max": 1.2804
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 42.8571,
-              "mean": 59.2714,
-              "max": 100.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 4.0,
-              "mean": 4.0,
-              "max": 4.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0037,
-              "mean": 0.0052,
-              "max": 0.0074
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 7.0,
-              "mean": 11.14,
-              "max": 15.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 8.0,
-              "mean": 12.14,
-              "max": 16.0
-            }
-          }
-        }
-      },
-      "duplicate_families": [],
-      "difficulty_overlap": {
-        "goal_distance": 0.9,
-        "path_length": 0.9325,
-        "detour_factor": 0.945,
-        "budget_slack": 0.945
-      },
-      "structural_overlap": {
-        "obstacle_count": 1.0,
-        "occupancy_fraction": 0.9225,
-        "entity_type_count": 1.0,
-        "distractor_count": 0.0,
-        "goal_isolation": 1.0,
-        "content_tile_count": 0.0
-      },
-      "failures": [],
-      "distinct_scenes_total": 678,
-      "difficulty_means": {
-        "goal_distance": {
-          "train": 18.3884,
-          "test": 18.0318
-        },
-        "path_length": {
-          "train": 21.46,
-          "test": 21.095
-        },
-        "detour_factor": {
-          "train": 1.1646,
-          "test": 1.1658
-        },
-        "budget_slack": {
-          "train": 58.3464,
-          "test": 59.2714
-        }
-      },
-      "difficulty_parity": "ok",
-      "separating_descriptors": [
-        "content_tile_count",
-        "distractor_count"
-      ],
-      "verdict": "pass"
-    },
-    "restore_power": {
-      "version": "1.1.0",
-      "goal_marker": "drill",
-      "goal_marker_source": "success/failure predicate",
-      "layout_families": {
-        "pole_gap": {
-          "split": "train",
-          "samples": 200,
-          "distinct_scenes": 120,
-          "distinct_fraction": 0.6,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 17.088,
-              "mean": 23.1198,
-              "max": 28.6356
-            },
-            "path_length": {
-              "available": 200,
-              "min": 18.0,
-              "mean": 26.2,
-              "max": 34.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 1.0493,
-              "mean": 1.1326,
-              "max": 1.2019
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 31.25,
-              "mean": 40.0179,
-              "max": 50.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 10.0,
-              "mean": 11.025,
-              "max": 12.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.025,
-              "mean": 0.0298,
-              "max": 0.0359
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 9.0,
-              "mean": 10.025,
-              "max": 11.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 42.0,
-              "mean": 43.025,
-              "max": 44.0
-            }
-          }
-        },
-        "pole_gap_far": {
-          "split": "train",
-          "samples": 200,
-          "distinct_scenes": 155,
-          "distinct_fraction": 0.775,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 28.6356,
-              "mean": 34.4266,
-              "max": 39.8497
-            },
-            "path_length": {
-              "available": 200,
-              "min": 30.0,
-              "mean": 38.2,
-              "max": 46.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 1.0398,
-              "mean": 1.1098,
-              "max": 1.1818
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 22.7273,
-              "mean": 27.6458,
-              "max": 35.7143
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 13.0,
-              "mean": 14.025,
-              "max": 15.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0219,
-              "mean": 0.0257,
-              "max": 0.0304
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 12.0,
-              "mean": 13.025,
-              "max": 14.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 45.0,
-              "mean": 46.025,
-              "max": 47.0
-            }
-          }
-        },
-        "two_gaps": {
-          "split": "val",
-          "samples": 200,
-          "distinct_scenes": 120,
-          "distinct_fraction": 0.6,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 17.088,
-              "mean": 23.1198,
-              "max": 28.6356
-            },
-            "path_length": {
-              "available": 200,
-              "min": 18.0,
-              "mean": 26.2,
-              "max": 34.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 1.0493,
-              "mean": 1.1326,
-              "max": 1.2019
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 31.25,
-              "mean": 40.0179,
-              "max": 50.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 9.0,
-              "mean": 10.025,
-              "max": 11.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0244,
-              "mean": 0.0291,
-              "max": 0.035
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 8.0,
-              "mean": 9.025,
-              "max": 10.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 7.48,
-              "max": 11.0
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 41.0,
-              "mean": 42.025,
-              "max": 43.0
-            }
-          }
-        },
-        "gap_near_drill": {
-          "split": "test",
-          "samples": 200,
-          "distinct_scenes": 101,
-          "distinct_fraction": 0.505,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 17.088,
-              "mean": 29.0716,
-              "max": 39.8497
-            },
-            "path_length": {
-              "available": 200,
-              "min": 18.0,
-              "mean": 32.52,
-              "max": 46.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 1.0398,
-              "mean": 1.1208,
-              "max": 1.2019
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 22.7273,
-              "mean": 33.3553,
-              "max": 50.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 10.0,
-              "mean": 12.605,
-              "max": 15.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0219,
-              "mean": 0.0276,
-              "max": 0.0359
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 9.0,
-              "mean": 11.605,
-              "max": 14.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 7.0,
-              "mean": 7.0,
-              "max": 7.0
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 42.0,
-              "mean": 44.605,
-              "max": 47.0
-            }
-          }
-        }
-      },
-      "duplicate_families": [],
-      "difficulty_overlap": {
-        "goal_distance": 0.9075,
-        "path_length": 0.8925,
-        "detour_factor": 0.8775,
-        "budget_slack": 0.945
-      },
-      "structural_overlap": {
-        "obstacle_count": 0.9175,
-        "occupancy_fraction": 0.89,
-        "entity_type_count": 1.0,
-        "distractor_count": 0.9175,
-        "goal_isolation": 0.0,
-        "content_tile_count": 0.9175
-      },
-      "failures": [],
-      "distinct_scenes_total": 496,
-      "difficulty_means": {
-        "goal_distance": {
-          "train": 28.7732,
-          "test": 29.0716
-        },
-        "path_length": {
-          "train": 32.2,
-          "test": 32.52
-        },
-        "detour_factor": {
-          "train": 1.1212,
-          "test": 1.1208
-        },
-        "budget_slack": {
-          "train": 33.8318,
-          "test": 33.3553
-        }
-      },
-      "difficulty_parity": "ok",
-      "separating_descriptors": [
-        "goal_isolation"
-      ],
-      "verdict": "pass"
-    },
-    "supply_furnace": {
-      "version": "1.1.0",
-      "goal_marker": "ore_chest",
-      "goal_marker_source": "declared",
-      "layout_families": {
-        "linear_row": {
-          "split": "train",
-          "samples": 200,
-          "distinct_scenes": 199,
-          "distinct_fraction": 0.995,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 5.0,
-              "mean": 7.4417,
-              "max": 10.0
-            },
-            "path_length": {
-              "available": 200,
-              "min": 4.0,
-              "mean": 7.6,
-              "max": 12.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.6587,
-              "mean": 1.0103,
-              "max": 1.3462
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 100.0,
-              "mean": 146.5,
-              "max": 300.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 2.0,
-              "mean": 2.0,
-              "max": 2.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0056,
-              "mean": 0.0071,
-              "max": 0.0086
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 2.0,
-              "mean": 2.0,
-              "max": 2.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 0.0,
-              "mean": 0.0,
-              "max": 0.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 9.4641,
-              "mean": 12.853,
-              "max": 16.868
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 5.0,
-              "mean": 5.0,
-              "max": 5.0
-            }
-          }
-        },
-        "two_furnaces": {
-          "split": "train",
-          "samples": 200,
-          "distinct_scenes": 199,
-          "distinct_fraction": 0.995,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 5.0,
-              "mean": 7.4417,
-              "max": 10.0
-            },
-            "path_length": {
-              "available": 200,
-              "min": 4.0,
-              "mean": 7.6,
-              "max": 12.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.6587,
-              "mean": 1.0103,
-              "max": 1.3462
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 100.0,
-              "mean": 146.5,
-              "max": 300.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0094,
-              "mean": 0.0122,
-              "max": 0.0148
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 2.0,
-              "mean": 2.0,
-              "max": 2.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 6.5008,
-              "mean": 11.9847,
-              "max": 16.6481
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 9.0,
-              "mean": 9.0,
-              "max": 9.0
-            }
-          }
-        },
-        "far_ore": {
-          "split": "val",
-          "samples": 200,
-          "distinct_scenes": 200,
-          "distinct_fraction": 1.0,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 14.9893,
-              "mean": 17.9286,
-              "max": 20.9805
-            },
-            "path_length": {
-              "available": 200,
-              "min": 14.0,
-              "mean": 21.03,
-              "max": 28.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.8743,
-              "mean": 1.1716,
-              "max": 1.3831
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 42.8571,
-              "mean": 58.3036,
-              "max": 75.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 2.0,
-              "mean": 2.0,
-              "max": 2.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0037,
-              "mean": 0.0047,
-              "max": 0.006
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 2.0,
-              "mean": 2.0,
-              "max": 2.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 0.0,
-              "mean": 0.0,
-              "max": 0.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 17.1353,
-              "mean": 22.2386,
-              "max": 27.4707
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 5.0,
-              "mean": 5.0,
-              "max": 5.0
-            }
-          }
-        },
-        "shared_input": {
-          "split": "test",
-          "samples": 200,
-          "distinct_scenes": 199,
-          "distinct_fraction": 0.995,
-          "unreachable_goals": 0,
-          "missing_marker": 0,
-          "descriptors": {
-            "goal_distance": {
-              "available": 200,
-              "min": 5.0,
-              "mean": 7.4417,
-              "max": 10.0
-            },
-            "path_length": {
-              "available": 200,
-              "min": 4.0,
-              "mean": 7.6,
-              "max": 12.0
-            },
-            "detour_factor": {
-              "available": 200,
-              "min": 0.6587,
-              "mean": 1.0103,
-              "max": 1.3462
-            },
-            "budget_slack": {
-              "available": 200,
-              "min": 100.0,
-              "mean": 146.5,
-              "max": 300.0
-            },
-            "obstacle_count": {
-              "available": 200,
-              "min": 3.0,
-              "mean": 3.0,
-              "max": 3.0
-            },
-            "occupancy_fraction": {
-              "available": 200,
-              "min": 0.0063,
-              "mean": 0.0083,
-              "max": 0.01
-            },
-            "entity_type_count": {
-              "available": 200,
-              "min": 2.0,
-              "mean": 2.0,
-              "max": 2.0
-            },
-            "distractor_count": {
-              "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
-            },
-            "goal_isolation": {
-              "available": 200,
-              "min": 2.8284,
-              "mean": 2.8284,
-              "max": 2.8284
-            },
-            "content_tile_count": {
-              "available": 200,
-              "min": 6.0,
-              "mean": 6.0,
-              "max": 6.0
-            }
-          }
-        }
-      },
-      "duplicate_families": [],
-      "difficulty_overlap": {
-        "goal_distance": 1.0,
-        "path_length": 1.0,
-        "detour_factor": 1.0,
-        "budget_slack": 1.0
-      },
-      "structural_overlap": {
-        "obstacle_count": 0.5,
-        "occupancy_fraction": 0.3225,
-        "entity_type_count": 1.0,
-        "distractor_count": 0.5,
-        "goal_isolation": 0.0,
-        "content_tile_count": 0.0
-      },
-      "failures": [],
-      "distinct_scenes_total": 797,
-      "difficulty_means": {
-        "goal_distance": {
-          "train": 7.4417,
-          "test": 7.4417
-        },
-        "path_length": {
-          "train": 7.6,
-          "test": 7.6
-        },
-        "detour_factor": {
-          "train": 1.0103,
-          "test": 1.0103
-        },
-        "budget_slack": {
-          "train": 146.5,
-          "test": 146.5
-        }
-      },
-      "difficulty_parity": "ok",
-      "separating_descriptors": [
-        "content_tile_count",
-        "goal_isolation",
-        "occupancy_fraction"
-      ],
-      "verdict": "pass"
     }
   },
-  "wall_seconds": 2.5,
+  "wall_seconds": 0.5,
   "passing": [
-    "deliver",
-    "mine_smelt",
-    "navigate",
-    "repair_belt",
-    "restore_power",
-    "supply_furnace"
+    "deliver"
   ],
   "failing": []
 }

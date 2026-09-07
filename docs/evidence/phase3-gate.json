@@ -4,16 +4,16 @@
   "measurements": {
     "step_ms": {
       "n": 240,
-      "mean": 9.48,
-      "p95": 10.8
+      "mean": 11.14,
+      "p95": 14.4
     },
     "reset_ms": {
       "n": 510,
-      "mean": 4.47,
-      "p95": 5.59
+      "mean": 5.44,
+      "p95": 6.85
     },
-    "steps_per_second": 105.52,
-    "wall_seconds": 20.7,
+    "steps_per_second": 89.73,
+    "wall_seconds": 22.7,
     "resets": 504
   },
   "sections": {
@@ -44,7 +44,7 @@
       {
         "check": "deliver: reset reports its layout family and split",
         "ok": true,
-        "family": "two_chest"
+        "family": "decoy_chest"
       },
       {
         "check": "deliver: a legal no-op always exists",
@@ -67,7 +67,7 @@
       {
         "check": "mine_smelt: reset reports its layout family and split",
         "ok": true,
-        "family": "near_patch"
+        "family": "fuelled_furnace"
       },
       {
         "check": "mine_smelt: a legal no-op always exists",
@@ -90,7 +90,7 @@
       {
         "check": "navigate: reset reports its layout family and split",
         "ok": true,
-        "family": "open"
+        "family": "wall_corridor"
       },
       {
         "check": "navigate: a legal no-op always exists",
@@ -113,7 +113,7 @@
       {
         "check": "repair_belt: reset reports its layout family and split",
         "ok": true,
-        "family": "gap"
+        "family": "gap_far"
       },
       {
         "check": "repair_belt: a legal no-op always exists",
@@ -136,7 +136,7 @@
       {
         "check": "restore_power: reset reports its layout family and split",
         "ok": true,
-        "family": "pole_gap"
+        "family": "pole_gap_far"
       },
       {
         "check": "restore_power: a legal no-op always exists",
@@ -159,7 +159,7 @@
       {
         "check": "supply_furnace: reset reports its layout family and split",
         "ok": true,
-        "family": "linear_row"
+        "family": "two_furnaces"
       },
       {
         "check": "supply_furnace: a legal no-op always exists",
@@ -393,5 +393,5 @@
     "build": 83512,
     "platform": "win64"
   },
-  "completed_at": "2026-09-08T00:19:56"
+  "completed_at": "2026-09-08T01:25:12"
 }
