@@ -13,6 +13,9 @@ runtime/
 *.zip
 !**/mod/**
 .factoriorl.user.json
+.env
+.env.*
+!.env.example
 *.credentials*
 *.token*
 

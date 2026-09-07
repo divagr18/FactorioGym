@@ -290,13 +290,22 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
         model: str = "local-model",
         api_key_env: str | None = None,
         timeout: float = DEFAULT_TIMEOUT_SECONDS,
-        temperature: float = 0.0,
+        temperature: float | None = 0.0,
+        #: Which field carries the output ceiling. Local servers -- llama.cpp,
+        #: vLLM, LM Studio, Ollama -- speak `max_tokens`, and OpenAI's newer
+        #: reasoning models reject it outright:
+        #:   "Unsupported parameter: 'max_tokens' is not supported with this
+        #:    model. Use 'max_completion_tokens' instead."
+        #: Both spellings are the same OpenAI-compatible shape, so this is
+        #: configuration rather than a second adapter.
+        token_parameter: str = "max_tokens",
         extra_body: dict | None = None,
     ) -> None:
         super().__init__(api_key_env=api_key_env, timeout=timeout)
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.temperature = temperature
+        self.token_parameter = token_parameter
         self.extra_body = dict(extra_body or {})
 
     def complete(self, request: ModelRequest) -> ModelReply:
@@ -309,14 +318,16 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
                 {"role": "system", "content": request.system},
                 {"role": "user", "content": request.user},
             ],
-            "max_tokens": request.max_tokens,
-            # Zero by default: the same observation should produce the same
-            # decision when a run is replayed, and sampling noise in a 600-step
-            # episode makes a failure impossible to reproduce.
-            "temperature": self.temperature,
+            self.token_parameter: request.max_tokens,
             "stream": False,
             **self.extra_body,
         }
+        # Zero by default: the same observation should produce the same decision
+        # when a run is replayed, and sampling noise in a 600-step episode makes
+        # a failure impossible to reproduce. `None` omits the field entirely,
+        # for models that reject sampling parameters rather than ignoring them.
+        if self.temperature is not None:
+            body["temperature"] = self.temperature
         started = time.perf_counter()
         payload, error, kind = self._post(f"{self.base_url}/chat/completions", headers, body)
         latency = (time.perf_counter() - started) * 1000.0
