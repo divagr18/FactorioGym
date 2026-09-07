@@ -26,7 +26,14 @@ from factoriorl.tasks.spec import (
     TaskSpec,
 )
 
-TARGET_COUNT = 3
+#: Three plates is one `mine_batch` and one transfer, which a uniform policy
+#: over the skill catalog completes by accident: the measured random baseline
+#: at three plates was 0.80, against a 0.80 acceptance bar. A benchmark whose
+#: floor sits on its own threshold measures nothing. Twelve plates needs three
+#: full mine-carry-deposit cycles, which is a sequence rather than an accident,
+#: and still fits the 400-decision budget with room -- the reference solver
+#: uses about 45 decisions per cycle.
+TARGET_COUNT = 12
 
 FAMILIES = (
     LayoutFamily("near_patch", "train"),
@@ -39,7 +46,10 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="mine_smelt",
-    version="1.0.0",
+    # 1.1.0: the plate target rose from 3 to 12. The version is what keeps a
+    # cached random baseline, and any published result, from being compared
+    # across two different tasks wearing the same name.
+    version="1.1.0",
     description="Mine iron ore, feed a furnace, and produce iron plates.",
     layout_families=FAMILIES,
     success=(Predicate(PredicateKind.PRODUCED, item="iron-plate", at_least=TARGET_COUNT),),

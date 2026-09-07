@@ -1,55 +1,36 @@
 {
-  "episodes_per_split": 10,
+  "episodes_per_split": 6,
   "tasks": {
-    "deliver": {
+    "mine_smelt": {
       "splits": {
         "train": {
-          "reference_success": 10,
-          "episodes": 10,
-          "reference_rate": 1.0,
-          "random_rate": 0.2,
-          "mean_steps": 15.8,
-          "stuck_reasons": [],
-          "last_errors": []
-        },
-        "test": {
-          "reference_success": 10,
-          "episodes": 10,
+          "reference_success": 6,
+          "episodes": 6,
           "reference_rate": 1.0,
           "random_rate": 0.0,
-          "mean_steps": 16.9,
+          "mean_steps": 141.3,
           "stuck_reasons": [],
-          "last_errors": []
-        }
-      }
-    },
-    "navigate": {
-      "splits": {
-        "train": {
-          "reference_success": 10,
-          "episodes": 10,
-          "reference_rate": 1.0,
-          "random_rate": 0.2,
-          "mean_steps": 8.2,
-          "stuck_reasons": [],
-          "last_errors": []
+          "last_errors": [
+            "give_coal_5: no_items"
+          ]
         },
         "test": {
-          "reference_success": 10,
-          "episodes": 10,
+          "reference_success": 6,
+          "episodes": 6,
           "reference_rate": 1.0,
-          "random_rate": 0.2,
-          "mean_steps": 8.2,
+          "random_rate": 0.0,
+          "mean_steps": 141.3,
           "stuck_reasons": [],
-          "last_errors": []
+          "last_errors": [
+            "give_coal_5: no_items"
+          ]
         }
       }
     }
   },
-  "wall_seconds": 181.2,
+  "wall_seconds": 101.3,
   "solvable": [
-    "deliver",
-    "navigate"
+    "mine_smelt"
   ],
   "defective": []
 }
