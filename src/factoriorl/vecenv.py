@@ -101,7 +101,13 @@ class FactorioVecEnv(VecEnv):
 
     # ------------------------------------------------------------ VecEnv
 
-    def retarget(self, split: str, branch: Branch, start_index: int = 0) -> None:
+    def retarget(
+        self,
+        split: str,
+        branch: Branch,
+        start_index: int = 0,
+        plan: SeedPlan | None = None,
+    ) -> None:
         """Point every worker at a different split, reusing the live engines.
 
         Evaluating three splits by building three vectorised environments would
@@ -113,6 +119,12 @@ class FactorioVecEnv(VecEnv):
             inner = env.unwrapped
             inner.branch = branch
             inner.split = split
+            if plan is not None:
+                # A frozen holdout defines its own seed stream. Retargeting the
+                # split without also retargeting the plan would evaluate the
+                # right *families* from the wrong episodes, which is the
+                # failure mode a frozen holdout exists to prevent.
+                inner.seed_plan = plan
         self._cursor = itertools.count(start_index)
 
     def _reset_one(self, env):

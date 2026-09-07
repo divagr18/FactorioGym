@@ -85,6 +85,15 @@ class TrainConfig:
     #: routine loop defaulted to `test`, which spent the holdout on
     #: candidate selection.
     eval_split: str = "val"
+    #: Path to a frozen holdout (see `tools/freeze_holdout.py`). When set, the
+    #: structural row is evaluated against *that* file's seed plan and episode
+    #: range rather than the run's own, and the run records its content hash.
+    #:
+    #: Without this the citation is theatre: a run builds its evaluation plan
+    #: from `--seed` and a per-run id and starts its cursor at 0, so it would
+    #: cite a holdout it never evaluated a single episode of, and no check
+    #: downstream could tell -- a manifest can carry any hash you like.
+    holdout: str | None = None
     #: Add temporally extended actions to the primitive catalog (PLAN 4b).
     #: The 4b.3 ablation runs two arms that differ in this flag alone.
     skills: bool = False
@@ -100,6 +109,7 @@ class TrainConfig:
         return {
             "task_id": self.task_id,
             "eval_split": self.eval_split,
+            "holdout": self.holdout,
             "skills": self.skills,
             "total_steps": self.total_steps,
             "master_seed": self.master_seed,
@@ -437,6 +447,28 @@ def train(config: TrainConfig) -> dict:
         curve.write()
         model.save(run_dir / "model")
 
+        # A frozen holdout replaces the *structural* row's seed plan and start
+        # index. The other two rows stay on the run's own plan: they are
+        # diagnostics for this run, not the published result.
+        frozen = None
+        if config.holdout:
+            frozen = json.loads(Path(config.holdout).read_text(encoding="utf-8"))
+            spec = frozen["holdout"]
+            if spec["split"] != "test":
+                raise ValueError(
+                    f"holdout {config.holdout} freezes the {spec['split']!r} split; "
+                    "the release evaluation is defined on the structural (test) split"
+                )
+            recorded = (frozen.get("tasks") or {}).get(config.task_id)
+            if recorded is None:
+                raise ValueError(f"holdout {config.holdout} does not cover task {config.task_id!r}")
+            if recorded.get("task_version") != task.spec.version:
+                raise ValueError(
+                    f"holdout was frozen against {config.task_id} "
+                    f"v{recorded.get('task_version')} but this run is v{task.spec.version}; "
+                    "a holdout is only meaningful for the task it was frozen against"
+                )
+
         # Three rows, because one number cannot say which failure happened.
         # PLAN section 3 puts the threshold on unfamiliar *structures* and
         # requires the unfamiliar-*seed* rate published beside it: a policy
@@ -458,13 +490,18 @@ def train(config: TrainConfig) -> dict:
         ):
             if not task.spec.families(split):
                 continue
+            row_plan, row_start = plan, 0
+            if frozen is not None and split == "test":
+                seeds_spec = frozen["holdout"]["seed_plan"]
+                row_plan = SeedPlan(master=seeds_spec["master"], run_id=seeds_spec["run_id"])
+                row_start = frozen["holdout"]["start_index"]
             if config.workers > 1 and vec_env is not None:
                 # Retarget rather than rebuild. `split` and `branch` are plain
                 # attributes of `FactorioEnv`, so pointing the live engines at
                 # another split is assignment; building a vectorised
                 # environment per split would pay the worker launch storm --
                 # the most expensive moment in a run -- three times over.
-                vec_env.retarget(split, Branch.EVAL, 0)
+                vec_env.retarget(split, Branch.EVAL, row_start, plan=row_plan)
                 rows[label] = evaluate_parallel(vec_env, model, config.eval_episodes)
             else:
                 rows[label] = evaluate(
@@ -484,7 +521,13 @@ def train(config: TrainConfig) -> dict:
                 )
             rows[label]["split"] = split
 
-            def measure_baseline(split: str = split) -> dict:
+            # Loop variables are bound as defaults, not captured: the closure
+            # is called inside this iteration today, but a late-bound
+            # row_plan would silently measure the baseline against a different
+            # holdout than the policy was scored on.
+            def measure_baseline(
+                split: str = split, row_plan=row_plan, row_start: int = row_start
+            ) -> dict:
                 # The baseline shares the evaluation budget: a 10-episode
                 # baseline has a Wilson interval so wide that almost no
                 # measured rate can clear its upper bound, which turns an
@@ -494,7 +537,7 @@ def train(config: TrainConfig) -> dict:
                     # Rewound to episode zero so the floor is measured on the
                     # same scenes the policy just ran, not on whatever the
                     # shared cursor happened to reach.
-                    vec_env.retarget(split, Branch.EVAL, 0)
+                    vec_env.retarget(split, Branch.EVAL, row_start, plan=row_plan)
                     return random_baseline_parallel(vec_env, config.eval_episodes, rng)
                 return random_baseline(
                     _wrap(

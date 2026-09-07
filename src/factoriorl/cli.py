@@ -188,6 +188,7 @@ def cmd_train(args) -> int:
             workers=args.workers if args.workers is not None else default_workers(),
             eval_episodes=args.eval_episodes,
             eval_split=args.eval_split,
+            holdout=args.holdout,
             skills=args.skills,
             run_prefix=args.prefix,
         )
@@ -309,6 +310,10 @@ def main(argv: list[str] | None = None) -> int:
     train_cmd.add_argument("--steps", type=int, default=50_000)
     train_cmd.add_argument("--seed", type=int, default=20260907)
     train_cmd.add_argument("--eval-episodes", type=int, default=20)
+    train_cmd.add_argument(
+        "--holdout",
+        help="frozen holdout JSON; the structural row is evaluated against its seed plan",
+    )
     train_cmd.add_argument(
         "--eval-split",
         choices=("val", "test"),
