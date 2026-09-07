@@ -40,9 +40,9 @@ profiles.OBSERVATION = {
   -- frozen protocol fixtures and by the engine gates, so it stays exactly as
   -- it is and a task asks for `local-v2` by name.
   --
-  -- Same sensor contract as v1 -- identical radius, caps and detail radius, so
-  -- a policy sees the same world -- carrying only what Python actually reads.
-  -- The observation is ~32 KB per step, serialised by `helpers.table_to_json`
+  -- Same sensor region as v1 -- identical radius and detail radius, so a policy
+  -- sees the same world -- carrying only what Python actually reads. The
+  -- observation is ~32 KB per step, serialised by `helpers.table_to_json`
   -- on the engine's own thread (competing with tick time) and parsed again on
   -- every step; per-step latency degrades from 23.7 ms at one worker to 37.8 ms
   -- at eight. Every field here that no consumer reads is that cost paid for
@@ -59,11 +59,40 @@ profiles.OBSERVATION = {
   -- `sensor.origin`, `sensor.radius`, `resources.tiles`, `terrain.blocked` and
   -- character position/walking/direction/mining/crafting all feed
   -- `encoders.encode` and must stay.
+  --
+  -- The one place v2 does depart from v1's sensor contract is `entity_cap`, and
+  -- it departs without changing what the policy sees. `encoders.encode` sorts
+  -- `entities` + `remembered` by distance and keeps only the nearest 32, and
+  -- `sensor.sweep` now orders the sweep by distance before capping it, so a
+  -- visible entity at rank 49 already has 48 entities at least as close to it
+  -- and can never reach the encoder's 32 -- whatever `remembered` holds. 256
+  -- entity records is ~17 KB of JSON per step, the largest single block left,
+  -- and eight times what anything reads.
+  --
+  -- `entity_sweep_limit` stays at v1's candidate budget on purpose. The cap
+  -- bounds what is serialised; the sweep limit bounds what the engine hands us
+  -- to sort. Lowering the sweep limit too would mean sorting 49 arbitrary
+  -- entities and calling the result "the nearest 48", which is the very bug the
+  -- sort was added to fix. Keeping it at 257 means v2 chooses its 48 out of
+  -- exactly the pool v1 would have shipped.
+  --
+  -- Known consequence, recorded rather than hidden: `observations.snapshot`
+  -- feeds the *capped* entity list to `memory.update`, and `memory.update`
+  -- deletes any in-region entry the sweep did not report -- "the agent looked,
+  -- and it was not there". Under a 48 cap, an entity inside the radius but at
+  -- rank 49 is now forgotten even though it exists, so `remembered` in a later,
+  -- sparser step can be thinner than v1 would have produced. It cannot change
+  -- the encoder's input at the dense step (all 32 rows come from the visible
+  -- set there), only at a later sparse one. The same defect already existed at
+  -- 256 for any scene with more than 256 entities in radius; fixing it properly
+  -- means handing memory the full candidate list, which is a change to
+  -- `observations.lua` and `memory.lua`, not to this cap.
   ["local-v2"] = {
     name = "local-v2",
     version = 2,
     radius = 32,
-    entity_cap = 256,
+    entity_cap = 48,
+    entity_sweep_limit = 257,
     resource_cap = 512,
     resource_detail_radius = 12,
     terrain_detail = "mask",

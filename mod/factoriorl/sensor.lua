@@ -85,20 +85,66 @@ function sensor.sweep(surface, origin, profile)
   local radius = profile.radius
   local truncated = false
 
-  local entities = {}
+  -- The engine returns swept entities in its own internal order, not by
+  -- distance, so the cap must be applied to a distance-ordered list. Applied to
+  -- the raw sweep it kept whichever entities the engine happened to list first
+  -- and dropped near ones in favour of far ones -- which is why the cap could
+  -- not simply be lowered before. `encoders.encode` keeps only the 32 nearest
+  -- of `entities` + `remembered`, so an unsorted cap decided the policy's input
+  -- by accident; sorting first is what makes a small cap information-preserving.
+  --
+  -- The candidate limit is deliberately a separate number from the record cap:
+  -- sorting 49 arbitrarily chosen entities does not find the nearest 48, so a
+  -- profile that lowers `entity_cap` sets `entity_sweep_limit` to keep the
+  -- candidate pool the size it was. A profile that does not set one keeps the
+  -- old `entity_cap + 1`, which is what `local-v1` relies on.
+  local sweep_limit = profile.entity_sweep_limit or (profile.entity_cap + 1)
+  local candidates = {}
+  local candidate_count = 0
   for _, entity in pairs(surface.find_entities_filtered({
     position = origin,
     radius = radius,
     type = ENTITY_TYPES,
-    limit = profile.entity_cap + 1,
+    limit = sweep_limit,
   })) do
     if entity.valid and entity ~= storage.frrl_character then
-      if #entities >= profile.entity_cap then
-        truncated = true
-        break
-      end
-      entities[#entities + 1] = sensor.entity_record(entity)
+      local dx = entity.position.x - origin.x
+      local dy = entity.position.y - origin.y
+      candidate_count = candidate_count + 1
+      -- Squared distance: it orders identically to the distance and saves a
+      -- `math.sqrt` per entity on a path that runs every step.
+      candidates[candidate_count] = {
+        entity = entity,
+        d2 = dx * dx + dy * dy,
+        i = candidate_count,
+      }
     end
+  end
+  -- `table.sort` is not stable, so equal distances fall back to sweep order.
+  -- Without that tie-break two observations of an unchanged scene could order
+  -- co-located entities differently, and `test_protocol_fixtures` asserts the
+  -- `entities` block of two consecutive observations is equal.
+  table.sort(candidates, function(a, b)
+    if a.d2 ~= b.d2 then return a.d2 < b.d2 end
+    return a.i < b.i
+  end)
+
+  -- Same meaning as before: the cap clipped the sweep, so the observation
+  -- admits it rather than silently dropping entities.
+  local kept = candidate_count
+  if kept > profile.entity_cap then
+    kept = profile.entity_cap
+    truncated = true
+  end
+
+  local entities = {}
+  for index = 1, kept do
+    -- Records are built only for entities that survive the cap. `entity_record`
+    -- reads an inventory, calls `get_recipe`/`status` through `pcall` and mints
+    -- a handle, so building 256 records to serialise 48 of them would pay the
+    -- expensive half of the cost the cap exists to remove -- and would churn
+    -- the 4096-entry handle registry for entities no consumer can address.
+    entities[index] = sensor.entity_record(candidates[index].entity)
   end
 
   -- An ore patch is one resource entity per tile, so per-tile detail is emitted

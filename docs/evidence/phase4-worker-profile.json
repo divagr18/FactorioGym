@@ -1,136 +1,169 @@
 {
   "task": "navigate",
-  "steps_per_worker": 100,
+  "decision_ticks": 30,
+  "steps_per_worker": 200,
   "commit_at_start": {
     "commit_limit_gb": 34.98,
-    "commit_available_gb": 19.34,
-    "commit_used_gb": 15.64,
-    "used_fraction": 0.447,
-    "ram_available_gb": 11.09
+    "commit_available_gb": 16.87,
+    "commit_used_gb": 18.11,
+    "used_fraction": 0.518,
+    "ram_available_gb": 10.6
   },
   "configurations": [
     {
       "workers": 1,
-      "steps": 100,
-      "wall_seconds": 2.39,
-      "steps_per_second": 41.78,
-      "steps_per_second_per_worker": 41.78,
-      "step_ms_mean": 23.68,
-      "step_ms_p95": 26.15,
-      "reset_ms_mean": 6.26,
-      "encode_ms_mean": 0.2,
-      "observation_bytes_mean": 32750,
-      "simulated_ticks_per_second": 1253.5,
-      "commit_before": {
-        "commit_limit_gb": 34.98,
-        "commit_available_gb": 19.34,
-        "commit_used_gb": 15.64,
-        "used_fraction": 0.447,
-        "ram_available_gb": 11.09
-      },
-      "commit_peak": {
-        "commit_limit_gb": 34.98,
-        "commit_available_gb": 19.19,
-        "commit_used_gb": 15.79,
-        "used_fraction": 0.451,
-        "ram_available_gb": 10.94
-      }
-    },
-    {
-      "workers": 2,
+      "decision_ticks": 30,
       "steps": 200,
-      "wall_seconds": 2.52,
-      "steps_per_second": 79.49,
-      "steps_per_second_per_worker": 39.75,
-      "step_ms_mean": 24.54,
-      "step_ms_p95": 29.98,
-      "reset_ms_mean": 6.31,
-      "encode_ms_mean": 0.218,
-      "observation_bytes_mean": 31264,
-      "simulated_ticks_per_second": 2384.8,
+      "wall_seconds": 3.68,
+      "steps_per_second": 54.39,
+      "steps_per_second_per_worker": 54.39,
+      "step_ms_mean": 18.02,
+      "step_ms_p95": 27.14,
+      "reset_ms_mean": 6.04,
+      "encode_ms_mean": 0.258,
+      "observation_bytes_mean": 1445,
+      "simulated_ticks_per_second": 1631.8,
       "commit_before": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 19.37,
-        "commit_used_gb": 15.61,
-        "used_fraction": 0.446,
-        "ram_available_gb": 11.11
+        "commit_available_gb": 16.87,
+        "commit_used_gb": 18.11,
+        "used_fraction": 0.518,
+        "ram_available_gb": 10.6
       },
       "commit_peak": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 19.09,
-        "commit_used_gb": 15.89,
-        "used_fraction": 0.454,
-        "ram_available_gb": 10.85
+        "commit_available_gb": 16.72,
+        "commit_used_gb": 18.26,
+        "used_fraction": 0.522,
+        "ram_available_gb": 10.46
       }
     },
     {
       "workers": 4,
-      "steps": 400,
-      "wall_seconds": 2.73,
-      "steps_per_second": 146.55,
-      "steps_per_second_per_worker": 36.64,
-      "step_ms_mean": 26.57,
-      "step_ms_p95": 30.56,
-      "reset_ms_mean": 6.22,
-      "encode_ms_mean": 0.306,
-      "observation_bytes_mean": 32556,
-      "simulated_ticks_per_second": 4396.5,
+      "decision_ticks": 30,
+      "steps": 800,
+      "wall_seconds": 4.29,
+      "steps_per_second": 186.68,
+      "steps_per_second_per_worker": 46.67,
+      "step_ms_mean": 19.32,
+      "step_ms_p95": 28.7,
+      "reset_ms_mean": 5.6,
+      "encode_ms_mean": 0.371,
+      "observation_bytes_mean": 17462,
+      "simulated_ticks_per_second": 5600.5,
       "commit_before": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 19.38,
-        "commit_used_gb": 15.6,
-        "used_fraction": 0.446,
-        "ram_available_gb": 11.11
+        "commit_available_gb": 16.88,
+        "commit_used_gb": 18.1,
+        "used_fraction": 0.518,
+        "ram_available_gb": 10.64
       },
       "commit_peak": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 18.82,
-        "commit_used_gb": 16.16,
-        "used_fraction": 0.462,
-        "ram_available_gb": 10.61
+        "commit_available_gb": 16.29,
+        "commit_used_gb": 18.69,
+        "used_fraction": 0.534,
+        "ram_available_gb": 10.09
       }
     },
     {
       "workers": 8,
-      "steps": 800,
-      "wall_seconds": 3.96,
-      "steps_per_second": 202.18,
-      "steps_per_second_per_worker": 25.27,
-      "step_ms_mean": 37.75,
-      "step_ms_p95": 46.81,
-      "reset_ms_mean": 7.44,
-      "encode_ms_mean": 0.351,
-      "observation_bytes_mean": 27242,
-      "simulated_ticks_per_second": 6065.3,
+      "decision_ticks": 30,
+      "steps": 1600,
+      "wall_seconds": 7.46,
+      "steps_per_second": 214.55,
+      "steps_per_second_per_worker": 26.82,
+      "step_ms_mean": 35.02,
+      "step_ms_p95": 52.32,
+      "reset_ms_mean": 6.81,
+      "encode_ms_mean": 0.464,
+      "observation_bytes_mean": 17558,
+      "simulated_ticks_per_second": 6436.6,
       "commit_before": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 19.39,
-        "commit_used_gb": 15.59,
-        "used_fraction": 0.446,
-        "ram_available_gb": 11.16
+        "commit_available_gb": 16.71,
+        "commit_used_gb": 18.27,
+        "used_fraction": 0.522,
+        "ram_available_gb": 10.57
       },
       "commit_peak": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 18.2,
-        "commit_used_gb": 16.77,
-        "used_fraction": 0.48,
-        "ram_available_gb": 10.28
+        "commit_available_gb": 15.41,
+        "commit_used_gb": 19.57,
+        "used_fraction": 0.559,
+        "ram_available_gb": 9.35
+      }
+    },
+    {
+      "workers": 12,
+      "decision_ticks": 30,
+      "steps": 2400,
+      "wall_seconds": 10.46,
+      "steps_per_second": 229.37,
+      "steps_per_second_per_worker": 19.11,
+      "step_ms_mean": 49.46,
+      "step_ms_p95": 73.37,
+      "reset_ms_mean": 8.89,
+      "encode_ms_mean": 0.467,
+      "observation_bytes_mean": 18999,
+      "simulated_ticks_per_second": 6881.2,
+      "commit_before": {
+        "commit_limit_gb": 34.98,
+        "commit_available_gb": 16.79,
+        "commit_used_gb": 18.19,
+        "used_fraction": 0.52,
+        "ram_available_gb": 10.64
+      },
+      "commit_peak": {
+        "commit_limit_gb": 34.98,
+        "commit_available_gb": 15.04,
+        "commit_used_gb": 19.94,
+        "used_fraction": 0.57,
+        "ram_available_gb": 8.97
+      }
+    },
+    {
+      "workers": 16,
+      "decision_ticks": 30,
+      "steps": 3200,
+      "wall_seconds": 13.8,
+      "steps_per_second": 231.81,
+      "steps_per_second_per_worker": 14.49,
+      "step_ms_mean": 65.5,
+      "step_ms_p95": 99.49,
+      "reset_ms_mean": 16.83,
+      "encode_ms_mean": 0.485,
+      "observation_bytes_mean": 18178,
+      "simulated_ticks_per_second": 6954.3,
+      "commit_before": {
+        "commit_limit_gb": 34.98,
+        "commit_available_gb": 16.89,
+        "commit_used_gb": 18.09,
+        "used_fraction": 0.517,
+        "ram_available_gb": 10.72
+      },
+      "commit_peak": {
+        "commit_limit_gb": 34.98,
+        "commit_available_gb": 14.47,
+        "commit_used_gb": 20.5,
+        "used_fraction": 0.586,
+        "ram_available_gb": 8.48
       }
     }
   ],
-  "per_worker_commit_gb": 0.35,
+  "per_worker_commit_gb": 0.23,
   "default_workers": {
-    "workers": 8,
-    "steps_per_second": 202.18,
-    "speedup_vs_one_worker": 4.84,
-    "per_worker_efficiency": 0.6,
-    "reason": "highest measured throughput inside the commit headroom: 202.2 steps/s, 4.8x a single worker at 60% per-worker efficiency; each doubling up to here bought at least 115%"
+    "workers": 12,
+    "steps_per_second": 229.37,
+    "speedup_vs_one_worker": 4.22,
+    "per_worker_efficiency": 0.35,
+    "reason": "highest measured throughput inside the commit headroom: 229.4 steps/s, 4.2x a single worker at 35% per-worker efficiency; each doubling up to here bought at least 115%"
   },
   "bottleneck": {
     "component": "environment_step",
-    "step_ms_mean": 37.75,
-    "encode_ms_mean": 0.351,
+    "step_ms_mean": 65.5,
+    "encode_ms_mean": 0.485,
     "note": "the environment round trip dominates; observation serialisation is two orders of magnitude smaller"
   },
-  "completed_at": "2026-09-07T09:46:47"
+  "completed_at": "2026-09-07T17:56:35"
 }

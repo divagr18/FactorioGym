@@ -398,6 +398,7 @@ local function handle_reset(request)
   -- every item a task meant to hand the agent. That is why repair_belt could
   -- never place a belt it was explicitly given.
   actions.reset_state()
+  world.recreate_character()
 
   local scene
   if payload.blueprint_hash then

@@ -186,6 +186,29 @@ function world.ensure_character()
 end
 
 
+-- Replace the character with a newly created one.
+--
+-- Facing was the one piece of character state reset never restored, so an
+-- episode began pointing wherever the previous episode's last move left it --
+-- and that reaches the policy directly, since `encoders.encode` puts
+-- direction/16 into the self vector. Assigning `ch.direction` does not fix it:
+-- the engine applies the write on the following tick, and the world is paused
+-- between decisions, so the reset observation would still report the stale
+-- value. A character created this tick reads direction 0 immediately.
+--
+-- Safe because reset invalidates every outstanding handle anyway, and
+-- `clear_scene` deliberately skips characters, so nothing else is holding this
+-- entity across the boundary.
+function world.recreate_character()
+  local existing = storage.frrl_character
+  if existing and existing.valid then
+    existing.destroy()
+  end
+  storage.frrl_character = nil
+  return world.ensure_character()
+end
+
+
 -- ---------------------------------------------------------------- blueprints
 
 --- Blueprints are installed once and referenced by hash thereafter, so a
@@ -429,9 +452,13 @@ function world.digest()
       end
     end
     table.sort(items)
+    -- Direction is in the digest because it was not, and a leak hid there:
+    -- reset restored position and inventory but left facing untouched, and the
+    -- 500-reset equality run compared digests that could not see it.
     lines[#lines + 1] = string.format(
-      "character|%.2f|%.2f|%d|%s|queue=%d",
-      ch.position.x, ch.position.y, ch.health or 0, table.concat(items, ","),
+      "character|%.2f|%.2f|%d|%d|%s|queue=%d",
+      ch.position.x, ch.position.y, ch.direction or 0, ch.health or 0,
+      table.concat(items, ","),
       ch.crafting_queue and #ch.crafting_queue or 0)
   else
     lines[#lines + 1] = "character|absent"
