@@ -35,7 +35,9 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="restore_power",
-    version="1.0.0",
+    # 1.1.0: the line's row and starting column are sampled, so the holdout
+    # admits a distribution of scenes rather than a single one.
+    version="1.1.0",
     description="Reconnect a power pole chain so the mining drill runs again.",
     layout_families=FAMILIES,
     success=(Predicate(PredicateKind.ENTITY_WORKING, marker="drill"),),
@@ -72,7 +74,36 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
     # `pole_gap_far` was a byte-identical copy of `pole_gap` for the same
     # reason `gap_far` was a copy of `gap`: a name implying distance, and a
     # generator with no distance parameter.
-    chain = 8 if family.name == "pole_gap_far" else 5
+    # Every coordinate in this family used to be a constant and the only
+    # randomised axis was the gap index, so `pole_gap` admitted three scenes and
+    # the held-out `gap_near_drill` -- which overwrites the sampled gap with
+    # `chain - 1` -- admitted exactly **one**. A hundred evaluation episodes
+    # against a one-scene generator measure one scene a hundred times while the
+    # Wilson interval is computed as though there were a hundred draws, so the
+    # holdout could not have supported any claim at all.
+    #
+    # The line's row and its starting column are now sampled, which multiplies
+    # the space without touching what any family *is*: the fault kind still
+    # distinguishes them, and the gap remains at the far end for the holdout.
+    row = float(rng.randint(-12, -6))
+    # Bounded at 3, not 7, for two independent reasons. The pole feeding the
+    # solar farm sits at x = -1 on the same row, and a small pole's wire reach
+    # is 7.5 tiles, so a chain starting past x = 6 would never connect to its
+    # own power source. And a first pole more than 4 tiles from x = -1 opens a
+    # gap the solver would read as *the* fault, sending it to place a pole into
+    # an occupied tile.
+    start_x = rng.randint(1, 3)
+    if family.name == "pole_gap_far":
+        chain = rng.randint(7, 9)
+    elif family.name == "gap_near_drill":
+        # The holdout spans the *pooled* training range rather than one family's.
+        # Training is `pole_gap` at 4-6 and `pole_gap_far` at 7-9, so a holdout
+        # fixed at 4-6 is systematically shorter than the training pool and a
+        # score against it measures an easier task rather than a transferred
+        # one -- which is what difficulty parity is there to prevent.
+        chain = rng.randint(4, 9)
+    else:
+        chain = rng.randint(4, 6)
     gap = rng.randint(1, chain - 2)
     if family.name == "gap_near_drill":
         gap = chain - 1
@@ -94,26 +125,26 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
     # network and are within the 7.5-tile wire reach of each other and of the
     # chain head.
     entities = [
-        EntitySpec("solar-panel", (-10.0, -8.0), marker="generator"),
-        EntitySpec("solar-panel", (-7.0, -8.0)),
-        EntitySpec("solar-panel", (-4.0, -8.0)),
-        EntitySpec("small-electric-pole", (-9.0, -11.0)),
-        EntitySpec("small-electric-pole", (-5.0, -11.0)),
-        EntitySpec("small-electric-pole", (-1.0, -8.0)),
+        EntitySpec("solar-panel", (-10.0, row), marker="generator"),
+        EntitySpec("solar-panel", (-7.0, row)),
+        EntitySpec("solar-panel", (-4.0, row)),
+        EntitySpec("small-electric-pole", (-9.0, row - 3.0)),
+        EntitySpec("small-electric-pole", (-5.0, row - 3.0)),
+        EntitySpec("small-electric-pole", (-1.0, row)),
     ]
     for index in range(chain):
         if index in gaps:
             continue
-        entities.append(EntitySpec("small-electric-pole", (float(2 + index * 4), -8.0)))
+        entities.append(EntitySpec("small-electric-pole", (float(start_x + index * 4), row)))
     # One tile closer than the pole spacing: a 3x3 drill centred 4 tiles from
     # the last pole has its near edge exactly on the boundary of that pole's
     # supply area, which does not count as covered.
-    drill_x = float(1 + chain * 4)
+    drill_x = float(start_x - 1 + chain * 4)
     entities.append(
-        EntitySpec("electric-mining-drill", (drill_x, -8.0), direction="south", marker="drill")
+        EntitySpec("electric-mining-drill", (drill_x, row), direction="south", marker="drill")
     )
     resources = tuple(
-        ResourceSpec("iron-ore", (drill_x + dx, float(dy) - 8.0), amount=1000)
+        ResourceSpec("iron-ore", (drill_x + dx, float(dy) + row), amount=1000)
         for dx in (-1.0, 0.0, 1.0)
         for dy in (-1, 0, 1)
     )
@@ -124,7 +155,7 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         character_position=(0.0, 0.0),
         character_inventory={"small-electric-pole": 4},
         unlock_recipes=("small-electric-pole",),
-        markers={"drill": (drill_x, -8.0)},
+        markers={"drill": (drill_x, row)},
         radius=64,
     )
 

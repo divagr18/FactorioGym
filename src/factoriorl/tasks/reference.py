@@ -358,6 +358,9 @@ def _misrotated_belt(driver: Driver):
 MAX_SIDESTEPS = 6
 SIDESTEP_STRIDES = 3
 
+#: Pole spacing along the chain. A wider run than this is a missing pole.
+POLE_SPACING = 4
+
 #: `give_<item>_5` moves five at a time or nothing.
 GIVE_BATCH = 5
 
@@ -393,39 +396,74 @@ def _belt_gap(driver: Driver) -> tuple[float, float] | None:
 
 
 def solve_restore_power(driver: Driver) -> None:
-    """Same shape as repair_belt: find the pole gap and stand two west of it."""
+    """Walk the pole chain until the gap is visible, then fill it.
+
+    Inferring the gap once from spawn does not work and the reason is the point
+    of the environment: a chain of nine poles puts the drill near x=37, well
+    past the 32-tile sensor radius, so the pole list is *truncated*. The old
+    fallback -- "no interior gap visible, so the gap must be past the last pole
+    I can see" -- then placed into the middle of an intact chain and collided.
+
+    Walking east re-scans as more of the line comes into view, and the gap is
+    only trusted when it is bounded on both sides: by two poles, or by a pole
+    and the drill. An unbounded guess is exactly the wrong one.
+    """
+    drill = driver.marker("drill")
+    if drill is None:
+        driver.trace.stuck_reason = "no 'drill' marker in task truth"
+        return
+
+    for _ in range(12):
+        if driver.success or driver.terminated:
+            return
+        gap = _pole_gap(driver, drill)
+        if gap is not None:
+            row = gap[1]
+            if not driver.walk_to((gap[0], row - 1.0), tolerance=0.35, budget=160):
+                return
+            # Approach from the north and place south: the tile west of the gap
+            # holds a pole. Poles are rotationally symmetric, so unlike a belt
+            # there is nothing to correct afterwards.
+            if not driver.do("place_small_electric_pole_south"):
+                return
+            for _ in range(20):
+                if driver.success or driver.terminated:
+                    return
+                if not driver.do("wait"):
+                    return
+            continue
+        # Nothing conclusive in view: move along the line toward the drill.
+        here = driver.position
+        if abs(here[0] - drill[0]) <= 3.0:
+            driver.trace.stuck_reason = "reached the drill without finding a bounded gap"
+            return
+        if not driver.walk_to((here[0] + 8.0, drill[1]), tolerance=1.5, budget=60):
+            return
+
+
+def _pole_gap(driver: Driver, drill) -> tuple[float, float] | None:
+    """A gap in the pole chain that is bounded on both sides, or None."""
     poles = [
         e
         for e in driver.env._observation.get("entities", [])
         if e.get("name") == "small-electric-pole"
     ]
-    drill = driver.marker("drill")
-    if drill is None:
-        driver.trace.stuck_reason = "no 'drill' marker in task truth"
-        return
-    xs = sorted({math.floor(e["p"][0]) for e in poles if math.floor(e["p"][1]) == -8})
-    gap_x = None
+    if not poles:
+        return None
+    # The chain's row is the modal one: the poles feeding the solar farm sit on
+    # their own row, and picking the wrong one would look like a one-pole chain.
+    rows = [math.floor(e["p"][1]) for e in poles]
+    row = max(set(rows), key=rows.count)
+    xs = sorted({math.floor(e["p"][0]) for e in poles if math.floor(e["p"][1]) == row})
     for left, right in zip(xs, xs[1:], strict=False):
-        if right - left > 4:
-            gap_x = left + 4
-            break
-    if gap_x is None and xs:
-        gap_x = xs[-1] + 4
-    if gap_x is None:
-        driver.trace.stuck_reason = "no poles visible to infer the gap from"
-        return
-    # The tile west of the gap holds a pole, so approach from the north and
-    # place south. Poles are rotationally symmetric, so unlike the belt there
-    # is nothing to correct afterwards.
-    if not driver.walk_to((gap_x + 0.5, -8.5), tolerance=0.35, budget=160):
-        return
-    if not driver.do("place_small_electric_pole_south"):
-        return
-    for _ in range(20):
-        if driver.success or driver.terminated:
-            return
-        if not driver.do("wait"):
-            return
+        if right - left > POLE_SPACING:
+            return (left + POLE_SPACING + 0.5, row + 0.5)
+    # The drill is the chain's right-hand boundary, so a last pole too far from
+    # it is a gap even with nothing beyond to bracket it. Only trust this when
+    # the drill is actually in view.
+    if xs and math.floor(drill[1]) == row and drill[0] - xs[-1] > POLE_SPACING:
+        return (xs[-1] + POLE_SPACING + 0.5, row + 0.5)
+    return None
 
 
 SOLVERS = {

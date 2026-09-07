@@ -1,6 +1,122 @@
 {
   "episodes_per_split": 6,
   "tasks": {
+    "deliver": {
+      "splits": {
+        "train": {
+          "reference_success": 6,
+          "episodes": 6,
+          "reference_rate": 1.0,
+          "random_rate": 0.33,
+          "mean_steps": 15.8,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 6,
+          "episodes": 6,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "mean_steps": 16.8,
+          "stuck_reasons": [],
+          "last_errors": []
+        }
+      }
+    },
+    "mine_smelt": {
+      "splits": {
+        "train": {
+          "reference_success": 6,
+          "episodes": 6,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "mean_steps": 141.3,
+          "stuck_reasons": [],
+          "last_errors": [
+            "give_coal_5: no_items"
+          ]
+        },
+        "test": {
+          "reference_success": 6,
+          "episodes": 6,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "mean_steps": 141.3,
+          "stuck_reasons": [],
+          "last_errors": [
+            "give_coal_5: no_items"
+          ]
+        }
+      }
+    },
+    "navigate": {
+      "splits": {
+        "train": {
+          "reference_success": 6,
+          "episodes": 6,
+          "reference_rate": 1.0,
+          "random_rate": 0.17,
+          "mean_steps": 7.0,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 6,
+          "episodes": 6,
+          "reference_rate": 1.0,
+          "random_rate": 0.17,
+          "mean_steps": 7.0,
+          "stuck_reasons": [],
+          "last_errors": []
+        }
+      }
+    },
+    "repair_belt": {
+      "splits": {
+        "train": {
+          "reference_success": 6,
+          "episodes": 6,
+          "reference_rate": 1.0,
+          "random_rate": 0.17,
+          "mean_steps": 13.0,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 6,
+          "episodes": 6,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "mean_steps": 15.8,
+          "stuck_reasons": [],
+          "last_errors": []
+        }
+      }
+    },
+    "restore_power": {
+      "splits": {
+        "train": {
+          "reference_success": 6,
+          "episodes": 6,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "mean_steps": 11.8,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 6,
+          "episodes": 6,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "mean_steps": 24.8,
+          "stuck_reasons": [],
+          "last_errors": [
+            "place_small_electric_pole_south: collision"
+          ]
+        }
+      }
+    },
     "supply_furnace": {
       "splits": {
         "train": {
@@ -24,8 +140,13 @@
       }
     }
   },
-  "wall_seconds": 83.5,
+  "wall_seconds": 366.2,
   "solvable": [
+    "deliver",
+    "mine_smelt",
+    "navigate",
+    "repair_belt",
+    "restore_power",
     "supply_furnace"
   ],
   "defective": []

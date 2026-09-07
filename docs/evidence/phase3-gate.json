@@ -4,15 +4,15 @@
   "measurements": {
     "step_ms": {
       "n": 240,
-      "mean": 10.14,
-      "p95": 11.96
+      "mean": 10.42,
+      "p95": 13.3
     },
     "reset_ms": {
       "n": 510,
-      "mean": 4.42,
-      "p95": 5.52
+      "mean": 4.52,
+      "p95": 5.64
     },
-    "steps_per_second": 98.64,
+    "steps_per_second": 95.97,
     "wall_seconds": 20.8,
     "resets": 504
   },
@@ -44,7 +44,7 @@
       {
         "check": "deliver: reset reports its layout family and split",
         "ok": true,
-        "family": "decoy_chest"
+        "family": "two_chest"
       },
       {
         "check": "deliver: a legal no-op always exists",
@@ -67,7 +67,7 @@
       {
         "check": "mine_smelt: reset reports its layout family and split",
         "ok": true,
-        "family": "fuelled_furnace"
+        "family": "near_patch"
       },
       {
         "check": "mine_smelt: a legal no-op always exists",
@@ -90,7 +90,7 @@
       {
         "check": "navigate: reset reports its layout family and split",
         "ok": true,
-        "family": "wall_corridor"
+        "family": "open"
       },
       {
         "check": "navigate: a legal no-op always exists",
@@ -113,7 +113,7 @@
       {
         "check": "repair_belt: reset reports its layout family and split",
         "ok": true,
-        "family": "gap_far"
+        "family": "gap"
       },
       {
         "check": "repair_belt: a legal no-op always exists",
@@ -136,7 +136,7 @@
       {
         "check": "restore_power: reset reports its layout family and split",
         "ok": true,
-        "family": "pole_gap_far"
+        "family": "pole_gap"
       },
       {
         "check": "restore_power: a legal no-op always exists",
@@ -159,7 +159,7 @@
       {
         "check": "supply_furnace: reset reports its layout family and split",
         "ok": true,
-        "family": "two_furnaces"
+        "family": "linear_row"
       },
       {
         "check": "supply_furnace: a legal no-op always exists",
@@ -393,5 +393,5 @@
     "build": 83512,
     "platform": "win64"
   },
-  "completed_at": "2026-09-07T23:37:35"
+  "completed_at": "2026-09-08T00:01:49"
 }

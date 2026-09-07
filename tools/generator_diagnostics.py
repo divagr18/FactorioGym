@@ -117,6 +117,17 @@ STRUCTURAL_DESCRIPTORS = (
     "occupancy_fraction",
     "entity_type_count",
     "distractor_count",
+    # How far the goal sits from the nearest other declared entity.
+    #
+    # The descriptors around it measure scene *geometry*, which is the wrong
+    # instrument for a repair task: `restore_power`'s holdout differs from its
+    # training families only in where the fault sits in the chain, and moving a
+    # missing pole from the middle to the end changes no count, no occupancy
+    # and no footprint. The tool therefore reported "no structural descriptor
+    # separates train from test" for a holdout whose whole point is a different
+    # fault position, which PLAN.md section 3 names as a holdout axis in its own
+    # right. Isolating the goal is exactly what a fault adjacent to it does.
+    "goal_isolation",
     # The four descriptors above see entities only, and PLAN.md section 3 lists
     # "resource arrangements" as a structural holdout axis in its own right.
     # `mine_smelt.screened_patch` varies nothing but the ore layout -- and ore is
@@ -355,6 +366,7 @@ def describe(task, blueprint: Blueprint) -> dict[str, float | None]:
         "entity_type_count": float(len({e.name for e in blueprint.entities})),
         "distractor_count": float(distractors),
         "content_tile_count": float(len(content_tiles)),
+        "goal_isolation": None,
         "goal_distance": None,
         "path_length": None,
         "detour_factor": None,
@@ -368,6 +380,14 @@ def describe(task, blueprint: Blueprint) -> dict[str, float | None]:
     goal = blueprint.markers[marker]
     straight = blueprint.distance_from_character(goal)
     values["goal_distance"] = round(straight, 4)
+
+    # Distance from the goal to the nearest *other* declared entity. A fault
+    # sitting next to the goal -- a missing pole at the end of a chain rather
+    # than in its middle -- shows up here and nowhere else, because it changes
+    # no count and no footprint.
+    others = [math.dist(goal, e.position) for e in blueprint.entities if e.marker != marker]
+    if others:
+        values["goal_isolation"] = round(min(others), 4)
 
     start = (
         math.floor(blueprint.character_position[0]),
