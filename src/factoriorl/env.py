@@ -140,23 +140,38 @@ class FactorioEnv(gym.Env):
 
     # ------------------------------------------------------------ gym API
 
-    def reset(self, *, seed: int | None = None, options: dict | None = None):
-        super().reset(seed=seed)
-        self._episode_index += 1
-        self._steps = 0
+    def prepare_scene(self, episode_index: int) -> str:
+        """Choose and install the scene for an episode, returning its digest.
 
+        Kept separate from beginning the episode because the two have
+        different lifetimes: a scene is installed once and referenced by hash
+        thereafter, while an episode begins many times against the same scene.
+        Phase 7's persistent stages advance the goal without reinstalling, and
+        anything that restores a mid-episode state needs the same seam.
+        """
         families = self._families()
-        rng = self.seed_plan.generator_rng(self.branch, self._episode_index)
+        rng = self.seed_plan.generator_rng(self.branch, episode_index)
         self._family = families[rng.randrange(len(families))]
         blueprint = self.task.generate(self._family, rng)
-        digest = self._install(blueprint)
+        return self._install(blueprint)
 
+    def begin_episode(self, digest: str) -> dict:
+        """Return the world to an installed scene and start scoring."""
         # Drain anything still in flight before resetting, so a reset never
         # lands on top of a running advance.
         self.session.reset(blueprint_hash=digest)
         self._observation = self.session.observe().response.result
         self._refresh_truth()
         self.accountant.reset(self._observation, self._truth)
+        return self._observation
+
+    def reset(self, *, seed: int | None = None, options: dict | None = None):
+        super().reset(seed=seed)
+        self._episode_index += 1
+        self._steps = 0
+
+        digest = self.prepare_scene(self._episode_index)
+        self.begin_episode(digest)
 
         info = {
             "task": self.spec_.id,
@@ -170,10 +185,27 @@ class FactorioEnv(gym.Env):
         return encoders.encode(self._observation, self._goal_vector()), info
 
     def _goal_vector(self) -> np.ndarray:
+        """Budget fraction, success predicates, then observable landmarks.
+
+        Success predicates are all false until the episode is essentially over,
+        so on their own they leave most of this vector constant and tell a
+        long-horizon policy nothing about where it is. Landmarks are the
+        intermediate conditions a solution passes through. They are evaluated
+        against the observation with **empty truth**, so a landmark cannot
+        smuggle evaluator state into the policy input; a task declaring a
+        truth-dependent landmark fails `test_landmarks_do_not_read_truth`
+        rather than silently leaking.
+        """
         goal = np.zeros(encoders.GOAL_FEATURES, dtype=np.float32)
         goal[0] = min(1.0, self._steps / max(self.spec_.max_decision_steps, 1))
-        for index, predicate in enumerate(self.spec_.success[: encoders.GOAL_FEATURES - 2]):
-            goal[index + 1] = 1.0 if predicate.evaluate(self._observation, self._truth) else 0.0
+        cursor = 1
+        limit = encoders.GOAL_FEATURES - 1
+        for predicate in self.spec_.success[: limit - cursor]:
+            goal[cursor] = 1.0 if predicate.evaluate(self._observation, self._truth) else 0.0
+            cursor += 1
+        for predicate in self.spec_.landmarks[: limit - cursor]:
+            goal[cursor] = 1.0 if predicate.evaluate(self._observation, {}) else 0.0
+            cursor += 1
         return goal
 
     def _succeeded(self) -> bool:

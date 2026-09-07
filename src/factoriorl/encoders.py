@@ -59,6 +59,12 @@ ENTITY_FEATURES = 16
 SELF_FEATURES = 12
 GOAL_FEATURES = 12
 
+#: Bumped when the *meaning* of the goal vector changes without its shape
+#: changing -- the sensor contract (`local-v1`) is untouched, but a policy
+#: trained against version 1 read different semantics in the same slots.
+#: Version 2 appends observable landmarks after the success predicates.
+GOAL_ENCODING_VERSION = 2
+
 
 @dataclass(frozen=True)
 class ObservationProfile:

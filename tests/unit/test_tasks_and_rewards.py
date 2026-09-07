@@ -357,3 +357,44 @@ def test_the_cap_actually_bounds_the_cumulative_payout():
         observation = {"inventory": {"iron-ore": held}, "character": {}, "entities": []}
         total += accountant.step(observation, {}, succeeded=False)["carried"]
     assert total == pytest.approx(0.25), f"cumulative payout {total} exceeded the cap"
+
+
+# ------------------------------------------------------------------ landmarks
+
+
+@pytest.mark.parametrize("task_id", FAMILIES)
+def test_landmarks_do_not_read_truth(task_id):
+    """Landmarks enter the goal vector, which is a policy input, so they must be
+    computable from the declared observation alone. A landmark that reads
+    evaluator truth would be privileged information -- the same violation the
+    action-mask purity test exists to prevent."""
+    spec = get(task_id).spec
+    observation = {
+        "character": {"position": [3.0, 4.0]},
+        "inventory": {"iron-ore": 4, "iron-plate": 1},
+        "entities": [{"name": "stone-furnace", "p": [5.0, 5.0], "h": "e1"}],
+        "resources": {"tiles": []},
+        "tick": 120,
+    }
+    truth = {
+        "markers": {"goal": [10.0, 10.0], "dst": [8.0, 8.0], "furnace": [5.0, 5.0]},
+        "containers": {"dst": {"iron-plate": 99}, "sink": {"iron-plate": 99}},
+        "produced": {"iron-plate": 99},
+        "working": {"drill": True, "generator": True},
+    }
+    for predicate in spec.landmarks:
+        with_truth = predicate.evaluate(observation, truth)
+        without_truth = predicate.evaluate(observation, {})
+        assert with_truth == without_truth, (
+            f"{task_id} landmark {predicate.kind.value} changes with evaluator truth"
+        )
+
+
+@pytest.mark.parametrize("task_id", FAMILIES)
+def test_goal_vector_slots_fit(task_id):
+    """Success predicates plus landmarks must fit the goal vector beside the
+    budget fraction, or declaring a landmark would silently drop another."""
+    from factoriorl import encoders
+
+    spec = get(task_id).spec
+    assert 1 + len(spec.success) + len(spec.landmarks) <= encoders.GOAL_FEATURES

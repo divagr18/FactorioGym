@@ -48,6 +48,11 @@ SPEC = TaskSpec(
     ),
     max_decision_steps=300,
     max_game_ticks=18000,
+    landmarks=(
+        # Falls from true to false as the spare is spent, which is what tells
+        # the policy a placement actually happened.
+        Predicate(PredicateKind.INVENTORY_HOLDS, item="transport-belt", at_least=1),
+    ),
     catalog_subset=(
         "move_north",
         "move_east",

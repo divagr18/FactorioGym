@@ -63,6 +63,10 @@ SPEC = TaskSpec(
     ),
     max_decision_steps=400,
     max_game_ticks=24000,
+    landmarks=(
+        Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-ore", at_least=1),
+        Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-ore", at_least=5),
+    ),
     catalog_subset=(
         "move_north",
         "move_east",

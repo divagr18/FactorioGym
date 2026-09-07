@@ -21,6 +21,7 @@ import numpy as np
 from sb3_contrib import MaskablePPO
 from stable_baselines3.common.callbacks import BaseCallback
 
+from factoriorl import encoders
 from factoriorl import manifest as manifest_module
 from factoriorl.env import FactorioEnv
 from factoriorl.learn.policy import EXTRACTOR_VERSION, describe, policy_kwargs
@@ -275,6 +276,12 @@ def train(config: TrainConfig) -> dict:
                 "observation": task.spec.observation_profile,
                 "action": task.spec.action_profile,
                 "assistance": "none",
+                # Which deliberation layer chose the actions. A policy over
+                # primitives and a policy over skills produce results that are
+                # not comparable, and a published result that does not say
+                # which one it used cannot be interpreted later.
+                "deliberation": task.spec.deliberation_profile,
+                "goal_encoding": encoders.GOAL_ENCODING_VERSION,
                 "catalog": catalog_env.catalog.name,
                 "catalog_digest": catalog_env.catalog.digest(),
                 "resolved_catalog": list(catalog_env.catalog.keys()),
@@ -310,25 +317,48 @@ def train(config: TrainConfig) -> dict:
         curve.write()
         model.save(run_dir / "model")
 
-        # Evaluation runs on a held-out split and a disjoint seed branch, so
-        # an evaluation episode can never be one the policy trained on.
-        eval_env = FactorioEnv(
-            task,
-            session,
-            plan,
-            branch=Branch.EVAL,
-            split=config.eval_split,
-            shaping=config.shaping,
-        )
-        held_out = evaluate(eval_env, model, config.eval_episodes)
-        baseline = random_baseline(
-            FactorioEnv(task, session, plan, branch=Branch.EVAL, split=config.eval_split),
-            # The baseline shares the evaluation budget: a 10-episode
-            # baseline has a Wilson interval so wide that almost no
-            # held-out rate can clear its upper bound.
-            config.eval_episodes,
-            np.random.default_rng(config.master_seed),
-        )
+        # Three rows, because one number cannot say which failure happened.
+        # PLAN section 3 puts the threshold on unfamiliar *structures* and
+        # requires the unfamiliar-*seed* rate published beside it: a policy
+        # that scores well on seeds and badly on structures learned the task
+        # and failed to transfer, while one that fails both never learned it.
+        # Every row uses the EVAL seed branch, so no evaluation episode is one
+        # the policy trained on, whatever split it came from.
+        rows: dict[str, dict] = {}
+        for label, split in (
+            ("seeds", "train"),
+            ("val", "val"),
+            ("structures", "test"),
+        ):
+            if not task.spec.families(split):
+                continue
+            rows[label] = evaluate(
+                FactorioEnv(
+                    task,
+                    session,
+                    plan,
+                    branch=Branch.EVAL,
+                    split=split,
+                    shaping=config.shaping,
+                ),
+                model,
+                config.eval_episodes,
+            )
+            rows[label]["split"] = split
+            rows[label]["random_baseline"] = random_baseline(
+                FactorioEnv(task, session, plan, branch=Branch.EVAL, split=split),
+                # The baseline shares the evaluation budget: a 10-episode
+                # baseline has a Wilson interval so wide that almost no
+                # measured rate can clear its upper bound, which turns an
+                # underpowered comparison into a false negative.
+                config.eval_episodes,
+                np.random.default_rng(config.master_seed),
+            )
+
+        # `held_out` stays the acceptance number and remains the structural
+        # row; `eval_split` names the split that selection may look at.
+        held_out = rows.get("structures") or rows.get(config.eval_split) or {}
+        baseline = held_out.get("random_baseline", {})
 
         result = {
             "run_id": run_id,
@@ -341,6 +371,7 @@ def train(config: TrainConfig) -> dict:
             ),
             "held_out": held_out,
             "random_baseline": baseline,
+            "evaluation": rows,
             "episodes_logged": len(curve.rows),
             "final_train_success_rate": round(
                 float(np.mean([r["success"] for r in curve.rows[-20:]])), 4

@@ -45,6 +45,7 @@ SPEC = TaskSpec(
     ),
     max_decision_steps=250,
     max_game_ticks=15000,
+    landmarks=(Predicate(PredicateKind.INVENTORY_HOLDS, item="small-electric-pole", at_least=1),),
     catalog_subset=(
         "move_north",
         "move_east",

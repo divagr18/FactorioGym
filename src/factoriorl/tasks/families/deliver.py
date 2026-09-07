@@ -67,6 +67,12 @@ SPEC = TaskSpec(
     ),
     max_decision_steps=250,
     max_game_ticks=15000,
+    landmarks=(
+        # The episode's pivot: everything before this is fetching, everything
+        # after is delivering, and the success predicate cannot tell them apart.
+        Predicate(PredicateKind.INVENTORY_HOLDS, item=TARGET_ITEM, at_least=1),
+        Predicate(PredicateKind.INVENTORY_HOLDS, item=TARGET_ITEM, at_least=TARGET_COUNT),
+    ),
     catalog_subset=(
         "move_north",
         "move_east",

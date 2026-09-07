@@ -228,6 +228,26 @@ class TaskSpec:
     catalog: str = "primitive-v1"
     catalog_subset: tuple[str, ...] = ()
     failure: tuple[Predicate, ...] = ()
+    #: Observable subgoals, in the order they are expected to become true.
+    #: The goal vector currently spends most of its slots on success
+    #: predicates that are all false until the moment the episode ends, which
+    #: gives a long-horizon policy nothing to orient by. Landmarks are the
+    #: intermediate conditions a solution passes through, and they must be
+    #: computable from the declared observation alone -- a landmark that reads
+    #: evaluator truth would put privileged information into the policy input,
+    #: which section 2 forbids. `test_landmarks_do_not_read_truth` enforces it.
+    landmarks: tuple[Predicate, ...] = ()
+    #: What must hold before this task can be attempted, and what it leaves
+    #: true when it succeeds. Nothing consumes these yet; they are the
+    #: vocabulary a refinement layer needs in order to chain tasks, and
+    #: declaring them alongside the task is far cheaper than reconstructing
+    #: them later from generators and predicates.
+    preconditions: tuple[Predicate, ...] = ()
+    provides: tuple[Predicate, ...] = ()
+    #: Names the deliberation layer that chooses actions for this task:
+    #: `flat-v1` is a policy over primitive actions. A skill layer is a
+    #: different profile and must be distinguishable in a published result.
+    deliberation_profile: str = "flat-v1"
 
     def families(self, split: str) -> tuple[LayoutFamily, ...]:
         return tuple(f for f in self.layout_families if f.split == split)
@@ -244,6 +264,7 @@ class TaskSpec:
             },
             "observation_profile": self.observation_profile,
             "action_profile": self.action_profile,
+            "deliberation_profile": self.deliberation_profile,
             "catalog": self.catalog,
             "catalog_subset": list(self.catalog_subset),
             "layout_families": [{"name": f.name, "split": f.split} for f in self.layout_families],

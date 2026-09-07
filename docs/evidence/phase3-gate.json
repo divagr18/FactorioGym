@@ -3,17 +3,17 @@
   "failures": [],
   "measurements": {
     "step_ms": {
-      "n": 224,
-      "mean": 12.62,
-      "p95": 13.81
+      "n": 240,
+      "mean": 13.9,
+      "p95": 16.12
     },
     "reset_ms": {
       "n": 510,
-      "mean": 4.28,
-      "p95": 5.37
+      "mean": 5.31,
+      "p95": 7.24
     },
-    "steps_per_second": 79.23,
-    "wall_seconds": 17.0,
+    "steps_per_second": 71.94,
+    "wall_seconds": 17.9,
     "resets": 504
   },
   "sections": {
@@ -366,15 +366,15 @@
         "check": "growth proxies stay flat across the reset run",
         "ok": true,
         "start": {
-          "handles": 2,
-          "remembered": 2,
+          "handles": 3,
+          "remembered": 3,
           "ledger": 1,
           "events": 0,
           "inflight": 0
         },
         "end": {
-          "handles": 2,
-          "remembered": 2,
+          "handles": 3,
+          "remembered": 3,
           "ledger": 1,
           "events": 0,
           "inflight": 0
@@ -393,5 +393,5 @@
     "build": 83512,
     "platform": "win64"
   },
-  "completed_at": "2026-09-07T13:51:45"
+  "completed_at": "2026-09-07T16:42:20"
 }
