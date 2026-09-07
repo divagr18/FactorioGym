@@ -8,7 +8,7 @@
       "mean": 2752.2
     },
     "game_ticks": 6420,
-    "wall_seconds": 6.0,
+    "wall_seconds": 5.62,
     "produced_plate": 1
   },
   "failures": [],
@@ -36,12 +36,12 @@
     "worker_id": "phase2-gate",
     "map_seed": 424242,
     "ports": {
-      "game": 23522,
-      "rcon": 23523
+      "game": 23498,
+      "rcon": 23499
     },
     "directory": "D:\\FactorioRL\\runtime\\workers\\phase2-gate"
   },
-  "completed_at": "2026-09-07T05:45:12",
+  "completed_at": "2026-09-07T21:49:10",
   "criteria": [
     {
       "criterion": "2.1 rotation reachable",
