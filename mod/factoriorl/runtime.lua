@@ -312,6 +312,7 @@ local function handle_describe(request)
     request_types = {
       "status", "observe", "reset", "advance", "act",
       "request_status", "step", "collect", "describe", "configure",
+      "scenario_define", "truth", "world_digest",
     },
   })
 end
@@ -334,6 +335,43 @@ local function handle_configure(request)
   return respond(request, CODE.OK, { status = STATUS.COMPLETED, applied = applied })
 end
 
+local function handle_scenario_define(request)
+  local blueprint = request.payload and request.payload.blueprint
+  local hash = request.payload and request.payload.hash
+  if type(blueprint) ~= "table" or type(hash) ~= "string" then
+    return respond(request, CODE.REJECTED, nil,
+      err(ERR.MISSING_FIELD, "payload.hash and payload.blueprint are required"))
+  end
+  world.define_blueprint(hash, blueprint)
+  return respond(request, CODE.OK, {
+    status = STATUS.COMPLETED, hash = hash,
+    entities = #(blueprint.entities or {}),
+    resources = #(blueprint.resources or {}),
+  })
+end
+
+--- Evaluator-only ground truth. A separate request from `observe`, so the
+--- separation between what a policy may see and what the evaluator knows is
+--- structural rather than a naming convention (PLAN.md section 2).
+--- Evaluator-only leakage probe: sorted lines describing everything a reset
+--- must restore, plus growth proxies that catch unbounded state.
+local function handle_world_digest(request)
+  return respond(request, CODE.OK, {
+    lines = world.digest(),
+    growth = {
+      handles = handles.count(),
+      remembered = memory.count(),
+      ledger = #state.ledger_order,
+      events = #state.events,
+      inflight = #inflight.summary(),
+    },
+  })
+end
+
+local function handle_truth(request)
+  return respond(request, CODE.OK, world.truth())
+end
+
 local function handle_reset(request)
   local payload = request.payload or {}
   if payload.observation_profile then
@@ -354,8 +392,21 @@ local function handle_reset(request)
   if payload.scenario then
     storage.frrl_scenario_name = payload.scenario
   end
-  local scene = world.reset_scene()
+  local scene
+  if payload.blueprint_hash then
+    if not world.has_blueprint(payload.blueprint_hash) then
+      return respond(request, CODE.REJECTED, nil,
+        err(ERR.INVALID_TARGET, "unknown blueprint: " .. payload.blueprint_hash,
+          { hash = payload.blueprint_hash }))
+    end
+    scene = world.build_blueprint(payload.blueprint_hash)
+  else
+    scene = world.reset_scene()
+  end
   actions.reset_state()
+  -- Cumulative statistics are exactly where cross-episode leakage hides, and
+  -- nothing cleared them before.
+  world.clear_statistics()
   local new_episode = begin_episode()
   return respond(request, CODE.OK, {
     episode_id = new_episode,
@@ -378,6 +429,9 @@ local HANDLERS = {
   collect = handle_collect,
   describe = handle_describe,
   configure = handle_configure,
+  scenario_define = handle_scenario_define,
+  truth = handle_truth,
+  world_digest = handle_world_digest,
 }
 
 local MUTATING = { advance = true, act = true, reset = true, step = true }

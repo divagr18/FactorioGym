@@ -96,6 +96,48 @@ def cmd_phase2_gate(_args) -> int:
     return 0 if report.get("passed") else 1
 
 
+def cmd_phase3_gate(_args) -> int:
+    from factoriorl.gate_phase3 import run_phase3_gate
+
+    report = run_phase3_gate()
+    print(json.dumps({k: v for k, v in report.items() if k != "sections"}, indent=2))
+    for section, checks in report.get("sections", {}).items():
+        for check in checks:
+            mark = "ok " if check["ok"] else "FAIL"
+            print(f"  [{mark}] {section}: {check['check']}")
+    return 0 if report.get("passed") else 1
+
+
+def cmd_tasks(args) -> int:
+    from factoriorl.tasks import all_tasks, validate_all
+
+    if args.tasks_command == "list":
+        for task_id, task in sorted(all_tasks().items()):
+            spec = task.spec
+            families = ", ".join(f"{f.name}({f.split})" for f in spec.layout_families)
+            print(f"{task_id:16s} v{spec.version}  {families}")
+            print(f"                 {spec.description}")
+        return 0
+    report = validate_all()
+    print(json.dumps(report, indent=2))
+    return 0 if report["ok"] else 1
+
+
+def cmd_runs(args) -> int:
+    from factoriorl import manifest as manifest_module
+
+    if args.runs_command == "list":
+        for row in manifest_module.list_runs():
+            print(f"{row['run_id']}  {row['created_at']}  {row['task']} v{row['task_version']}")
+        return 0
+    if args.runs_command == "show":
+        print(json.dumps(manifest_module.load(args.run_id), indent=2))
+        return 0
+    result = manifest_module.verify(args.run_id)
+    print(json.dumps(result, indent=2))
+    return 0 if result["ok"] else 1
+
+
 def cmd_action_matrix(args) -> int:
     from factoriorl.action_matrix import to_markdown
     from factoriorl.paths import workspace_root
@@ -178,6 +220,21 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("phase0-gate", help="run the Phase 0 exit gate")
     sub.add_parser("phase1-gate", help="run the Phase 1 exit gate and record evidence")
     sub.add_parser("phase2-gate", help="run the Phase 2 exit gate (scripted embodied agent)")
+    sub.add_parser("phase3-gate", help="run the Phase 3 exit gate (tasks, spaces, resets)")
+
+    tasks_cmd = sub.add_parser("tasks", help="task registry")
+    tasks_sub = tasks_cmd.add_subparsers(dest="tasks_command", required=True)
+    tasks_sub.add_parser("list", help="list registered tasks")
+    tasks_sub.add_parser("validate", help="validate every task before training")
+
+    runs_cmd = sub.add_parser("runs", help="run manifests")
+    runs_sub = runs_cmd.add_subparsers(dest="runs_command", required=True)
+    runs_sub.add_parser("list", help="list recorded runs")
+    show_cmd = runs_sub.add_parser("show", help="print a run manifest")
+    show_cmd.add_argument("run_id")
+    verify_cmd = runs_sub.add_parser("verify", help="re-check a manifest against current code")
+    verify_cmd.add_argument("run_id")
+
     matrix_cmd = sub.add_parser("action-matrix", help="generate docs/ACTION_MATRIX.md")
     matrix_cmd.add_argument("--check", action="store_true", help="fail if the doc is stale")
 
@@ -198,6 +255,12 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_phase1_gate(args)
     if args.command == "phase2-gate":
         return cmd_phase2_gate(args)
+    if args.command == "phase3-gate":
+        return cmd_phase3_gate(args)
+    if args.command == "tasks":
+        return cmd_tasks(args)
+    if args.command == "runs":
+        return cmd_runs(args)
     if args.command == "action-matrix":
         return cmd_action_matrix(args)
     return cmd_phase0_gate(args)

@@ -428,6 +428,151 @@ exposed the real problem: greedy movement has no pathfinding (PLAN defers it to
 checks now run while the targets are in view from spawn, and `_walk_towards`
 detects being stuck instead of spinning out its budget.
 
+## Phase 3 - Task engine, reset correctness, RL spaces
+
+**Status: Accepted** (2026-09-07)
+
+Gate evidence: `docs/evidence/phase3-gate.json` - **65/65 checks, passed: true**,
+produced by `uv run factoriorl phase3-gate`.
+
+| Measurement | Planned | Measured |
+|---|---|---|
+| Step | 110 ms | **24.03 ms** (p95 26.55) |
+| Steps/s, one worker | 9.1 | **41.6** |
+| Reset | under 150 ms | **6.21 ms** (p95 7.69) |
+| Consecutive resets | 500 | **504** |
+
+The step figure matters for Phase 4: at 41.6 steps/s a 300k-step run is ~2 hours
+on a *single* worker, so training no longer depends on running enough concurrent
+engines to hit this machine's commit ceiling.
+
+### 3.1 - Task specifications
+
+Declarative Python: frozen dataclasses plus a closed predicate and reward
+vocabulary, with a discovery-based registry. `factoriorl tasks validate` runs at
+construction, before any worker is launched, and reports every problem at once -
+schema, budgets, split coverage, exactly one sparse-success component, and a
+structural pass over sampled blueprints.
+
+**Deviation from the approved plan, recorded deliberately:** the plan specified
+TOML as the source of truth with Python only for generators. This ships the
+declaration in Python dataclasses instead. Every PLAN 3.1 acceptance criterion
+is still met and still provable - a TOML layer would add parsing without
+changing what can be checked - but external task authoring (PLAN 11.1) will
+want the file format, so this is a deferral rather than a rejection.
+
+"A task can be added without editing worker management" is enforced as an
+**import-direction test**: `factoriorl.tasks` may not import `worker`,
+`worker_config`, `pool`, `supervisor`, `rcon` or `session`. If it could reach
+them, adding a task could require changing them.
+
+### 3.2 - Scenes are blueprints, not map generation
+
+Decided on reset cost and on where scenario selection lives. Map-gen settings
+are written at worker launch and consumed by `--create`, so a map-gen-driven
+task would need an engine relaunch to switch or randomise - putting scenario
+selection squarely inside worker management. A blueprint is also something a
+solvability check can reason about: "a 4x4 iron patch 18 tiles out" is a
+question you can ask a declaration and cannot ask Perlin noise.
+
+The measurement settles it: **6.21 ms per reset**. A save-reload reset would be
+two orders of magnitude slower, and PLAN 3.3's 500 consecutive resets would not
+be affordable.
+
+Blueprints are installed once and referenced by hash thereafter, so a
+steady-state reset carries a hash rather than the whole scene.
+
+### 3.3 - Six introductory families
+
+`navigate`, `deliver`, `mine_smelt`, `supply_furnace`, `repair_belt`,
+`restore_power`. Each declares four layout families across train/val/test, and
+**the holdout is structural, not a different seed** - PLAN section 3 asks for
+unfamiliar seeds and unfamiliar structures to be reported separately, so the
+split lives on the structure. A test asserts no training family is reused as a
+holdout.
+
+Two deliberate design choices worth recording:
+
+- `mine_smelt` measures success from **force production statistics**, not an
+  inventory count, so plates that already existed at reset can never be counted
+  as produced.
+- Hand-crafting is off the critical path: the furnace is pre-placed, so the
+  production family does not depend on crafting-queue behaviour.
+- `repair_belt` needs no separate instrumentation: throughput before the repair
+  is exactly zero, so the unloading chest's contents *are* the proof, and the
+  success predicate cannot be satisfied by the initial state.
+
+### 3.4 - Gymnasium spaces
+
+Fixed-shape `Dict` space: a 6x65x65 grid, 32 padded entity rows with a mask, and
+self/inventory/goal vectors. Entity rows carry the **is-remembered flag and
+observation age**, so a policy can tell "I can see this" from "I saw this 500
+ticks ago" - which is the point of Phase 2.3's remembered observations.
+
+Action catalogs are ordered lists of fully-bound templates where file order *is*
+the index. A task's subset is re-indexed by **catalog** order, never by the
+order the task listed them, and the resolved catalog is content-hashed - a task
+listing its actions differently must not change what an action index means.
+
+Masks are built from the observation alone, never from the blueprint or the task
+truth, and `wait` is unconditionally legal so a no-op fallback always exists.
+Termination and truncation are exclusive, and an infrastructure failure is
+**neither**: a dead worker is not a task outcome (PLAN section 2), so it is
+reported with `excluded_from_metrics` for the trainer to drop.
+
+### 3.5 - Reward accounting
+
+Computed in Python over counters Lua maintains. `total` is
+`sum(components.values())` **by construction**, so "components sum to the
+returned reward" is not something a test has to catch.
+
+Two component kinds make the anti-exploit criteria structurally true:
+
+- **high-water** shaping rewards the increase of a maximum, never the level, so
+  moving items out of the goal and back cannot pay twice;
+- **potential-based** shaping is `gamma*phi(s') - phi(s)`.
+
+One test correction worth recording: the potential-loop test initially asserted
+a closed loop sums to *zero*. It does not - it sums to `(gamma - 1) * sum(phi)`,
+which is **negative**. The loop costs a little rather than paying, and the
+property that actually matters is that it is never profitable and that the loss
+does not compound into a payout over more laps. The test asserts that instead.
+
+Evaluator truth is a **separate `truth` request** from `observe`, so the
+boundary between policy input and evaluator knowledge is structural rather than
+a naming convention.
+
+### 3.6 - Reset correctness
+
+`world_digest` returns **sorted lines, not a hash**: a bare hash mismatch says
+something leaked but not what, and PLAN 3.3 wants item, technology, timer and
+reward leakage distinguished. Python hashes it for the fast comparison and diffs
+the lines when they disagree.
+
+The 504-reset run asserts digest equality per task, flat growth proxies (handle
+table, remembered store, ledger, events) as the unbounded-state canary a digest
+comparison alone would miss, and - the check that makes it meaningful - **a
+long-running worker matches a freshly launched one** on the same scene.
+
+Reset now also clears cumulative production statistics, which nothing did
+before and which is exactly where cross-episode leakage hides.
+
+### Bugs the gate found
+
+- **Factorio 2.0 has 16 compass directions, not 8.** Encoding `direction / 8.0`
+  produced 1.875 and pushed the feature outside its declared Box, which the
+  in-space check caught on every family after the first step.
+- **`500 // 6 * 6` is 498.** The reset target was missed by two until the
+  division became a ceiling - a gate that quietly under-runs its own target is
+  worth catching.
+
+### Phase 3 exit gate
+
+`uv run factoriorl phase3-gate`: config validation, the Gymnasium space and mask
+invariants per family, reward-component sums, shaping-off parity, held-out split
+reachability, the 504-reset leakage run with a fresh-worker comparison, and the
+throughput numbers Phase 4.3 builds on. **65/65, 16 seconds.**
+
 ## Engine facts worth remembering
 
 - Factorio 2.0 Lua: `global` → `storage`, `game.create_player` removed

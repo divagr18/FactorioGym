@@ -185,4 +185,273 @@ function world.ensure_character()
   return ch
 end
 
+
+-- ---------------------------------------------------------------- blueprints
+
+--- Blueprints are installed once and referenced by hash thereafter, so a
+--- steady-state reset carries a hash rather than the whole scene.
+local BLUEPRINT_LIMIT = 64
+
+local DIRECTIONS = {
+  north = defines.direction.north,
+  east = defines.direction.east,
+  south = defines.direction.south,
+  west = defines.direction.west,
+}
+
+function world.define_blueprint(hash, blueprint)
+  storage.frrl_blueprints = storage.frrl_blueprints or { order = {}, by_hash = {} }
+  local store = storage.frrl_blueprints
+  if not store.by_hash[hash] then
+    store.order[#store.order + 1] = hash
+    while #store.order > BLUEPRINT_LIMIT do
+      local oldest = table.remove(store.order, 1)
+      store.by_hash[oldest] = nil
+    end
+  end
+  store.by_hash[hash] = blueprint
+  return hash
+end
+
+function world.has_blueprint(hash)
+  local store = storage.frrl_blueprints
+  return store and store.by_hash[hash] ~= nil
+end
+
+--- Build a stored blueprint, replacing whatever is there.
+function world.build_blueprint(hash)
+  local store = storage.frrl_blueprints
+  local blueprint = store and store.by_hash[hash]
+  if not blueprint then return nil end
+  local srf = surface()
+  local radius = blueprint.radius or 64
+  local destroyed = clear_scene(srf, radius)
+  world.ensure_character()
+
+  local aliases = {}
+  for _, spec in pairs(blueprint.resources or {}) do
+    local position = { spec.position[1], spec.position[2] }
+    if srf.can_place_entity({ name = spec.name, position = position }) then
+      srf.create_entity({
+        name = spec.name, position = position, amount = spec.amount or 1000,
+      })
+    end
+  end
+  for _, spec in pairs(blueprint.entities or {}) do
+    local created = srf.create_entity({
+      name = spec.name,
+      position = { spec.position[1], spec.position[2] },
+      direction = DIRECTIONS[spec.direction or "north"],
+      force = spec.force or "player",
+    })
+    if created then
+      if spec.contents then
+        for item, count in pairs(spec.contents) do
+          created.insert({ name = item, count = count })
+        end
+      end
+      if spec.recipe then pcall(function() created.set_recipe(spec.recipe) end) end
+      if spec.marker then aliases[spec.marker] = created end
+    end
+  end
+
+  local ch = world.ensure_character()
+  local character = blueprint.character or {}
+  if character.position then
+    ch.teleport({ character.position[1], character.position[2] })
+  end
+  if character.inventory then
+    local inv = ch.get_inventory(defines.inventory.character_main)
+    for item, count in pairs(character.inventory) do
+      inv.insert({ name = item, count = count })
+    end
+  end
+
+  storage.frrl_scene = {
+    name = "blueprint:" .. hash,
+    aliases = aliases,
+    markers = blueprint.markers or {},
+    radius = radius,
+  }
+  return { scenario = storage.frrl_scene.name, destroyed = destroyed }
+end
+
+-- ---------------------------------------------------------------- truth
+
+--- Evaluator-only ground truth (PLAN.md section 2: evaluator information must
+--- not enter policy inputs). This is a separate request from `observe`, so the
+--- separation is structural: a policy reading observations cannot reach it.
+function world.truth()
+  local scene = storage.frrl_scene or {}
+  local force = game.forces["player"]
+  local stats = force.get_item_production_statistics(surface())
+
+  local containers = {}
+  local working = {}
+  for marker, entity in pairs(scene.aliases or {}) do
+    if entity and entity.valid then
+      local contents = {}
+      for _, which in ipairs({
+        defines.inventory.chest,
+        defines.inventory.furnace_result,
+        defines.inventory.assembling_machine_output,
+        defines.inventory.furnace_source,
+      }) do
+        local inv = entity.get_inventory(which)
+        if inv then
+          for _, stack in pairs(inv.get_contents()) do
+            contents[stack.name] = (contents[stack.name] or 0) + stack.count
+          end
+        end
+      end
+      containers[marker] = contents
+      local ok, status = pcall(function() return entity.status end)
+      working[marker] = ok and status == defines.entity_status.working or false
+    end
+  end
+
+  local produced = {}
+  for _, item in ipairs({
+    "iron-plate", "copper-plate", "stone-furnace", "iron-gear-wheel",
+    "iron-ore", "copper-ore", "coal", "stone",
+  }) do
+    local count = stats.get_input_count(item)
+    if count and count > 0 then produced[item] = count end
+  end
+
+  local markers = {}
+  for name, position in pairs(scene.markers or {}) do
+    markers[name] = position
+  end
+  for marker, entity in pairs(scene.aliases or {}) do
+    if entity and entity.valid then
+      markers[marker] = { entity.position.x, entity.position.y }
+    end
+  end
+
+  return {
+    markers = markers,
+    containers = containers,
+    working = working,
+    produced = produced,
+    scenario = scene.name,
+  }
+end
+
+--- Clear cumulative statistics. Production statistics are exactly where
+--- cross-episode leakage hides, and nothing cleared them before.
+function world.clear_statistics()
+  local force = game.forces["player"]
+  for _, getter in ipairs({
+    "get_item_production_statistics",
+    "get_fluid_production_statistics",
+    "get_entity_build_count_statistics",
+    "get_kill_count_statistics",
+  }) do
+    local ok, stats = pcall(function() return force[getter](surface()) end)
+    if ok and stats then pcall(function() stats.clear() end) end
+  end
+end
+
+
+-- ---------------------------------------------------------------- digest
+
+--- A canonical description of everything a reset must restore.
+-- Returned as sorted lines rather than a hash, deliberately: a bare hash
+-- mismatch tells you that something leaked but not what, and PLAN.md 3.3 wants
+-- item, technology, timer and reward leakage distinguished. Python hashes it
+-- for the fast comparison and diffs the lines when they disagree.
+function world.digest()
+  local srf = surface()
+  local lines = {}
+
+  local entities = {}
+  for _, entity in pairs(srf.find_entities_filtered({ force = "player" })) do
+    if entity.valid and entity.type ~= "character" then
+      local parts = {
+        entity.name,
+        string.format("%.2f", entity.position.x),
+        string.format("%.2f", entity.position.y),
+        tostring(entity.direction),
+      }
+      local contents = {}
+      for _, which in ipairs({
+        defines.inventory.chest,
+        defines.inventory.fuel,
+        defines.inventory.furnace_source,
+        defines.inventory.furnace_result,
+      }) do
+        local inv = entity.get_inventory(which)
+        if inv then
+          for _, stack in pairs(inv.get_contents()) do
+            contents[#contents + 1] = stack.name .. "=" .. stack.count
+          end
+        end
+      end
+      table.sort(contents)
+      parts[#parts + 1] = table.concat(contents, ",")
+      entities[#entities + 1] = "entity|" .. table.concat(parts, "|")
+    end
+  end
+  table.sort(entities)
+  for _, line in ipairs(entities) do lines[#lines + 1] = line end
+
+  local resources = {}
+  for _, entity in pairs(srf.find_entities_filtered({ type = "resource" })) do
+    if entity.valid then
+      resources[#resources + 1] = string.format(
+        "resource|%s|%.1f|%.1f|%d", entity.name, entity.position.x, entity.position.y,
+        entity.amount or 0)
+    end
+  end
+  table.sort(resources)
+  for _, line in ipairs(resources) do lines[#lines + 1] = line end
+
+  local ch = storage.frrl_character
+  if ch and ch.valid then
+    local inv = ch.get_inventory(defines.inventory.character_main)
+    local items = {}
+    if inv then
+      for _, stack in pairs(inv.get_contents()) do
+        items[#items + 1] = stack.name .. "=" .. stack.count
+      end
+    end
+    table.sort(items)
+    lines[#lines + 1] = string.format(
+      "character|%.2f|%.2f|%d|%s|queue=%d",
+      ch.position.x, ch.position.y, ch.health or 0, table.concat(items, ","),
+      ch.crafting_queue and #ch.crafting_queue or 0)
+  else
+    lines[#lines + 1] = "character|absent"
+  end
+
+  local force = game.forces["player"]
+  local techs = {}
+  for name, tech in pairs(force.technologies) do
+    if tech.researched then techs[#techs + 1] = name end
+  end
+  table.sort(techs)
+  lines[#lines + 1] = "tech|" .. table.concat(techs, ",")
+  lines[#lines + 1] = "research|" ..
+    tostring(force.current_research and force.current_research.name or "none")
+
+  -- Cumulative statistics: exactly where cross-episode leakage hides.
+  local stats = force.get_item_production_statistics(srf)
+  local produced = {}
+  for _, item in ipairs({
+    "iron-plate", "copper-plate", "iron-ore", "coal", "stone", "stone-furnace",
+  }) do
+    local count = stats.get_input_count(item)
+    if count and count > 0 then produced[#produced + 1] = item .. "=" .. count end
+  end
+  table.sort(produced)
+  lines[#lines + 1] = "produced|" .. table.concat(produced, ",")
+
+  local task = storage.frrl_task or {}
+  lines[#lines + 1] = string.format(
+    "task|transfers=%d|items=%d", task.transfers or 0, task.items_moved or 0)
+
+  return lines
+end
+
 return world

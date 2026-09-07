@@ -58,6 +58,11 @@ class RequestType(StrEnum):
     COLLECT = "collect"
     DESCRIBE = "describe"  # action matrix, profiles and versions actually running
     CONFIGURE = "configure"  # evaluator pacing knobs; never changes outcomes
+    SCENARIO_DEFINE = "scenario_define"  # install a scene blueprint by hash
+    # Evaluator-only ground truth. A separate request from `observe` so the
+    # boundary between policy input and evaluator knowledge is structural.
+    TRUTH = "truth"
+    WORLD_DIGEST = "world_digest"  # evaluator-only leakage probe
 
 
 class ActionType(StrEnum):

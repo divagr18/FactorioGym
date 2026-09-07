@@ -9,8 +9,22 @@ dependencies = []
 [project.scripts]
 factoriorl = "factoriorl.cli:main"
 
+[project.optional-dependencies]
+# A PEP 621 extra, not a dependency group: extras ship in wheel metadata, so
+# `pip install factoriorl[rl]` gives an outside researcher a working
+# FactorioEnv without cloning this repo (PLAN.md 6.1, 11.2).
+rl = ["numpy>=2.1,<3", "gymnasium>=1.0,<2"]
+
 [dependency-groups]
 dev = ["pytest>=8.3", "ruff>=0.9"]
+# A PEP 735 group, not an extra: a multi-GB CUDA-pinned torch is a local
+# development concern and must never enter wheel metadata.
+train = [
+  "torch>=2.5",
+  "stable-baselines3>=2.4",
+  "sb3-contrib>=2.4",
+  "tensorboard>=2.18",
+]
 
 [build-system]
 requires = ["hatchling"]

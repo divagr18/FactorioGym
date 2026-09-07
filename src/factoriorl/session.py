@@ -262,6 +262,38 @@ class WorkerSession:
         )
         return self._request(request)
 
+    def define_scenario(self, blueprint: dict, digest: str) -> TimedResponse:
+        """Install a scene blueprint, referenced by hash thereafter.
+
+        Installing once and resetting by hash keeps a steady-state reset at a
+        ~120-byte payload instead of resending the whole scene every episode.
+        """
+        request = Request(
+            request_id=self._next_request_id("scenario"),
+            episode_id=self.episode_id or "",
+            type=RequestType.SCENARIO_DEFINE,
+            payload={"hash": digest, "blueprint": blueprint},
+        )
+        return self._request(request)
+
+    def truth(self) -> TimedResponse:
+        """Evaluator-only ground truth. Never handed to a policy."""
+        request = Request(
+            request_id=self._next_request_id("truth"),
+            episode_id=self.episode_id or "",
+            type=RequestType.TRUTH,
+        )
+        return self._request(request)
+
+    def world_digest(self) -> TimedResponse:
+        """Evaluator-only: everything a reset must restore, as sorted lines."""
+        request = Request(
+            request_id=self._next_request_id("digest"),
+            episode_id=self.episode_id or "",
+            type=RequestType.WORLD_DIGEST,
+        )
+        return self._request(request)
+
     def step(self, action: dict, ticks: int = 30) -> TimedResponse:
         """One RL transition: apply an action, run the interval, observe.
 
@@ -324,10 +356,13 @@ class WorkerSession:
         scenario: str | None = None,
         observation_profile: str | None = None,
         action_profile: str | None = None,
+        blueprint_hash: str | None = None,
     ) -> TimedResponse:
         payload: dict = {}
         if scenario is not None:
             payload["scenario"] = scenario
+        if blueprint_hash is not None:
+            payload["blueprint_hash"] = blueprint_hash
         if observation_profile is not None:
             payload["observation_profile"] = observation_profile
         if action_profile is not None:
