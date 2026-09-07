@@ -106,6 +106,8 @@ Use exact stepping, with a default decision interval of 30 game ticks.
 
 Use native game behavior wherever it can express the required character interaction. Any necessary approximation must be documented in the action profile and covered by tests.
 
+The runtime must also expose `snapshot` and `restore` for a *mid-episode* state, not only reset-to-scenario. Restoring a scenario proves reset correctness; it cannot return to a state reached partway through an episode, and without that every decision-time search, teacher, or counterfactual method is unimplementable — including using our own simulator to label its own data. A restore must reproduce what the world digest reports, so the existing digest is the acceptance test. Belt contents, crafting progress, burner fuel, production statistics, entity handles, and the evaluator-side reward state are all part of the state or the snapshot is not one.
+
 ### Observations
 
 The initial profile exposes a 32-tile-radius local sensor region, character state, inventory, task description, and declared recipe/technology information.
@@ -181,6 +183,10 @@ Later tasks combine these into production, growth, recovery, and adaptation in p
 
 Every generated task needs a solvability argument backed by generation constraints and a reference solution. Randomness alone does not establish task quality.
 
+Each family also declares a random-policy ceiling, and a family whose random baseline approaches the acceptance threshold is not a usable benchmark at that difficulty; raise the requirement rather than report the number.
+
+No shaping component's achievable cumulative total may reach the sparse success weight. Shaping that can pay as much as finishing turns the subgoal into the goal, which is the classic failure of rewarding progress instead of outcome. Bound every event-derived component and assert the bound in a test.
+
 ### Generalization
 
 Maintain separate training, validation, and test splits.
@@ -191,6 +197,14 @@ Maintain separate training, validation, and test splits.
 - Structural holdouts vary layout families, resource arrangements, production combinations, and fault combinations.
 
 Report unfamiliar seeds and unfamiliar structures separately.
+
+Declared splits are a claim about content, so they must be measured as content rather than asserted by name. For every family, publish:
+
+- The count of distinct generated scenes per layout family, with a declared minimum. A holdout whose generator admits one scene is evaluated once, no matter how many episodes are run against it.
+- Difficulty parity between the training and test splits on measured descriptors (path length, reference-solution length, budget slack). A holdout that is merely harder measures added difficulty, not transfer.
+- Structural separation on at least one descriptor that is not difficulty, so the split is doing the work its name claims.
+
+A gate that compares layout-family *names* does not check any of this. Two families that generate identical content, or a test family that falls through to the training layout, must fail validation rather than be reported as transfer.
 
 ### Measurements
 
@@ -209,6 +223,13 @@ For progression, report milestones reached under declared game-time and compute 
 For agent systems, also report inference latency, token usage when available, and API cost when applicable.
 
 Do not combine these into one undocumented composite score.
+
+State the statistical method alongside the numbers:
+
+- A declared policy for multiple comparisons, since families and seeds are compared together and an uncorrected per-comparison interval overstates confidence across a matrix.
+- Paired analysis whenever two arms are evaluated on the same generated scenes; analysing paired measurements as independent discards the pairing and widens intervals for no reason.
+- Whether an evaluation samples the policy or takes its argmax, because the training objective is defined over the sampled policy and the two do not measure the same quantity.
+- Enough evaluation episodes in every arm, including baselines, that the comparison can resolve the effect claimed. An underpowered baseline makes a negative result an artifact of the budget rather than a finding about the task.
 
 ### First learning acceptance target
 
