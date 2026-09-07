@@ -446,9 +446,42 @@ detects being stuck instead of spinning out its budget.
 
 ## Phase 3 - Task engine, reset correctness, RL spaces
 
-**Status: Needs correction** (2026-09-07, downgraded from Accepted)
+**Status: Accepted** (2026-09-07, restored after correction)
 
-> **Correction.** This was marked Accepted on the strength of a 65/65 gate. The
+> **Restored.** The correction below stands as the record of why this entry was
+> downgraded. It is now satisfied: `tools/solvability.py` runs the reference
+> solution and a random baseline for every family on both the training and
+> held-out splits, and the gate carries a `reference:` section that fails if any
+> scripted solution does not complete its task. **Reference solutions pass 1.00
+> on train and test for all six families; the gate reports 71/71 with no
+> skipped criteria, exit 0** (`docs/evidence/phase3-gate.json`,
+> `docs/evidence/phase3-solvability.json`).
+>
+> Writing those solvers found seven environment defects that no amount of
+> training would have diagnosed, which is exactly the argument PLAN 3.2 makes
+> for requiring them:
+>
+> * `place_*` bound position to a single fixed offset, so a gap was fillable
+>   from exactly one standing tile. Now one template per facing.
+> * The shortest stride was 1.039 tiles against a 0.4 positioning tolerance, so
+>   the walker oscillated on a ~1-tile lattice and could never stop on a chosen
+>   tile -- while placement binds to `floor(position)`. Added a 2-tick `nudge_*`
+>   stride of 0.297 tiles.
+> * An inserter's `direction` names its PICKUP tile and it drops 1.2 tiles
+>   behind itself. `repair_belt` built both inserters facing east, so the line
+>   ran backwards and a correctly repaired belt delivered nothing.
+> * `restore_power` connected one of three solar panels, leaving 60 kW against
+>   a 90 kW drill, and placed the drill with its near edge exactly on the
+>   boundary of the last pole's supply area.
+> * `mine_smelt` sited the furnace by scaling the patch centre, which put a 2x2
+>   furnace on the spawn tile for some bearings.
+> * `deliver.screened_depot` had no generator branch at all and silently
+>   generated the base *training* layout, so the previously reported 0.65 train
+>   / 0.10 held-out gap for `deliver` measured nothing and is withdrawn.
+> * `repair_belt.gap_far` was byte-identical to `gap`, and
+>   `restore_power.pole_gap_far` to `pole_gap`.
+>
+> **Correction (retained).** This was marked Accepted on the strength of a 65/65 gate. The
 > gate does not test what PLAN 3.2 actually requires. 3.2 says each family must
 > provide "a scripted solution", a random baseline, and a declared solvability
 > suite. **The scripted reference solutions were never implemented**, and the
@@ -468,8 +501,8 @@ detects being stuck instead of spinning out its budget.
 > until the repair is already done. A scripted solver could not have been
 > written without noticing this, which is precisely why PLAN asks for one.
 >
-> Everything else in this entry stands and was genuinely measured. 3.2 is
-> incomplete; the sections below marked 3.1 and 3.3 through 3.6 are not.
+> Everything else in this entry stands and was genuinely measured. 3.2 was
+> incomplete; the sections below marked 3.1 and 3.3 through 3.6 were not.
 
 Gate evidence: `docs/evidence/phase3-gate.json` - **65/65 checks, passed: true**,
 produced by `uv run factoriorl phase3-gate`.
@@ -609,8 +642,10 @@ before and which is exactly where cross-episode leakage hides.
 
 `uv run factoriorl phase3-gate`: config validation, the Gymnasium space and mask
 invariants per family, reward-component sums, shaping-off parity, held-out split
-reachability, the 504-reset leakage run with a fresh-worker comparison, and the
-throughput numbers Phase 4.3 builds on. **65/65, 16 seconds.**
+reachability, **the scripted reference solution for every family**, the 504-reset
+leakage run with a fresh-worker comparison, and the throughput numbers Phase 4.3
+builds on. **71/71, no skipped criteria, exit 0, 17 seconds.** 12.62 ms mean
+step, 4.28 ms mean reset, 79.2 steps/s single worker.
 
 ## Phase 4 - Compact RL baseline
 

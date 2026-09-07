@@ -3,17 +3,17 @@
   "failures": [],
   "measurements": {
     "step_ms": {
-      "n": 240,
-      "mean": 24.03,
-      "p95": 26.55
+      "n": 224,
+      "mean": 12.62,
+      "p95": 13.81
     },
     "reset_ms": {
       "n": 510,
-      "mean": 6.21,
-      "p95": 7.69
+      "mean": 4.28,
+      "p95": 5.37
     },
-    "steps_per_second": 41.61,
-    "wall_seconds": 16.0,
+    "steps_per_second": 79.23,
+    "wall_seconds": 17.0,
     "resets": 504
   },
   "sections": {
@@ -49,8 +49,8 @@
       {
         "check": "deliver: a legal no-op always exists",
         "ok": true,
-        "legal": 9,
-        "total": 9
+        "legal": 13,
+        "total": 13
       },
       {
         "check": "deliver: observations stay inside the space",
@@ -72,8 +72,8 @@
       {
         "check": "mine_smelt: a legal no-op always exists",
         "ok": true,
-        "legal": 9,
-        "total": 11
+        "legal": 15,
+        "total": 15
       },
       {
         "check": "mine_smelt: observations stay inside the space",
@@ -95,8 +95,8 @@
       {
         "check": "navigate: a legal no-op always exists",
         "ok": true,
-        "legal": 5,
-        "total": 5
+        "legal": 9,
+        "total": 9
       },
       {
         "check": "navigate: observations stay inside the space",
@@ -118,8 +118,8 @@
       {
         "check": "repair_belt: a legal no-op always exists",
         "ok": true,
-        "legal": 8,
-        "total": 8
+        "legal": 18,
+        "total": 18
       },
       {
         "check": "repair_belt: observations stay inside the space",
@@ -141,8 +141,8 @@
       {
         "check": "restore_power: a legal no-op always exists",
         "ok": true,
-        "legal": 6,
-        "total": 6
+        "legal": 17,
+        "total": 17
       },
       {
         "check": "restore_power: observations stay inside the space",
@@ -164,8 +164,8 @@
       {
         "check": "supply_furnace: a legal no-op always exists",
         "ok": true,
-        "legal": 10,
-        "total": 10
+        "legal": 14,
+        "total": 14
       },
       {
         "check": "supply_furnace: observations stay inside the space",
@@ -230,32 +230,32 @@
       {
         "check": "deliver: a held-out layout family exists and resets",
         "ok": true,
-        "family": "far_depot"
+        "family": "screened_depot"
       },
       {
         "check": "deliver: held-out family differs from training families",
         "ok": true,
-        "held_out": "far_depot"
+        "held_out": "screened_depot"
       },
       {
         "check": "mine_smelt: a held-out layout family exists and resets",
         "ok": true,
-        "family": "far_patch"
+        "family": "screened_patch"
       },
       {
         "check": "mine_smelt: held-out family differs from training families",
         "ok": true,
-        "held_out": "far_patch"
+        "held_out": "screened_patch"
       },
       {
         "check": "navigate: a held-out layout family exists and resets",
         "ok": true,
-        "family": "wall_ring"
+        "family": "wall_arc"
       },
       {
         "check": "navigate: held-out family differs from training families",
         "ok": true,
-        "held_out": "wall_ring"
+        "held_out": "wall_arc"
       },
       {
         "check": "repair_belt: a held-out layout family exists and resets",
@@ -270,12 +270,12 @@
       {
         "check": "restore_power: a held-out layout family exists and resets",
         "ok": true,
-        "family": "long_chain"
+        "family": "gap_near_drill"
       },
       {
         "check": "restore_power: held-out family differs from training families",
         "ok": true,
-        "held_out": "long_chain"
+        "held_out": "gap_near_drill"
       },
       {
         "check": "supply_furnace: a held-out layout family exists and resets",
@@ -286,6 +286,44 @@
         "check": "supply_furnace: held-out family differs from training families",
         "ok": true,
         "held_out": "shared_input"
+      }
+    ],
+    "reference": [
+      {
+        "check": "deliver: the scripted solution completes the task",
+        "ok": true,
+        "reference_rate": 1.0,
+        "stuck_reasons": []
+      },
+      {
+        "check": "mine_smelt: the scripted solution completes the task",
+        "ok": true,
+        "reference_rate": 1.0,
+        "stuck_reasons": []
+      },
+      {
+        "check": "navigate: the scripted solution completes the task",
+        "ok": true,
+        "reference_rate": 1.0,
+        "stuck_reasons": []
+      },
+      {
+        "check": "repair_belt: the scripted solution completes the task",
+        "ok": true,
+        "reference_rate": 1.0,
+        "stuck_reasons": []
+      },
+      {
+        "check": "restore_power: the scripted solution completes the task",
+        "ok": true,
+        "reference_rate": 1.0,
+        "stuck_reasons": []
+      },
+      {
+        "check": "supply_furnace: the scripted solution completes the task",
+        "ok": true,
+        "reference_rate": 1.0,
+        "stuck_reasons": []
       }
     ],
     "reset": [
@@ -355,5 +393,5 @@
     "build": 83512,
     "platform": "win64"
   },
-  "completed_at": "2026-09-07T06:01:45"
+  "completed_at": "2026-09-07T13:51:45"
 }
