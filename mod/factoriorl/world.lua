@@ -186,6 +186,33 @@ function world.ensure_character()
 end
 
 
+-- Return the force's technologies and recipes to their prototype state.
+--
+-- Factorio 2.0 has trigger-based technologies: several early ones are
+-- researched by mining or crafting a particular item rather than by consuming
+-- science. So an agent doing ordinary task work silently researches things,
+-- and nothing here un-researched them -- `world.digest` reported technologies
+-- but reset never restored them, so the leak was invisible until a reference
+-- solution did enough mining to trip one. The 504-reset run then caught it as
+-- `tech|steam-power` present on a long-running worker and absent on a fresh
+-- one.
+--
+-- `reset_technologies` is the wrong tool despite the name: it reloads
+-- prototype definitions while explicitly *preserving* research state. Nor is
+-- `force.reset`, which additionally unchartes the map that `on_init`
+-- deliberately charts. Un-researching directly and reapplying effects is the
+-- surgical version.
+function world.reset_force()
+  local force = game.forces["player"]
+  for _, tech in pairs(force.technologies) do
+    if tech.researched then tech.researched = false end
+  end
+  force.research_queue = {}
+  force.reset_recipes()
+  force.reset_technology_effects()
+end
+
+
 -- Replace the character with a newly created one.
 --
 -- Facing was the one piece of character state reset never restored, so an

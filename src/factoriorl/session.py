@@ -325,9 +325,16 @@ class WorkerSession:
         return self._request(request)
 
     def _collect(
-        self, request_id: str, timed: TimedResponse, ticks: int, poll_interval: float = 0.005
+        self, request_id: str, timed: TimedResponse, ticks: int, poll_interval: float = 0.0005
     ) -> TimedResponse:
         started = time.perf_counter()
+        # Predicted from the configured speed. An attempt to bound this by a
+        # measured tick rate made throughput five times worse: the only rate
+        # observable here is `ticks / settle time`, which includes the sleep
+        # being predicted, so a long sleep produced a low estimate that
+        # lengthened the next sleep. The engine's true tick rate is not visible
+        # from this side of the socket, and a fine poll interval handles a
+        # wrong prediction better than a feedback loop does.
         expected = ticks / (60.0 * max(self.speed, 0.01))
         if expected > 0.001:
             time.sleep(expected)

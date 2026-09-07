@@ -1,9 +1,13 @@
 """Threaded vectorised environment (PLAN.md 4.3).
 
-A 30-tick decision interval costs ~16 ms of engine time on this machine -- the
-engine plateaus near 1,800 UPS no matter what ``game.speed`` is set to -- and a
-round trip adds ~1.5 ms. So a single worker cannot step faster than about 19 ms,
-and the only way to go faster is to overlap workers.
+A 30-tick decision interval costs ~5.5 ms of engine time on this machine and a
+round trip adds a couple of milliseconds, so a single worker steps in about
+9 ms and the way past that is to overlap workers.
+
+An earlier version of this note claimed the engine "plateaus near 1,800 UPS no
+matter what ``game.speed`` is set to". That was wrong, and wrong in the
+expensive direction: 1,800 UPS is simply what speed 30 asks for. The engine
+tracks the multiplier faithfully to roughly 5,480 UPS.
 
 **Threads, not subprocesses.** The engines are already separate OS processes and
 the expensive part of a step is waiting on a socket while one of them ticks,
@@ -35,7 +39,15 @@ from factoriorl.tasks import RegisteredTask
 #: Raising this past ~30 buys nothing: the engine is already at its UPS ceiling,
 #: but it does keep the paused server loop polling RCON quickly (16.6 ms at
 #: speed 1 versus 1.5 ms at speed 60).
-DEFAULT_SPEED = 60.0
+#: 90, not 60, and not higher. The engine tracks `game.speed` proportionally
+#: only until it hits its own tick-rate ceiling -- measured at ~5,480 UPS on a
+#: small scene, reached around speed 90-100 and flat thereafter at 120, 150,
+#: 200 and 1000. Below the ceiling the client's predicted advance wait is
+#: accurate; above it the prediction is optimistic, the first collect arrives
+#: before the world has settled, and the extra polls give back exactly what the
+#: faster ticks bought. Measured end to end on `navigate`: 11.16 ms/step at 60,
+#: 8.82 ms at 90, 9.73 ms at 120, 10.34 ms at 200.
+DEFAULT_SPEED = 90.0
 
 
 class FactorioVecEnv(VecEnv):

@@ -1,36 +1,32 @@
 {
   "episodes_per_split": 6,
   "tasks": {
-    "mine_smelt": {
+    "supply_furnace": {
       "splits": {
         "train": {
           "reference_success": 6,
           "episodes": 6,
           "reference_rate": 1.0,
-          "random_rate": 0.0,
-          "mean_steps": 141.3,
+          "random_rate": 0.17,
+          "mean_steps": 139.8,
           "stuck_reasons": [],
-          "last_errors": [
-            "give_coal_5: no_items"
-          ]
+          "last_errors": []
         },
         "test": {
           "reference_success": 6,
           "episodes": 6,
           "reference_rate": 1.0,
-          "random_rate": 0.0,
-          "mean_steps": 141.3,
+          "random_rate": 0.17,
+          "mean_steps": 140.0,
           "stuck_reasons": [],
-          "last_errors": [
-            "give_coal_5: no_items"
-          ]
+          "last_errors": []
         }
       }
     }
   },
-  "wall_seconds": 101.3,
+  "wall_seconds": 83.5,
   "solvable": [
-    "mine_smelt"
+    "supply_furnace"
   ],
   "defective": []
 }

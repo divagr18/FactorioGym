@@ -211,7 +211,15 @@ def solve_supply_furnace(driver: Driver) -> None:
     if ore_chest is None or furnace is None:
         driver.trace.stuck_reason = "missing ore_chest/furnace markers"
         return
-    for _ in range(6):
+    # Carry twenty and deposit twenty. Depositing five of a twenty-ore carry
+    # threw away three quarters of each trip, which was invisible while the
+    # target was five plates and made the task unsolvable the moment it rose.
+    #
+    # Then wait long enough for the furnace to actually work: a stone furnace
+    # smelts an iron plate in 3.2 s, so twenty plates is 64 s, which at a
+    # 30-tick decision interval is about 128 decisions. Twelve was never going
+    # to be enough -- the solver was walking away mid-smelt.
+    for _ in range(3):
         if driver.success or driver.terminated:
             return
         if not driver.walk_to(ore_chest, interact_range=6.0):
@@ -220,9 +228,9 @@ def solve_supply_furnace(driver: Driver) -> None:
             return
         if not driver.walk_to(furnace, interact_range=6.0):
             return
-        if not driver.do("give_iron-ore_5"):
+        if not driver.do("give_iron-ore_20"):
             return
-        for _ in range(12):
+        for _ in range(140):
             if driver.success or driver.terminated:
                 return
             if not driver.do("wait"):

@@ -32,9 +32,18 @@ from factoriorl.rewards import RewardAccountant
 from factoriorl.seeding import Branch, SeedPlan
 from factoriorl.session import WorkerSession
 from factoriorl.tasks import all_tasks, validate_all
+from factoriorl.tasks.spec import RewardKind
 from factoriorl.worker import WorkerManager
 
-GATE_SPEED = 60.0
+#: 90, not 60, and not higher. The engine tracks `game.speed` proportionally
+#: only until it hits its own tick-rate ceiling -- measured at ~5,480 UPS on a
+#: small scene, reached around speed 90-100 and flat thereafter at 120, 150,
+#: 200 and 1000. Below the ceiling the client's predicted advance wait is
+#: accurate; above it the prediction is optimistic, the first collect arrives
+#: before the world has settled, and the extra polls give back exactly what the
+#: faster ticks bought. Measured end to end on `navigate`: 11.16 ms/step at 60,
+#: 8.82 ms at 90, 9.73 ms at 120, 10.34 ms at 200.
+GATE_SPEED = 90.0
 RESET_TARGET = 500
 RANDOM_EPISODE_STEPS = 40
 #: Episodes per family for the reference-solution check.
@@ -180,10 +189,22 @@ def run_phase3_gate(worker_id: str = "phase3-gate") -> dict:
                 sparse_rewards.append((reward, info.get("success")))
                 if term or trunc:
                     break
-            shaped_off_zero = all(abs(r) < 1e-9 for r, success in sparse_rewards if not success)
+            # Disabling shaping must zero the *shaping*, and nothing else. Step
+            # cost stays: it is the task's requirement that the goal be reached
+            # promptly, and it is present in the sparse formulation any
+            # comparison is drawn against. This check previously demanded that
+            # every non-success reward vanish, which is what let `--no-shaping`
+            # quietly remove the time pressure as well and made PLAN 4.4's
+            # comparison move several variables at once.
+            step_cost = sum(
+                abs(c.weight) for c in task.spec.rewards if c.kind is RewardKind.STEP_COST
+            )
+            shaped_off_zero = all(
+                abs(r + step_cost) < 1e-9 for r, success in sparse_rewards if not success
+            )
             report.check(
                 "rewards",
-                f"{task_id}: disabling shaping zeroes every non-success reward",
+                f"{task_id}: disabling shaping leaves only the step cost",
                 shaped_off_zero,
             )
 

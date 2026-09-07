@@ -36,7 +36,15 @@ from factoriorl.worker import WorkerManager
 
 #: Also sets the *paused* server loop rate, which is what RCON latency
 #: actually depends on: 16.6 ms per round trip at speed 1, 1.5 ms at 60.
-TRAIN_SPEED = 60.0
+#: 90, not 60, and not higher. The engine tracks `game.speed` proportionally
+#: only until it hits its own tick-rate ceiling -- measured at ~5,480 UPS on a
+#: small scene, reached around speed 90-100 and flat thereafter at 120, 150,
+#: 200 and 1000. Below the ceiling the client's predicted advance wait is
+#: accurate; above it the prediction is optimistic, the first collect arrives
+#: before the world has settled, and the extra polls give back exactly what the
+#: faster ticks bought. Measured end to end on `navigate`: 11.16 ms/step at 60,
+#: 8.82 ms at 90, 9.73 ms at 120, 10.34 ms at 200.
+TRAIN_SPEED = 90.0
 #: Floor for the per-env rollout length, so a large worker count cannot
 #: shrink it to something PPO cannot learn from.
 MIN_STEPS_PER_ENV = 32

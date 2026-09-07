@@ -4,16 +4,16 @@
   "measurements": {
     "step_ms": {
       "n": 240,
-      "mean": 11.95,
-      "p95": 15.12
+      "mean": 9.86,
+      "p95": 11.6
     },
     "reset_ms": {
       "n": 510,
-      "mean": 4.19,
-      "p95": 5.27
+      "mean": 5.13,
+      "p95": 7.52
     },
-    "steps_per_second": 83.68,
-    "wall_seconds": 15.2,
+    "steps_per_second": 101.47,
+    "wall_seconds": 21.3,
     "resets": 504
   },
   "sections": {
@@ -44,7 +44,7 @@
       {
         "check": "deliver: reset reports its layout family and split",
         "ok": true,
-        "family": "decoy_chest"
+        "family": "two_chest"
       },
       {
         "check": "deliver: a legal no-op always exists",
@@ -67,12 +67,12 @@
       {
         "check": "mine_smelt: reset reports its layout family and split",
         "ok": true,
-        "family": "fuelled_furnace"
+        "family": "near_patch"
       },
       {
         "check": "mine_smelt: a legal no-op always exists",
         "ok": true,
-        "legal": 15,
+        "legal": 13,
         "total": 15
       },
       {
@@ -90,7 +90,7 @@
       {
         "check": "navigate: reset reports its layout family and split",
         "ok": true,
-        "family": "wall_corridor"
+        "family": "open"
       },
       {
         "check": "navigate: a legal no-op always exists",
@@ -113,7 +113,7 @@
       {
         "check": "repair_belt: reset reports its layout family and split",
         "ok": true,
-        "family": "gap_far"
+        "family": "gap"
       },
       {
         "check": "repair_belt: a legal no-op always exists",
@@ -136,7 +136,7 @@
       {
         "check": "restore_power: reset reports its layout family and split",
         "ok": true,
-        "family": "pole_gap_far"
+        "family": "pole_gap"
       },
       {
         "check": "restore_power: a legal no-op always exists",
@@ -159,13 +159,13 @@
       {
         "check": "supply_furnace: reset reports its layout family and split",
         "ok": true,
-        "family": "two_furnaces"
+        "family": "linear_row"
       },
       {
         "check": "supply_furnace: a legal no-op always exists",
         "ok": true,
-        "legal": 14,
-        "total": 14
+        "legal": 15,
+        "total": 15
       },
       {
         "check": "supply_furnace: observations stay inside the space",
@@ -182,7 +182,7 @@
         "ok": true
       },
       {
-        "check": "deliver: disabling shaping zeroes every non-success reward",
+        "check": "deliver: disabling shaping leaves only the step cost",
         "ok": true
       },
       {
@@ -190,7 +190,7 @@
         "ok": true
       },
       {
-        "check": "mine_smelt: disabling shaping zeroes every non-success reward",
+        "check": "mine_smelt: disabling shaping leaves only the step cost",
         "ok": true
       },
       {
@@ -198,7 +198,7 @@
         "ok": true
       },
       {
-        "check": "navigate: disabling shaping zeroes every non-success reward",
+        "check": "navigate: disabling shaping leaves only the step cost",
         "ok": true
       },
       {
@@ -206,7 +206,7 @@
         "ok": true
       },
       {
-        "check": "repair_belt: disabling shaping zeroes every non-success reward",
+        "check": "repair_belt: disabling shaping leaves only the step cost",
         "ok": true
       },
       {
@@ -214,7 +214,7 @@
         "ok": true
       },
       {
-        "check": "restore_power: disabling shaping zeroes every non-success reward",
+        "check": "restore_power: disabling shaping leaves only the step cost",
         "ok": true
       },
       {
@@ -222,7 +222,7 @@
         "ok": true
       },
       {
-        "check": "supply_furnace: disabling shaping zeroes every non-success reward",
+        "check": "supply_furnace: disabling shaping leaves only the step cost",
         "ok": true
       }
     ],
@@ -393,5 +393,5 @@
     "build": 83512,
     "platform": "win64"
   },
-  "completed_at": "2026-09-07T18:13:33"
+  "completed_at": "2026-09-07T23:16:01"
 }

@@ -399,6 +399,10 @@ local function handle_reset(request)
   -- never place a belt it was explicitly given.
   actions.reset_state()
   world.recreate_character()
+  -- Before the scene is built: the blueprint re-enables whatever recipes the
+  -- task hands the agent, and that must land after the wipe rather than be
+  -- undone by it.
+  world.reset_force()
 
   local scene
   if payload.blueprint_hash then
