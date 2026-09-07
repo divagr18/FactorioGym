@@ -918,6 +918,98 @@ training run completes unattended.
   of a run is far worse than recording an unknown GPU, so the probe now degrades
   to a reason string.
 
+## Phase 5 - Assisted agent interface
+
+### 5.3 - Model adapters, first live results
+
+`gpt-5.6-luna` drove the loop on two families through the provider-independent
+adapter. Both runs are recorded under `runtime/runs/llm-*` with the exact prompt
+sent at every decision.
+
+| family | episodes | solved | decisions | model calls | fallbacks | malformed | tokens | mean latency |
+|---|---|---|---|---|---|---|---|---|
+| `navigate` v1.0.0 | 1 | 1 | 6 | 6 | 0 | 0 | 4,948 | 4.13 s |
+| `deliver` v1.1.0 (skills) | 5 | 2 | 143 | 143 | 0 | 0 | 132,784 | 3.28 s |
+
+The mechanism works: 149 decisions, every one a valid JSON object naming a legal
+index, no retry consumed and no fallback taken. `SkillEnv` needed no change to
+be driven by a model -- `action_vocabulary` already describes whatever a wrapper
+appends -- and the run records which action space produced it, because a
+`deliver` number means different things against a primitive floor (0.00) and a
+skill floor (0.04).
+
+**The success rate proves nothing yet, and is published as such.** 2 of 5 is
+Wilson [0.118, 0.769]; the 0.04 skill floor is [0.007, 0.195]. Those overlap, so
+this run does not establish that the model beats chance on `deliver`. It is an
+interface result with a diagnosis attached, not a benchmark result.
+
+### The diagnosis: `deliver`'s destination is not in the observation
+
+The outcome is bimodal rather than graded. Both successes finished in 11 and 12
+decisions; all three failures ran to the 40-decision cap. Nothing in between --
+which is the signature of a discrete find-or-never, not of a partially learned
+skill.
+
+The recorded prompt says why. `goal` is `null`, and every container renders
+identically once the source is emptied:
+
+    NEARBY ENTITIES (4 shown)
+      wooden-chest [h1] at offset (-1.0, -1.0), 1.5 tiles northwest; holds iron-plate x20; status 2
+      wooden-chest [h3] at offset (+1.0, +19.0), 19.0 tiles southeast; status 2
+      wooden-chest [h2] at offset (+3.0, +19.0), 19.2 tiles southeast; status 2
+      wooden-chest [h4] at offset (+22.0, +2.0), 22.0 tiles southeast; status 2
+
+The task brief says "carry items from a source container to a destination
+container" while no field says *which*. The `dst` marker exists engine-side and
+is what success is scored on, but markers are evaluator state: `local-v1`'s key
+list does not carry them, and the RL goal vector carries budget fraction plus
+success and landmark booleans, not the destination's identity.
+
+Episode 3 is the clean demonstration -- 17 `take_iron-plate_20` alternating with
+16 `give_iron-plate_20`, almost all consecutive pairs:
+
+    take | give | take | give | take | give | take | give | ...
+
+That is the correct strategy given what the model can see: give, observe no
+reward, take the plates back, try again. It repeats on the *same* chest because
+standing still leaves the ranks unchanged and nothing in the interface records
+"h3 has already been ruled out". PLAN 5.4's persistent agent memory is the piece
+that would end that loop, and this is the first concrete argument for it.
+
+**Both of these are true, and neither cancels the other.** Putting four
+identical containers in every scene is what dropped `deliver`'s skill-space
+random floor from 0.80 to 0.04 and made the family able to carry an 80% claim at
+all. It is also what put the family out of reach of an agent that sees one
+observation. An RL policy still learns the generator's placement regularity from
+reward over thousands of episodes; a zero-shot agent has no such channel.
+
+`navigate` is not a counterexample. Its goal is not published either -- the model
+solved it because the target was the only non-wall entity in the scene, so the
+answer was available by elimination. The gap was there before `deliver` exposed
+it.
+
+### The second defect: rank addressing is unstable under movement
+
+`approach_entity_k` names the k-th *nearest* entity, and every move re-ranks the
+field. The model reasons about a chest and issues an action naming a slot whose
+referent has changed by the time it executes. Episode 0 spent 26 consecutive
+decisions alternating `approach_entity_{0,1}` with `move_north` without
+progress.
+
+This is the same defect that made a trained policy oscillate between two chests
+for an entire episode. Excluding entities already in range fixed the case where
+arriving at an entity demoted it to rank 0; it did not fix the general problem,
+because any movement reshuffles the addressing. A stable handle (`h3`) is
+visible in the observation and is the obvious candidate for what an approach
+should name.
+
+### Not fixed here, deliberately
+
+`deliver` was under measurement by the release matrix when this was found.
+Editing the family would invalidate those runs and change the blueprints behind
+`holdout_v1.json`'s content hash, which is exactly the drift the freeze exists
+to catch. Recorded, not patched.
+
 ## Engine facts worth remembering
 
 - Factorio 2.0 Lua: `global` → `storage`, `game.create_player` removed
