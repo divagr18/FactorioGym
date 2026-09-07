@@ -167,6 +167,7 @@ def cmd_train(args) -> int:
             total_steps=args.steps,
             master_seed=args.seed,
             shaping=not args.no_shaping,
+            workers=args.workers,
             eval_episodes=args.eval_episodes,
             run_prefix=args.prefix,
         )
@@ -290,6 +291,7 @@ def main(argv: list[str] | None = None) -> int:
     train_cmd.add_argument("--eval-episodes", type=int, default=20)
     train_cmd.add_argument("--no-shaping", action="store_true")
     train_cmd.add_argument("--prefix", default="train")
+    train_cmd.add_argument("--workers", type=int, default=1, help="parallel envs")
 
     sub.add_parser("doctor-train", help="check the training stack and CUDA")
     prof = sub.add_parser("profile", help="worker-count throughput profiling (PLAN 4.3)")

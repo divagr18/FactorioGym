@@ -2,55 +2,24 @@
   "steps_per_run": 25000,
   "seed": 11,
   "concurrency": 3,
-  "wall_seconds": 2672.3,
+  "wall_seconds": 1469.7,
   "runs": [
     {
-      "run_id": "sweep-20260907T094808-52d98f77",
+      "run_id": "sweep-20260907T114936-7c74d63d",
       "task": "deliver",
       "total_steps": 25000,
-      "wall_seconds": 1320.1,
-      "steps_per_second": 19.23,
+      "wall_seconds": 1469.7,
+      "steps_per_second": 17.32,
       "held_out": {
         "episodes": 20,
-        "successes": 0,
-        "success_rate": 0.0,
-        "wilson_95": [
-          0.0,
-          0.1611
-        ],
-        "mean_episode_reward": 0.5625,
-        "mean_episode_steps": 250.0
-      },
-      "random_baseline": {
-        "episodes": 10,
-        "successes": 1,
+        "successes": 2,
         "success_rate": 0.1,
         "wilson_95": [
-          0.0179,
-          0.4042
-        ]
-      },
-      "episodes_logged": 151,
-      "final_train_success_rate": 0.65,
-      "ok": true,
-      "signal": false
-    },
-    {
-      "run_id": "sweep-20260907T094808-35848ed3",
-      "task": "supply_furnace",
-      "total_steps": 25000,
-      "wall_seconds": 1280.1,
-      "steps_per_second": 19.84,
-      "held_out": {
-        "episodes": 20,
-        "successes": 7,
-        "success_rate": 0.35,
-        "wilson_95": [
-          0.1812,
-          0.5671
+          0.0279,
+          0.301
         ],
-        "mean_episode_reward": 1.1237,
-        "mean_episode_steps": 253.8
+        "mean_episode_reward": 0.7444,
+        "mean_episode_steps": 235.7
       },
       "random_baseline": {
         "episodes": 10,
@@ -61,104 +30,75 @@
           0.6032
         ]
       },
-      "episodes_logged": 319,
+      "episodes_logged": 139,
+      "final_train_success_rate": 0.65,
+      "ok": true,
+      "signal": false
+    },
+    {
+      "run_id": "sweep-20260907T114936-84a25deb",
+      "task": "supply_furnace",
+      "total_steps": 25000,
+      "wall_seconds": 1397.3,
+      "steps_per_second": 18.24,
+      "held_out": {
+        "episodes": 20,
+        "successes": 6,
+        "success_rate": 0.3,
+        "wilson_95": [
+          0.1455,
+          0.519
+        ],
+        "mean_episode_reward": 0.728,
+        "mean_episode_steps": 257.0
+      },
+      "random_baseline": {
+        "episodes": 10,
+        "successes": 5,
+        "success_rate": 0.5,
+        "wilson_95": [
+          0.2366,
+          0.7634
+        ]
+      },
+      "episodes_logged": 344,
       "final_train_success_rate": 1.0,
       "ok": true,
       "signal": false
     },
     {
-      "run_id": "sweep-20260907T094808-223b8fc6",
-      "task": "mine_smelt",
+      "run_id": "sweep-20260907T114936-352a9a03",
+      "task": "navigate",
       "total_steps": 25000,
-      "wall_seconds": 1631.9,
-      "steps_per_second": 15.51,
+      "wall_seconds": 1179.7,
+      "steps_per_second": 21.69,
       "held_out": {
         "episodes": 20,
-        "successes": 0,
-        "success_rate": 0.0,
+        "successes": 19,
+        "success_rate": 0.95,
         "wilson_95": [
-          0.0,
-          0.1611
+          0.7639,
+          0.9911
         ],
-        "mean_episode_reward": -0.4,
-        "mean_episode_steps": 400.0
+        "mean_episode_reward": 1.0835,
+        "mean_episode_steps": 16.1
       },
       "random_baseline": {
         "episodes": 10,
-        "successes": 0,
-        "success_rate": 0.0,
+        "successes": 3,
+        "success_rate": 0.3,
         "wilson_95": [
-          0.0,
-          0.2775
+          0.1078,
+          0.6032
         ]
       },
-      "episodes_logged": 62,
-      "final_train_success_rate": 0.0,
+      "episodes_logged": 1342,
+      "final_train_success_rate": 1.0,
       "ok": true,
-      "signal": false
-    },
-    {
-      "run_id": "sweep-20260907T100928-4d1e2966",
-      "task": "repair_belt",
-      "total_steps": 25000,
-      "wall_seconds": 1392.2,
-      "steps_per_second": 18.21,
-      "held_out": {
-        "episodes": 20,
-        "successes": 0,
-        "success_rate": 0.0,
-        "wilson_95": [
-          0.0,
-          0.1611
-        ],
-        "mean_episode_reward": -0.3,
-        "mean_episode_steps": 300.0
-      },
-      "random_baseline": {
-        "episodes": 10,
-        "successes": 0,
-        "success_rate": 0.0,
-        "wilson_95": [
-          0.0,
-          0.2775
-        ]
-      },
-      "episodes_logged": 83,
-      "final_train_success_rate": 0.0,
-      "ok": true,
-      "signal": false
-    },
-    {
-      "run_id": "sweep-20260907T101008-f6e38a3e",
-      "task": "restore_power",
-      "total_steps": 25000,
-      "wall_seconds": 1224.7,
-      "steps_per_second": 20.74,
-      "held_out": {
-        "episodes": 20,
-        "successes": 0,
-        "success_rate": 0.0,
-        "wilson_95": [
-          0.0,
-          0.1611
-        ],
-        "mean_episode_reward": -0.25,
-        "mean_episode_steps": 250.0
-      },
-      "random_baseline": {
-        "episodes": 10,
-        "successes": 0,
-        "success_rate": 0.0,
-        "wilson_95": [
-          0.0,
-          0.2775
-        ]
-      },
-      "episodes_logged": 100,
-      "final_train_success_rate": 0.0,
-      "ok": true,
-      "signal": false
+      "signal": true
     }
   ],
-  "candidates": []
+  "candidates": [
+    "navigate"
+  ]
 }

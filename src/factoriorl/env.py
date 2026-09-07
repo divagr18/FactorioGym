@@ -209,7 +209,13 @@ class FactorioEnv(gym.Env):
         action_result = result.get("action") or {}
         self._last_action_ok = action_result.get("status") == "completed"
         self._observation = result.get("observation") or self.session.observe().response.result
-        self._refresh_truth()
+        # The step response carries truth with it; only fall back to a separate
+        # request if an older worker did not send it.
+        truth = result.get("truth")
+        if truth is None:
+            self._refresh_truth()
+        else:
+            self._truth = truth
 
         succeeded = self._succeeded()
         components = self.accountant.step(self._observation, self._truth, succeeded)

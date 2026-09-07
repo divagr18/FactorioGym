@@ -550,6 +550,9 @@ function runtime.on_tick(_)
       local stored = state.ledger[entry.request_id]
       if stored and stored.request_type == "step" then
         result.observation = observations.snapshot(state)
+        -- Evaluator truth rides along: fetching it separately cost a third
+        -- round trip on every single RL step.
+        result.truth = world.truth()
       end
       ledger_settle(entry.request_id, item.status, result, item.error_code)
       game.tick_paused = true

@@ -46,6 +46,10 @@ class TrainConfig:
     shaping: bool = True
     eval_episodes: int = 20
     device: str = "auto"
+    #: Parallel workers. A 30-tick interval costs ~16 ms of engine time that no
+    #: setting can remove, so overlapping workers is the only way to step
+    #: faster: 41.8 steps/s at one, 202 at eight.
+    workers: int = 1
     run_prefix: str = "train"
     extra: dict = field(default_factory=dict)
 
@@ -61,6 +65,7 @@ class TrainConfig:
             "ent_coef": self.ent_coef,
             "shaping": self.shaping,
             "eval_episodes": self.eval_episodes,
+            "workers": self.workers,
         }
 
 
@@ -193,14 +198,35 @@ def train(config: TrainConfig) -> dict:
     task = get(config.task_id)
 
     manager = WorkerManager()
-    handle, session = _make_session(manager, f"train-{config.task_id}")
+    # Run-scoped worker id. A fixed "train-<task>" name collides the moment two
+    # runs of the same task overlap -- the second dies on the first one's
+    # write-data lock, which is the same failure a stale orphan caused in
+    # Phase 1.
+    handle, session = _make_session(manager, f"train-{config.task_id}-{run_id[-8:]}")
     status = {"run_id": run_id, "state": "running"}
     (run_dir / "status.json").write_text(json.dumps(status, indent=2), encoding="utf-8")
 
+    vec_env = None
     try:
-        env = FactorioEnv(
+        single = FactorioEnv(
             task, session, plan, branch=Branch.TRAIN, split="train", shaping=config.shaping
         )
+        if config.workers > 1:
+            from factoriorl.vecenv import FactorioVecEnv
+
+            vec_env = FactorioVecEnv(
+                task,
+                plan,
+                num_workers=config.workers,
+                shaping=config.shaping,
+                worker_prefix=f"vec-{config.task_id}-{run_id[-8:]}",
+            )
+            env = vec_env
+        else:
+            env = single
+        # The catalog is a property of the task, identical across workers, so
+        # the manifest reads it from the single env either way.
+        catalog_env = single
         model = MaskablePPO(
             "MultiInputPolicy",
             env,
@@ -229,9 +255,9 @@ def train(config: TrainConfig) -> dict:
                 "observation": task.spec.observation_profile,
                 "action": task.spec.action_profile,
                 "assistance": "none",
-                "catalog": env.catalog.name,
-                "catalog_digest": env.catalog.digest(),
-                "resolved_catalog": list(env.catalog.keys()),
+                "catalog": catalog_env.catalog.name,
+                "catalog_digest": catalog_env.catalog.digest(),
+                "resolved_catalog": list(catalog_env.catalog.keys()),
             },
             reward={
                 "shaping_enabled": config.shaping,
@@ -302,6 +328,11 @@ def train(config: TrainConfig) -> dict:
     finally:
         # Never delete a failed run; its directory is the evidence.
         (run_dir / "status.json").write_text(json.dumps(status, indent=2), encoding="utf-8")
+        if vec_env is not None:
+            try:
+                vec_env.close()
+            except Exception:  # noqa: BLE001 - teardown must not mask a result
+                pass
         try:
             session.close()
         except OSError:
