@@ -84,6 +84,37 @@ def cmd_phase0_gate(_args) -> int:
     return 0 if report.get("passed") else 1
 
 
+def cmd_phase2_gate(_args) -> int:
+    from factoriorl.gate_phase2 import run_phase2_gate
+
+    report = run_phase2_gate()
+    summary = {k: v for k, v in report.items() if k != "steps"}
+    print(json.dumps(summary, indent=2))
+    for step in report.get("steps", []):
+        mark = "ok " if step.get("ok", True) else "FAIL"
+        print(f"  [{mark}] {step['criterion']}: {step['note']}")
+    return 0 if report.get("passed") else 1
+
+
+def cmd_action_matrix(args) -> int:
+    from factoriorl.action_matrix import to_markdown
+    from factoriorl.paths import workspace_root
+
+    target = workspace_root() / "docs" / "ACTION_MATRIX.md"
+    rendered = to_markdown()
+    if args.check:
+        current = target.read_text(encoding="utf-8") if target.is_file() else ""
+        if current.strip() != rendered.strip():
+            print("docs/ACTION_MATRIX.md is stale; run: factoriorl action-matrix", file=sys.stderr)
+            return 1
+        print("docs/ACTION_MATRIX.md is current")
+        return 0
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(rendered, encoding="utf-8")
+    print(f"wrote {target}")
+    return 0
+
+
 def cmd_phase1_gate(_args) -> int:
     """Run the engine suite and record its output as gate evidence.
 
@@ -146,6 +177,9 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("spike-control", help="probe LuaControl on a player-less character")
     sub.add_parser("phase0-gate", help="run the Phase 0 exit gate")
     sub.add_parser("phase1-gate", help="run the Phase 1 exit gate and record evidence")
+    sub.add_parser("phase2-gate", help="run the Phase 2 exit gate (scripted embodied agent)")
+    matrix_cmd = sub.add_parser("action-matrix", help="generate docs/ACTION_MATRIX.md")
+    matrix_cmd.add_argument("--check", action="store_true", help="fail if the doc is stale")
 
     args = parser.parse_args(argv)
     if args.command == "doctor":
@@ -162,6 +196,10 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_spike_control(args)
     if args.command == "phase1-gate":
         return cmd_phase1_gate(args)
+    if args.command == "phase2-gate":
+        return cmd_phase2_gate(args)
+    if args.command == "action-matrix":
+        return cmd_action_matrix(args)
     return cmd_phase0_gate(args)
 
 

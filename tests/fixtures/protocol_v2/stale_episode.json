@@ -1,0 +1,24 @@
+{
+  "id": "stale_episode",
+  "protocol": 2,
+  "description": "A request naming a finished episode is rejected explicitly.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "ep-does-not-exist",
+    "type": "advance",
+    "payload": {
+      "ticks": 1
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "stale_episode",
+    "error": {
+      "code": "bad_episode"
+    }
+  }
+}

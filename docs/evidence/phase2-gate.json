@@ -1,0 +1,212 @@
+{
+  "passed": true,
+  "privileged_calls_by_agent": 0,
+  "measurements": {
+    "observation_bytes": {
+      "min": 1117,
+      "max": 5437,
+      "mean": 2752.2
+    },
+    "game_ticks": 6420,
+    "wall_seconds": 6.0,
+    "produced_plate": 1
+  },
+  "failures": [],
+  "evaluator_setup": [
+    {
+      "call": "game.speed",
+      "value": 30.0
+    },
+    {
+      "call": "reset",
+      "scenario": "phase2-gate"
+    },
+    {
+      "call": "destroy stone-furnace",
+      "why": "2.4 probe"
+    }
+  ],
+  "engine": {
+    "executable": "D:\\Factorio\\bin\\x64\\factorio.exe",
+    "version": "2.0.60",
+    "build": 83512,
+    "platform": "win64"
+  },
+  "worker": {
+    "worker_id": "phase2-gate",
+    "map_seed": 424242,
+    "ports": {
+      "game": 23522,
+      "rcon": 23523
+    },
+    "directory": "D:\\FactorioRL\\runtime\\workers\\phase2-gate"
+  },
+  "completed_at": "2026-09-07T05:45:12",
+  "criteria": [
+    {
+      "criterion": "2.1 rotation reachable",
+      "note": "the scenario belt was located",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 rotation",
+      "note": "a belt can be rotated",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 recipe target reachable",
+      "note": "the scenario assembling machine was located",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 recipe selection",
+      "note": "an unlocked recipe can be selected",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 recipe technology gate",
+      "note": "a locked recipe is refused with tech_locked",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 research trigger gate",
+      "note": "a trigger-based technology is refused distinctly from tech_locked",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 research prerequisite gate",
+      "note": "a technology with unmet prerequisites is refused",
+      "ok": true
+    },
+    {
+      "criterion": "2.3 partial observability",
+      "note": "ore at x=40 is not visible from spawn (32-tile sensor radius)",
+      "ok": true
+    },
+    {
+      "criterion": "2.3 visibility transition",
+      "note": "ore entered the sensor region while walking east",
+      "ok": true
+    },
+    {
+      "criterion": "2.4 stable identity",
+      "note": "an unchanged visible entity retains its handle",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 reach",
+      "note": "mining beyond resource reach (2.7) is rejected",
+      "ok": true
+    },
+    {
+      "criterion": "2.2 ongoing action",
+      "note": "mining answers running, not completed",
+      "ok": true
+    },
+    {
+      "criterion": "2.2 progress survives step calls",
+      "note": "mining progress was observed strictly between 0 and 1 mid-operation",
+      "ok": true
+    },
+    {
+      "criterion": "2.2 completion reported once",
+      "note": "the mine settled to completed",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 mining yields items",
+      "note": "six ore reached the character inventory",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 mining cannot bypass time",
+      "note": "elapsed ticks are consistent with the prototype mining time",
+      "ok": true
+    },
+    {
+      "criterion": "2.2 cancellation",
+      "note": "an ongoing mine can be cancelled",
+      "ok": true
+    },
+    {
+      "criterion": "2.2 cancellation boundary",
+      "note": "mining stopped at the paused tick the cancel was processed",
+      "ok": true
+    },
+    {
+      "criterion": "2.2 cancellation leaves nothing wedged",
+      "note": "a new mine starts after a cancellation",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 mining a second resource",
+      "note": "enough stone for a furnace",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 crafting cannot bypass cost",
+      "note": "crafting without ingredients is rejected",
+      "ok": true
+    },
+    {
+      "criterion": "2.2 crafting is ongoing",
+      "note": "crafting answers running",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 crafting produces an item",
+      "note": "a stone furnace was hand-crafted",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 placement",
+      "note": "the furnace was placed",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 placement collision",
+      "note": "a second placement on the same tile is refused",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 placement reach",
+      "note": "placing beyond build distance is refused",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 placement technology gate",
+      "note": "placing an item whose recipe is locked is refused",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 machinery interaction",
+      "note": "coal was inserted into the furnace's fuel inventory",
+      "ok": true
+    },
+    {
+      "criterion": "2.1 machinery interaction",
+      "note": "iron ore was inserted into the furnace's source inventory",
+      "ok": true
+    },
+    {
+      "criterion": "exit gate: produce an item",
+      "note": "the furnace smelted a plate and the agent collected it",
+      "ok": true
+    },
+    {
+      "criterion": "2.4 destroyed handle",
+      "note": "a destroyed handle fails as target_missing, not silently",
+      "ok": true
+    },
+    {
+      "criterion": "2.4 reset identity boundary",
+      "note": "every handle from the previous episode is unknown after reset",
+      "ok": true
+    },
+    {
+      "criterion": "2.5 profile metadata",
+      "note": "every observation carries its observation and action profile",
+      "ok": true
+    }
+  ]
+}

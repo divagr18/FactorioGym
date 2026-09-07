@@ -1,0 +1,28 @@
+{
+  "id": "act_move_running",
+  "protocol": 2,
+  "description": "Movement is ongoing in v2: it answers running and settles later.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {
+      "action": "move",
+      "direction": "south",
+      "ticks": 30
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "status": "running",
+      "action": "move",
+      "direction": "south"
+    }
+  }
+}

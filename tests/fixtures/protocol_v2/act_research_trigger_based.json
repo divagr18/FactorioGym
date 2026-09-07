@@ -1,0 +1,25 @@
+{
+  "id": "act_research_trigger_based",
+  "protocol": 2,
+  "description": "Factorio 2.0 gates the root of the tech tree behind crafting triggers. electronics has no prerequisites and is enabled, yet cannot be selected: it completes by crafting 10 copper plates. Reported distinctly from tech_locked so an agent crafts instead of waiting for prerequisites that will never arrive.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {
+      "action": "research",
+      "technology": "electronics"
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "rejected",
+    "error": {
+      "code": "tech_not_selectable"
+    }
+  }
+}

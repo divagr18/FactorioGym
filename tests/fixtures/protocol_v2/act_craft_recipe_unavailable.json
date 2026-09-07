@@ -1,0 +1,26 @@
+{
+  "id": "act_craft_recipe_unavailable",
+  "protocol": 2,
+  "description": "An unknown recipe is refused before anything is debited.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {
+      "action": "craft",
+      "recipe": "not-a-real-recipe",
+      "count": 1
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "rejected",
+    "error": {
+      "code": "recipe_unavailable"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "observe_snapshot",
+  "protocol": 2,
+  "description": "Local structured observation with profiles, sensor region and memory.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current-or-empty>",
+    "type": "observe"
+  },
+  "response": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "character": {
+        "present": true
+      },
+      "sensor": {
+        "radius": 32,
+        "truncated": false
+      },
+      "profiles": {
+        "observation": "local-v1",
+        "action": "primitive-v1"
+      }
+    }
+  },
+  "required_keys": [
+    "episode_id",
+    "tick",
+    "absolute_tick",
+    "profiles",
+    "character",
+    "inventory",
+    "sensor",
+    "terrain",
+    "resources",
+    "entities",
+    "remembered",
+    "force",
+    "task",
+    "inflight",
+    "events"
+  ]
+}

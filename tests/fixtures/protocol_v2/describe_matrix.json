@@ -1,0 +1,18 @@
+{
+  "id": "describe_matrix",
+  "protocol": 2,
+  "description": "The worker reports the matrix and profiles it is actually running.",
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current-or-empty>",
+    "type": "describe"
+  },
+  "response": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "protocol": 2
+    }
+  }
+}

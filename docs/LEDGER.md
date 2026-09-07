@@ -293,6 +293,141 @@ nothing and whose `restart()` docstring was false; and 1.4 with no orchestrator
 at all. The process fix is in `CONTRIBUTING.md`: the ledger entry is written
 after the gate passes, with the transcript committed.
 
+## Phase 2 - Embodied actions and partial observations
+
+**Status: Accepted** (2026-09-07)
+
+Gate evidence: `docs/evidence/phase2-gate.json` - **33/33 criteria, passed: true,
+`privileged_calls_by_agent: 0`**, produced by `uv run factoriorl phase2-gate`.
+Capability evidence: `docs/evidence/phase2-capability-spike.md`.
+
+### 2.0 - Capability spike
+
+`LuaControl` behaviour on a bare character was Phase 2's largest unknown, so it
+was measured before the matrix was designed. **Mining and crafting are both
+native** - `mining_state` drives a player-less character and `begin_crafting`
+queues and delivers - so no fallback driver and no documented approximation.
+`build_from_cursor` is `LuaPlayer`-only, settled from the engine's own API dump,
+so placement is assembled from `can_place_entity` + `create_entity` + debit and
+`docs/ACTION_MATRIX.md` states what that excludes.
+
+### 2.1 - Protocol v2 and the action matrix
+
+`PROTOCOL_VERSION = 2`, declared once on each side (`protocol.py`,
+`protocol.lua`) with a contract test asserting they match - they could
+previously drift with only a live worker to notice. All ten actions are
+implemented. `mod/factoriorl/matrix.lua` is the authority the dispatcher
+*reads*: payload presence, types, ranges and defaults are validated once from
+it, which deletes per-handler boilerplate and the drift that comes with it.
+`src/factoriorl/action_matrix.py` mirrors it, `docs/ACTION_MATRIX.md` is
+generated from that (`factoriorl action-matrix --check` fails if stale), and 12
+engine-free tests compare names, order, ongoing/cancellable/reach flags and
+required fields across the two.
+
+Reach is prototype-derived: build 10, entity 10, resource 2.7 - three distinct
+distances replacing one wrong constant of 6, with `can_reach_entity` applying
+the engine's bounding-box rule.
+
+**Research needed three refusals, not one.** Factorio 2.0 gates the root of the
+tech tree behind triggers rather than selection: 7 of 196 technologies complete
+by crafting or mining, and *every* zero-prerequisite technology is one of them,
+so at a fresh start nothing is selectable at all. `tech_not_selectable` is
+therefore distinct from `tech_locked` - telling an agent to wait for
+prerequisites that will never arrive would be wrong; it needs to craft.
+
+### 2.2 - Ongoing actions
+
+One in-flight registry keyed by request id replaces both single-purpose hacks:
+the advance's dedicated fields and `storage.frrl_move_deadline`, a bare global
+scalar that a second move silently overwrote. Progress survives step calls, a
+target becoming unavailable is a recorded failure, and completion is reported
+exactly once - an invariant, not a convention, because `ledger_settle` refuses
+to settle an entry that is already terminal.
+
+Cancellation stops at the paused tick the cancel is processed, which is exact
+and observable precisely because the world is paused during request handling.
+
+**Moving interrupts mining**, found by the gate: an un-cancelled mine
+re-asserted `mining_state` every tick and silently pinned the character, so a
+move was accepted and then did nothing. The two are physically exclusive for a
+character, as they are in the game.
+
+### 2.3 - Local structured observations
+
+32-tile sensor region built from three engine queries - measured at 0.011 ms
+(entities), ~0 ms (resources) and 0.018 ms (a full 65x65 obstacle-only tile
+query). Terrain is never built by iterating 4225 tiles. Remembered observations
+carry `age`, and one update rule covers the whole of "moving into and out of
+visibility updates records correctly": entities inside the region but absent
+from the sweep are deleted, because the agent looked and they were not there.
+Remembered contents live only in the `remembered` block, never in `entities`,
+so PLAN section 2's "must not present distant machine state as current" is
+enforced by the array it lives in.
+
+Observation payloads measured **1117-5276 bytes** (mean 2659) against an 8 KB
+target.
+
+### 2.4 - Entity identity and lifecycle
+
+Opaque episode-scoped handles over two descriptor forms, because the spike
+confirmed **resources carry no `unit_number`**: a `unit` form keyed on
+`unit_number` (never reused, which makes "rebuilt entities do not inherit stale
+identity" true by construction) and a `tile` form with a generation counter for
+resources. Destruction is detected per-entity via
+`register_on_object_destroyed`, which fires regardless of `raise_destroy` and
+avoids registering world-wide lifecycle events that would cost per-tick
+throughput at Phase 7 scale. Reset clears every table, so prior handles resolve
+`unknown_handle` - distinct from `target_missing`, because "I never knew that"
+and "it is gone" are different failures for an agent.
+
+### 2.5 - Profiles
+
+`local-v1` and `primitive-v1`, each name plus version, echoed in every
+observation and `describe`. The observation profile declares its allowed key
+list and `observations.snapshot` filters through it, so adding a field is a
+visible, reviewable act - the mechanism, not a convention, that keeps
+evaluator-only information out of policy input. `assisted-v1` is declared with
+`available = false` so Phase 5's contract is visible now and cannot be
+retro-fitted into `primitive-v1` by accident.
+
+### Inherited defects fixed
+
+- **No `pcall` crash boundary**: a Lua error escaped to the engine. Every
+  handler now runs guarded, and the boundary proved itself immediately - a 2.0
+  API change (`max_health` moved to `LuaEntity`) surfaced as a structured
+  `engine` error instead of killing the worker.
+- **`handle_reset` never restored the character** - it does now, which matters
+  once mining can destroy things.
+- **`clear_scene` cleared only +-16**, so anything built outside survived a
+  reset. Player-force entities are now swept surface-wide.
+- **`act_move` did not validate `payload.ticks`** - the matrix validates it.
+
+### Phase 2 exit gate
+
+`uv run factoriorl phase2-gate` runs a scripted embodied agent that walks east
+until ore enters the sensor region, mines it, mines stone, hand-crafts a
+furnace, places it, fuels it, feeds it ore, waits out the smelt, and collects
+the plate - then exercises rotation, recipe selection, research, handle
+destruction and the reset identity boundary.
+
+**"Without privileged mutations" is enforced, not asserted**: the agent's RCON
+client is wrapped so any Lua that is not the typed dispatch template raises,
+making `bridge.run` unreachable. Evaluator setup happens before the agent starts
+and every such call is recorded in the report, so `privileged_calls_by_agent: 0`
+is a measurement.
+
+Result: **33/33 criteria, 0 privileged calls, a plate produced by the world
+simulating natively**, 11820 game ticks in ~11 s wall.
+
+One gate defect worth recording: the rotation and recipe checks were originally
+guarded by `if target is not None:` and **silently vanished** when the agent
+could not reach them - a gate quietly dropping criteria is the same failure the
+Phase 1 correction note is about. They are unconditional now, which immediately
+exposed the real problem: greedy movement has no pathfinding (PLAN defers it to
+5.1) and the character was blocked by the 3x3 assembling machine, so those
+checks now run while the targets are in view from spawn, and `_walk_towards`
+detects being stuck instead of spinning out its budget.
+
 ## Engine facts worth remembering
 
 - Factorio 2.0 Lua: `global` → `storage`, `game.create_player` removed
@@ -312,3 +447,15 @@ after the gate passes, with the transcript committed.
 - An orphaned engine holds `write-data/.lock` indefinitely, so worker ids must
   be unique per run — a fresh worker reusing a stale id fails on the lock and
   misreports the cause.
+- 2.0 moved `max_health` onto `LuaEntity` (with `get_health_ratio()`);
+  `LuaEntityPrototype` exposes `get_max_health()` as a method.
+- `LuaEntity`'s parent is `LuaControl`, so a bare character has `mining_state`,
+  `begin_crafting`, `cursor_stack` and the reach properties - but **not**
+  `build_from_cursor`, which is `LuaPlayer`-only.
+- Resources are `ResourceEntityPrototype` and carry **no `unit_number`**.
+- The 2.0 base tech tree is trigger-gated at its root: 7 technologies complete
+  by crafting or mining and cannot be queued, and every zero-prerequisite
+  technology is one of them.
+- The engine ships a machine-readable API at
+  `D:/Factorio/doc-html/runtime-api.json` (`api_version 6`), which is the
+  authority for what exists on this build.

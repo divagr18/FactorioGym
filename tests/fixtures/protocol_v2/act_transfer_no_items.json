@@ -1,0 +1,28 @@
+{
+  "id": "act_transfer_no_items",
+  "protocol": 2,
+  "description": "Overdraw is rejected with a structured reason and no mutation.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {
+      "action": "transfer",
+      "from": "src",
+      "to": "character",
+      "item": "iron-plate",
+      "count": 999
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "rejected",
+    "error": {
+      "code": "no_items"
+    }
+  }
+}

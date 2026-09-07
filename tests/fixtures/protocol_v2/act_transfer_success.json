@@ -1,0 +1,31 @@
+{
+  "id": "act_transfer_success",
+  "protocol": 2,
+  "description": "All-or-nothing transfer from a scenario chest to the character.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {
+      "action": "transfer",
+      "from": "src",
+      "to": "character",
+      "item": "iron-plate",
+      "count": 10
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "status": "completed",
+      "action": "transfer",
+      "item": "iron-plate",
+      "count": 10
+    }
+  }
+}

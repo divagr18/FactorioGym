@@ -15,6 +15,7 @@ import time
 import pytest
 
 from factoriorl.errors import InfrastructureFailure, StartupFailure
+from factoriorl.gate_phase0 import DST_POSITION, SRC_POSITION, contents_at
 from factoriorl.paths import workspace_root
 from factoriorl.supervisor import WorkerSupervisor
 from factoriorl.worker import _pid_alive, reservation_path
@@ -92,9 +93,9 @@ def test_transfer_conserves_items(module_session):
     assert resp.response.ok
     obs = module_session.observe().response.result
     total = (
-        sum(obs["entities"]["src"]["contents"].values())
+        sum(contents_at(obs, SRC_POSITION).values())
         + sum(obs["inventory"].values())
-        + sum(obs["entities"]["dst"]["contents"].values())
+        + sum(contents_at(obs, DST_POSITION).values())
     )
     assert total == 50
 
@@ -113,8 +114,8 @@ def test_reset_repeatability_ten_cycles(module_session):
             "tick": obs["tick"],
             "pos": obs["character"]["position"],
             "inventory": obs["inventory"],
-            "src": obs["entities"]["src"]["contents"],
-            "dst": obs["entities"]["dst"]["contents"],
+            "src": contents_at(obs, SRC_POSITION),
+            "dst": contents_at(obs, DST_POSITION),
             "task": obs["task"],
         }
         if baseline is None:

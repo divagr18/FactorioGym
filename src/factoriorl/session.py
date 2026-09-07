@@ -96,6 +96,9 @@ class WorkerSession:
         # with an old stored result -- silently dropping it (PLAN.md 1.2).
         self._nonce = uuid.uuid4().hex[:8]
         self.settle_timeout = settle_timeout
+        #: Worker pacing multiplier, kept in sync so `step` can predict how long
+        #: an interval takes instead of polling blindly.
+        self.speed = 1.0
         self.episode_id: str | None = None
 
     # ------------------------------------------------------------ transport
@@ -151,6 +154,9 @@ class WorkerSession:
         )
         timed = self._request(request)
         self._adopt_episode(timed.response)
+        reported = (timed.response.result or {}).get("speed")
+        if isinstance(reported, int | float) and reported > 0:
+            self.speed = float(reported)
         return timed
 
     def observe(self) -> TimedResponse:
@@ -228,11 +234,109 @@ class WorkerSession:
         )
         return self._request(request)
 
-    def reset(self) -> TimedResponse:
+    def configure(self, speed: float) -> TimedResponse:
+        """Set the worker's pacing multiplier.
+
+        Pacing only: Factorio is tick-based and the simulation is identical at
+        any speed, which `factoriorl bench speed` proves by comparing episode
+        records field by field. At the default 60 UPS a 30-tick interval costs
+        a hard 500 ms of wall clock, so this is the largest throughput lever.
+        """
+        request = Request(
+            request_id=self._next_request_id("configure"),
+            episode_id=self.episode_id or "",
+            type=RequestType.CONFIGURE,
+            payload={"speed": speed},
+        )
+        timed = self._request(request)
+        if timed.response.ok:
+            self.speed = float((timed.response.result or {}).get("applied", {}).get("speed", speed))
+        return timed
+
+    def describe(self) -> TimedResponse:
+        """The action matrix, profiles and versions this worker is running."""
+        request = Request(
+            request_id=self._next_request_id("describe"),
+            episode_id=self.episode_id or "",
+            type=RequestType.DESCRIBE,
+        )
+        return self._request(request)
+
+    def step(self, action: dict, ticks: int = 30) -> TimedResponse:
+        """One RL transition: apply an action, run the interval, observe.
+
+        Two round trips, which is the floor for exact stepping over RCON: a
+        command executes inside a tick, so Lua cannot block while the world
+        advances and `rcon.print` cannot be deferred to a later tick. The wait
+        between them is *predicted* from the interval and the current speed
+        rather than polled blindly, so the first collect normally finds it
+        settled.
+        """
+        request = Request(
+            request_id=self._next_request_id("step"),
+            episode_id=self._require_episode(),
+            type=RequestType.STEP,
+            payload={"action": action, "ticks": ticks},
+        )
+        timed = self._request(request)
+        if not timed.response.ok:
+            return timed
+        return self._collect(request.request_id, timed, ticks)
+
+    def collect(self, request_id: str) -> TimedResponse:
+        request = Request(
+            request_id=self._next_request_id("collect"),
+            episode_id=self.episode_id or "",
+            type=RequestType.COLLECT,
+            payload={"request_id": request_id},
+        )
+        return self._request(request)
+
+    def _collect(
+        self, request_id: str, timed: TimedResponse, ticks: int, poll_interval: float = 0.005
+    ) -> TimedResponse:
+        started = time.perf_counter()
+        expected = ticks / (60.0 * max(self.speed, 0.01))
+        if expected > 0.001:
+            time.sleep(expected)
+        deadline = time.monotonic() + self.settle_timeout
+        while time.monotonic() < deadline:
+            probe = self.collect(request_id)
+            resolution = probe.response.result or {}
+            if resolution.get("settled"):
+                return TimedResponse(
+                    response=Response(
+                        request_id=request_id,
+                        episode_id=self.episode_id or "",
+                        code=probe.response.code,
+                        result=resolution.get("result", {}),
+                        error=probe.response.error,
+                        tick=probe.response.tick,
+                    ),
+                    round_trip_ms=(timed.round_trip_ms + (time.perf_counter() - started) * 1000.0),
+                    request_type=RequestType.STEP.value,
+                )
+            time.sleep(poll_interval)
+        raise ProtocolError(f"step {request_id} did not settle within {self.settle_timeout}s")
+
+    def reset(
+        self,
+        scenario: str | None = None,
+        observation_profile: str | None = None,
+        action_profile: str | None = None,
+    ) -> TimedResponse:
+        payload: dict = {}
+        if scenario is not None:
+            payload["scenario"] = scenario
+        if observation_profile is not None:
+            payload["observation_profile"] = observation_profile
+        if action_profile is not None:
+            payload["action_profile"] = action_profile
         request = Request(
             request_id=self._next_request_id("reset"),
             episode_id=self.episode_id or "",
             type=RequestType.RESET,
+            payload=payload,
         )
         timed = self._request(request)
         self._adopt_episode(timed.response)

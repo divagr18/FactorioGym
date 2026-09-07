@@ -1,0 +1,26 @@
+{
+  "id": "act_mine_unknown_handle",
+  "protocol": 2,
+  "description": "A handle never minted this episode fails as unknown, not missing.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {
+      "action": "mine",
+      "handle": "h999999",
+      "count": 1
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "rejected",
+    "error": {
+      "code": "unknown_handle"
+    }
+  }
+}

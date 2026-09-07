@@ -4,8 +4,13 @@ Every request carries a protocol version, a request id (dedup key), and the
 episode id it belongs to. Responses echo request and episode ids and carry a
 status code plus either a result body or a structured error.
 
-Frozen here; changes require a protocol-version bump and migration of both
-sides (PLAN.md 1.1).
+Versioned here; a change requires bumping the version on both sides, adding a
+new ``tests/fixtures/protocol_v<n>/`` directory, keeping the previous one, and
+adding the refusal test that proves the old version is now rejected
+(CONTRIBUTING.md).
+
+v2 adds the ten-action matrix, fused stepping, entity handles, observation and
+action profiles, and the error vocabulary those need.
 """
 
 from __future__ import annotations
@@ -15,7 +20,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
-PROTOCOL_VERSION = 1
+PROTOCOL_VERSION = 2
 
 
 class ResultCode(StrEnum):
@@ -46,6 +51,28 @@ class RequestType(StrEnum):
     RESET = "reset"
     STATUS = "status"  # also the liveness probe
     REQUEST_STATUS = "request_status"  # resolve uncertain transport outcomes
+    # Fused act + advance: one request per RL transition. Two round trips is
+    # the floor -- RCON commands execute inside a tick, so Lua cannot block
+    # while the world advances -- and `collect` retrieves the settled result.
+    STEP = "step"
+    COLLECT = "collect"
+    DESCRIBE = "describe"  # action matrix, profiles and versions actually running
+    CONFIGURE = "configure"  # evaluator pacing knobs; never changes outcomes
+
+
+class ActionType(StrEnum):
+    """The ten actions of PLAN.md 2.1, mirroring ``mod/factoriorl/matrix.lua``."""
+
+    MOVE = "move"
+    MINE = "mine"
+    CRAFT = "craft"
+    PLACE = "place"
+    ROTATE = "rotate"
+    TRANSFER = "transfer"
+    SET_RECIPE = "set_recipe"
+    RESEARCH = "research"
+    WAIT = "wait"
+    CANCEL = "cancel"
 
 
 class ErrorCode(StrEnum):
@@ -59,10 +86,26 @@ class ErrorCode(StrEnum):
     OUT_OF_REACH = "out_of_reach"
     COLLISION = "collision"
     NO_ITEMS = "no_items"
+    NO_SPACE = "no_space"
     ENGINE = "engine"
     BAD_PROTOCOL = "bad_protocol"
     BAD_EPISODE = "bad_episode"
     DUPLICATE_REQUEST = "duplicate_request"
+    BUSY = "busy"
+    UNKNOWN_HANDLE = "unknown_handle"
+    TARGET_MISSING = "target_missing"
+    NOT_CANCELLABLE = "not_cancellable"
+    NOT_MINEABLE = "not_mineable"
+    INVALID_TARGET = "invalid_target"
+    RECIPE_UNAVAILABLE = "recipe_unavailable"
+    TECH_LOCKED = "tech_locked"
+    # Deliberately distinct from TECH_LOCKED. Factorio 2.0 gates the root of
+    # the tech tree behind triggers rather than selection -- 7 of 196
+    # technologies complete by crafting or mining and cannot be queued at all.
+    # Reporting that as "locked" would tell an agent to wait for prerequisites
+    # that will never arrive; it needs to craft instead.
+    TECH_NOT_SELECTABLE = "tech_not_selectable"
+    UNKNOWN_REQUEST_ID = "unknown_request_id"
 
 
 @dataclass(frozen=True)

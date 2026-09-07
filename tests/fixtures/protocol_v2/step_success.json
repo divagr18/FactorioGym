@@ -1,0 +1,36 @@
+{
+  "id": "step_success",
+  "protocol": 2,
+  "description": "Fused act + advance; the settled response carries the observation.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "step",
+    "payload": {
+      "action": {
+        "action": "wait"
+      },
+      "ticks": 30
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "status": "running",
+      "target_ticks": 30
+    }
+  },
+  "settled": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "status": "completed",
+      "ticks_advanced": 30
+    }
+  }
+}

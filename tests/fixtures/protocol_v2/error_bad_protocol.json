@@ -1,0 +1,18 @@
+{
+  "id": "error_bad_protocol",
+  "protocol": 2,
+  "description": "A foreign protocol version is refused without executing anything.",
+  "request": {
+    "protocol": 99,
+    "request_id": "<auto>",
+    "episode_id": "<current-or-empty>",
+    "type": "status"
+  },
+  "response": {
+    "protocol": 2,
+    "code": "unsupported",
+    "error": {
+      "code": "bad_protocol"
+    }
+  }
+}

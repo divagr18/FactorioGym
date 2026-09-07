@@ -51,6 +51,30 @@ class GateReport:
         }
 
 
+def entity_at(observation: dict, position, name: str | None = None) -> dict | None:
+    """Find a visible entity record by position.
+
+    Observations moved from a hardcoded {"src": ..., "dst": ...} map to a list
+    of entities carrying episode-scoped handles, so evaluator-side code locates
+    scene fixtures by where they are rather than by a privileged name.
+    """
+    for record in observation.get("entities", []):
+        px, py = record.get("p", (None, None))
+        if abs(px - position[0]) < 0.6 and abs(py - position[1]) < 0.6:
+            if name is None or record.get("name") == name:
+                return record
+    return None
+
+
+def contents_at(observation: dict, position) -> dict:
+    record = entity_at(observation, position)
+    return (record or {}).get("contents", {}) or {}
+
+
+SRC_POSITION = (3, 0)
+DST_POSITION = (-3, 0)
+
+
 def _episode_cycle(session: WorkerSession, index: int) -> dict:
     """One reset cycle: identical action sequence; returns the outcome record."""
     latencies: list[float] = []
@@ -83,8 +107,8 @@ def _episode_cycle(session: WorkerSession, index: int) -> dict:
         "advance_result": step1.response.result,
         "character_position": pos_after_move.response.result["character"]["position"],
         "character_inventory": final.response.result["inventory"],
-        "src_contents": final.response.result["entities"]["src"]["contents"],
-        "dst_contents": final.response.result["entities"]["dst"]["contents"],
+        "src_contents": contents_at(final.response.result, SRC_POSITION),
+        "dst_contents": contents_at(final.response.result, DST_POSITION),
         "task": final.response.result["task"],
         "latency_ms_mean_per_request": sum(latencies) / len(latencies),
         "latency_ms_cycle_total": sum(latencies),
@@ -154,8 +178,8 @@ def run_phase0_gate(worker_id: str = "phase0-gate") -> dict:
                 "transfer", **{"from": "src", "to": "character", "item": "iron-plate", "count": 10}
             )
             after = session.observe().response.result
-            total_before = sum(before["entities"]["src"]["contents"].values())
-            total_after = sum(after["entities"]["src"]["contents"].values()) + sum(
+            total_before = sum(contents_at(before, SRC_POSITION).values())
+            total_after = sum(contents_at(after, SRC_POSITION).values()) + sum(
                 after["inventory"].values()
             )
             report.actions["transfer"] = tr.response.result
@@ -176,10 +200,7 @@ def run_phase0_gate(worker_id: str = "phase0-gate") -> dict:
             )
             if overdraw.response.code.value != "rejected":
                 report.fail("overdraw transfer was not rejected")
-            if (
-                after_overdraw["entities"]["src"]["contents"]
-                != after["entities"]["src"]["contents"]
-            ):
+            if contents_at(after_overdraw, SRC_POSITION) != contents_at(after, SRC_POSITION):
                 report.fail("rejected overdraw mutated state")
 
             # ---------------- 0.5 reset repeatability (>=10 cycles)

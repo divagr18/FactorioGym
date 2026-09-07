@@ -1,0 +1,33 @@
+{
+  "id": "advance_success",
+  "protocol": 2,
+  "description": "Exact stepping: request N ticks, get running then settled completed.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "advance",
+    "payload": {
+      "ticks": 30
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "status": "running",
+      "target_ticks": 30
+    }
+  },
+  "settled": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "status": "completed",
+      "ticks_advanced": 30
+    }
+  }
+}

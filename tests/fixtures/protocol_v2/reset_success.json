@@ -1,0 +1,20 @@
+{
+  "id": "reset_success",
+  "protocol": 2,
+  "description": "Reset starts a new episode and reports the scenario it built.",
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current-or-empty>",
+    "type": "reset",
+    "payload": {}
+  },
+  "response": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "scenario": "reference"
+    }
+  },
+  "result_episode_id_pattern": "^ep-\\d+$"
+}

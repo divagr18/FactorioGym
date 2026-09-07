@@ -1,0 +1,25 @@
+{
+  "id": "act_cancel_unknown_request",
+  "protocol": 2,
+  "description": "Cancelling something that was never in flight.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {
+      "action": "cancel",
+      "target_request_id": "never-existed"
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "rejected",
+    "error": {
+      "code": "unknown_request_id"
+    }
+  }
+}

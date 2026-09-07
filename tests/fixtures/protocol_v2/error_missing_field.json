@@ -1,0 +1,22 @@
+{
+  "id": "error_missing_field",
+  "protocol": 2,
+  "description": "Missing required data produces a useful error.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "advance",
+    "payload": {}
+  },
+  "response": {
+    "protocol": 2,
+    "code": "rejected",
+    "error": {
+      "code": "missing_field"
+    }
+  }
+}

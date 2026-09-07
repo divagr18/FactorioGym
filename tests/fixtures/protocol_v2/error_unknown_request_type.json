@@ -1,0 +1,21 @@
+{
+  "id": "error_unknown_request_type",
+  "protocol": 2,
+  "description": "The request dispatch table is closed.",
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current-or-empty>",
+    "type": "execute_lua",
+    "payload": {
+      "code": "print"
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "unsupported",
+    "error": {
+      "code": "unknown_request"
+    }
+  }
+}

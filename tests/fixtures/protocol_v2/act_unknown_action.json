@@ -1,0 +1,24 @@
+{
+  "id": "act_unknown_action",
+  "protocol": 2,
+  "description": "The action dispatch table is closed.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {
+      "action": "definitely-not-an-action"
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "rejected",
+    "error": {
+      "code": "unknown_action"
+    }
+  }
+}

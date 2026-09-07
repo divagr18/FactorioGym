@@ -1,0 +1,35 @@
+{
+  "id": "step_rejected_action_still_advances",
+  "protocol": 2,
+  "description": "An invalid action costs the agent its interval rather than stalling time; otherwise a masked policy emitting an illegal action gets a free turn.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "step",
+    "payload": {
+      "action": {
+        "action": "definitely-not-an-action"
+      },
+      "ticks": 30
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "status": "running"
+    }
+  },
+  "settled": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "status": "completed",
+      "ticks_advanced": 30
+    }
+  }
+}
