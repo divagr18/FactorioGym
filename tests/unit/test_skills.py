@@ -77,7 +77,7 @@ def test_entities_are_ranked_by_distance_from_the_character():
         "character": {"position": [10.0, 0.0]},
         "entities": [
             {"name": "far", "p": [0.0, 0.0], "h": "far"},
-            {"name": "near", "p": [11.0, 0.0], "h": "near"},
+            {"name": "near", "p": [14.0, 0.0], "h": "near"},
         ],
         "resources": {"tiles": []},
     }
@@ -102,7 +102,7 @@ def test_skill_env_appends_without_moving_primitive_indices(task_id):
             self.observation_space = None
             self._observation = {
                 "character": {"position": [0.0, 0.0]},
-                "entities": [{"name": "wooden-chest", "p": [1.0, 0.0], "h": "e1"}],
+                "entities": [{"name": "wooden-chest", "p": [6.0, 0.0], "h": "e1"}],
                 "resources": {"tiles": []},
             }
 
@@ -123,3 +123,33 @@ def test_skill_env_appends_without_moving_primitive_indices(task_id):
     )
     assert skill_half["approach_entity_0"]
     assert not skill_half["approach_entity_1"]
+
+
+def test_an_entity_underfoot_is_not_addressable():
+    """Rank is measured from the character, so arriving at the k-th nearest
+    entity makes it the nearest and demotes the one just left. Re-issuing the
+    same approach then walks straight back.
+
+    A trained policy was observed alternating `approach_entity_1` between two
+    chests for an entire episode -- nine steps out, twelve back, forever --
+    because executing the action inverted its meaning. Excluding what the agent
+    is already standing at means an approach is never a no-op, and with two
+    candidates and one underfoot the second slot stops existing, so the looping
+    action is masked illegal rather than merely unhelpful.
+    """
+    at_the_chest = {
+        "character": {"position": [3.0, 0.0]},
+        "entities": [
+            {"name": "wooden-chest", "type": "container", "p": [3.5, 0.0], "h": "here"},
+            {"name": "wooden-chest", "type": "container", "p": [20.0, 0.0], "h": "away"},
+        ],
+        "resources": {"tiles": []},
+    }
+    context = skills_module.skill_context(at_the_chest)
+    assert context["entity_0"]["h"] == "away", "the chest underfoot is still being offered"
+    assert context["entity_1"] is None, "a second slot exists for a two-chest scene"
+
+    mask = skills_module.skill_masks(at_the_chest)
+    by_key = dict(zip([s.key for s in skills_module.SKILLS], mask, strict=True))
+    assert by_key["approach_entity_0"]
+    assert not by_key["approach_entity_1"], "the oscillating action is still legal"

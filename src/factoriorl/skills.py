@@ -130,10 +130,29 @@ def skill_context(observation: dict) -> dict:
     features skills declare in `requires`, so availability is a presence check
     and never a computation over hidden state.
     """
-    entities = [
-        e for e in (observation.get("entities") or []) if e.get("type") not in OBSTACLE_TYPES
-    ]
     origin = (observation.get("character") or {}).get("position") or [0.0, 0.0]
+    entities = [
+        e
+        for e in (observation.get("entities") or [])
+        if e.get("type") not in OBSTACLE_TYPES
+        # Not what the agent is already standing at. Rank is measured from the
+        # character, so arriving at the k-th nearest entity makes it the
+        # nearest and demotes the one just left -- re-issuing the same approach
+        # walks straight back. A trained policy was observed alternating
+        # `approach_entity_1` between two chests for a whole episode, 9 steps
+        # out and 12 steps back, forever: the action's meaning inverted as a
+        # consequence of executing it, which no amount of training data fixes.
+        #
+        # Dropping in-range entities from the ranking means an approach can
+        # never be a no-op, and with two candidates and one of them underfoot
+        # the second slot stops existing, so the looping action is masked
+        # illegal rather than merely unhelpful.
+        and math.hypot(
+            (e.get("p") or [0.0, 0.0])[0] - origin[0],
+            (e.get("p") or [0.0, 0.0])[1] - origin[1],
+        )
+        > INTERACT_RANGE
+    ]
 
     def distance(record) -> float:
         point = record.get("p") or [0.0, 0.0]
