@@ -80,6 +80,12 @@ def commit_status() -> dict:
 @dataclass
 class ProfileResult:
     workers: int
+    #: The profiled task's decision interval, in game ticks. Carried on the
+    #: result rather than assumed, because every simulated-throughput number in
+    #: the report is a decision rate multiplied by it. It has no default on
+    #: purpose: a default would let a caller silently profile one interval and
+    #: report another.
+    decision_ticks: int
     steps: int = 0
     wall_seconds: float = 0.0
     step_times: list[float] = field(default_factory=list)
@@ -94,12 +100,14 @@ class ProfileResult:
         if self.skipped:
             return {
                 "workers": self.workers,
+                "decision_ticks": self.decision_ticks,
                 "skipped": self.skipped,
                 "commit_before": self.commit_before,
             }
         steps_per_second = self.steps / self.wall_seconds if self.wall_seconds else 0.0
         return {
             "workers": self.workers,
+            "decision_ticks": self.decision_ticks,
             "steps": self.steps,
             "wall_seconds": round(self.wall_seconds, 2),
             "steps_per_second": round(steps_per_second, 2),
@@ -115,7 +123,15 @@ class ProfileResult:
             "observation_bytes_mean": int(np.mean(self.observation_bytes))
             if self.observation_bytes
             else None,
-            "simulated_ticks_per_second": round(steps_per_second * 30, 1),
+            # One decision advances the engine by the *task's* decision
+            # interval, so the conversion from decisions/s to simulated ticks/s
+            # is that interval and nothing else. This was hardcoded to 30, the
+            # default `TaskSpec.decision_ticks`, which meant profiling a task
+            # that had changed its interval reported a throughput that was
+            # wrong by exactly the ratio -- silently, since nothing compared
+            # the two -- and every derived number in
+            # docs/evidence/phase4-worker-profile.json inherited the error.
+            "simulated_ticks_per_second": round(steps_per_second * self.decision_ticks, 1),
             "commit_before": self.commit_before,
             "commit_peak": self.commit_peak,
         }
@@ -124,7 +140,11 @@ class ProfileResult:
 def _profile_one(
     workers: int, task_id: str, steps_per_worker: int, per_worker_commit_gb: float | None
 ) -> ProfileResult:
-    result = ProfileResult(workers=workers)
+    # Resolve the task before the memory check, not after: a skipped
+    # configuration still reports which decision interval it would have run at,
+    # so a report is never a mix of intervals that nothing records.
+    task = get(task_id)
+    result = ProfileResult(workers=workers, decision_ticks=task.spec.decision_ticks)
     result.commit_before = commit_status()
 
     if per_worker_commit_gb is not None:
@@ -138,7 +158,6 @@ def _profile_one(
             )
             return result
 
-    task = get(task_id)
     plan = SeedPlan(master=4321, run_id=f"profile-w{workers}")
     pool = WorkerPool()
     envs: list[FactorioEnv] = []
@@ -258,6 +277,11 @@ def run_profile(
 ) -> dict:
     report: dict = {
         "task": task_id,
+        # Recorded at the top level as well so a published profile states the
+        # interval its simulated-tick figures were computed at. Two profiles of
+        # the same task taken across a change of interval are otherwise
+        # indistinguishable, and the slower one looks like a regression.
+        "decision_ticks": get(task_id).spec.decision_ticks,
         "steps_per_worker": steps_per_worker,
         "commit_at_start": commit_status(),
         "configurations": [],

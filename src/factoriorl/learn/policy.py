@@ -25,7 +25,15 @@ GRID_FEATURES = 128
 #: Bumped to 2: the grid encoder keeps spatial structure and the goal vector
 #: carries landmarks. Both change what a checkpoint means, so a v1 checkpoint
 #: is not comparable to a v2 one and the gate checks this against the manifest.
-EXTRACTOR_VERSION = 2
+#:
+#: Bumped to 3: `ObservationProfile.cell_size` makes the grid resolution
+#: settable, so one grid cell no longer necessarily means one world tile. This
+#: version is the *only* thing that catches that change. Because `grid_net`
+#: ends in `AdaptiveAvgPool2d(GRID_POOL)`, it absorbs any spatial input size:
+#: a checkpoint trained on the 65x65 grid loads against a 33x33 one without a
+#: single shape error, runs, and produces garbage -- with every gate green,
+#: because nothing else compares the two geometries.
+EXTRACTOR_VERSION = 3
 
 
 class FactorioExtractor(BaseFeaturesExtractor):
@@ -42,7 +50,9 @@ class FactorioExtractor(BaseFeaturesExtractor):
             + observation_space["goal"].shape[0]
         )
 
-        # The three strided convolutions take 65x65 down to 9x9, and this used
+        # Each of the three strided convolutions halves both spatial dimensions
+        # (65x65 down to 9x9 for `local-v1`, 33x33 down to 5x5 for the coarse
+        # profile), and this used
         # to end in `AdaptiveAvgPool2d(1)`: a global average that collapsed the
         # whole map to 64 numbers and destroyed every trace of *where* anything
         # was. Walls survived that only because they also appear in the entity

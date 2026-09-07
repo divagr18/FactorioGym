@@ -15,6 +15,8 @@ Measured: 41.8 steps/s at one worker, 202 steps/s at eight.
 
 from __future__ import annotations
 
+import itertools
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
@@ -55,6 +57,13 @@ class FactorioVecEnv(VecEnv):
         self.envs: list = []
         self._executor = ThreadPoolExecutor(max_workers=num_workers)
         self._pending: list[Any] | None = None
+        # When set, episode indices are handed out from one shared counter
+        # instead of each worker owning a private stream. Evaluation needs
+        # that: the set of scenes evaluated must be {0..N-1} whatever the
+        # worker count, or two arms of an ablation would be scored on
+        # different scenes and could not be compared as paired measurements.
+        self._cursor: itertools.count | None = None
+        self._cursor_lock = threading.Lock()
 
         for index in range(num_workers):
             worker = self.pool.start(f"{worker_prefix}-{index}")
@@ -80,8 +89,30 @@ class FactorioVecEnv(VecEnv):
 
     # ------------------------------------------------------------ VecEnv
 
+    def retarget(self, split: str, branch: Branch, start_index: int = 0) -> None:
+        """Point every worker at a different split, reusing the live engines.
+
+        Evaluating three splits by building three vectorised environments would
+        pay the worker launch storm three times over -- the single most
+        expensive moment in a run. The split and branch are plain attributes of
+        each environment, so retargeting is assignment.
+        """
+        for env in self.envs:
+            inner = env.unwrapped
+            inner.branch = branch
+            inner.split = split
+        self._cursor = itertools.count(start_index)
+
+    def _reset_one(self, env):
+        if self._cursor is not None:
+            with self._cursor_lock:
+                index = next(self._cursor)
+            # reset() increments before use, so seed it one below the target.
+            env.unwrapped._episode_index = index - 1
+        return env.reset()
+
     def reset(self):
-        results = list(self._executor.map(lambda e: e.reset(), self.envs))
+        results = list(self._executor.map(self._reset_one, self.envs))
         self._last_infos = [info for _, info in results]
         return _stack([obs for obs, _ in results])
 
@@ -101,7 +132,7 @@ class FactorioVecEnv(VecEnv):
                 # so the learner can bootstrap correctly.
                 info = {**info, "terminal_observation": observation}
                 info["TimeLimit.truncated"] = truncated and not terminated
-                observation, _ = env.reset()
+                observation, _ = self._reset_one(env)
             observations.append(observation)
             rewards.append(reward)
             dones.append(done)

@@ -21,6 +21,12 @@ from factoriorl.tasks.spec import Blueprint, LayoutFamily, TaskSpec
 #: family id -> (spec, generator, reference solution)
 _REGISTRY: dict[str, RegisteredTask] = {}
 
+#: Mirrors ``MAX_ADVANCE_TICKS`` in ``mod/factoriorl/runtime.lua``: the mod
+#: refuses to advance more ticks than this in one request. Checking it here
+#: turns a per-step protocol error mid-episode into a task that fails
+#: ``tasks validate`` before a worker is launched.
+MAX_ADVANCE_TICKS = 36000
+
 
 @dataclass(frozen=True)
 class RegisteredTask:
@@ -77,6 +83,8 @@ def validate_all(sample_seeds: int = 16) -> dict:
     import random
     import zlib
 
+    from factoriorl import catalog as catalog_module
+
     def stable_seed(*parts: object) -> int:
         """Deterministic across processes.
 
@@ -105,6 +113,29 @@ def validate_all(sample_seeds: int = 16) -> dict:
             problems.append(f"expected exactly one sparse_success reward, found {len(sparse)}")
         if spec.max_decision_steps <= 0 or spec.max_game_ticks <= 0:
             problems.append("budgets must be positive, or truncation is undefined")
+        if spec.decision_ticks <= 0 or spec.decision_ticks > MAX_ADVANCE_TICKS:
+            problems.append(
+                f"decision_ticks must be in [1, {MAX_ADVANCE_TICKS}], got "
+                f"{spec.decision_ticks}; the mod refuses anything else at runtime"
+            )
+        elif spec.decision_ticks < catalog_module.LONG_MOVE_TICKS:
+            # A move's duration is enforced by the mod (actions.lua sets
+            # deadline_tick = game.tick + payload.ticks, inflight.lua stops the
+            # walk there), independently of how long a decision lasts. Only
+            # another move supersedes a running move, so with a decision
+            # interval shorter than the longest stride the *next* action --
+            # place, transfer, craft or wait -- executes while the character is
+            # still walking. Placement binds to floor(position), so those
+            # placements land on whatever tile the walk happened to reach and
+            # nothing raises: episodes are corrupted non-deterministically and
+            # the run merely looks unlucky. The invariant currently holds with
+            # zero margin (30 == 30), which is exactly why it has to be
+            # asserted rather than remembered.
+            problems.append(
+                f"decision_ticks {spec.decision_ticks} is shorter than the longest "
+                f"catalog move stride ({catalog_module.LONG_MOVE_TICKS} ticks), so a "
+                "move is still running when the next action executes"
+            )
         splits = {f.split for f in spec.layout_families}
         if "train" not in splits:
             problems.append("no train layout family")
@@ -136,6 +167,7 @@ def validate_all(sample_seeds: int = 16) -> dict:
 
 
 __all__ = [
+    "MAX_ADVANCE_TICKS",
     "RegisteredTask",
     "TaskConfigError",
     "all_tasks",

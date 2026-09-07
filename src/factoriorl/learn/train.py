@@ -23,6 +23,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 
 from factoriorl import encoders
 from factoriorl import manifest as manifest_module
+from factoriorl.baselines import cached_random_baseline
 from factoriorl.env import FactorioEnv
 from factoriorl.learn.policy import EXTRACTOR_VERSION, describe, policy_kwargs
 from factoriorl.rcon import RCONClient
@@ -203,6 +204,76 @@ def _wilson(successes: int, total: int, z: float = 1.96) -> list[float]:
     return [round(max(0.0, centre - margin), 4), round(min(1.0, centre + margin), 4)]
 
 
+def evaluate_parallel(vec, model, episodes: int, deterministic: bool = True) -> dict:
+    """Evaluate across every worker at once.
+
+    Evaluation was the largest single cost in a run -- on a 25,000-step
+    `navigate` run it was 430 of 766 wall-clock seconds -- and it ran on one
+    worker while the other seven sat idle. It is embarrassingly parallel: the
+    episodes are independent by construction.
+    """
+    observations = vec.reset()
+    count = vec.num_envs
+    totals = np.zeros(count, dtype=np.float64)
+    steps = np.zeros(count, dtype=np.int64)
+    successes = 0
+    counted = 0
+    lengths: list[int] = []
+    rewards: list[float] = []
+    while counted < episodes:
+        masks = vec.action_masks()
+        actions, _ = model.predict(observations, action_masks=masks, deterministic=deterministic)
+        observations, step_rewards, dones, infos = vec.step(actions)
+        totals += step_rewards
+        steps += 1
+        for index, done in enumerate(dones):
+            if not done:
+                continue
+            info = infos[index]
+            # An infrastructure failure is not a task outcome, so it is dropped
+            # rather than counted as a loss.
+            if not info.get("excluded_from_metrics") and counted < episodes:
+                counted += 1
+                successes += int(bool(info.get("success")))
+                lengths.append(int(steps[index]))
+                rewards.append(float(totals[index]))
+            totals[index] = 0.0
+            steps[index] = 0
+    rate = successes / counted if counted else 0.0
+    return {
+        "episodes": counted,
+        "successes": successes,
+        "success_rate": round(rate, 4),
+        "wilson_95": _wilson(successes, counted),
+        "mean_episode_reward": round(float(np.mean(rewards)), 4) if rewards else 0.0,
+        "mean_episode_steps": round(float(np.mean(lengths)), 1) if lengths else 0.0,
+        "deterministic": deterministic,
+    }
+
+
+def random_baseline_parallel(vec, episodes: int, rng: np.random.Generator) -> dict:
+    """The random floor, across every worker."""
+    vec.reset()
+    successes = 0
+    counted = 0
+    while counted < episodes:
+        masks = vec.action_masks()
+        actions = [int(rng.choice(np.flatnonzero(row))) for row in masks]
+        _, _, dones, infos = vec.step(np.array(actions))
+        for index, done in enumerate(dones):
+            if not done:
+                continue
+            if not infos[index].get("excluded_from_metrics") and counted < episodes:
+                counted += 1
+                successes += int(bool(infos[index].get("success")))
+    return {
+        "episodes": counted,
+        "successes": successes,
+        "success_rate": round(successes / counted, 4) if counted else 0.0,
+        "wilson_95": _wilson(successes, counted),
+    }
+
+
 def random_baseline(env: FactorioEnv, episodes: int, rng: np.random.Generator) -> dict:
     """Uniform over the masked catalog. The floor every curve is read against."""
     successes = 0
@@ -352,6 +423,12 @@ def train(config: TrainConfig) -> dict:
         # and failed to transfer, while one that fails both never learned it.
         # Every row uses the EVAL seed branch, so no evaluation episode is one
         # the policy trained on, whatever split it came from.
+        #
+        # Retargeting mutates the training vec env: its workers are pointed at
+        # the evaluation branch and another split and are never pointed back.
+        # That is only acceptable because evaluation is terminal -- training
+        # has finished and the model is already saved -- so nothing may be
+        # added below that resumes learning on `vec_env`.
         rows: dict[str, dict] = {}
         for label, split in (
             ("seeds", "train"),
@@ -360,33 +437,55 @@ def train(config: TrainConfig) -> dict:
         ):
             if not task.spec.families(split):
                 continue
-            rows[label] = evaluate(
-                _wrap(
-                    FactorioEnv(
-                        task,
-                        session,
-                        plan,
-                        branch=Branch.EVAL,
-                        split=split,
-                        shaping=config.shaping,
+            if config.workers > 1 and vec_env is not None:
+                # Retarget rather than rebuild. `split` and `branch` are plain
+                # attributes of `FactorioEnv`, so pointing the live engines at
+                # another split is assignment; building a vectorised
+                # environment per split would pay the worker launch storm --
+                # the most expensive moment in a run -- three times over.
+                vec_env.retarget(split, Branch.EVAL, 0)
+                rows[label] = evaluate_parallel(vec_env, model, config.eval_episodes)
+            else:
+                rows[label] = evaluate(
+                    _wrap(
+                        FactorioEnv(
+                            task,
+                            session,
+                            plan,
+                            branch=Branch.EVAL,
+                            split=split,
+                            shaping=config.shaping,
+                        ),
+                        config.skills,
                     ),
-                    config.skills,
-                ),
-                model,
-                config.eval_episodes,
-            )
+                    model,
+                    config.eval_episodes,
+                )
             rows[label]["split"] = split
-            rows[label]["random_baseline"] = random_baseline(
-                _wrap(
-                    FactorioEnv(task, session, plan, branch=Branch.EVAL, split=split),
-                    config.skills,
-                ),
+
+            def measure_baseline(split: str = split) -> dict:
                 # The baseline shares the evaluation budget: a 10-episode
                 # baseline has a Wilson interval so wide that almost no
                 # measured rate can clear its upper bound, which turns an
                 # underpowered comparison into a false negative.
-                config.eval_episodes,
-                np.random.default_rng(config.master_seed),
+                rng = np.random.default_rng(config.master_seed)
+                if config.workers > 1 and vec_env is not None:
+                    # Rewound to episode zero so the floor is measured on the
+                    # same scenes the policy just ran, not on whatever the
+                    # shared cursor happened to reach.
+                    vec_env.retarget(split, Branch.EVAL, 0)
+                    return random_baseline_parallel(vec_env, config.eval_episodes, rng)
+                return random_baseline(
+                    _wrap(
+                        FactorioEnv(task, session, plan, branch=Branch.EVAL, split=split),
+                        config.skills,
+                    ),
+                    config.eval_episodes,
+                    rng,
+                )
+
+            rows[label]["random_baseline"] = cached_random_baseline(
+                task, split, config.master_seed, config.eval_episodes, measure_baseline
             )
 
         # `held_out` stays the acceptance number and remains the structural

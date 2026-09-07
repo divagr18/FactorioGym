@@ -398,3 +398,90 @@ def test_goal_vector_slots_fit(task_id):
 
     spec = get(task_id).spec
     assert 1 + len(spec.success) + len(spec.landmarks) <= encoders.GOAL_FEATURES
+
+
+# --------------------------------------------------- decision interval invariant
+
+
+@pytest.mark.parametrize("task_id", FAMILIES)
+def test_the_decision_interval_outlasts_the_longest_move(task_id):
+    """A move is timed by the mod, not by the decision loop.
+
+    ``actions.lua`` sets ``deadline_tick = game.tick + payload.ticks`` and
+    ``inflight.lua`` stops the walk there, so a stride longer than the decision
+    interval is still running when the next action arrives. Only another move
+    supersedes a running move, so the next ``place_*``/``transfer``/``craft_*``
+    executes mid-walk -- and placement binds to ``floor(position)``, which puts
+    the entity on whatever tile the walk happened to reach. Nothing raises; the
+    episode is simply wrong. The margin here is currently zero (30 == 30), so
+    any change to either constant has to trip this test.
+    """
+    from factoriorl.tasks import MAX_ADVANCE_TICKS
+
+    spec = get(task_id).spec
+    assert spec.decision_ticks >= catalog_module.LONG_MOVE_TICKS, (
+        f"{task_id} decides every {spec.decision_ticks} ticks but the catalog's longest "
+        f"stride runs for {catalog_module.LONG_MOVE_TICKS}"
+    )
+    assert 1 <= spec.decision_ticks <= MAX_ADVANCE_TICKS, (
+        f"{task_id} decision_ticks {spec.decision_ticks} is outside what the mod will advance"
+    )
+
+
+@pytest.fixture
+def temporary_task():
+    """Register a variant of an existing task, then take it back out.
+
+    Validation reads the registry, so the only way to test that it rejects a
+    misconfigured task is to put one there. Removal happens even on failure --
+    a leaked entry would fail every later test that validates the registry.
+    """
+    from dataclasses import replace
+
+    from factoriorl import tasks as tasks_module
+
+    added: list[str] = []
+
+    def _add(task_id: str, **changes) -> str:
+        base = get("navigate")
+        spec = replace(base.spec, id=task_id, **changes)
+        tasks_module._REGISTRY[task_id] = tasks_module.RegisteredTask(
+            spec=spec, generate=base.generate
+        )
+        added.append(task_id)
+        return task_id
+
+    yield _add
+
+    from factoriorl import tasks as tasks_module_cleanup
+
+    for task_id in added:
+        tasks_module_cleanup._REGISTRY.pop(task_id, None)
+
+
+@pytest.mark.parametrize(
+    ("decision_ticks", "expected"),
+    [
+        (catalog_module.LONG_MOVE_TICKS - 1, "still running"),
+        (1, "still running"),
+        (0, "must be in"),
+        (-30, "must be in"),
+        (36001, "must be in"),
+    ],
+)
+def test_a_bad_decision_interval_fails_validation(temporary_task, decision_ticks, expected):
+    """`tasks validate` runs before any worker launches, which is the whole
+    point: an interval shorter than a stride corrupts episodes silently at
+    runtime, and an out-of-range one is only rejected by the mod mid-episode."""
+    bad = temporary_task("synthetic_bad_interval", decision_ticks=decision_ticks)
+    control = temporary_task("synthetic_good_interval")
+
+    report = validate_all(sample_seeds=1)
+
+    problems = report["tasks"][bad]["problems"]
+    assert not report["tasks"][bad]["ok"], "a violating task validated clean"
+    assert any("decision_ticks" in p for p in problems), problems
+    assert any(expected in p for p in problems), problems
+    assert not report["ok"], "validate_all reported ok with a violating task registered"
+    # The check indicts the interval, not tasks in general.
+    assert report["tasks"][control]["ok"], report["tasks"][control]["problems"]

@@ -71,13 +71,24 @@ class ObservationProfile:
     name: str
     version: int
     radius: int = 32
+    #: World tiles per grid cell. The wire carries a sparse tile list, so the
+    #: raster resolution costs nothing on the wire and is a pure Python-side
+    #: choice -- a coarser grid can be A/B'd against `local-v1` without
+    #: touching the mod or the sensor contract.
+    cell_size: int = 1
 
     @property
     def grid_size(self) -> int:
-        return 2 * self.radius + 1
+        return 2 * self.radius // self.cell_size + 1
 
 
 LOCAL_V1 = ObservationProfile(name="local-v1", version=1, radius=32)
+
+#: Same sensor radius, half the resolution (33x33 instead of 65x65). Shares the
+#: `local-v1` name and version because the wire request is byte-identical; only
+#: the tensor layout differs, and that difference is carried by
+#: `policy.EXTRACTOR_VERSION`.
+LOCAL_V1_COARSE = ObservationProfile(name="local-v1", version=1, radius=32, cell_size=2)
 
 
 def observation_space(profile: ObservationProfile = LOCAL_V1) -> spaces.Dict:
@@ -120,11 +131,18 @@ def encode(
     grid = np.zeros((len(RESOURCES) + 2, size, size), dtype=np.float32)
     origin = (observation.get("sensor") or {}).get("origin", [0.0, 0.0])
 
+    span = 2 * profile.radius
+
     def to_cell(position) -> tuple[int, int] | None:
         col = int(round(position[0] - origin[0])) + profile.radius
         row = int(round(position[1] - origin[1])) + profile.radius
-        if 0 <= row < size and 0 <= col < size:
-            return row, col
+        # Bounds are checked in tiles rather than in cells so that the covered
+        # area is exactly the sensor radius at every `cell_size`. Out-of-range
+        # positions are dropped, not clamped: a tile the sensor does not cover
+        # must not be painted onto the grid edge, where the policy would read it
+        # as an adjacent obstacle or ore patch.
+        if 0 <= row <= span and 0 <= col <= span:
+            return row // profile.cell_size, col // profile.cell_size
         return None
 
     # Resource planes, plus an amount plane and an obstacle plane.
@@ -135,7 +153,13 @@ def encode(
         row, col = cell
         if tile["name"] in RESOURCES:
             grid[RESOURCES.index(tile["name"]), row, col] = 1.0
-        grid[len(RESOURCES), row, col] = _log_count(tile.get("amount", 0), 4000.0)
+        # Max, not last-write-wins: at `cell_size > 1` several tiles share a
+        # cell, and assignment would make the amount plane depend on the order
+        # the mod happened to serialise the tile list -- the same scene would
+        # encode two different ways between steps. Max is order-independent and
+        # identical to assignment at `cell_size == 1`.
+        amount = _log_count(tile.get("amount", 0), 4000.0)
+        grid[len(RESOURCES), row, col] = max(grid[len(RESOURCES), row, col], amount)
     for blocked in (observation.get("terrain") or {}).get("blocked", []):
         cell = to_cell(blocked)
         if cell is not None:

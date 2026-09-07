@@ -4,16 +4,16 @@
   "measurements": {
     "step_ms": {
       "n": 240,
-      "mean": 13.9,
-      "p95": 16.12
+      "mean": 13.91,
+      "p95": 15.78
     },
     "reset_ms": {
       "n": 510,
-      "mean": 5.31,
-      "p95": 7.24
+      "mean": 5.55,
+      "p95": 7.86
     },
-    "steps_per_second": 71.94,
-    "wall_seconds": 17.9,
+    "steps_per_second": 71.91,
+    "wall_seconds": 18.4,
     "resets": 504
   },
   "sections": {
@@ -393,5 +393,5 @@
     "build": 83512,
     "platform": "win64"
   },
-  "completed_at": "2026-09-07T16:42:20"
+  "completed_at": "2026-09-07T17:32:03"
 }
