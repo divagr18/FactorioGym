@@ -89,11 +89,24 @@ class RewardAccountant:
             if component.kind is RewardKind.SPARSE_SUCCESS:
                 out[component.name] = component.weight if succeeded else 0.0
                 continue
-            if not self.shaping_enabled:
-                out[component.name] = 0.0
-                continue
+            # Step cost is charged whether or not shaping is on. It is not
+            # shaping: it is part of what the task asks for, namely that the
+            # goal be reached promptly, and it is present in the sparse
+            # formulation any comparison is made against.
+            #
+            # Gating it here meant `--no-shaping` removed the shaping terms and
+            # the time pressure together. PLAN 4.4 exists to separate "shaping
+            # made learning faster" from "shaping changed the problem", and it
+            # cannot do that while a single flag moves several variables.
             if component.kind is RewardKind.STEP_COST:
                 out[component.name] = -abs(component.weight)
+                continue
+            # `RewardComponent.shaping` was declared on every component and
+            # written into every run manifest, and nothing ever read it. A
+            # field that describes a run but does not affect it is worse than
+            # no field: it reads as a guarantee.
+            if component.shaping and not self.shaping_enabled:
+                out[component.name] = 0.0
                 continue
 
             value = _measure(component.predicate, observation, truth)

@@ -23,6 +23,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 
 from factoriorl import encoders
 from factoriorl import manifest as manifest_module
+from factoriorl import rewards as rewards_module
 from factoriorl.baselines import cached_random_baseline
 from factoriorl.env import FactorioEnv
 from factoriorl.learn.policy import EXTRACTOR_VERSION, describe, policy_kwargs
@@ -298,6 +299,18 @@ def train(config: TrainConfig) -> dict:
     run_id = manifest_module.new_run_id(config.run_prefix)
     run_dir = manifest_module.runs_dir() / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
+
+    # The accountant discounts potential-based shaping with its own module
+    # constant while the learner discounts with the configured gamma. The
+    # shaping is policy-invariant only when the two agree, and nothing tied
+    # them together -- a changed gamma would have silently voided the
+    # invariance rather than failed.
+    if abs(rewards_module.GAMMA - config.gamma) > 1e-9:
+        raise ValueError(
+            f"reward shaping discounts at gamma={rewards_module.GAMMA} while the "
+            f"learner uses gamma={config.gamma}; potential-based shaping is only "
+            "policy-invariant when they match"
+        )
 
     seeded = seed_everything(config.master_seed)
     plan = SeedPlan(master=config.master_seed, run_id=run_id)

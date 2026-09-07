@@ -485,3 +485,62 @@ def test_a_bad_decision_interval_fails_validation(temporary_task, decision_ticks
     assert not report["ok"], "validate_all reported ok with a violating task registered"
     # The check indicts the interval, not tasks in general.
     assert report["tasks"][control]["ok"], report["tasks"][control]["problems"]
+
+
+# ------------------------------------------- what the shaping flag may change
+
+
+def _unshaped_accountant(*components):
+    """An accountant with shaping switched off, for the 4.4 ablation checks."""
+    accountant = RewardAccountant(components, shaping_enabled=False)
+    accountant.reset({"inventory": {}, "character": {}, "entities": []}, {})
+    return accountant
+
+
+def test_step_cost_survives_disabling_shaping():
+    """PLAN 4.4 separates 'shaping made learning faster' from 'shaping changed
+    the problem'. It cannot do that if one flag moves several variables, and
+    step cost is not shaping: it is the task's requirement that the goal be
+    reached promptly, present in the sparse formulation too."""
+    component = RewardComponent(name="step_cost", kind=RewardKind.STEP_COST, weight=0.001)
+    out = _unshaped_accountant(component).step({}, {}, succeeded=False)
+    assert out["step_cost"] == pytest.approx(-0.001)
+
+
+def test_disabling_shaping_zeroes_shaping_components():
+    """The other half: everything that *is* shaping must go."""
+    component = RewardComponent(
+        name="carried",
+        kind=RewardKind.HIGH_WATER,
+        weight=1.0,
+        cap=1.0,
+        predicate=Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-ore"),
+    )
+    observation = {"inventory": {"iron-ore": 5}, "character": {}, "entities": []}
+    assert _unshaped_accountant(component).step(observation, {}, succeeded=False)["carried"] == 0.0
+
+
+def test_truncation_does_not_zero_the_potential():
+    """Only termination zeroes Phi. Truncation cuts the episode without making
+    the state worthless, and the learner bootstraps the shaped value there --
+    zeroing it would inject a spurious terminal penalty into every episode that
+    merely ran out of budget."""
+    task = get("navigate")
+    components = [c for c in task.spec.rewards if c.kind is RewardKind.POTENTIAL]
+    if not components:
+        pytest.skip("navigate declares no potential component")
+    name = components[0].name
+    truth = {"markers": {"goal": [0.0, 0.0]}}
+    start = {"character": {"position": [10.0, 0.0]}, "entities": []}
+    near = {"character": {"position": [1.0, 0.0]}, "entities": []}
+
+    cut = RewardAccountant(task.spec.rewards, shaping_enabled=True)
+    cut.reset(start, truth)
+    truncated_value = cut.step(near, truth, succeeded=False, terminated=False)[name]
+
+    ended = RewardAccountant(task.spec.rewards, shaping_enabled=True)
+    ended.reset(start, truth)
+    terminated_value = ended.step(near, truth, succeeded=False, terminated=True)[name]
+
+    assert truncated_value != terminated_value, "terminated and truncated scored identically"
+    assert terminated_value < truncated_value, "terminating should forfeit the remaining potential"
