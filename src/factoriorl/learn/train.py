@@ -30,7 +30,12 @@ from factoriorl.session import WorkerSession
 from factoriorl.tasks import get
 from factoriorl.worker import WorkerManager
 
-TRAIN_SPEED = 30.0
+#: Also sets the *paused* server loop rate, which is what RCON latency
+#: actually depends on: 16.6 ms per round trip at speed 1, 1.5 ms at 60.
+TRAIN_SPEED = 60.0
+#: Floor for the per-env rollout length, so a large worker count cannot
+#: shrink it to something PPO cannot learn from.
+MIN_STEPS_PER_ENV = 32
 
 
 @dataclass
@@ -227,13 +232,20 @@ def train(config: TrainConfig) -> dict:
         # The catalog is a property of the task, identical across workers, so
         # the manifest reads it from the single env either way.
         catalog_env = single
+        # n_steps is *per environment*, so the rollout buffer is
+        # n_steps x workers. Left alone, six workers collect six times as much
+        # experience per update and therefore take six times fewer gradient
+        # steps for the same env budget -- which showed up as a collapse from
+        # 1.00 to 0.05 training success at an unchanged step count. Divide it
+        # so the buffer, and hence the update count, stays put.
+        steps_per_env = max(MIN_STEPS_PER_ENV, config.n_steps // max(config.workers, 1))
         model = MaskablePPO(
             "MultiInputPolicy",
             env,
             policy_kwargs=policy_kwargs(),
             learning_rate=config.learning_rate,
-            n_steps=config.n_steps,
-            batch_size=config.batch_size,
+            n_steps=steps_per_env,
+            batch_size=min(config.batch_size, steps_per_env * max(config.workers, 1)),
             gamma=config.gamma,
             ent_coef=config.ent_coef,
             seed=config.master_seed,
@@ -275,7 +287,15 @@ def train(config: TrainConfig) -> dict:
             },
             workers=[handle.spec.manifest()],
             model={**describe(model), "extractor_version": EXTRACTOR_VERSION},
-            extra={"config": config.to_dict()},
+            extra={
+                "config": config.to_dict(),
+                "rollout": {
+                    "steps_per_env": steps_per_env,
+                    "buffer": steps_per_env * max(config.workers, 1),
+                    "updates": config.total_steps
+                    // max(steps_per_env * max(config.workers, 1), 1),
+                },
+            },
         ).write()
 
         curve = CurveLogger(run_dir / "curve.csv", started)

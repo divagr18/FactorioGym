@@ -34,7 +34,7 @@ from factoriorl.session import WorkerSession
 from factoriorl.tasks import all_tasks, validate_all
 from factoriorl.worker import WorkerManager
 
-GATE_SPEED = 30.0
+GATE_SPEED = 60.0
 RESET_TARGET = 500
 RANDOM_EPISODE_STEPS = 40
 #: Episodes per family for the reference-solution check.

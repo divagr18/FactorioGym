@@ -158,6 +158,24 @@ def cmd_phase4_gate(args) -> int:
     return 0 if report.get("passed") else 1
 
 
+def default_workers() -> int:
+    """PLAN 4.3: the default falls out of measurement, not out of taste.
+
+    Read from the committed profiling report so the shipped default always
+    cites a measurement someone can check, and fall back to one worker when no
+    profile has been run on this machine.
+    """
+    from factoriorl.paths import evidence_dir
+
+    report = evidence_dir() / "phase4-worker-profile.json"
+    if not report.is_file():
+        return 1
+    try:
+        return int(json.loads(report.read_text(encoding="utf-8"))["default_workers"]["workers"])
+    except (ValueError, KeyError, TypeError):
+        return 1
+
+
 def cmd_train(args) -> int:
     from factoriorl.learn.train import TrainConfig, train
 
@@ -167,7 +185,7 @@ def cmd_train(args) -> int:
             total_steps=args.steps,
             master_seed=args.seed,
             shaping=not args.no_shaping,
-            workers=args.workers,
+            workers=args.workers if args.workers is not None else default_workers(),
             eval_episodes=args.eval_episodes,
             run_prefix=args.prefix,
         )
@@ -291,7 +309,12 @@ def main(argv: list[str] | None = None) -> int:
     train_cmd.add_argument("--eval-episodes", type=int, default=20)
     train_cmd.add_argument("--no-shaping", action="store_true")
     train_cmd.add_argument("--prefix", default="train")
-    train_cmd.add_argument("--workers", type=int, default=1, help="parallel envs")
+    train_cmd.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        help="parallel envs; defaults to the count chosen by the committed profile",
+    )
 
     sub.add_parser("doctor-train", help="check the training stack and CUDA")
     prof = sub.add_parser("profile", help="worker-count throughput profiling (PLAN 4.3)")

@@ -36,7 +36,7 @@ from factoriorl.seeding import Branch, SeedPlan
 from factoriorl.session import WorkerSession
 from factoriorl.tasks import get
 
-PROFILE_SPEED = 30.0
+PROFILE_SPEED = 60.0
 #: Refuse a configuration projected to use more than this share of the commit
 #: limit. Leaves room for the learner, the OS, and the spike during launch.
 COMMIT_HEADROOM = 0.80
