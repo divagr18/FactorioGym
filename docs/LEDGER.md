@@ -133,6 +133,40 @@ Coverage: `tests/unit/test_rcon_framing.py`, six engine-free tests against a fak
 RCON server reproducing a missing terminator, packet splits, and a late reply
 from an abandoned call. Engine suite 33/33; Phase 0 gate `passed: true`.
 
+### Correction: there is no 1,800 UPS plateau
+
+An earlier note here and in `vecenv.py` claimed the engine "plateaus near 1,800
+UPS no matter what `game.speed` is set to". That was wrong, and wrong in the
+direction that costs throughput: **1,800 UPS is simply what speed 30 asks
+for.** Measured on a small scene, the engine tracks the multiplier faithfully
+and saturates near **5,480 UPS**, reached around speed 90-100 and flat
+thereafter at 120, 150, 200 and 1000.
+
+Raising the speed alone bought nothing, and the reason was on our side.
+`_collect` sleeps for the predicted advance and then polls. At speed 60 the
+prediction comfortably covers the engine, so the first poll lands. At speed 90
+the prediction (5.56 ms) sits a hair under the engine's actual 5.60 ms, the
+first poll misses, and a 5 ms poll interval hands back exactly what the faster
+ticks bought. A 0.5 ms interval makes a wrong prediction cheap:
+
+| game.speed | step (end to end) | steps/s |
+|---|---|---|
+| 60 | 11.16 ms | 89.6 |
+| **90** | **8.82 ms** | **113.4** |
+| 120 | 9.73 ms | 102.8 |
+| 200 | 10.34 ms | 96.7 |
+
+Past saturation the prediction is optimistic again and the polls return, so 90
+is the operating point rather than "as high as possible".
+
+**A dead end worth recording, because it looks obviously right.** Bounding the
+prediction by an exponential mean of the *observed* tick rate made throughput
+five times worse. The only rate observable from the client is
+`ticks / settle time`, which includes the sleep being predicted: a long sleep
+produces a low estimate, which lengthens the next sleep. The engine's true tick
+rate is not visible from this side of the socket, and a fine poll interval
+handles a wrong prediction better than a feedback loop does.
+
 ## Phase 1 — Protocol and reliable worker lifecycle
 
 **Status: Accepted** (2026-09-07, after one round of correction)
@@ -652,6 +686,30 @@ handle, so nothing else is holding the old entity across the boundary.
 Found by a reconstruction test written for an unrelated payload change, which
 is the argument for writing reconstruction tests: it was comparing two
 observation profiles and the only field that disagreed belonged to neither.
+
+**A second leak, in the force rather than the character.** Factorio 2.0 has
+trigger-based technologies: several early ones are researched by mining or
+crafting a particular item rather than by consuming science. Ordinary task work
+therefore researches things, and reset never un-researched them.
+
+The digest had been reporting technologies since it was written, so the check
+was in place the whole time and simply had nothing to catch: no reference
+solution did enough mining to trip a trigger. Raising `mine_smelt` to twelve
+plates and `supply_furnace` to twenty changed that, and the 504-reset run
+immediately reported `tech|steam-power` present on a long-running worker and
+absent on a freshly launched one.
+
+`LuaForce.reset_technologies` is the wrong tool despite its name -- it reloads
+prototype definitions while explicitly *preserving* research state. `force.reset`
+would work but also unchartes the map that `on_init` deliberately charts.
+Un-researching directly, clearing the research queue and reapplying technology
+effects is the surgical version, and it runs before the scene is built so a
+task's declared recipe unlocks land after the wipe rather than being undone by
+it.
+
+The order in which these two leaks surfaced is the point: both were invisible
+until the environment got fast enough and the tasks hard enough to exercise
+them. A leakage check that never fires is not evidence of a clean reset.
 
 ### Bugs the gate found
 
