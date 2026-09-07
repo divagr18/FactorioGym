@@ -159,7 +159,18 @@ class FactorioEnv(gym.Env):
         """Return the world to an installed scene and start scoring."""
         # Drain anything still in flight before resetting, so a reset never
         # lands on top of a running advance.
-        self.session.reset(blueprint_hash=digest)
+        #
+        # The profile has to be re-sent on every reset, not just the first: the
+        # worker's observation profile is episode state, and a task that
+        # declares a non-default profile got the worker's default instead
+        # because this call omitted it. That failure is silent -- the wrong
+        # profile still produces a well-formed observation the encoder happily
+        # reads -- so the task's `observation_profile` was decorative until it
+        # was passed here.
+        self.session.reset(
+            blueprint_hash=digest,
+            observation_profile=self.spec_.observation_profile,
+        )
         self._observation = self.session.observe().response.result
         self._refresh_truth()
         self.accountant.reset(self._observation, self._truth)

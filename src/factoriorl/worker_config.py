@@ -264,7 +264,20 @@ class WorkerSpec:
                 "iron-ore": {"frequency": 0, "size": 0, "richness": 0},
                 "uranium-ore": {"frequency": 0, "size": 0, "richness": 0},
                 "crude-oil": {"frequency": 0, "size": 0, "richness": 0},
-                "water": {"frequency": 1, "size": 1},
+                # Off, like every other autoplace control. The scene box is
+                # painted by Lua from a declared blueprint, so generated water
+                # is an *undeclared* obstacle: the engine-free structural
+                # validators run their reachability BFS over blueprint entities
+                # and cannot see it, so an episode can pass validation as
+                # solvable and then be blocked by terrain no generator chose.
+                # It was also the largest block on the wire -- the water sweep
+                # dominated a ~32 KB observation on tasks that place no
+                # resources at all.
+                # size 0 removes the water; frequency stays 1 because the ore
+                # probability noise expressions divide by the water frequency
+                # term, and a zero there fails map generation outright with
+                # 'error compiling entity:coal:probability'.
+                "water": {"frequency": 1, "size": 0},
                 "trees": {"frequency": 0, "size": 0},
                 "enemy-base": {"frequency": 0, "size": 0},
             },
