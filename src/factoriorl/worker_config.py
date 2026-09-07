@@ -22,8 +22,13 @@ write-data={write_data}
 [other]
 check-updates=false
 enable-steam-networking=false
-autosave-interval=60
-autosave-slots=3
+; No autosaves. The interval is in minutes of *game* time, so at game.speed 90
+; a 60-minute interval fires roughly every 40 seconds of wall clock, and a save
+; is a multi-hundred-millisecond stall in the middle of an episode. Episodes of
+; several hundred decisions will hit one. Nothing here needs a save: the
+; pristine save is recreated at launch and reset restores the scene.
+autosave-interval=0
+autosave-slots=0
 
 [interface]
 show-tips-and-tricks=false
@@ -241,8 +246,11 @@ class WorkerSpec:
             # Zero-player stepping: never auto-pause; runtime controls ticks
             # explicitly via game.tick_paused.
             "allow_commands": "true",
-            "autosave_interval": 60,
-            "autosave_slots": 3,
+            # Disabled for the same reason as in config.ini: an autosave is a
+            # multi-hundred-millisecond stall, the interval is game-time so it
+            # scales with game.speed, and a long episode will land on one.
+            "autosave_interval": 0,
+            "autosave_slots": 0,
             "afk_autokick_interval": 0,
             "auto_pause": False,
             "auto_pause_when_players_connect": False,
