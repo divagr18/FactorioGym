@@ -714,13 +714,83 @@ Evaluation uses the **held-out layout family** and a **disjoint seed branch**, s
 an evaluation episode can never be one the policy trained on - asserted by a
 unit test over 2000 indices per branch.
 
-### 4.3 / 4.4 / 4.5 - not yet done
+### 4.3 - Worker-count profiling
 
-Worker-count profiling, the shaping-dependence comparison and the three-seed
-release result remain. The throughput needed for them is in hand (a 300k-step
-run is roughly two hours on a single worker), and the memory ceiling that
-motivated multi-worker scaling is much less pressing now that one worker
-sustains 41.6 env steps/s.
+Measured on the optimised pipeline, `navigate`, 200 steps per worker:
+
+| workers | steps/s | per-worker | efficiency | step ms |
+|---|---|---|---|---|
+| 1 | 76.0 | 76.0 | 100% | 13.0 |
+| 4 | 170.2 | 42.5 | 56% | 19.8 |
+| **8** | **261.1** | 32.6 | 43% | 25.5 |
+| 12 | 279.4 | 23.3 | 31% | 39.7 |
+| 16 | 272.3 | 17.0 | 22% | 56.4 |
+
+Twelve workers buy 7.0% over eight. **Sixteen is slower than twelve** - a
+regression, not merely a diminishing return - while step latency more than
+doubles from eight to sixteen. The machine has eight physical cores and a
+Factorio tick loop is latency-bound single-threaded work, which is close to the
+worst case for SMT. The default stays at eight.
+
+For scale, the same profile before the payload work: 41.8 steps/s at one worker
+on a 32,750-byte observation, against 76.0 steps/s on 1,078 bytes now.
+
+The selector has a quirk worth recording: it compares each candidate against
+the last *accepted* configuration rather than the previous one, so eight was
+rejected for being 14.95% better than four (threshold 15%) while twelve was
+accepted for being 22.9% better than four. The two were never compared
+directly. The rule is defensible but the jump is surprising, and any future
+reading of this table should note that 12-vs-8 is a 7% question.
+
+### 4b - Temporal abstraction ablation
+
+PLAN 4b asks whether the gap between familiar and unfamiliar structures is an
+abstraction problem or a tuning problem. On `deliver`, matched on seed, budget
+and evaluation:
+
+| arm | wall | seeds | val | structures |
+|---|---|---|---|---|
+| flat | 483s | 0/25 = 0.00 | 0.00 | 0.00 |
+| skills | 545s | 25/25 = 1.00 | 0.60 | 0.00 |
+| skills + obstacle sidestep | 956s | 1.00 | 0.72 | 0.00 |
+| skills + stable addressing | 566s | 1.00 | 0.68 | **25/25 = 1.00** |
+
+A flat policy cannot learn `deliver` at this budget at all; temporally extended
+actions solve it outright, for 13% more wall clock.
+
+**The diagnostic value came from the three-row split, not the headline.** On
+the structural holdout the flat arm and the first skill arm both read 0.00. A
+single number would have said "skills do not help", which is the opposite of
+what was happening: the seeds row separates *did not learn* from *learned and
+did not transfer*, and only the second is fixable by better addressing.
+
+**The obvious explanation was the wrong one, and the record should say so.**
+Structural transfer sitting at 0.00 while seeds sat at 1.00 looks like a
+pathfinding failure, since the holdout puts a wall across the direct line.
+Giving the skills the reference solver's slide-along-the-face behaviour
+improved validation, cost 76% more wall clock, and moved structural transfer
+not at all.
+
+The cause was addressing. Skills named their target by distance rank, and rank
+is a stable name only if the ranked set is stable:
+
+    train (two_chest):      rank 0 = chest   rank 1 = chest
+    test  (screened_depot): rank 0 = chest   rank 1 = wall   ranks 2-3 = wall
+
+The policy had learned "approach 0, then approach 1", and five stone walls
+pushed the destination chest past the addressable range. **No action named the
+target**, so the task was unrepresentable rather than unlearned - which is why
+no amount of training, shaping or walking skill could have fixed it. Excluding
+obstacle types from addressing makes ranks mean the same thing on both splits,
+and transfer follows immediately.
+
+This is a stopgap scoped to obstacles. The general fix is to address by
+declared entity *type* as well as rank, so that a scene dense in belts or pipes
+- Phase 7 - cannot shadow the machine the agent needs.
+
+### 4.4 / 4.5 - not yet done
+
+The shaping-dependence comparison and the three-seed release result remain.
 
 ### Phase 4 exit gate
 
