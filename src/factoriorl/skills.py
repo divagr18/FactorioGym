@@ -48,9 +48,34 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 #: action space into a list of everything visible.
 ADDRESSABLE_ENTITIES = 4
 
+#: Types that occupy space but afford no interaction, and so are never a useful
+#: target for an approach.
+#:
+#: Excluding them is not cosmetic: rank-by-distance is only a stable way to
+#: address a target if the set being ranked is stable. The 4b.3 ablation
+#: measured `deliver` at 25/25 on unfamiliar seeds and 0/25 on the walled
+#: `screened_depot` holdout, and the cause was addressing, not pathfinding --
+#: on training layouts ranks 0 and 1 were the source and destination chests,
+#: while on the holdout rank 0 was a chest and ranks 1-3 were stone walls, with
+#: the destination pushed past the addressable range entirely. The policy had
+#: learned "approach 0, then approach 1" and on the holdout there was no action
+#: that named the destination at all: the task was unrepresentable rather than
+#: unlearned.
+#:
+#: This is a stopgap scoped to obstacles. The general fix is to address by
+#: declared entity *type* as well as rank, so that a scene dense in belts or
+#: pipes -- Phase 7 -- cannot shadow the machine the agent needs either.
+OBSTACLE_TYPES: frozenset[str] = frozenset({"wall"})
+
 #: A skill gives up after this many primitive decisions. A skill that cannot
-#: finish is a failed action, not a hung episode.
-SKILL_BUDGET = 40
+#: finish is a failed action, not a hung episode. Raised alongside the
+#: sidestep, which spends decisions rounding an obstacle.
+SKILL_BUDGET = 60
+
+#: How many times a walk may slide along a blocking face before it is
+#: declared blocked, and how far each slide goes.
+MAX_SIDESTEPS = 6
+SIDESTEP_STRIDES = 3
 
 #: Close enough to interact: entity reach is 10 tiles, but stopping adjacent
 #: keeps the *nearest-entity* binding that the primitive catalog resolves
@@ -105,7 +130,9 @@ def skill_context(observation: dict) -> dict:
     features skills declare in `requires`, so availability is a presence check
     and never a computation over hidden state.
     """
-    entities = observation.get("entities") or []
+    entities = [
+        e for e in (observation.get("entities") or []) if e.get("type") not in OBSTACLE_TYPES
+    ]
     origin = (observation.get("character") or {}).get("position") or [0.0, 0.0]
 
     def distance(record) -> float:
@@ -212,8 +239,30 @@ class SkillRunner:
                 return self._finish(result, total, steps, "episode_ended")
             if math.dist(here, _character(self.env)) < 0.05:
                 stalled += 1
-                if stalled >= 3:
+                # Slide along the blocking face rather than giving up. A greedy
+                # axis-first walk drives straight into anything placed across
+                # the direct line, which is precisely what a structural holdout
+                # puts there: the 4b.3 ablation measured this skill solving
+                # `deliver` 25/25 on unfamiliar seeds and 0/25 on the walled
+                # `screened_depot`, because the skill inherited the flat
+                # walker's inability to round an obstacle. Commit to the
+                # perpendicular axis for a few strides, alternating sides on
+                # successive stalls so a wall is escaped whichever end is
+                # nearer. Still not pathfinding -- PLAN defers that to 5.1 --
+                # but enough to round a convex obstacle.
+                if stalled > MAX_SIDESTEPS:
                     return self._finish(result, total, steps, "blocked")
+                sideways = ("north", "south") if abs(dx) >= abs(dy) else ("west", "east")
+                side = sideways[stalled % 2]
+                for _ in range(SIDESTEP_STRIDES):
+                    key = _movement_key(self.env, side, SIDESTEP_STRIDES * 1.0)
+                    if key is None:
+                        return self._finish(result, total, steps, "blocked")
+                    result = self._primitive(key)
+                    total += result["reward"]
+                    steps += 1
+                    if result["terminated"] or result["truncated"]:
+                        return self._finish(result, total, steps, "episode_ended")
             else:
                 stalled = 0
         return self._finish(result, total, steps, "budget")
