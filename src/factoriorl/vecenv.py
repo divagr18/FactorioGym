@@ -27,6 +27,7 @@ from factoriorl.pool import WorkerPool
 from factoriorl.rcon import RCONClient
 from factoriorl.seeding import Branch, SeedPlan
 from factoriorl.session import WorkerSession
+from factoriorl.skills import SkillEnv
 from factoriorl.tasks import RegisteredTask
 
 #: Raising this past ~30 buys nothing: the engine is already at its UPS ceiling,
@@ -48,9 +49,10 @@ class FactorioVecEnv(VecEnv):
         shaping: bool = True,
         speed: float = DEFAULT_SPEED,
         worker_prefix: str = "vec",
+        skills: bool = False,
     ) -> None:
         self.pool = WorkerPool()
-        self.envs: list[FactorioEnv] = []
+        self.envs: list = []
         self._executor = ThreadPoolExecutor(max_workers=num_workers)
         self._pending: list[Any] | None = None
 
@@ -62,8 +64,13 @@ class FactorioVecEnv(VecEnv):
             session.status()
             env = FactorioEnv(task, session, seed_plan, branch=branch, split=split, shaping=shaping)
             # Distinct episode streams per worker, so two workers never run the
-            # same episode at the same time.
+            # same episode at the same time. Set before wrapping: `SkillEnv`
+            # forwards attribute *reads* to the inner environment but an
+            # assignment would land on the wrapper, leaving every worker on
+            # episode stream zero.
             env._episode_index = index * 100_000 - 1
+            if skills:
+                env = SkillEnv(env)
             self.envs.append(env)
             # Stagger: the launch storm is the worst commit spike.
             time.sleep(0.15)

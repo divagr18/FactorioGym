@@ -28,6 +28,7 @@ from factoriorl.learn.policy import EXTRACTOR_VERSION, describe, policy_kwargs
 from factoriorl.rcon import RCONClient
 from factoriorl.seeding import Branch, SeedPlan, seed_everything
 from factoriorl.session import WorkerSession
+from factoriorl.skills import SKILLS, SkillEnv
 from factoriorl.tasks import get
 from factoriorl.worker import WorkerManager
 
@@ -37,6 +38,22 @@ TRAIN_SPEED = 60.0
 #: Floor for the per-env rollout length, so a large worker count cannot
 #: shrink it to something PPO cannot learn from.
 MIN_STEPS_PER_ENV = 32
+
+
+#: Names the deliberation layer in a published manifest. A result produced by
+#: a policy over skills is not comparable to one produced over primitives, and
+#: a run that does not say which it used cannot be interpreted later.
+SKILL_PROFILE = "skills-v1"
+
+
+def _wrap(env: FactorioEnv, skills: bool):
+    """Give an evaluation environment the same action space as training.
+
+    Evaluating a skill-trained policy on a primitive-only environment would
+    silently truncate its action space, so this is applied to every evaluation
+    and baseline environment, not only the training ones.
+    """
+    return SkillEnv(env) if skills else env
 
 
 @dataclass
@@ -58,6 +75,9 @@ class TrainConfig:
     #: routine loop defaulted to `test`, which spent the holdout on
     #: candidate selection.
     eval_split: str = "val"
+    #: Add temporally extended actions to the primitive catalog (PLAN 4b).
+    #: The 4b.3 ablation runs two arms that differ in this flag alone.
+    skills: bool = False
     device: str = "auto"
     #: Parallel workers. A 30-tick interval costs ~16 ms of engine time that no
     #: setting can remove, so overlapping workers is the only way to step
@@ -70,6 +90,7 @@ class TrainConfig:
         return {
             "task_id": self.task_id,
             "eval_split": self.eval_split,
+            "skills": self.skills,
             "total_steps": self.total_steps,
             "master_seed": self.master_seed,
             "learning_rate": self.learning_rate,
@@ -222,8 +243,11 @@ def train(config: TrainConfig) -> dict:
 
     vec_env = None
     try:
-        single = FactorioEnv(
-            task, session, plan, branch=Branch.TRAIN, split="train", shaping=config.shaping
+        single = _wrap(
+            FactorioEnv(
+                task, session, plan, branch=Branch.TRAIN, split="train", shaping=config.shaping
+            ),
+            config.skills,
         )
         if config.workers > 1:
             from factoriorl.vecenv import FactorioVecEnv
@@ -234,6 +258,7 @@ def train(config: TrainConfig) -> dict:
                 num_workers=config.workers,
                 shaping=config.shaping,
                 worker_prefix=f"vec-{config.task_id}-{run_id[-8:]}",
+                skills=config.skills,
             )
             env = vec_env
         else:
@@ -280,7 +305,10 @@ def train(config: TrainConfig) -> dict:
                 # primitives and a policy over skills produce results that are
                 # not comparable, and a published result that does not say
                 # which one it used cannot be interpreted later.
-                "deliberation": task.spec.deliberation_profile,
+                "deliberation": (
+                    SKILL_PROFILE if config.skills else task.spec.deliberation_profile
+                ),
+                "skill_library": [s.key for s in SKILLS] if config.skills else [],
                 "goal_encoding": encoders.GOAL_ENCODING_VERSION,
                 "catalog": catalog_env.catalog.name,
                 "catalog_digest": catalog_env.catalog.digest(),
@@ -333,20 +361,26 @@ def train(config: TrainConfig) -> dict:
             if not task.spec.families(split):
                 continue
             rows[label] = evaluate(
-                FactorioEnv(
-                    task,
-                    session,
-                    plan,
-                    branch=Branch.EVAL,
-                    split=split,
-                    shaping=config.shaping,
+                _wrap(
+                    FactorioEnv(
+                        task,
+                        session,
+                        plan,
+                        branch=Branch.EVAL,
+                        split=split,
+                        shaping=config.shaping,
+                    ),
+                    config.skills,
                 ),
                 model,
                 config.eval_episodes,
             )
             rows[label]["split"] = split
             rows[label]["random_baseline"] = random_baseline(
-                FactorioEnv(task, session, plan, branch=Branch.EVAL, split=split),
+                _wrap(
+                    FactorioEnv(task, session, plan, branch=Branch.EVAL, split=split),
+                    config.skills,
+                ),
                 # The baseline shares the evaluation budget: a 10-episode
                 # baseline has a Wilson interval so wide that almost no
                 # measured rate can clear its upper bound, which turns an

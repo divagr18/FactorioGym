@@ -188,6 +188,7 @@ def cmd_train(args) -> int:
             workers=args.workers if args.workers is not None else default_workers(),
             eval_episodes=args.eval_episodes,
             eval_split=args.eval_split,
+            skills=args.skills,
             run_prefix=args.prefix,
         )
     )
@@ -315,6 +316,11 @@ def main(argv: list[str] | None = None) -> int:
         help="val for routine runs and sweeps; test only for a release evaluation",
     )
     train_cmd.add_argument("--no-shaping", action="store_true")
+    train_cmd.add_argument(
+        "--skills",
+        action="store_true",
+        help="add temporally extended actions to the catalog (PLAN 4b)",
+    )
     train_cmd.add_argument("--prefix", default="train")
     train_cmd.add_argument(
         "--workers",
