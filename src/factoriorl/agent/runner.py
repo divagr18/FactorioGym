@@ -71,6 +71,13 @@ def run_task(
             split=config.split,
             shaping=config.shaping,
         )
+        if config.skills:
+            # Appends indices after the primitive catalog and leaves primitive
+            # indices where they are, which is the contract `action_vocabulary`
+            # relies on to describe a wrapper it knows nothing about.
+            from factoriorl.skills import SkillEnv
+
+            env = SkillEnv(env)
         loop = AgentLoop(
             env,
             adapter,

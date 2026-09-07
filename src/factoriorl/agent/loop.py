@@ -114,6 +114,14 @@ class AgentConfig:
     record_summaries: bool = True
     split: str = "val"
     shaping: bool = True
+    #: Offer the temporally extended actions alongside the primitive catalog,
+    #: as ``--skills`` does for training. The loop needs no change for this --
+    #: ``action_vocabulary`` already appends whatever a wrapper exposes -- but
+    #: the flag has to exist somewhere, because which action space an agent
+    #: played in decides which random floor its result must be read against.
+    #: The two are not interchangeable: `deliver`'s floor is 0.00 over
+    #: primitives and 0.04 over skills, and before today's hardening it was 0.80.
+    skills: bool = False
     run_prefix: str = "agent"
     extra: dict = field(default_factory=dict)
 
@@ -127,6 +135,7 @@ class AgentConfig:
             "max_steps": self.max_steps,
             "split": self.split,
             "shaping": self.shaping,
+            "skills": self.skills,
         }
 
 
