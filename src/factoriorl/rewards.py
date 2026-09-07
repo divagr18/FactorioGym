@@ -62,10 +62,13 @@ class RewardAccountant:
     shaping_enabled: bool = True
     _high_water: dict[str, float] = field(default_factory=dict)
     _potential: dict[str, float] = field(default_factory=dict)
+    #: Cumulative payout per capped component, reset with the episode.
+    _paid: dict[str, float] = field(default_factory=dict)
 
     def reset(self, observation: dict, truth: dict) -> None:
         self._high_water = {}
         self._potential = {}
+        self._paid = {}
         for component in self.components:
             value = _measure(component.predicate, observation, truth)
             if component.kind is RewardKind.HIGH_WATER:
@@ -98,7 +101,15 @@ class RewardAccountant:
                 previous = self._high_water.get(component.name, value)
                 gain = max(0.0, value - previous)
                 self._high_water[component.name] = max(previous, value)
-                out[component.name] = component.weight * gain * component.scale
+                payout = component.weight * gain * component.scale
+                if component.cap is not None:
+                    # Bound the cumulative payout, not the per-step one: the
+                    # exploit is earning the cap many times over across an
+                    # episode, not earning a lot once.
+                    paid = self._paid.get(component.name, 0.0)
+                    payout = max(0.0, min(payout, component.cap - paid))
+                    self._paid[component.name] = paid + payout
+                out[component.name] = payout
             elif component.kind is RewardKind.POTENTIAL:
                 previous = self._potential.get(component.name, value)
                 self._potential[component.name] = value

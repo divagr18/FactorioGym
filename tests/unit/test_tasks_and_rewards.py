@@ -319,3 +319,41 @@ def test_potential_shaping_telescopes_to_a_policy_independent_constant():
         expected = round(-components[0].weight * phi0, 9)
     assert sums[0] == sums[1], "shaping depends on the path taken"
     assert abs(sums[0] - expected) < 1e-9, f"expected {expected}, got {sums[0]}"
+
+
+@pytest.mark.parametrize("task_id", FAMILIES)
+def test_every_high_water_component_is_capped_below_success(task_id):
+    """PLAN section 3: no shaping component's achievable total may reach the
+    sparse success weight. `mine_smelt` paid 0.2 per mined ore against a
+    success weight of 1.0, so a policy that mined and never smelted could
+    out-earn finishing the task several times over."""
+    spec = get(task_id).spec
+    sparse = sum(c.weight for c in spec.rewards if c.kind is RewardKind.SPARSE_SUCCESS)
+    assert sparse > 0, f"{task_id} declares no sparse success reward"
+    for component in spec.rewards:
+        if component.kind is not RewardKind.HIGH_WATER:
+            continue
+        assert component.cap is not None, f"{task_id}.{component.name} is uncapped"
+        assert component.cap < sparse, (
+            f"{task_id}.{component.name} can pay {component.cap} against success {sparse}"
+        )
+
+
+def test_the_cap_actually_bounds_the_cumulative_payout():
+    """A cap on the per-step payout would not help: the exploit is earning it
+    many times over across an episode."""
+    component = RewardComponent(
+        name="carried",
+        kind=RewardKind.HIGH_WATER,
+        weight=1.0,
+        cap=0.25,
+        predicate=Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-ore"),
+    )
+    accountant = RewardAccountant((component,), shaping_enabled=True)
+    empty = {"inventory": {}, "character": {}, "entities": []}
+    accountant.reset(empty, {})
+    total = 0.0
+    for held in range(1, 21):
+        observation = {"inventory": {"iron-ore": held}, "character": {}, "entities": []}
+        total += accountant.step(observation, {}, succeeded=False)["carried"]
+    assert total == pytest.approx(0.25), f"cumulative payout {total} exceeded the cap"

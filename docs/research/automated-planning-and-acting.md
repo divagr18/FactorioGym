@@ -1,618 +1,822 @@
-# Automated Planning and Acting (Ghallab, Nau, Traverso) — whole-program design review
+# Automated Planning and Acting (Ghallab, Nau & Traverso, CUP 2016) — whole-program design review
 
-Reviewed against `PLAN.md` (all sections), `docs/LEDGER.md`, and
-`src/factoriorl/` as of 2026-09-07 (Phases 0–2 Accepted, 3–4 Needs correction).
+Reviewed against `PLAN.md` (all sections), `docs/LEDGER.md`, `docs/evidence/`,
+and `src/factoriorl/` as of 2026-09-07 (Phases 0–2 Accepted, Phases 3–4 Needs
+correction).
 
----
-
-## Citation provenance — read this first
-
-The file at `D:\Books for RL\Automated Planning and Acting.pdf` is **not** the
-Cambridge University Press book. It is a 70-page Beamer lecture deck (produced
-2018-11-26, 870 KB, 604 lines of extractable text) that *summarises* the book.
-Its coverage is badly skewed for our purposes:
-
-| Book chapter | Deck coverage |
-|---|---|
-| 1 Introduction | slides 1–9, adequate |
-| 2 Deterministic models | slides 10–26, thorough |
-| **3 Refinement methods** | **slide 34 only — six bullet points** |
-| 4 Temporal models | slides 35–39, thin |
-| 5 Nondeterministic models | slides 40–50, adequate |
-| 6 Probabilistic models | slides 51–59, adequate |
-| **7 Other deliberation functions** | **absent** |
-
-Chapter 3 is the chapter this project needs, and the local artifact contains one
-slide of it. Chapter 7 (perceiving, monitoring, goal reasoning, learning) is
-absent entirely.
-
-So citations below are given as **`GNT §x.y`** referring to the CUP text, with
-**`[deck s.N]`** appended wherever the local artifact corroborates the claim.
-Claims cited to `GNT §3.x`, `§4.3–4.4` and `§7.x` are from the book itself and
-have **no local corroborating page**; treat them as verifiable-but-unverified
-here and check them against a copy of the book before they are quoted in a
-publication. Every recommendation that depends on such a citation is marked
-`[verify]`. Nothing in the concrete-change column depends on the citation being
-exact — the changes stand on the code.
-
-**Action item independent of this review:** acquire the actual book (or the
-authors' companion papers on RAE — Ghallab/Nau/Traverso 2016 Ch.3, and
-Patra et al. on RAE+UPOM) before Phase 8 design is frozen.
+**Source.** `a local copy of Automated Planning and Acting.pdf` — the
+complete Cambridge University Press text, 360 PDF pages, ISBN 978-1-107-03727-4.
+Every citation below is `§section, p.N` with **N a printed page number** (PDF
+page = printed page + 12). All eight chapters, both appendices and the
+bibliography are present; the alphabetical index is not, which affects nothing
+here.
 
 ---
 
-## Framing: what this book argues, and where it applies to us
+## 0. This supersedes a deck-based analysis, and here is what changed
 
-The book's central stance is that **planning and acting are different activities
-over different models, and conflating them is the standard mistake**. An actor
-needs *operational* models — how to perform an activity, as a program with
-control flow, in the current context, with the ability to fail and try
-something else — and a planner needs *descriptive* models — what state results
-from an action, abstract enough to search over (`GNT §1.3.1` [deck s.8]).
-Descriptive states are deliberately *coarser* than what the actor observes
-(`GNT §1.3.2` [deck s.9]). Deliberation is **hierarchical** (some things the
-actor wants to do do not map to a platform command) and **continual online**
-(the actor refines, monitors, reacts, repairs and replans throughout acting)
-(`GNT §1.2` [deck s.5]). The book's answer is the refinement-method stack:
-*tasks* are refined by *methods* into subtasks and *commands*, and the Refinement
-Acting Engine (RAE) runs that stack, retrying alternative methods when one fails
-(`GNT §3.1–3.2`) `[verify]`.
+The previous version of this file was written against
+`D:\Books for RL\Automated Planning and Acting.pdf`, which is not the book. It
+is a ~70-slide lecture deck: Chapter 3 (refinement methods, RAE — the chapter
+this project needs) got **one slide**, Chapter 7 (perceiving, monitoring, goal
+reasoning, learning) was **absent entirely**, and Chapter 4 was four slides.
+Every citation in that document to `§3.x`, `§4.3–4.4` or `§7.x` was marked
+`[verify]` and was, in fact, unverified. That analysis is superseded in whole.
 
-**Where it applies to FactorioRL, hard.** Factorio is a prerequisite game. Every
-goal decomposes the same way the book's tasks do: to launch a rocket you must
-have blue science, which requires advanced circuits, which requires plastic,
-which requires oil, which requires a refinery, which requires... — a landmark
-chain 200 deep. Our Phase 8 is literally named "learned skills and hybrid
-planning" and its 8.1 acceptance criteria ("skills expose inputs, preconditions,
-termination conditions, timeouts, and failure reports") are a *verbatim
-description of a refinement method signature*. Phase 7's intervention benchmarks
-require an actor that can notice a failure mid-plan and repair — that is
-`GNT §3.2`'s Retry plus `GNT §7.2`'s monitoring. Phase 9's rocket progression is
-a landmark-ordered plan. The book is the right book.
+Most of its *architectural* conclusions survive contact with the real text —
+several are now much better supported than they were. But the complete book
+falsifies, mis-attributes or materially expands the following, and the
+differences change what we should build.
 
-**Where it does not apply.** The book's *algorithms* mostly assume a small,
-enumerable, symbolic state space. Chapter 2's A\*/DFBB, Chapter 5's AND/OR
-search and search automata [deck s.43–47], and Chapter 6's value/policy
-iteration [deck s.55–57] are all unusable directly on a 65×65×6 sensor tensor
-over a continuous-position world with ~200 entity prototypes. Chapter 4's
-STNU dynamic-controllability machinery is overkill for a world where every
-duration is a known constant published in the engine's own prototype data.
-**Take the book's architecture and its representational commitments; leave most
-of its solvers.** The one exception worth taking wholesale is the landmark idea
-from `GNT §2.3` [deck s.26], because in Factorio landmarks are free and exact.
+### Claims the complete book shows to be **wrong**
 
-**The empirical hook.** `docs/evidence/phase4-feasibility-sweep.json` shows
-`supply_furnace` at **1.00 train success, 0.30 held-out**, and `deliver` at
-**0.65 train, 0.10 held-out against a 0.30 random baseline** — the learned
-policy is *worse than random* on an unseen layout family. A flat policy over
-fully-bound templates is memorising the layout. The structure that would
-transfer — *go to the source, take, go to the sink, give* — is not represented
-in the learned object anywhere. That is the book's thesis showing up in our own
-evidence file, and it is the reason this is an architecture problem rather than a
-hyperparameter problem.
+1. **"We have a single character who can only do one thing at a time, so there
+   is no concurrency to exploit"** (previous do-not list, item 4). False in the
+   book's own terms. §3.3.2 introduces the `interleave` operator precisely for
+   the case where *multiple tasks* are in flight but *at most one primitive
+   command executes at a time* (pp. 95–96, Example 3.9, Algorithm 3.5 `IRT`).
+   That is exactly our situation: start a smelt, walk to the ore patch while it
+   runs, come back. A single actuator does not remove task concurrency; it
+   constrains it. Rejecting interleaved refinement on single-character grounds
+   was a mistake, and it would have cost us the whole of Phase 7's "build while
+   the factory runs" behaviour.
+
+2. **"The book raises descriptive/operational model drift as its own stated
+   weakness (§3.5)."** It does not. §3.5.3 (p. 110) raises a different and more
+   interesting open problem: refinements at different levels of abstraction need
+   **different state and action representations**, and "a comprehensive approach
+   for this problem has yet to be developed." Chapter 8 repeats it (p. 311):
+   "Relations and mappings among such heterogeneous representations should be
+   addressed systematically." The drift risk is real and the engine-in-the-loop
+   consistency test is still the right answer — but it answers a problem we
+   identified, not one the authors named.
+
+3. **"The book gives an extended treatment of planning with resources
+   (§4.2 / the 2004 volume, Ch.15)."** The complete book contains **no resource
+   algorithm at all**. §4.1 (p. 114) supplies only the vocabulary — resources are
+   *borrowed* (space, tools) or *consumed* (energy), and time is the odd one out
+   because it flows whether or not anyone acts. §4.3.5 (p. 130) notes the
+   Meta-CSP framing can carry "resource constraints, which are quite often part
+   of planning problems" — i.e. TemPlan itself does not. §4.6.2 (p. 152) hands
+   the topic to the scheduling literature (Laborie & Ghallab 1995; Laborie 2003;
+   Baptiste et al. 2006). The resource recommendation survives, but it is now
+   honestly labelled: the book gives us a distinction and a place to hang
+   constraints, not a method.
+
+### Claims that were **unsupported** and now have real citations
+
+4. The combinatorial-explosion argument against our flat, fully-bound
+   `catalog.py` was asserted on the code alone. Now exactly citable: §2.7.1,
+   p. 60 — grounding a representation "incurs a combinatorial explosion in the
+   size of the representation… if a planning operator has *p* parameters and each
+   parameter has *v* possible values, then there are *v^p* ground instances."
+
+5. Landmarks-as-subgoals was cited to §2.3 (heuristic functions). The correct
+   citation for the use we make of it is §2.6.2, p. 58: "The elements of a
+   compound goal… could be used as subgoals… Another possibility may be to
+   compute an ordered set of landmarks and choose the earliest one as a subgoal."
+   The same page carries a directly analogous **video-game precedent**:
+   Killzone 2 runs a SeRPE-like planner several times per second producing four-
+   or five-action plans under a Run-Concurrent-Lookahead-like loop, because "the
+   current state changes quickly as the game progresses."
+
+6. "Do not build an STN/STNU solver" was our judgement. The authors make the
+   argument themselves, twice: dynamic-controllability checking is polynomial
+   "but the constant factor is high," so they offer pseudo-controllability as the
+   compromise (§4.4.3, p. 141); and refining durations down to command
+   granularity "introduces more noise in operational models" (§4.5.1,
+   pp. 142–143), with dispatch propagation costing O(n³) per cycle (p. 144).
+
+### Claims that were **materially incomplete** — mechanisms the deck hid
+
+7. **Retry is not backtracking.** §3.2.2, p. 86: Retry "does not go back to a
+   previous computational node to pick up another option among the candidates
+   that were applicable when that node was first reached. It finds another method
+   among those that are **now** applicable for the current state of the world σ.
+   This is essential because RAE interacts with a dynamic world." Our world keeps
+   ticking through a failed method; a retry that reuses a stale candidate set is
+   wrong by construction. The previous analysis described the `tried` set and
+   missed the property that makes it work.
+
+8. **A method's role can be an *event*, not only a task.** §3.1.1, p. 76;
+   §3.1.2, p. 77; Example 3.3 `m-emergency`, pp. 78–79. Phase 7's interventions
+   are events. This mechanism was absent from the previous architecture entirely.
+
+9. **Goals in RAE, and per-step goal monitoring.** §3.2.3, pp. 87–89. A method
+   whose role is `achieve(g)` is tested against σ *before* its body starts, *at
+   every progression step*, and *when it finishes* (p. 88 gives the three
+   modifications to `Progress`), and the same is generalised to tasks by an
+   `expected-results` field (pp. 88–89). We invented a weaker version; the
+   book's is better and cheaper.
+
+10. **REAP simulates the remaining refinement tree after every completed
+    command.** §3.4.2, Algorithm 3.11 line (i), p. 104. That `Simulate(σ, T′)`
+    step is what lets the actor abandon a doomed course of action *before* it
+    fails, and it is the second of the planner's two stated benefits (p. 106).
+    The previous architecture had a planner and a retry and no simulate.
+
+11. **Context-dependent plans.** §5.7.2, pp. 188–190, Definition 5.20. Policies
+    are memoryless; a task like "go there and come back" needs different actions
+    in the *same* state depending on which subtask is active. The book explicitly
+    rejects the obvious workaround — "extending the representation of a state to
+    include… the history of states visited so far… might work in theory, but its
+    implementation is not practical" (p. 189) — in favour of an explicit context.
+    This is the sharpest available diagnosis of our own `deliver` result and it
+    was completely missing before.
+
+12. **The partial-programming framework.** §7.3.2, p. 292 — the single most
+    on-point paragraph in the book for Phase 8, and it lives in the chapter the
+    deck omitted. Partial programs are hierarchical nondeterministic state
+    machines with "open choice steps, where the best actions remain to be
+    learned"; they constrain the learnable policy class and "yield a significant
+    speed-up in the number of experiments with respect to unguided reinforcement
+    learning"; and "the framework seems to be well adapted to the partial
+    specification of acting methods, where operational models are further
+    acquired through learning." That is a description of what Phase 8 should be.
+
+13. **Monitoring and goal reasoning** (§7.2, pp. 280–287): three levels
+    (platform, action/plan, goal), the causal-structure monitor of Algorithm 7.1
+    (p. 283), the invariant formulation (Σ, s₀, g, ψ) (p. 284), the statement
+    that "refinement methods introduced in Chapter 3 are adequate for expressing
+    monitoring activities" (p. 286), and the whole of goal reasoning
+    (pp. 286–287). None of this existed in the previous analysis.
+
+14. **The POMDP critique** (§6.8.3, p. 270): POMDP "should be called the
+    invisible state MDP model because it does not consider any part of *s* as
+    being observable," and an actor should instead split state variables into
+    visible and hidden (the MOMDP factoring). Together with §1.3.2's
+    invisible / observable(visible | hidden) trichotomy (p. 11) this describes
+    our observation profile exactly, and tells us what it is still missing.
 
 ---
 
-## Target architecture for Phase 8–9
+## 1. What this book is for us, and what it is not
+
+**The thesis.** Planning and acting are different activities over different
+models. *Descriptive* models say which state results from an action — the
+actor's "know what," used to reason about which actions achieve objectives.
+*Operational* models say how to perform an action — the "know how," a program
+with control flow, executed in context, able to fail and try something else
+(§1.3.1, pp. 8–9; restated in Ch. 8, p. 310). Descriptive models are
+deliberately coarser (p. 9). Deliberation is **hierarchical** — not primarily to
+reduce search cost but "to address the heterogeneous nature of the actions about
+which the actor is deliberating" (§1.2.2, p. 7) — and **continual and online**:
+"the actor generally deliberates at runtime about how to carry out the tasks it
+is currently performing… The cost of minor mistakes and retrials are often lower
+than the cost of extensive modeling, information gathering, and thorough
+deliberation" (p. 7). The book's slogan for the relationship: "planning is useful
+to shed light on the road ahead, not to lay an iron rail all the way to the goal"
+(§1.3.3, p. 13).
+
+**Why it fits Factorio.** Factorio is a prerequisite game, and the prerequisite
+chain is *published exactly* by the recipe and technology graph — so §2.6.2's
+landmark-subgoal proposal (p. 58) is free for us in a way it is not free for
+anyone else. The world is dynamic: belts move and furnaces smelt during our
+30-tick interval, so we violate the classical **static-environment** assumption
+(§2.1.1, p. 20, assumption 1) while satisfying the determinism assumption — and
+§3.1's operational models are introduced explicitly to relax exactly that
+("Dynamic environment. The environment is not necessarily static. Our operational
+models deal with exogenous events," p. 74). PLAN 8.1's five required skill
+properties — inputs, preconditions, termination conditions, timeouts, failure
+reports — are a refinement-method signature restated (§3.1.2, p. 77; §3.2.4,
+p. 89).
+
+**Where it does not fit.** The book's *solvers* mostly assume small enumerable
+symbolic state spaces: Chapter 2's A*/PSP, Chapter 5's AND/OR search and search
+automata, Chapter 6's value and policy iteration. None run over a 6×65×65 float
+tensor in a continuous-position world with hundreds of entity prototypes. §6.7.6
+(p. 268) is candid about the ceiling: value iteration is "easily implemented and
+practical" only when the state space fits in memory, "typically on the order of
+few mega states." **Take the architecture and the representational commitments;
+leave most of the solvers.** The book is also explicit that it is theory: "most
+of the technical material is theoretical. Case studies and application-oriented
+work would certainly enrich the integration of planning and acting view developed
+in here" (Preface, p. xiv). Two constructions we would most want are marked
+unfinished by the authors: mixing temporal planning with temporal refinement
+acting (§4.5.3, p. 148), and mapping between representations at different
+hierarchy levels (§3.5.3, p. 110).
+
+**The empirical hook, verified.** `docs/evidence/phase4-feasibility-sweep.json`:
+`supply_furnace` reaches **1.00 train success and 0.30 held-out against a 0.50
+random baseline**; `deliver` reaches **0.65 train and 0.10 held-out against a
+0.30 random baseline**. On unseen layout families both learned policies are
+*worse than random*. `navigate` is the only family with signal (0.95 held-out).
+A flat policy over fully-bound templates is memorising layouts, and the structure
+that would transfer — *go to the source, take, go to the sink, give* — is not
+represented in the learned object anywhere. §5.7.2's memoryless-policy argument
+(p. 189) says why `deliver` in particular should be expected to fail this way:
+the correct action at a given observed position differs according to which
+subtask is active, and nothing in our observation says which one that is. This is
+an architecture problem, not a hyperparameter problem.
+
+---
+
+## 2. Target architecture for Phases 8–9
 
 A diagram in prose. Existing modules in `code font`; proposed new ones marked
-**new**.
+**new**. The layering is the book's (§1.2.2 Fig. 1.2, p. 6; §3.2.1 Fig. 3.1,
+p. 82; §3.4.2 REAP, pp. 103–106).
 
-**Layer 0 — the platform.** `mod/factoriorl/` and `src/factoriorl/session.py`,
-`protocol.py`, `rcon.py`, `worker.py`. Unchanged. In the book's terms these
-provide **commands**: `move`, `mine`, `craft`, `place`, `rotate`, `transfer`,
-`set_recipe`, `research`, `wait`, `cancel` — the ten `ActionType` values, each
-with a real duration, real preconditions, and a structured failure code from the
-24-value `ErrorCode` vocabulary. This is already correct and already the right
-granularity. Nothing above it may bypass it (PLAN §2: "skills operate through
-the same embodied runtime").
+**Layer 0 — the execution platform.** `mod/factoriorl/`,
+`src/factoriorl/session.py`, `protocol.py`, `rcon.py`, `worker.py`, `pool.py`,
+`supervisor.py`. Unchanged. These provide the book's **commands** (§3.1.1,
+p. 76): the ten `ActionType` values, each with a real duration, real
+preconditions, and a structured failure code from the 24-value `ErrorCode`
+vocabulary. The book requires `status(command) ∈ {running, done, failed}`
+maintained by the platform (p. 76); our `ActionStatus` plus the Phase 2.2
+in-flight registry already is that. Nothing above this layer may bypass it
+(PLAN 8.1: "skills operate through the same embodied runtime").
 
-**Layer 1 — the command catalog.** `src/factoriorl/catalog.py`. Stays exactly as
-it is: an ordered, content-hashed list of fully-bound command templates that a
-flat policy can index into. It stops being the *only* action interface and
-becomes the *leaf* interface.
+**Layer 1 — the command catalog.** `src/factoriorl/catalog.py`. Unchanged as an
+artifact, demoted in role: it stays an ordered, content-hashed list of
+fully-bound command templates that a flat policy can index, and it stops being
+the *only* action interface. It becomes the leaf of the refinement tree.
 
-**Layer 2 — the descriptive domain.** **new** `src/factoriorl/deliberate/domain.py`.
-State-variable vocabulary (`GNT §2.1.2` [deck s.12]) plus a `CommandModel` per
-command: parameters, preconditions, effects, cost, and duration bounds. This is
-`docs/ACTION_MATRIX.md` and `src/factoriorl/action_matrix.py` promoted from prose
-+ tests into a machine-readable object, with the existing matrix tests
-*generated from it* so the two cannot drift.
+**Layer 2 — the descriptive domain.** **new**
+`src/factoriorl/deliberate/domain.py`. A state-variable vocabulary (§2.1.2) plus
+one `CommandModel(name, params, pre, eff, cost, duration)` per `ActionType`, with
+`Range(x)` extended by the book's `unknown` symbol (§3.1.1, p. 75). This promotes
+`src/factoriorl/action_matrix.py` and `docs/ACTION_MATRIX.md` from
+prose-plus-tests into a machine-readable object, with the existing matrix tests
+*generated from it* so the three cannot drift.
 
-**Layer 3 — abstraction.** **new** `src/factoriorl/deliberate/abstract.py`:
-`abstract(observation, memory) -> State`. Turns the wire observation plus the
-agent's remembered map into the coarse state variables `domain.py` talks about
-(`holds(item)=n`, `at(marker)`, `working(handle)`, `gap_at(x,y)`,
-`powered(handle)`). **Reads the policy-visible observation and agent memory only
-— never `session.truth()`.** This is also the LM agent's "concise summary" that
-PLAN §2 asks the canonical observation to supply.
+**Layer 3 — abstraction and agent state.** **new**
+`src/factoriorl/deliberate/state.py`: `abstract(observation, memory) -> Sigma`.
+Turns the wire observation plus remembered map into the coarse state variables
+`domain.py` names. This is the book's σ: "the state of the actor's knowledge,
+rather than the true state of the world" (§1.3.2, p. 11). Every variable carries
+one of three statuses — *visible*, *hidden* (observable but not currently
+observed; our `remembered` entries with `age`), *invisible* — per §1.3.2, p. 11
+and the MOMDP factoring recommended at §6.8.3, p. 270. **Signature takes
+observation and memory only; never `session.truth()`.** This object is also
+PLAN §2's promised "typed objects and concise summaries for language-model
+agents," so the LM agent and the planner cannot diverge on what they believe.
 
-**Layer 4 — the method library.** **new** `src/factoriorl/deliberate/methods.py`.
-`Method(task, params, pre, invariants, body, deadline)`, where `body` is a
-generator yielding subtasks and commands. Several methods per task; applicability
-decided by `pre` against the abstract state. Content-hashed and versioned exactly
-like `ResolvedCatalog.digest()`. Two kinds of body coexist behind the same
-signature:
+**Layer 4 — the method library.** **new**
+`src/factoriorl/deliberate/methods.py`.
+`Method(role, params, pre, expected_results, invariants, body, deadline)` where
+`role` is a **task, a goal `achieve(g)`, or an event** (§3.1.2, p. 77; §3.2.3,
+p. 87). Bodies are generators yielding subtasks, subgoals, assignments and
+commands, with the book's control constructs plus `if t1 fails then t2`
+(§5.7.1, p. 188) and `{interleave: …}` (§3.3.2, p. 96). Content-hashed and
+versioned exactly as `ResolvedCatalog.digest()` hashes the catalog. Two body
+kinds behind one signature: *authored* (the Phase 3.2 reference solutions,
+restructured) and *learned* (**new** `src/factoriorl/skills/`, a MaskablePPO
+policy over a catalog subset trained against one subgoal, wrapped so RAE cannot
+tell the difference). §7.3 supports the split directly: learning is "mostly
+devoted to learning operational models for acting… operational models are at a
+lower level, more detailed, and often more domain-specific than descriptive
+models. They are more difficult to specify by hand" (p. 287).
 
-- *authored* bodies — the Phase 3.2 reference solutions, rewritten (see R3);
-- *learned* bodies — **new** `src/factoriorl/skills/`, a MaskablePPO policy over
-  the primitive catalog trained against a subgoal, wrapped so that from RAE's
-  point of view it is indistinguishable from an authored method.
+**Layer 5 — the acting engine.** **new** `src/factoriorl/deliberate/rae.py`. An
+`Agenda` of refinement stacks; each entry is `(τ, m, i, tried, T)` (§3.2.2,
+p. 83; §3.4.2, p. 103). `Progress` advances one stack by one step and checks
+`status(command)`; on `failed`, `Retry` pops the entry, adds `m` to `tried`, and
+**recomputes** `Instances(M, τ, σ)` against the *current* σ minus `tried`
+(§3.2.2, p. 86); when no candidate remains, failure propagates to the parent.
+Goal-role and `expected_results` conditions are tested before the body, at every
+progression step, and at completion (§3.2.3, p. 88). Invariants are tested every
+cycle (§7.2.2, p. 284). Stop/suspend/resume conditions and deadlines against a
+`now` state variable are supported (§3.2.4, p. 89). **This is the module Phase 7's
+recovery benchmarks actually measure.**
 
-**Layer 5 — the acting engine.** **new** `src/factoriorl/deliberate/rae.py`.
-An agenda of **refinement stacks**; each stack entry is `(task, method, step,
-tried)`. `Progress` advances one stack by one step; `Retry` pops a failed entry,
-adds the method to `tried`, and selects an untried applicable method; when none
-remain, failure propagates to the parent (`GNT §3.2`) `[verify]`. Monitors
-invariants each cycle (`GNT §7.2`) `[verify]`. **This is the module Phase 7's
-recovery benchmarks measure.**
-
-**Layer 6 — method choice.** **new** `src/factoriorl/deliberate/choose.py`, one
-interface, three implementations that the manifest names:
-`StaticOrder` (Phase 5 baseline) | `LookaheadPlanner` (a forward search over
-`domain.py` + `methods.py`, `GNT §3.3`'s SeRPE role) | `LearnedChoice` (PPO over
-the applicable-method mask, PLAN 8.3's manager) | `LMChoice` (PLAN 8.4). This
-single interface is where PLAN 8.5's four-way hierarchy comparison becomes four
-configurations of one system rather than four systems.
+**Layer 6 — method choice and lookahead.** **new**
+`src/factoriorl/deliberate/choose.py`, one signature
+`choose(task, candidates, sigma) -> Method | None`, four implementations named in
+the run manifest: `StaticOrder` (Phase 5 baseline), `RefinementTree` (a bounded
+forward search over `domain.py` + `methods.py` returning a refinement tree —
+SeRPE's role, §3.3.1, p. 92), `LearnedChoice` (PLAN 8.3's manager), `LMChoice`
+(PLAN 8.4). Plus `simulate(sigma, tree) -> bool`, REAP's check on the unexecuted
+part of the tree after each completed command (§3.4.2, p. 104). PLAN 8.5's
+four-way comparison then becomes four configurations of one system rather than
+four systems, which is the only way its "match task and observation settings
+where comparisons claim equivalence" is achievable.
 
 **Layer 7 — the actor loop.** **new** `src/factoriorl/deliberate/actor.py`, in
-one of the book's three named forms — `Run-Lookahead`, `Run-Lazy-Lookahead`,
-`Run-Concurrent-Lookahead` (`GNT §2.6.1`) `[verify]` [deck s.6 on receding
-horizon]. Recommended default: lazy lookahead (plan, execute until an invariant
-or command fails, replan), because our replanning cost is Python-cheap and our
-env step is 24 ms-expensive.
+one of the book's three named forms: `Refine-Lookahead`, `Refine-Lazy-Lookahead`,
+`Refine-Concurrent-Lookahead` (§3.4.1, Algorithms 3.7–3.9, pp. 100–101).
+**Default: lazy.** Example 3.12 (p. 102) shows why: a method written only for the
+start state makes `Refine-Lookahead` return failure at step 2 even though the
+remaining actions would have worked, and lazy lookahead keeps going as long as
+`Simulate` predicts success. Our replanning is Python-cheap and our env step is
+~24 ms-expensive, which points the same way.
 
-**Layer 8 — goal reasoning.** **new** `src/factoriorl/deliberate/goals.py`
-(Phase 9). Given a discrepancy — depletion, a broken supply chain, a new
-technology unlocked — generates the next goal for RAE (`GNT §7.3`) `[verify]`.
-Phase 7.1's "goals that change without resetting the world" is this module's
-minimal version.
+**Layer 8 — monitoring.** **new** `src/factoriorl/deliberate/monitor.py`, the
+three levels of §7.2 (p. 281): platform (a dead worker is already
+`InfrastructureFailure`, not a task outcome — keep it that way), action/plan (the
+causal-structure monitor of Algorithm 7.1, p. 283, plus invariants, p. 284), and
+goal. Per §7.2.2 p. 286, monitoring lives in refinement methods and is triggered
+by RAE — so `monitor.py` supplies predicates and diagnosis and `rae.py` runs them.
 
-**Where the RL env sits in all of this.** `src/factoriorl/env.py` becomes an
-*adapter*, not the top. `FactorioEnv` is how a *learned method body* is trained:
-it presents one subgoal, one budget, one command catalog subset, and the existing
-Gymnasium contract. The critical structural change is that `reset()` today always
-installs a blueprint and rebuilds the world; a skill must be able to begin from
-whatever state its parent method left behind (see R15). Everything else in
-`env.py`, `encoders.py`, `vecenv.py`, `learn/` survives unchanged.
+**Layer 9 — goal reasoning.** **new** `src/factoriorl/deliberate/goals.py`
+(Phase 9). Detect a discrepancy, explain it, generate or retire a goal, resolve
+conflicts among goals under consideration — the ARTUE shape (§7.2.3, p. 286) —
+with commitment management, alternative assessment and plan control from the Plan
+Management Agent (pp. 286–287). Phase 7.1's "goals that change without resetting
+the world" is this module's minimal version.
 
-**Reading the stack in one sentence:** RAE holds a refinement stack of tasks;
-each task is refined by a method chosen by `choose.py`; a method body is either
-authored Python or a learned policy stepping `FactorioEnv`; both bottom out in
-catalog commands sent through `session.step`; `monitor` watches invariants and
-`Retry` handles failure; the planner is consulted only at method-choice points,
-over an abstract state that is strictly coarser than what the policy sees.
+**Where the RL environment sits.** `src/factoriorl/env.py` becomes an *adapter*,
+not the top. `FactorioEnv` is how a learned method body is trained and run: one
+subgoal, one budget, one catalog subset, the existing Gymnasium contract.
+`encoders.py`, `vecenv.py` and `learn/` survive essentially unchanged. The one
+structural change `env.py` needs is that an episode must be able to *begin*
+without the world being *reset* (R14).
+
+**One sentence.** RAE holds refinement stacks of tasks, goals and events; each is
+refined by a method chosen by `choose.py` and vetted by `simulate`; a method body
+is authored Python or a learned policy stepping `FactorioEnv`; both bottom out in
+catalog commands sent through `session.step`; `monitor.py` watches invariants and
+causal support; `Retry` re-derives candidates against the *current* σ; and the
+planner reasons over an abstract state strictly coarser than what any policy sees.
 
 ---
 
-## Recommendations
+## 3. Recommendations
 
-### R1 — Write the descriptive model down now, as code
+### R1 — Write the descriptive model down now, as executable code
 
-**Book.** Descriptive models say what state results from an action; operational
-models say how to perform it. They are different artifacts for different
-consumers (`GNT §1.3.1` [deck s.8]). Planning needs the descriptive one
-(`GNT §2.1.3`, action templates [deck s.13]).
+**Book.** Descriptive models ("know what") and operational models ("know how")
+are different artifacts for different consumers (§1.3.1, pp. 8–9; Ch. 8, p. 310).
+A planner consumes action templates with preconditions and effects (§2.1.3). An
+actor needs descriptive models *of its commands* even when it does not need their
+operational models, because those are embedded in the platform (§1.3.1, p. 9).
 
-**Change.** New `src/factoriorl/deliberate/domain.py`. A state-variable
+**Change.** New `src/factoriorl/deliberate/domain.py`: a state-variable
 vocabulary and one `CommandModel(name, params, pre, eff, cost, duration)` per
-`protocol.ActionType`. Derive the existing precondition assertions in
-`src/factoriorl/action_matrix.py` and `docs/ACTION_MATRIX.md` from it, so the
-prose matrix, the tests, and the planner's model are one object.
+`protocol.ActionType`. Generate the assertions in
+`src/factoriorl/action_matrix.py` and the table in `docs/ACTION_MATRIX.md` from
+it, so `factoriorl action-matrix --check` checks a derivation rather than a
+transcription. Extend every variable's range with `unknown` as its default
+(§3.1.1, p. 75) — today `encoders.encode` writes 0.0 for both "chest is empty"
+and "I have never seen inside this chest," which are different facts.
 
-**Phase.** 3 (the file and the generated tests). Payoff in 3 (R17), 4 (R6), 8.
+**Phase.** 3 (file + generated tests). Consumed by R6, R8 and R15 in Phases 3–4;
+indispensable in 8.
 
-**Impact.** High and early: it is the input to a plan-existence solvability check
-(R17) and to landmark shaping (R6), both of which are Phase 3/4 deliverables.
-Without it Phase 8 has no planner input and the "hybrid planning" half of Phase 8
-cannot be built at all.
+**Impact.** High and early. Without it, Phase 8's "hybrid planning" has no
+planner input and the phase reduces to a learned option hierarchy.
 
-**Cost/risk.** ~1 day for the ten commands we have. Risk is drift against Lua;
-R13 is the mitigation.
+**Cost/risk.** ~1 day for ten commands. Risk is drift against Lua; R12 is the
+mitigation.
 
-**Conflict.** None. PLAN 2.1 already requires an action matrix stating
-preconditions, inventory effects, reach, time behaviour and failure outcomes.
-This is that artifact made executable.
+**Conflict.** None. PLAN 2.1 already mandates an action matrix stating
+preconditions, inventory effects, reach, time behaviour, failure outcomes and
+cancellation. This is that artifact made executable.
 
 ---
 
-### R2 — Adopt tasks / methods / commands as the vocabulary, and stop growing the flat catalog
+### R2 — Stop growing the flat catalog; add tasks, methods and commands above it
 
-**Book.** The refinement hierarchy has exactly three kinds of thing: *tasks*
-(abstract activities), *methods* (alternative ways to refine a task, with
-preconditions and a program body), and *commands* (executable by the platform)
-(`GNT §3.1`) `[verify]` [deck s.34 names hierarchy as the reason for operational
-models].
+**Book.** The refinement hierarchy has three kinds of thing: **tasks** (abstract
+activities), **methods** (alternative context-dependent ways to refine a task,
+with a precondition and a program body), and **commands** (executable by the
+platform) (§3.1.1–3.1.2, pp. 76–77). And the reason a fully-ground action set
+cannot be the whole story is stated exactly: grounding "incurs a combinatorial
+explosion in the size of the representation… if a planning operator has *p*
+parameters and each parameter has *v* possible values, then there are *v^p*
+ground instances" (§2.7.1, p. 60).
 
-**Change.** `catalog.py` today is 100% commands with every argument bound at
-authoring time. The Phase 3 correction in `LEDGER.md` is the failure mode: the
-`place_*` templates were bound to a single fixed offset, so a belt gap could only
-be repaired from exactly one standing position, and the fix was to enumerate four
-offsets × three items plus two movement strides × four directions. That works at
-three placeable items. Phase 9 has oil, pipes, refineries, assemblers, ~60
-placeable prototypes and arbitrary positions; enumeration is not available. Add
-`deliberate/methods.py` with the `Method` dataclass. Leave `catalog.py` exactly
-as it is — it is the correct leaf layer.
+**Change.** `catalog.py` is 100% commands with every argument bound at authoring
+time, and `LEDGER.md`'s Phase 3 correction is the *v^p* explosion arriving on
+schedule: `place_*` was welded to one offset (`$ahead`), so a belt gap at x=7
+could only be repaired from exactly x=5; the fix enumerated 4 offsets × 3 items,
+plus 3 movement strides × 4 directions, plus tile-floor arithmetic in
+`env._context()`. That works at three placeable items. Phase 9 has pipes,
+refineries, assemblers, chemical plants, ~60 placeable prototypes and arbitrary
+positions. Add `deliberate/methods.py` with the `Method` dataclass and leave
+`catalog.py` alone — it is the correct leaf layer and its content-hash discipline
+is one of the better things in this repo.
 
 **Phase.** Types in 3–4; library populated in 5 and 8.
 
-**Impact.** This is what makes PLAN 8.1's skill contract a 30-line dataclass
-instead of a new subsystem invented under deadline.
+**Impact.** Turns PLAN 8.1's skill contract into a 30-line dataclass instead of a
+subsystem invented under deadline.
 
-**Cost/risk.** Low now (the dataclass), high later (retrofitting).
+**Cost/risk.** Low now (a dataclass and a registry). High later (retrofit).
 
-**Conflict.** None — PLAN 8.1's five required skill properties *are* a method
-signature. Worth saying so explicitly in PLAN so the connection is not
-rediscovered.
+**Conflict.** None. Worth stating in PLAN that 8.1's five skill properties *are* a
+method signature, so the connection is not rediscovered.
 
 ---
 
-### R3 — Rewrite the Phase 3.2 reference solutions as refinement methods, not scripts
+### R3 — Restructure the Phase 3.2 reference solutions as refinement methods
 
-**Book.** A method body is a program with control constructs, calls to subtasks,
-and calls to commands; failure of a step is handled by trying another method for
-the same task (`GNT §3.1.2`, `§3.2`) `[verify]`.
+**Book.** A method body is a program with control constructs, subtasks and
+commands (§3.1.2, p. 77; Examples 3.2 and 3.4, pp. 78–80). Failure of a step is
+handled by trying a *different method for the same task*, chosen against the
+current state (§3.2.2, Algorithm 3.3, p. 85).
 
 **Change.** `src/factoriorl/tasks/reference.py` already contains method bodies
-with the structure discarded. `solve_deliver` is
-`goto(src); take(item,n); goto(dst); give(item,n)` written as straight-line
-Python over a `Driver`, with failure collapsing to a `stuck_reason` string at the
-top. Re-express as: task `deliver(item, n, src, dst)` with method
-`m-deliver-direct`; task `goto(target)` with methods `m-walk-axis` (today's
-greedy axis walk, which `Driver.walk_to` already implements and which already
-detects being blocked) and, from Phase 5.1, `m-navigate-path`. Keep `SolveTrace`
-— it becomes the refinement-stack trace and the Phase 5.5 replay record.
+with the structure thrown away: `Driver.walk_to` is a three-stride greedy axis
+walk that already detects being blocked, and `solve_deliver` is
+`goto(src); take; goto(dst); give` written as straight-line Python whose failure
+collapses to a single `stuck_reason` at the top. Re-express as: task
+`deliver(item, n, src, dst)` with method `m-deliver-direct`; task `goto(target)`
+with methods `m-walk-axis` (today's walker) and, from Phase 5.1,
+`m-navigate-path`. Keep `SolveTrace` — it becomes the refinement-stack trace and
+the Phase 5.5 replay record.
 
-**Phase.** 3. These now exist (commit `42071d2`, "Phase 3.2: reference solutions,
-and the seven defects they found") after `LEDGER.md` downgraded Phase 3 for their
-absence — so this is a *refactor of new code*, at its cheapest possible moment,
-before Phase 5 and Phase 8 both build on the current shape.
+**Phase.** 3. `LEDGER.md` downgraded Phase 3 from Accepted for the absence of
+these solvers; restructuring them now is a refactor of new code at its cheapest
+moment, before Phase 5.1 replaces `walk_to` and Phase 8.2 picks skill targets.
 
-**Impact.** Closes the open Phase 3 gate; every method written here is
-simultaneously a Phase 8.2 skill target, a Phase 5 assisted-agent primitive, and
-(with R17) a solvability witness.
+**Impact.** Closes the open Phase 3 gate; each method written is simultaneously a
+Phase 8.2 skill target, a Phase 5 assisted-agent primitive, and (with R15) a
+solvability witness.
 
-**Cost/risk.** No extra cost — the work is already owed. Risk of writing them as
-scripts instead: they get rewritten in Phase 8.
+**Cost/risk.** No extra cost — the work is already owed. The risk of *not* doing
+it is that these get rewritten in Phase 8.
 
-**Conflict.** None. PLAN 3.2 requires "a scripted solution"; it does not require
-it be a straight-line script.
+**Conflict.** None. PLAN 3.2 requires "a scripted solution"; it does not require a
+straight-line script.
 
 ---
 
-### R4 — Make method choice the single hook where learning plugs in
+### R4 — Implement Retry against the *current* state, and make method choice the single learning seam
 
-**Book.** RAE must choose among applicable method instances; that choice can be
-arbitrary, heuristic, or delegated to a planner (`GNT §3.3–3.4`) `[verify]`. The
-choice point is the seam.
+**Book.** §3.2.2, p. 86, is emphatic: Retry "does not go back to a previous
+computational node to pick up another option among the candidates that were
+applicable when that node was first reached. It finds another method among those
+that are now applicable for the current state of the world σ. This is essential
+because RAE interacts with a dynamic world." RAE does not retry instances already
+in `tried`, because deciding that a failure cause has cleared "would require a
+complex analysis" (p. 86). The choice among applicable methods is the seam where
+heuristics, a planner, or learning plug in (§3.2.4, p. 90; §3.4.2, p. 103).
 
-**Change.** `deliberate/choose.py`, one function signature
-`choose(task, candidates, state) -> Method | None`, four implementations
-(static / planner / learned / LM). The learned one reuses our masking machinery
-verbatim: the mask over candidate methods *is* the applicability test over
-`Method.pre`, exactly as `env.action_masks()` builds a mask from
+**Change.** Today failure is *observed and discarded*: `env.step` returns
+`info["action_status"]` and `info["action_error"]` and the episode continues as if
+nothing happened; `reference.Driver.do` returns `False` and unwinds to the top.
+Implement `deliberate/rae.py` with the stack, the `tried` set, and candidate
+re-derivation. Our 24-value `ErrorCode` enum is already the failure vocabulary a
+retry policy needs: `OUT_OF_REACH` → reposition and retry; `NO_ITEMS` → refine an
+acquire subtask first; `COLLISION` → a different placement method;
+`TECH_NOT_SELECTABLE` (which Phase 2.1 already correctly distinguishes from
+`TECH_LOCKED`, because the 2.0 tech tree is trigger-gated at its root) → refine
+into a crafting task rather than waiting forever. Add `deliberate/choose.py` with
+one signature and four implementations; the learned one reuses our masking
+machinery verbatim, because the mask over candidate methods *is* the applicability
+test over `Method.pre`, exactly as `env.action_masks()` builds a mask from
 `ActionTemplate.requires` today.
 
-**Phase.** Interface in 4 (50 lines); implementations in 8.3 and 8.4.
-
-**Impact.** PLAN 8.3 (manager policy), 8.4 (LM skill selection) and 8.5
-(hierarchy comparison) collapse from three subsystems into three configurations
-of one, which is the only way 8.5's "match task and observation settings where
-comparisons claim equivalence" is achievable.
-
-**Cost/risk.** Trivial now.
-
-**Conflict.** None.
-
----
-
-### R5 — Put a named actor loop in the repo, and record which one ran
-
-**Book.** Three actor loops: `Run-Lookahead` (replan every step, execute the
-first action), `Run-Lazy-Lookahead` (execute the plan until it is invalidated,
-then replan), `Run-Concurrent-Lookahead` (plan and act in parallel)
-(`GNT §2.6.1`) `[verify]`; the receding-horizon rationale is that first steps are
-more reliable than later ones [deck s.6].
-
-**Change.** There is no actor loop in the repo today: `env.step()` is called
-directly by `model.learn()` and by `reference.Driver`. PLAN 5.3 ("a
-provider-independent agent loop") and PLAN 8.3 both need one and would otherwise
-each invent one. Add `deliberate/actor.py` with `run_lazy_lookahead(...)`.
-
-**Phase.** 5 for the LM agent; 8 for the hybrid comparison.
-
-**Impact.** Gives PLAN 8.5 a *named axis* to compare along. Right now the axis
-has no name, and an unnamed axis is how a comparison becomes the undocumented
-composite score PLAN §3 forbids.
-
-**Cost/risk.** Small.
-
-**Conflict.** It adds a run-manifest field (see R16). PLAN §2 enumerates the
-manifest fields and PLAN §4 forbids an agent redefining an upstream contract for
-its own convenience — so this must go through the integration owner as an
-explicit contract change, not be slipped in.
-
----
-
-### R6 — Represent Factorio prerequisites as landmarks; use them for the goal vector and for shaping
-
-**Book.** The best-known way to build a heuristic is relaxation; landmark
-heuristics identify facts that must hold in *every* solution (`GNT §2.3`
-[deck s.26 lists max-cost, additive, delete-relaxation and landmark heuristics]).
-
-**Change.** In Factorio, landmarks are free and exact because the recipe graph
-gives them: to produce a transport belt you must first hold iron plates and iron
-gears; to smelt you must have ore and fuel co-located in a furnace. Add
-`deliberate/landmarks.py::landmarks(goal, domain) -> tuple[Predicate, ...]` in
-prerequisite order. Two consumers:
-
-1. **The goal vector.** `encoders.py` `GOAL_FEATURES = 12`; `env._goal_vector()`
-   spends slot 0 on elapsed-budget fraction and slots 1..10 on the *success*
-   predicates — which for every one of our six families are all-false until the
-   episode is essentially over. Replace with the landmark-achievement vector: a
-   dense, monotone, non-gameable progress signal.
-2. **Shaping.** Generate the `RewardComponent`s in each `TaskSpec` from
-   landmarks instead of hand-authoring them per family (`mine_smelt` hand-picks
-   `plates_produced` and `ore_mined`; those *are* its last two landmarks).
-
-**Phase.** 4 for both consumers; 9 is where it becomes indispensable (a rocket
-plan has hundreds of landmarks and no other tractable decomposition exists).
-
-**Impact.** This is the direct answer to credit assignment over horizons longer
-than 600 decisions. It is also the only proposal here that plausibly moves the
-Phase 4.5 numbers.
-
-**Cost/risk.** Moderate; needs R1 first. **Risk: landmark shaping is not
-potential-based and can be farmed.** Mitigation: express each landmark as the
-existing `RewardKind.HIGH_WATER` (monotone, pays for the *increase* of a maximum,
-never the level), never as a level — `rewards.py` already makes that
-structurally safe.
-
-**Conflict — real, and it has a deadline.** Changing the goal vector changes the
-observation profile. That requires bumping `local-v1 → local-v2` and
-`EXTRACTOR_VERSION`, which invalidates every checkpoint trained against it. PLAN
-6.2 requires published checkpoints with recorded hashes. **So this must land
-before the Phase 4.5 three-seed release result, not after.** Success predicates
-are untouched, so PLAN 3.5's "success remains unchanged when shaping is disabled"
-still holds.
-
----
-
-### R7 — Add `preconditions` and `provides` to `TaskSpec`, separate from `success`
-
-**Book.** A planning problem is `P = (Σ, s0, g)` [deck s.14]; a method carries a
-`pre:` (`GNT §3.1.2`) `[verify]`. Goals and preconditions are the same kind of
-object — a constraint on state variables — which is what lets one activity's
-precondition be another's goal.
-
-**Change.** `tasks/spec.py::TaskSpec` has `success`, `failure`, `rewards`,
-budgets and catalog, but nothing that states *what must be true to begin*. Add
-`preconditions: tuple[Predicate, ...]` and `provides: tuple[Predicate, ...]`,
-both drawn from the existing closed `PredicateKind` vocabulary so
-`Predicate.evaluate` handles them unchanged.
-
-**Phase.** Field in 3; used in 7.1.
-
-**Impact.** PLAN 7.1's "goals that change without resetting the world" needs
-exactly this and essentially nothing else: stage N+1's `preconditions` are
-checked against the live world instead of a reset, and `tasks.validate_all()`
-can prove a whole stage chain composes (`provides` ⊇ next `preconditions`)
-*without launching an engine*, in the same pass that already checks splits and
-budgets.
-
-**Cost/risk.** Two dataclass fields plus one validation rule. **Do it before
-task versions freeze for the public release (PLAN 6.4)** — adding a spec field
-later bumps the version of every task and breaks published comparisons.
-
-**Conflict.** None.
-
----
-
-### R8 — Model reusable vs consumable resources, and check resource profiles at generation time
-
-**Book.** A principal motivation for explicit time is "modelling the effects,
-conditions, and **resources borrowed or consumed** by an action at various
-moments along its duration" [deck s.35] — borrowed = reusable (returned after
-use), consumed = depleted. A plan is resource-consistent only if each resource's
-profile stays within capacity over the relevant interval (`GNT §4.2`, and the
-extended treatment in the authors' earlier volume, *Automated Planning: Theory
-and Practice* 2004, Ch.15) `[verify]`.
-
-**Change.** Today the only resource declarations are
-`Blueprint.character_inventory` and `EntitySpec.contents`, and the engine-free
-solvability checks in `spec.py` are purely geometric (`out_of_box`,
-`footprint_conflicts`). Add a consumable-resource check to
-`tasks.validate_all()`: for each sampled blueprint, the reference method's
-declared consumable requirement must be ≤ what the scene provides. Concretely:
-`repair_belt` hands the character 5 transport belts and the **test** family
-`double_gap` needs 2 — that margin is currently an accident of the generator, not
-a checked property. `mine_smelt` gives `{"coal": 10}` except in `fuelled_furnace`
-where it gives 4 plus 6 in the furnace; nothing checks that 4 is enough to smelt
-3 plates.
-
-**Phase.** 3 (the checker); 9 (where scarcity is the actual task).
-
-**Impact.** Turns PLAN 3.2's "randomness alone does not establish task quality"
-from a principle into a mechanical check over the 24,000 generated scenes
-`validate_all` already samples.
-
-**Cost/risk.** Low; no engine needed. No risk.
-
-**Conflict.** None.
-
----
-
-### R9 — Treat ongoing actions as contingent links with deadlines
-
-**Book.** In an STNU, *contingent* links have durations the actor does not
-control; execution is by **dispatching** — propagating time windows as events
-occur — and the failure mode to detect is a **deadline failure**
-(`GNT §4.3.2`, `§4.4.2–4.4.3`) `[verify]`.
-
-**Change.** We already have contingent durations: `ActionStatus.RUNNING` plus
-`session._settle()`'s poll loop covers mining, crafting, smelting and research —
-durations the engine owns and the actor cannot shorten. Today `env.step` just
-polls until settled and exposes `self[8] = inflight` to the policy. Add to
-`CommandModel` (R1) a `duration: (lb, ub)` read from the engine's own prototype
-data (mining time, recipe energy — `D:/Factorio/doc-html/runtime-api.json` is the
-authority per `LEDGER.md`), and to `Method` a `deadline`. RAE fails a method when
-its deadline passes rather than waiting indefinitely.
-
-**Phase.** Duration bounds recorded in Phase 3 alongside R1; deadlines used in
-8.1.
-
-**Impact.** PLAN 8.1's "timeouts" gets a definition. More importantly, PLAN 8.3's
-"the manager cannot exploit inconsistent time accounting" is precisely the book's
-dispatching-consistency requirement, and STNU framing is what makes it checkable
-rather than aspirational.
-
-**Cost/risk.** Moderate. **Explicitly do not build an STN solver** (see the
-do-not list) — per-method deadlines plus min/max command durations capture
-almost all the value at a fraction of the cost.
-
-**Conflict.** None.
-
----
-
-### R10 — Make failure, retry and method-level replanning first-class
-
-**Book.** RAE's `Retry`: on failure of a step, pop the refinement-stack entry,
-add the failed method to the entry's `tried` set, and select an untried
-applicable method for the same task; when none remain, propagate the failure to
-the parent entry (`GNT §3.2`) `[verify]`. The stack entry is `(τ, m, i, tried)`.
-Interleaving acting with planning is even more strongly motivated once outcomes
-are non-deterministic [deck s.40, s.43].
-
-**Change.** Today failure is *observed and ignored*: `env.step` returns
-`info["action_status"]` and `info["action_error"]` and then continues the episode
-as though nothing happened, and `reference.Driver.do` returns `False` and unwinds
-all the way to the top with a `stuck_reason`. Neither retries at the right level.
-Implement `deliberate/rae.py` with the refinement stack and the `tried` set. Our
-24-value `ErrorCode` enum is already the failure vocabulary a retry policy needs:
-`OUT_OF_REACH` → reposition and retry the same method; `NO_ITEMS` → refine an
-acquire subtask first; `COLLISION` → try a different placement method;
-`TECH_NOT_SELECTABLE` (the trigger-gated 2.0 root, already correctly
-distinguished from `TECH_LOCKED`) → refine into a crafting task instead of
-waiting.
-
 **Phase.** Interface in 5; the engine in 7 — this is what makes intervention and
-recovery *measurable*.
+recovery measurable at all.
 
 **Impact.** Highest-value single item for Phase 7. PLAN 7.3/7.4 require an agent
 that observes an intervention's consequences and recovers; there is currently no
-component whose job is to notice.
+component whose job is to notice. It also collapses PLAN 8.3, 8.4 and 8.5 into
+configurations of one system.
 
-**Cost/risk.** RAE proper is ~300 lines plus tests. The risk is building it too
-early and over-generally; build it against exactly the six families first.
+**Cost/risk.** ~300 lines plus tests. The risk is over-generalising early; build
+it against exactly the six families first.
 
 **Conflict.** None.
 
 ---
 
-### R11 — Add monitoring invariants to the task spec, evaluated by the actor
+### R5 — Add event-role methods, and make Phase 7 interventions events
 
-**Book.** Monitoring is a distinct deliberation function: platform, action, plan
-and goal monitoring, detecting discrepancies between the predicted and the
-observed (`GNT §7.2`) `[verify]`. Chapter 7 has no local deck coverage.
+**Book.** A refinement method's role is a task **or an event** — "an occurrence
+detected by the execution platform… corresponding to exogenous changes in the
+environment to which the actor may have to react" (§3.1.1, p. 76; §3.1.2, p. 77).
+Example 3.3's `m-emergency` (pp. 78–79) suspends what the robot is doing, puts
+down its load, moves to the origin, and posts an `address-emergency` task, with a
+computable state variable recording that it is engaged. §3.2.4 (p. 89) adds
+stop/suspend/resume conditions tested at every `Progress` call, for the whole
+stack and not just its top; and p. 90 suggests the ordering heuristic "react to
+events first and then address new tasks, before progressing on the old ones."
+
+**Change.** PLAN 7.3's interventions — belt defects, recipe changes, power
+disconnection, supply reduction, resource depletion, competing demand — are
+exogenous events by construction, and PLAN 7.3 already requires that "the agent
+observes consequences through its normal interface" with intervention parameters
+evaluator-only. So the agent must not *receive* the event; it must *derive* one.
+Add an event vocabulary to `deliberate/monitor.py`
+(`production_stopped(marker)`, `entity_missing(handle)`, `power_lost(network)`,
+`input_starved(marker)`) derived from the abstract state, and let `methods.py`
+carry event-role methods that RAE dispatches ahead of task progress.
+
+**Phase.** Event vocabulary in 5 alongside monitoring; used in 7.3–7.4.
+
+**Impact.** Makes "detect" a named, timeable step, which is what lets Phase 7.4
+report *time to detect* separately from *time to repair*. PLAN §3 already forbids
+merging recovery metrics; without this they are merged by default.
+
+**Cost/risk.** Low. Risk: an event vocabulary derived from truth would be
+evaluator leakage — derive it from `abstract(observation, memory)` and test that.
+
+**Conflict.** None.
+
+---
+
+### R6 — Represent Factorio prerequisites as landmarks, and use them for the goal vector and the shaping
+
+**Book.** §2.6.2, p. 58: subgoals for online planning may come from the elements
+of a compound goal in a reasonable order, or from "an ordered set of landmarks"
+with "the earliest one as a subgoal." Same page: the Killzone 2 precedent —
+short-term objectives such as "get to shelter," a SeRPE-like planner producing
+four- or five-action plans several times per second, in a game where the state
+changes quickly.
+
+**Change.** In Factorio landmarks are free and exact: the recipe and technology
+graph gives them. Add `deliberate/landmarks.py::landmarks(goal, domain) ->
+tuple[Predicate, ...]` in prerequisite order, over the existing closed
+`PredicateKind` vocabulary. Two consumers:
+
+1. **The goal vector.** `encoders.GOAL_FEATURES = 12`; `env._goal_vector()`
+   spends slot 0 on elapsed-budget fraction and slots 1..10 on the *success*
+   predicates, which for all six families are all-false until the episode is
+   essentially over. Replace with landmark achievement: dense, monotone,
+   non-gameable progress. This is also the cheap half of the context fix in R7.
+2. **Shaping.** Generate each `TaskSpec`'s `RewardComponent`s from landmarks
+   rather than hand-authoring them per family (`mine_smelt` hand-picks
+   `plates_produced` and `ore_mined`; those *are* its last two landmarks).
+
+**Phase.** 4 for both consumers. Indispensable in 9, where a rocket plan has
+hundreds of landmarks and no other tractable decomposition.
+
+**Impact.** The direct answer to credit assignment over horizons far longer than
+600 decisions, and the proposal here most likely to move the Phase 4.5 numbers.
+
+**Cost/risk.** Moderate; needs R1. **Risk: landmark shaping is not
+potential-based and can be farmed.** Mitigation: express each landmark as the
+existing `RewardKind.HIGH_WATER`, which pays for the increase of a maximum and
+never the level — `rewards.py` already makes that structurally safe. Do not
+invent a level-valued landmark reward.
+
+**Conflict — real, with a deadline.** Changing the goal vector changes the
+observation profile: bump `local-v1 → local-v2` and `EXTRACTOR_VERSION`, which
+invalidates every checkpoint trained against the old one. PLAN 6.2 requires
+published checkpoints with recorded hashes. **This must land before the Phase 4.5
+three-seed release result, not after.** Success predicates are untouched, so
+PLAN 3.5's shaping-off parity still holds and the 80% bar is unchanged.
+
+---
+
+### R7 — Give the policy an explicit *context*, because a memoryless policy provably cannot do `deliver`
+
+**Book.** §5.7.2, pp. 188–190. "Policies as defined so far are stationary or
+memoryless… they always perform the same action in the same state, independently
+of the actions that have been previously performed" (p. 188). For a sequence
+`t1; t2` "we might need to perform different actions… in the same state depending
+on whether the actor is trying to achieve the first goal… or the second. As a
+simple example, consider the case in which a robot has to move to a given
+location and has to come back afterward" (p. 189). The book rejects
+history-in-the-state — "might work in theory, but its implementation is not
+practical" — and introduces an explicit **context** naming which subtask is
+active; a context-dependent plan is `(C, c₀, act, ctxt)` with `act : S × C → A`
+(Definition 5.20, p. 189). §6.8.4 (p. 271) gives the pragmatic version:
+"extending the state representation (with variables representing the context) is
+often easier than handling general nonstationary stochastic models."
+
+**Change.** Our `deliver` policy is memoryless over a Dict observation, and
+PLAN §3 rightly forbids recurrent policies before the baseline works. The book's
+alternative is exactly what PLAN permits: explicit context features. Concretely,
+extend `env._goal_vector()` (and `encoders.GOAL_FEATURES`) with a small one-hot
+**phase** vector derived from the landmark prefix achieved so far (R6) — for
+`deliver`, "not yet holding" vs "holding, en route to sink." This is a
+non-recurrent, declared, versioned feature, and it is the minimal thing that
+makes the task representable at all.
+
+**Phase.** 4, in the same `local-v2` bump as R6 — do not spend two profile
+versions on one change.
+
+**Impact.** `deliver` at 0.10 held-out against a 0.30 random baseline is the
+signature of an unrepresentable task, not a badly tuned one. This is the cheapest
+credible fix and it is testable: if the phase feature does not move `deliver`,
+the diagnosis was wrong and we learn that before Phase 8.
+
+**Cost/risk.** Low. Risk: the phase vector must be derived from the observation
+and from landmark predicates the policy can already evaluate — never from
+`session.truth()`, or the result is an evaluator-information result.
+
+**Conflict.** Observation-profile bump; same deadline as R6.
+
+---
+
+### R8 — Model borrowed vs consumed resources ourselves, and check resource profiles at generation time
+
+**Book.** §4.1, p. 114: "different kinds of resources may need to be **borrowed**
+(e.g., space, tools) or **consumed** (e.g., energy). Time is a resource required
+by every action, but it differs from other types of resources." §4.3.5 (p. 130)
+notes the CSP/Meta-CSP framing can carry resource constraints, which TemPlan
+itself does not; §4.6.2 (p. 152) hands resource scheduling to the scheduling
+literature. **The book gives us the distinction and a place to hang constraints,
+not an algorithm — and we should say so rather than cite an algorithm that is not
+there.**
+
+**Change.** Today the only resource declarations are
+`Blueprint.character_inventory` and `EntitySpec.contents`, and the engine-free
+checks in `tasks/spec.py` are purely geometric (`out_of_box`,
+`footprint_conflicts`). Add a consumable-resource check to `tasks.validate_all()`:
+for each sampled blueprint, the reference method's declared consumable
+requirement must be ≤ what the scene provides. Two live examples: `repair_belt`
+hands the character 5 transport belts while the **test** family `double_gap`
+needs 2 — that margin is an accident of the generator, not a checked property;
+and `mine_smelt` gives coal in varying amounts across families with nothing
+checking the amount suffices to smelt the required plates. Mark each resource
+`borrowed` or `consumed` in `domain.py`; only consumed ones need a profile check
+now.
+
+**Phase.** 3 (the checker); 9, where scarcity is the actual task (PLAN 9.2
+"shared-resource competition is represented"; 9.4 depletion).
+
+**Impact.** Turns PLAN 3.2's "randomness alone does not establish task quality"
+into a mechanical check over the 24,000 generated scenes `validate_all` already
+samples, with no engine.
+
+**Cost/risk.** Low; engine-free.
+
+**Conflict.** None.
+
+---
+
+### R9 — Deadlines and durations, but no STN solver
+
+**Book.** Two arguments, both from the authors. First, refining durations to
+command granularity is actively harmful: "it may be useful to account for the
+time needed to open a door, which can be assessed from statistics. However,
+breaking this duration into how long it takes to reach for the handle and how
+long to turn the handle introduces more noise in operational models" (§4.5.1,
+pp. 142–143). Second, dispatch propagation is O(n³) per cycle (p. 144) and
+dynamic-controllability checking is "demanding of computational resources… the
+complexity growth is polynomial, but the constant factor is high" (§4.4.3,
+p. 141), which is why the book itself offers pseudo-controllability as the
+compromise. Deadline failure has two repairs: stop the delayed action and replan
+from the current state, or let it finish late and repair the remainder — the
+second is preferable when the violation is absorbable, "however, if this
+navigation is taking longer than expected because robot r1 broke down, a better
+option is to seek another robot" (§4.5.1, p. 145). Local repair means removing the
+failed action and its assertions and re-running the planner on the resulting flaws
+(p. 145).
+
+**Change.** We already have contingent durations: `ActionStatus.RUNNING` plus
+`session._settle()`'s poll loop covers mining, crafting, smelting and research —
+durations the engine owns. Add `duration: (lb, ub)` to `CommandModel` (R1), read
+from `D:/Factorio/doc-html/runtime-api.json`, which `LEDGER.md` already names as
+the authority for this build. Add `deadline` to `Method`, tested by RAE every
+cycle against a `now` state variable (§3.2.4, p. 89). Implement both repair forms
+and record which one fired. **Do not build an STN or STNU.**
+
+**Phase.** Durations recorded in 3 alongside R1; deadlines used in 8.1; both
+repair forms in 7.4.
+
+**Impact.** Gives PLAN 8.1's "timeouts" a definition, and gives PLAN 7.4's
+recovery report a distinction it currently lacks (absorbed delay vs abandoned
+method).
+
+**Cost/risk.** Moderate. The temptation to grow this into a temporal network is
+the risk; the do-not list names it.
+
+**Conflict.** None.
+
+---
+
+### R10 — Monitor causal support and invariants, using the book's two mechanisms
+
+**Book.** Monitoring is "(i) detecting discrepancies between predictions and
+observations, (ii) diagnosing their possible causes, and (iii) taking first
+recovery actions" (§7.2, p. 281), across three levels: platform, action/plan,
+goal. Two concrete mechanisms:
+
+- **Causal structure.** For a plan π = ⟨a₁…a_k⟩ achieving g, regress to get
+  intermediate goals G = ⟨g₀…g_{k+1}⟩; `Progress-Plan` (Algorithm 7.1, p. 283)
+  finds the largest *i* whose gᵢ the current state supports and performs aᵢ — so
+  it *skips* steps already satisfied and *repeats* steps whose effects did not
+  take. Example 7.1 (p. 283): the robot finds the door already open and skips two
+  actions; later it observes an empty gripper and repeats the pickup. That is a
+  Factorio repair loop in miniature.
+- **Invariants.** An extended planning problem (Σ, s₀, g, ψ) where ψ must hold in
+  every state along the plan; violation "means a failure of the plan. It allows
+  quite early detection of infeasible goals or actions, even if the following
+  actions in the plan appear to be applicable and produce their expected effects"
+  (§7.2.2, p. 284). With the caution that domain-entailed invariants are largely
+  syntactic and insufficient — "an actor has to monitor specific conditions…
+  Such conditions cannot be deduced from the specification of (Σ, s₀, g); they
+  have to be expressed specifically as monitoring rules" (p. 284).
+
+And the integration point: "Refinement methods introduced in Chapter 3 are
+adequate for expressing monitoring activities; RAE procedure can be used for
+triggering observation and commands required for monitoring" (p. 286).
 
 **Change.** `TaskSpec.failure` is already a tuple of predicates evaluated every
-step by `env._failed()` — a monitor with the wrong name and exactly one consumer
-(episode termination). Add `invariants: tuple[Predicate, ...]`, evaluated by RAE
-rather than by the env, whose violation aborts the *current method* rather than
-the episode. Example: `restore_power` should abandon a "wire up this pole" method
-the moment the boiler stops working, not 200 decisions later at truncation.
+step by `env._failed()` — a monitor with the wrong name and one consumer (episode
+termination). Add `invariants: tuple[Predicate, ...]` to `TaskSpec` and `Method`,
+evaluated by RAE, whose violation aborts the **current method** rather than the
+episode: `restore_power` should abandon a "wire up this pole" method the moment
+the boiler stops working, not 200 decisions later at truncation. Separately,
+implement `Progress-Plan` over the landmark sequence from R6 as
+`monitor.progress_index(sigma, landmarks)` — a dozen lines over
+`Predicate.evaluate`, giving skip-and-repeat behaviour for free.
 
-**Phase.** Spec field in 3; consumed in 7.3.
+**Phase.** Spec fields in 3; consumed in 7.3–7.4.
 
-**Impact.** Gives Phase 7.4 a **time-to-detect** measurement, which "time to
-restore production" currently conflates with time-to-repair. Those are different
-capabilities and PLAN §3 already insists recovery metrics not be merged.
+**Impact.** Gives Phase 7.4 a time-to-detect measurement, and gives every method a
+cheap way to notice it has been invalidated.
 
-**Cost/risk.** Low — reuses `Predicate.evaluate` unchanged.
+**Cost/risk.** Low; reuses `Predicate.evaluate` unchanged.
 
 **Conflict.** None.
 
 ---
 
-### R12 — Keep the planner's state strictly coarser than the observation, and never derive it from `truth`
+### R11 — Keep the abstract state coarser than the observation, and classify every variable visible / hidden / invisible
 
 **Book.** "Predicted states are in general less detailed than the observed one"
-(`GNT §1.3.2` [deck s.9]). Predicted states are what the actor reasons *about*;
-observed states are what it reasons *from* while performing.
+(§1.3.2, p. 10). σ "is the state of the actor's knowledge, rather than the true
+state of the world," and "information in a dynamic environment is ephemeral: some
+of the values in σ may be out-of-date" (p. 11). The design of an actor should
+distinguish **invisible** variables (only estimable), **observable** ones, and
+among the latter **visible** (currently known) from **hidden** (requiring an
+observation action) (p. 11). §3.1.4 (p. 81) adds the erosion rule: "outside of
+room1, the robot cannot trust such a fact indefinitely. At some point, it has to
+consider that the location of that person is unknown unless it can sense it
+again." §6.8.3 (p. 270) is the sharpest version: POMDP "should be called the
+invisible state MDP model because it does not consider any part of *s* as being
+observable"; the MOMDP factoring into visible × hidden is the recommended shape.
 
-**Change.** FactorioRL currently has exactly two state representations:
-`encoders.encode()`'s tensors (policy input) and `session.truth()` (evaluator
-ground truth). There is no abstract state, so any planner built today would have
-to plan over 6×65×65 float planes. Add `deliberate/abstract.py`, versioned like
-an observation profile. **Its input signature must be
-`abstract(observation, memory)` — never `truth`.** `env.action_masks()` already
-gets this exactly right ("built from the observation alone... which is what makes
-'no privileged information in masks' checkable"); extend the same discipline and
-the same test to the abstraction function.
+**Change.** We got the hard part right already and should say so: Phase 2.3's
+sensor region plus `remembered` entries carrying `age`, kept in a separate array
+so distant machine state can never be presented as current, is precisely the
+book's visible/hidden split with erosion. Two gaps remain. (a) There is no
+abstract state at all — any planner built today would have to plan over 6×65×65
+float planes; add `deliberate/state.py` with `abstract(observation, memory)`,
+versioned like an observation profile, **never taking `truth`**, and extend the
+existing "mask uses no privileged information" test to cover it. (b) `unknown` is
+not represented: `encoders.encode` writes 0.0 for a container we have never looked
+inside and 0.0 for one we know to be empty. Add a per-feature known-flag or the
+`unknown` sentinel of §3.1.1 (p. 75).
 
 **Phase.** 5.4 (persistent agent memory is the same object as `memory` here);
-used from 8.
+consumed from 8.
 
 **Impact.** The single artifact without which no planner is possible. It doubles
-as PLAN §2's promised "typed objects and concise summaries for language-model
-agents" — that summary should *be* the abstract state, not a prose rendering of
-the tensor, or the LM agent and the planner will diverge in what they believe.
+as PLAN §2's "typed objects and concise summaries for language-model agents."
 
-**Cost/risk.** Moderate. Risk: abstraction that is too coarse makes plans
-unexecutable, too fine makes search intractable. Start at marker granularity.
+**Cost/risk.** Moderate. Risk: too coarse makes plans unexecutable, too fine makes
+search intractable. Start at marker granularity.
 
-**Conflict.** PLAN §2 says "one canonical structured observation supplies" three
-views. This adds a fourth derived view. Argue it as a *derived* view of the same
-canonical observation, and make that structural (it takes the observation as
-input), so the canonical-observation contract is preserved rather than forked.
+**Conflict.** PLAN §2 says one canonical observation supplies three views; this
+adds a fourth. Argue it as a *derived* view — make it structural by having it take
+the observation as input — so the canonical-observation contract holds.
 
 ---
 
-### R13 — Do not maintain two hand-written models; generate one from the other and test the pair against the engine
+### R12 — Generate one model from the other, and adjudicate the pair against the engine
 
-**Book.** The acknowledged cost of the descriptive/operational split is that two
-models are written separately and drift apart; the book raises this against its
-own architecture (`GNT §3.5` discussion) `[verify]`.
+**Book.** §3.5.3 (p. 110) names the open problem: refinements at different levels
+need different state and action representations, and "such a generalization will
+require formal definitions of the relationships among tasks, states and actions at
+different levels, translation algorithms based on these definitions… A
+comprehensive approach for this problem has yet to be developed." Chapter 8
+(p. 311) repeats it as a research priority. §7.3.3 (p. 293) adds that knowledge
+engineering "for the integration of operational models and acting methods remains
+to be developed."
 
-**Change.** We are unusually well placed to answer this objection, because we
-have a real engine in the loop. Make `deliberate/domain.py` the single source and
-generate from it (a) the Python action-matrix test cases in
-`tests/` that `action_matrix.py` backs and (b) the precondition fixtures the Lua
-side is checked against. Then add a **model-consistency test** in
-`tests/engine/`: for N sampled states, executing command `c` in the real engine
-must produce the effects `domain.py` predicts, or the test fails.
+**Change.** We are unusually well placed on this, because we have a real engine
+that can adjudicate. Make `deliberate/domain.py` the single source and generate
+from it (a) the `action_matrix.py` assertions and the generated
+`docs/ACTION_MATRIX.md`, and (b) the precondition fixtures the Lua side is checked
+against. Then add a **model-consistency test** in `tests/engine/`: for N sampled
+states, executing command *c* in the real engine must produce the effects
+`domain.py` predicts, or the test fails. Budget it as a sampled check — at ~24 ms
+per step it cannot be exhaustive.
 
-**Phase.** 3–4 (the generation and the test); the payoff is in 8.
+**Phase.** 3–4 for the generation and the test; the payoff is in 8.
 
-**Impact.** Prevents the worst Phase 8 outcome: building a planner and then
-discovering its model of Factorio is wrong. Turns the book's own stated weakness
-into a passing test.
+**Impact.** Prevents the worst Phase 8 outcome — building a planner and then
+discovering its model of Factorio is wrong. It also turns an open problem the
+authors name into a passing test, which is a publishable observation in its own
+right.
 
-**Cost/risk.** The consistency test is engine-dependent, so it belongs in
-`tests/engine` and runs at ~24 ms/step — budget it as a sampled check, not
-exhaustive.
+**Cost/risk.** Engine-dependent, so `tests/engine/` and `--require-engine`, per
+PLAN §4's rule that "tests skipped because Factorio was unavailable" is an
+incomplete state.
 
-**Conflict.** None; it strengthens PLAN §4's "works with a mock is an incomplete
-state".
+**Conflict.** None.
 
 ---
 
-### R14 — Measure dead-ends, not just success — the "safe solution" property
+### R13 — Measure dead-ends and safe-solution structure, not just success rate
 
-**Book.** Solutions are classified as unsafe / safe-acyclic / safe-cyclic: a
-*safe* solution is one where from **every** reachable state a goal is still
-reachable [deck s.42, s.54]; an unsafe policy "may or may not terminate; if it
-does, it may reach either a goal or a state with no applicable action"
-[deck s.54]. Safe cyclic solutions are legitimate — retry loops are solutions.
+**Book.** §5.2.3, pp. 162–163, Definitions 5.7–5.11: a **solution** may reach a
+goal; a **safe solution** is one where from every reachable state a goal is still
+reachable; **unsafe** solutions "may achieve the goal but are not guaranteed to do
+so… the agent may end up at a nongoal state or end up in a 'bad cycle' where it is
+not possible to go out and reach the goal"; **safe cyclic** solutions are
+legitimate — a retry loop is a solution. §5.6 (p. 183) adds the acting-time
+warning: "not all domains are safely explorable, and not all actions are
+reversible… the actor may not easily recognize that it is trapped in a dead end,
+for example, a navigation robot can enter an area where it is possible to navigate
+but impossible to get out of that area."
 
-**Change.** `learn/train.py::evaluate` reports `success_rate`, Wilson interval,
-mean reward and mean length. It cannot distinguish "ran out of budget while
-making progress" from "walked into a state from which the goal is unreachable".
-Add a **dead-end rate**: for each truncated episode, run the reference method
-(R3) from the truncated state, evaluator-side; if it cannot finish, the episode
-ended in a dead end. `deliver`'s 0.10 held-out against a 0.30 random baseline is
-almost certainly a dead-end signature — a random agent rarely does anything
-irreversible, and our agent does.
+**Change.** `learn/train.py::evaluate` reports success rate, Wilson interval, mean
+reward and mean length. It cannot distinguish "ran out of budget while making
+progress" from "walked into a state from which the goal is unreachable." Add a
+**dead-end rate**: for each truncated episode, run the reference method (R3) from
+the truncated state, evaluator-side; if it cannot finish, that episode ended in a
+dead end. `deliver` at 0.10 held-out against a 0.30 random baseline has a dead-end
+signature — a random agent rarely does anything irreversible and ours evidently
+does.
 
 **Phase.** 4 (the metric); a requirement in 8.
 
@@ -621,41 +825,41 @@ whether the failure is a runtime defect, task defect, learning limitation, or
 performance limitation"). Success rate alone cannot make that call; dead-end rate
 can.
 
-**Cost/risk.** Reuses R3. Costs evaluation wall-clock, so run it on the
-evaluation set only.
+**Cost/risk.** Reuses R3; costs evaluation wall-clock, so run it on the evaluation
+set only.
 
-**Conflict.** None — and to be explicit: **this is an additional metric, not a
-replacement.** The 80% held-out success bar in PLAN §3 and 4.5 stands untouched.
+**Conflict.** **This is an additional metric, not a replacement.** The 80%
+held-out bar in PLAN §3 and 4.5 stands untouched.
 
 ---
 
-### R15 — Split `FactorioEnv.reset` into scenario-install and episode-begin
+### R14 — Split `FactorioEnv.reset` into scenario-install and episode-begin
 
-**Book.** A method's internals may be authored or learned; the acting layer's
-interface does not change when they do (`GNT §3.1.1`, `§3.4`) `[verify]`. For
-that to be true, a learned body must be able to run from an arbitrary current
-state, not only from a fresh one.
+**Book.** A method's internals may be authored or learned without the acting
+layer's interface changing (§3.1.1, p. 76; §3.4.2, p. 103, where REAP pushes a new
+stack entry for a subtask on the live σ). For that to hold, a learned body must be
+able to run from an arbitrary current state, not only a fresh one. §4.5.1 (p. 145)
+makes the same demand of repair: "plan repair in case of a failure has to be
+performed with respect to the current state."
 
 **Change.** `FactorioEnv.reset()` today does five things at once: pick a layout
-family, generate a blueprint, install it, reset the world, and initialise
-goal/accountant/counters. Split into `reset_scenario()` (the first four —
-today's behaviour, what Phase 3's 504-reset leakage run tests) and
-`begin_episode(goal, budget, catalog_subset)` (the fifth — **no world
-mutation**). Then:
-
-- a Phase 8.2 skill is trained by `begin_episode(subgoal)` on a live world;
-- a Phase 7.1 persistent stage transition is the same call;
-- a Phase 8.3 manager's decision is `begin_episode` on a child.
+family, generate a blueprint, install it, reset the world, initialise
+goal/accountant/counters. Split into `reset_scenario()` (the first four — today's
+behaviour, what the Phase 3 504-reset leakage run tests) and
+`begin_episode(goal, budget, catalog_subset)` (the fifth, **with no world
+mutation**). Then a Phase 8.2 skill is trained by `begin_episode(subgoal)` on a
+live world; a Phase 7.1 persistent stage transition is the same call; a Phase 8.3
+manager's decision is `begin_episode` on a child.
 
 **Phase.** **Do the split in Phase 4.** Use it in 7 and 8.
 
-**Impact.** This is the highest rewrite-risk item on the list. If `reset` stays
-fused, Phase 7.1 and Phase 8.2 each require surgery on `env.py`, `vecenv.py`
-(whose auto-reset in `step_wait` calls `env.reset()` directly), and every gate
-that resets — `gate_phase3`, `gate_phase4`, `tools/solvability.py`,
+**Impact.** The highest rewrite-risk item on this list. If `reset` stays fused,
+Phase 7.1 and Phase 8.2 each need surgery on `env.py`, on `vecenv.py` (whose
+auto-reset in `step_wait` calls `env.reset()` directly), and on every gate that
+resets — `gate_phase3`, `gate_phase4`, `tools/solvability.py`,
 `tasks/reference.py`.
 
-**Cost/risk.** One day now against roughly a week later plus a checkpoint
+**Cost/risk.** ~1 day now against roughly a week later plus a checkpoint
 invalidation, because the split changes when the goal vector is set and therefore
 what the policy sees on step 0.
 
@@ -664,235 +868,279 @@ refill resources or repair the factory").
 
 ---
 
-### R16 — Version the deliberation stack in the run manifest, as profiles already are
+### R15 — Prove solvability by plan existence over the descriptive model, keeping the scripted solver as the baseline
 
-**Book.** An actor is characterised by which deliberation functions it has and
-how they are organised (`GNT §1.2`, `§1.4` [deck s.4–5]); comparing two actors
-without stating those is comparing two unnamed things.
-
-**Change.** `manifest.py` records `profiles.{observation, action, assistance,
-catalog, catalog_digest, resolved_catalog}`. Add
-`profiles.deliberation = {actor_loop, method_library_version,
-method_library_digest, choice, planner, abstraction_version}`. Content-hash the
-method library exactly as `ResolvedCatalog.digest()` hashes the catalog.
-
-**Phase.** Field in 4; populated from 8.
-
-**Impact.** PLAN 8.5 requires "report differences in assistance explicitly" and
-PLAN 10.3 requires "results identify the system being measured, not only the
-model name". A four-way hierarchy comparison without this field is exactly the
-undocumented composite score PLAN §3 forbids.
-
-**Cost/risk.** Trivial now; a schema migration later.
-
-**Conflict.** Same as R5: a manifest schema change is an upstream contract change
-under PLAN §4 and needs the integration owner, not a unilateral edit.
-
----
-
-### R17 — Replace the *solvability proof* with plan existence; keep the scripted solver as the *baseline*
-
-**Book.** Forward state-space search with a relaxation heuristic (`GNT §2.2–2.3`
-[deck s.15–26]). Plan existence over a declared domain is a stronger statement
-than one script succeeding on one seed.
+**Book.** Refinement planning constrains search to what the methods can produce,
+which "can convey a substantial efficiency advantage" but fails when the library
+does not cover the situation (§3.5.2, p. 109; Example 3.12, p. 102). The book's
+own remedy is a **generative fallback**: replace SeRPE's failure line with
+`if τ is a goal achieve(g) then return find-plan(Σ, s, g)` (§3.3.1, p. 91), and it
+surveys three published ways to combine refinement with classical planning
+(§3.5.2, pp. 109–110).
 
 **Change.** Once `domain.py` exists (R1), extend `tasks.validate_all()` and
-`tools/solvability.py` to run a bounded forward search (greedy best-first with an
-additive-cost relaxation — [deck s.23, s.26]) over the abstract state of each
-sampled blueprint, and assert a plan exists. The abstract state space at marker
-granularity is tiny; this runs over 24,000 scenes **without launching an
-engine**, in the same validation pass that already runs before any worker starts.
+`tools/solvability.py` to run a bounded forward search over the *abstract* state of
+each sampled blueprint and assert a plan exists. The abstract state space at marker
+granularity is tiny; this runs over the 24,000 generated scenes `validate_all`
+already samples **without launching an engine**, before any worker starts. Adopt
+the book's fallback rule literally: when a task has no applicable method, fall back
+to generative search over the domain rather than reporting failure.
 
 **Phase.** 3.
 
-**Impact.** Catches the whole `place_*`-bound-to-a-fixed-offset class of defect
-at validation time rather than after a 1,470-second sweep across three concurrent
-workers. `LEDGER.md` is explicit that this defect cost Phase 3 its acceptance and
-five of six families their learnability.
+**Impact.** Catches the whole `place_*`-welded-to-one-offset class of defect at
+validation time rather than after a 1,470-second sweep across three workers.
+`LEDGER.md` is explicit that this defect cost Phase 3 its acceptance and five of
+six families their learnability.
 
 **Cost/risk.** Small search. **Risk: a plan exists in the model but not in the
-engine** — R13's consistency test is the guard, and this pairing is why R13 is
-not optional.
+engine** — R12's consistency test is the guard, which is why R12 is not optional.
 
-**Conflict.** None. PLAN 3.2 asks for "a solvability argument backed by
-generation constraints and a reference solution"; this strengthens the argument
-and keeps the reference solution as the scripted baseline PLAN also requires.
+**Conflict.** None. PLAN 3.2 asks for "a solvability argument backed by generation
+constraints and a reference solution"; this strengthens the argument and keeps the
+reference solution as the required scripted baseline.
 
 ---
 
-### R18 — Shape at method boundaries and discount by elapsed ticks (SMDP), once methods exist
+### R16 — Write methods with holes and learn the holes; discount the manager over elapsed ticks
 
-**Book.** RAE reports success or failure per *task*, not per command; a method's
-termination condition is its own success test (`GNT §3.1.2`, `§3.2`) `[verify]`.
-Chapter 6's value functions accumulate cost over the actions a policy performs
-[deck s.55], which for variable-duration actions means the discount must track
-duration, not step count.
+**Book.** §7.3 opens by arguing that learning belongs mainly to *operational*
+models: "operational models are at a lower level, more detailed, and often more
+domain-specific than descriptive models. They are more difficult to specify by
+hand" (p. 287). It then names the framework: partial programs are "hierarchical
+nondeterministic finite-state machines… specified by the teacher as partial
+programs, with the usual programming constructs augmented with **open choice
+steps, where the best actions remain to be learned**. These specifications
+constrain the class of policies that can be learned using an extended SMDP
+Q-learning technique. The partial programming framework can yield a significant
+speed-up in the number of experiments with respect to unguided reinforcement
+learning… The framework seems to be well adapted to the partial specification of
+acting methods, where operational models are further acquired through learning"
+(§7.3.2, p. 292). SMDPs are named as the foundation of exactly this family of RL
+approaches (§6.8.4, p. 271). §6.5.2 (p. 254) gives the complementary shape: a
+method body *is* an SSP over the command space, solved by online lookahead.
+Q-learning's practical caveat is stated plainly: convergence "is very slow in the
+number of trials… simulated experiments can be a critical component" (p. 289).
 
-**Change.** `rewards.py` computes a component per 30-tick decision. Add
-`RewardKind.LANDMARK` (monotone, paid once on first achievement of a landmark
-from R6). For the Phase 8.3 manager, discount over *method* transitions as
+**Change.** This is the concrete design for Phase 8. Do not train free-floating
+skills and hope a manager composes them. Write `m-deliver`, `m-supply-furnace`,
+`m-repair-belt` as authored method bodies whose *choice points* are open — "which
+approach position," "which of these belts to replace first," "walk or wait" — and
+learn only those, with MaskablePPO over the applicable-option mask, which is the
+machinery we already have. Two supporting changes: (a) add `RewardKind.LANDMARK`
+(monotone, paid once on first achievement) to `rewards.py`; (b) for the Phase 8.3
+manager, discount over *method* transitions as
 `gamma ** (elapsed_ticks / decision_ticks)` — the standard SMDP discount — rather
-than per method invocation.
+than once per method invocation. Record both gammas in the manifest.
 
-**Phase.** `RewardKind.LANDMARK` in 4; the SMDP discount in 8.3.
+**Phase.** `RewardKind.LANDMARK` in 4; partial-program method bodies in 8.2; the
+SMDP discount in 8.3.
 
-**Impact.** Without the duration-aware discount the manager treats a 3-tick
-`wait` and a 3,000-tick smelt as equally costly, which is precisely the
-"inconsistent time accounting" PLAN 8.3 says the manager must not be able to
-exploit. This is the mechanism that makes that criterion satisfiable.
+**Impact.** Our throughput is the binding constraint on the whole program (~24 ms
+per env step; 41.6 steps/s single-worker, 202 at eight). A framework whose stated
+benefit is a large reduction in the *number of experiments* targets the exact
+resource we are short of. And without the duration-aware discount the manager
+treats a 3-tick `wait` and a 3,000-tick smelt as equally costly — which is
+precisely the "inconsistent time accounting" PLAN 8.3 says the manager must not be
+able to exploit. This is the mechanism that makes 8.3's criterion satisfiable
+rather than aspirational.
 
-**Cost/risk.** Low. Risk: `gamma` becomes two numbers (per-decision and
-per-method); record both in the manifest.
+**Cost/risk.** Moderate. Risk: authored choice points that are too coarse leave
+nothing to learn, and PLAN §4 forbids "replacing learning with scripted behaviour
+to pass a gate." Mitigation: report, per method, the fraction of decisions taken at
+open choice points, and treat a method with none as an authored baseline rather
+than a learned skill.
 
 **Conflict.** None, provided `success` predicates are untouched so PLAN 3.5's
-shaping-off parity still holds.
+shaping-off parity holds and the 80% bar is measured on the same thing.
 
 ---
 
-## Decisions to make now, to avoid a Phase 8 rewrite
+## 4. Decisions to make now, to avoid a Phase 8 rewrite
 
-These are cheap today and expensive-to-impossible after the Phase 4.5 release
-result and the Phase 6 freeze. Ordered by deadline.
+Cheap today, expensive-to-impossible after the Phase 4.5 release result and the
+Phase 6 freeze. Ordered by deadline.
 
-1. **Split `FactorioEnv.reset` into `reset_scenario` + `begin_episode` (R15).**
+1. **Fix the observation profile once: landmark goal vector plus explicit phase
+   context, `local-v1 → local-v2`, `EXTRACTOR_VERSION` bump (R6, R7).**
+   Deadline: **before the Phase 4.5 three-seed run.** After it the checkpoints are
+   published artifacts with recorded hashes (PLAN 6.2). Do both changes in one
+   version bump; two bumps is one wasted invalidation.
+2. **Split `FactorioEnv.reset` into `reset_scenario` + `begin_episode` (R14).**
    Deadline: before Phase 7 starts. Everything hierarchical needs an episode that
    begins without a world reset.
-2. **Fix the goal vector to landmarks and bump `local-v1 → local-v2` (R6).**
-   Deadline: **before the Phase 4.5 three-seed run**, because after it the
-   checkpoints are published artifacts with recorded hashes (PLAN 6.2).
-3. **Add `preconditions`, `provides` and `invariants` to `TaskSpec` (R7, R11).**
-   Deadline: before task versions freeze at PLAN 6.4. Adding a spec field later
-   bumps every task version and breaks published comparisons.
-4. **Add `profiles.deliberation` to the run manifest (R16), even if it reads
-   `{"actor_loop": "none", "choice": "flat-policy"}` for all of Phase 4.**
-   Deadline: before the first published manifest schema. It costs nothing now and
-   it is what makes Phase 4 results comparable to Phase 8 results at all.
+3. **Add `preconditions`, `provides` and `invariants` to `TaskSpec` (R8, R10).**
+   Deadline: before task versions freeze at PLAN 6.4 — adding a spec field later
+   bumps every task version and breaks published comparisons. `provides ⊇` the
+   next stage's `preconditions` also lets `validate_all()` prove a whole Phase 7.1
+   stage chain composes without launching an engine.
+4. **Add `profiles.deliberation` to the run manifest** (`actor_loop`,
+   `method_library_version`, `method_library_digest`, `choice`, `planner`,
+   `abstraction_version`), even if it reads `{"actor_loop": "none", "choice":
+   "flat-policy"}` for all of Phase 4. Deadline: before the first published
+   manifest schema. Costs nothing now and it is what makes Phase 4 results
+   comparable to Phase 8 results at all. This is an upstream contract change under
+   PLAN §4 and goes through the integration owner, not a unilateral edit.
 5. **Fix the state-variable vocabulary and write `domain.py` (R1).** Deadline:
-   before the landmark work (R6) and the solvability check (R17), both of which
+   before the landmark work (R6) and the solvability check (R15), both of which
    consume it. Everything downstream inherits this vocabulary; changing it later
    changes the planner, the abstraction, the landmarks and the shaping at once.
-6. **Refactor the just-landed Phase 3.2 reference solutions into methods (R3).**
-   Deadline: before Phase 5.1 replaces `Driver.walk_to` with real navigation and
-   before Phase 8.2 picks skill targets — both of which will otherwise harden the
-   current straight-line shape. Cheapest the day after they landed, and it gets
-   more expensive every week.
-7. **Establish the rule that abstraction and method preconditions read
-   observation + memory, never `truth` (R12), and add the test that enforces
-   it.** Deadline: before the first line of `abstract.py`. Free now; unpicking a
-   `truth` dependency later invalidates every hybrid result produced up to that
-   point.
-8. **Decide that the method library is a versioned, content-hashed artifact
-   (R16).** Deadline: with the first method. Retrofitting provenance onto a
-   library is how checkpoints become opaque blobs — the same argument
-   `learn/policy.py` already makes for `EXTRACTOR_VERSION`.
+6. **Restructure the Phase 3.2 reference solutions into methods (R3).** Deadline:
+   before Phase 5.1 replaces `Driver.walk_to` with real navigation and before
+   Phase 8.2 picks skill targets. Cheapest the week they landed.
+7. **Establish and test the rule that `abstract()`, `Method.pre`, `choose()` and
+   the event vocabulary read observation + memory, never `session.truth()`
+   (R5, R11).** Deadline: before the first line of `state.py`. Free now; unpicking
+   a `truth` dependency later invalidates every hybrid result produced up to that
+   point. Extend the existing mask test rather than writing a new one.
+8. **Decide that the method library is a versioned, content-hashed artifact (R2).**
+   Deadline: with the first method. Retrofitting provenance onto a library is how
+   checkpoints become opaque blobs — the argument `learn/policy.py` already makes
+   for `EXTRACTOR_VERSION`.
+9. **Decide the manager's decision frequency: method boundaries, not every 30
+   ticks.** Deadline: before Phase 8 design freezes, measured in the Phase 4.3
+   profiling harness. See open question 4.
 
 ---
 
-## Do NOT do this
+## 5. Do NOT do this
 
-1. **Do not build a general HTN planner or a PDDL front end.** The book's own
-   Ch.3 discussion notes HTN planning needs descriptive models of every method as
-   well as operational ones (`GNT §3.5`) `[verify]`. We will have on the order of
-   twenty tasks. A hand-written method library with a bounded forward search over
-   it delivers the same behaviour in a week rather than a quarter, and does not
-   drag in a domain language nobody else on the project will edit.
-2. **Do not implement STN/STNU dynamic-controllability checking** (`GNT §4.3.2`).
-   Every duration in Factorio is a published constant in the engine's own
-   prototype data. Per-method deadlines and per-command min/max durations (R9)
-   capture the value; the controllability algebra buys nothing here.
-3. **Do not replace MaskablePPO with value or policy iteration** [deck s.55–57].
-   Those assume an enumerable state space or a good initial `V0`. Take Ch.6's
-   *concepts* — the safe-policy property (R14) and the duration-aware discount
-   (R18) — not its solvers.
-4. **Do not adopt plan-space / partial-order planning** (`GNT §2.5` [deck s.28])
-   for factory layout. Its payoff is ordering flexibility; our constraints are
-   almost entirely resource-prerequisite, which landmark ordering already
-   captures, and we have a single character who can only do one thing at a time,
-   so there is no concurrency to exploit.
+1. **Do not build a domain-independent HTN planner or a PDDL/ANML front end.** We
+   will have on the order of twenty tasks. A hand-written method library with a
+   bounded forward search over it delivers the same behaviour in a week rather
+   than a quarter. **But do implement the book's one-line generative fallback**
+   (§3.3.1, p. 91) — that is where the coverage failure of Example 3.12 (p. 102)
+   actually bites, and it costs almost nothing.
+2. **Do not implement STN/STNU dynamic-controllability checking.** The authors
+   supply both reasons: the constant factor is high (§4.4.3, p. 141) and refining
+   durations to command granularity "introduces more noise in operational models"
+   (§4.5.1, pp. 142–143). Every duration in Factorio is a published constant in
+   the engine's own prototype data. Per-method deadlines and per-command min/max
+   durations (R9) capture the value.
+3. **Do not replace MaskablePPO with value or policy iteration.** They assume an
+   enumerable state space; §6.7.6 (p. 268) puts the practical ceiling at "a few
+   mega states." Take Chapter 5's safe-solution property (R13) and Chapter 6's
+   SMDP discount (R16), not the solvers.
+4. **Do not adopt plan-space / partial-order planning for factory layout** (§2.5).
+   The book notes PSP implementations "tend to run much more slowly than the
+   fastest state-space planners" and that most researchers abandoned it for
+   forward search (p. 54). Our constraints are almost entirely
+   resource-prerequisite, which landmark ordering captures. **Note the corrected
+   rationale:** the reason is *not* "we have one character so there is no
+   concurrency" — §3.3.2's `interleave` (pp. 95–96) shows task concurrency under a
+   single-command constraint is exactly our case, and R4/R5 should support it.
 5. **Do not feed the planner's plan into the policy's observation as a hint.**
-   That is the assisted profile leaking into the primitive profile. It would
-   break PLAN 10.3's ablation claims and make every Phase 4 number
-   non-comparable. The plan is a *choice made above* the policy, not a feature
-   fed to it.
-6. **Do not let `abstract.py`, `Method.pre` or `choose.py` read
-   `session.truth()`.** It is convenient and it is fatal: it turns every hybrid
-   result into an evaluator-information result. `env.action_masks()` holds this
-   line today with a test that reconstructs the mask from a policy-visible
-   observation; extend that test, do not weaken it.
-7. **Do not use the hierarchy to shorten episodes in order to reach the 80%
-   bar.** If a family only passes with a method library, that is a *different
-   deliberation profile* and belongs in a separate row of the PLAN 8.5
-   comparison, reported as such. PLAN §4 forbids lowering thresholds; it equally
-   forbids quietly changing what the threshold is measured on.
+   That is the assisted profile leaking into the primitive profile. It breaks
+   PLAN 10.3's ablation claims and makes every Phase 4 number non-comparable. The
+   plan is a choice made *above* the policy, not a feature fed to it.
+6. **Do not let `state.py`, `Method.pre`, `choose.py` or the event vocabulary read
+   `session.truth()`.** Convenient and fatal: it turns every hybrid result into an
+   evaluator-information result. `env.action_masks()` holds this line today with a
+   test that reconstructs the mask from a policy-visible observation; extend that
+   test, never weaken it.
+7. **Do not use the hierarchy to shorten episodes in order to reach the 80% bar.**
+   If a family only passes with a method library, that is a *different
+   deliberation profile* and belongs in its own row of the PLAN 8.5 comparison.
+   PLAN §4 forbids lowering thresholds; it equally forbids quietly changing what
+   the threshold is measured on.
 8. **Do not let `factoriorl.tasks` import `factoriorl.deliberate`.** The
-   import-direction test in `tests/unit/test_task_isolation.py` keeps tasks free
-   of worker management for a good reason. Extend the same discipline: tasks
-   declare predicates; `deliberate` consumes them; never the reverse.
+   import-direction test in `tests/unit/test_task_isolation.py` keeps tasks free of
+   worker management for a good reason. Extend the same discipline: tasks declare
+   predicates; `deliberate` consumes them; never the reverse.
 9. **Do not defer `domain.py` to Phase 8 on the grounds that it is a Phase 8
-   artifact.** It is the input to a Phase 3 solvability check (R17) and a Phase 4
-   shaping generator (R6). Deferring it defers those too.
+   artifact.** It is the input to a Phase 3 solvability check (R15) and a Phase 4
+   shaping generator (R6). Deferring it defers those.
 10. **Do not rewrite `catalog.py` into a parameterised action space.** The flat,
-    fully-bound, content-hashed catalog is *correct as the command layer* and its
-    reproducibility discipline is one of the better things in this repo. The fix
-    for its combinatorics is a layer above it, not a redesign of it.
+    fully-bound, content-hashed catalog is *correct as the command layer*;
+    §2.7.1's *v^p* argument (p. 60) is about not making it the *only* layer, not
+    about redesigning it. The fix for its combinatorics is above it.
+11. **Do not model our environment as stochastic.** We violate the classical
+    *static-environment* assumption, not the determinism assumption (§2.1.1,
+    p. 20). §6.7.1 (p. 261) warns specifically against the reflex of modelling
+    navigation as probabilistically wandering, and §6.7.5 (pp. 266–267) notes that
+    estimating costs and probabilities "adds a significant burden to the modeling
+    step" and may "hide qualitative preferences and constraints through arbitrary
+    quantitative measures." Randomised *initial states* are not stochastic
+    transitions. Treat exogenous factory dynamics with operational models and
+    events (R5), not with a transition distribution.
+12. **Do not build a belief-state or POMDP layer.** §6.8.3 (p. 270): the belief
+    space is O(2^|S|) over an already-exponential |S|, and the POMDP observation
+    model "is quite restrictive and often unrealistic." The visible/hidden
+    factoring of R11 is the recommended alternative and it is what we already
+    half-have.
 
 ---
 
-## Open questions
+## 6. Open questions
 
 1. **Does the descriptive model need spatial reasoning?** Can `place(item,
-   marker)` abstract away tile geometry, with a `m-place-adjacent` method doing
-   the positioning? If yes, the planner's state space stays tiny. If no, R17's
-   plan-existence check does not close. And if markers are the abstraction, *who
-   invents markers* during Phase 9 expansion, when there is no generator to
-   declare them?
-2. **What granularity does `connected(pole, network)` need?** Does the planner
-   need the electric-network graph, and can that be derived from a 32-tile sensor
-   with remembered observations, or does it need a memory structure that
-   accumulates network topology across an episode?
-3. **Is a learned skill a method *body* or a method *choice function*?** The book
-   permits both (`GNT §3.4`) `[verify]`, and PLAN 8.2 vs 8.3 implies both, but
-   PLAN never says whether they share an observation encoder. If they do,
-   `encoders.py` must serve two very different decision frequencies.
-4. **Deliberation cost against a 24 ms env step.** RAE plus a lookahead adds
-   Python-side cost per decision. At 41.6 env steps/s single-worker, a 20 ms
-   lookahead halves throughput — and throughput is the binding constraint on the
-   whole program. Does the manager decide only at method boundaries (cheap,
-   coarse) or every 30 ticks (expensive, reactive)? This needs measuring before
-   Phase 8 design is fixed, and the Phase 4.3 profiling harness is the place to
-   measure it.
-5. **Where does the LM agent sit?** At the choice function (R4), or above RAE as
-   a goal generator (`GNT §7.3` goal reasoning) `[verify]`? The two have
-   different failure modes, different token costs, and different claims about
-   what was learned. PLAN 8.4 does not distinguish them and should.
-6. **Are the six introductory families tasks, or methods?** `navigate` and
+   marker)` abstract away tile geometry, with an `m-place-adjacent` method doing
+   the positioning? If yes, the planner's state space stays tiny and R15's
+   plan-existence check closes. If no, it does not. And if markers are the
+   abstraction, *who invents markers* during Phase 9 expansion, when there is no
+   generator to declare them? §3.5.3 (p. 110) says the general answer to this class
+   of question does not exist yet, so we will be inventing ours.
+2. **What granularity does `connected(pole, network)` need?** Does the planner need
+   the electric-network graph, and can it be derived from a 32-tile sensor with
+   remembered observations, or does it need a memory structure that accumulates
+   topology across an episode? §7.1.3's anchoring problem (pp. 278–279) is the
+   right frame: an electric network is an object with no perceptual footprint of
+   its own.
+3. **We have no observation action.** §6.8.3 (p. 270) is explicit that "one does
+   not observe at every step all observable variables… These observation actions
+   have a cost and need to be planned for," and §7.1.2 (p. 278) treats planning to
+   perceive as a first-class problem. Today our only sensing action is *moving*.
+   Does Phase 9's expansion need an explicit `scan`/`survey` task with a cost, and
+   if so does it belong in the command catalog or only in the method library?
+4. **Deliberation cost against a 24 ms env step.** At 41.6 env steps/s
+   single-worker, a 20 ms lookahead per decision halves throughput, and throughput
+   is the binding constraint on the entire program. Does the manager decide only at
+   method boundaries (cheap, coarse) or every 30 ticks (expensive, reactive)? The
+   Killzone 2 precedent (§2.6.2, p. 58) ran a planner several times per second on
+   four-action plans — but that game's actor was not also the training bottleneck.
+   Measure in the Phase 4.3 harness before Phase 8 design is fixed.
+5. **Is a learned skill a method *body* or a method *choice function*?** The book
+   permits both (§6.5.1–6.5.2, pp. 253–254), PLAN 8.2 vs 8.3 implies both, and
+   §7.3.2's partial-program framing (p. 292) suggests a third answer — the same
+   method containing both authored structure and learned choice points. R16 picks
+   the third. If that is wrong we find out in 8.2, and the fallback is 8.2 as
+   written. But PLAN should say which it means.
+6. **Where does the LM agent sit?** At the choice function (R4), or above RAE as a
+   goal generator (§7.2.3, pp. 286–287)? Different failure modes, different token
+   costs, different claims about what was learned. PLAN 8.4 does not distinguish
+   them and should.
+7. **Are the six introductory families tasks, or methods?** `navigate` and
    `deliver` look like methods for larger tasks; `mine_smelt` and `restore_power`
-   look like tasks. If four of six are really methods, then PLAN 4.5's acceptance
-   bar is measuring *skill quality*, not *task quality* — which is defensible and
-   arguably the point, but it should be stated rather than discovered in Phase 8.
-7. **Can R13's model-consistency test run at a useful rate?** It is
+   look like tasks. If four of six are really methods, PLAN 4.5's acceptance bar is
+   measuring *skill quality*, not *task quality* — defensible, arguably the point,
+   but it should be stated rather than discovered in Phase 8.
+8. **Does `deliver` fail from dead ends, from exploration, or from missing
+   context?** R7 says missing context (§5.7.2, p. 189); R13 gives the metric that
+   distinguishes it from dead ends. Run R13 before committing to R7's profile bump
+   — a two-hour experiment that decides a checkpoint-invalidating change.
+9. **Can R12's model-consistency test run at a useful rate?** It is
    engine-dependent and the engine is the bottleneck. How many sampled
-   state/command pairs per command give useful coverage within a gate's time
+   state/command pairs per command give useful coverage inside a gate's time
    budget?
-8. **Does `deliver` fail from dead ends or from exploration?** R14's metric
-   answers this, and the answer determines whether the fix is a task change, a
-   catalog change, or a hierarchy. Worth running before committing to any of the
-   above.
+10. **What is the recovery *target* under Phase 7.4's paired evaluation?** §4.5.1
+    (p. 145) offers two repairs — abandon and replan, or absorb the delay and
+    repair the remainder — and says which is better depends on *why* the deadline
+    was missed. Our intervention taxonomy does not currently distinguish absorbable
+    from structural faults. It should, before the paired-recovery metric is frozen.
 
 ---
 
-## One gap in PLAN.md worth raising with the integration owner
+## 7. One gap in PLAN.md worth raising with the integration owner
 
-PLAN Phase 8 is titled "Learned skills and hybrid planning" and its five
-sub-items are 8.1 skill contract, 8.2 train skills, 8.3 manager policy, 8.4 LM
-skill selection, 8.5 hierarchy comparison. Four of the five are about *skills*.
-**There is no line item anywhere in PLAN for the descriptive domain model, the
-abstract state, or the planner** — the three things without which the word
-"planning" in the phase title has no referent. As written, Phase 8 delivers a
-learned option hierarchy and calls it hybrid planning.
+PLAN Phase 8 is titled "Learned skills and hybrid planning," and four of its five
+sub-items (8.1 skill contract, 8.2 train skills, 8.3 manager, 8.4 LM selection,
+8.5 comparison) are about skills. **There is no line item anywhere in PLAN for the
+descriptive domain model, the abstract state, or the planner** — the three things
+without which the word "planning" in the phase title has no referent. As written,
+Phase 8 delivers a learned option hierarchy and calls it hybrid planning.
 
-The ordering PLAN gives (contract → skills → manager → LM → comparison) matches
-the book's layering exactly and needs no change. The recommendation is to add
-**8.0 — descriptive domain model and abstract state** as a prerequisite, with its
-artifacts (R1, R12) actually built in Phases 3–4 where they already pay for
-themselves, so that 8.0 is an acceptance step rather than a build step.
+The ordering PLAN gives matches the book's layering exactly and needs no change.
+The recommendation is to add **8.0 — descriptive domain model, abstract state, and
+refinement engine** as a prerequisite, with its artifacts (R1, R4, R11) actually
+built in Phases 3–5 where they already pay for themselves, so that 8.0 is an
+acceptance step rather than a build step.

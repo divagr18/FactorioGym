@@ -41,6 +41,7 @@ SPEC = TaskSpec(
             "delivered",
             RewardKind.HIGH_WATER,
             weight=0.1,
+            cap=0.5,
             predicate=Predicate(PredicateKind.CONTAINER_HOLDS, marker="sink", item="iron-plate"),
         ),
         RewardComponent("step_cost", RewardKind.STEP_COST, weight=0.001),

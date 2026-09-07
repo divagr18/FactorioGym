@@ -189,6 +189,12 @@ class RewardComponent:
     #: For HIGH_WATER/POTENTIAL: which measurement drives it.
     predicate: Predicate | None = None
     scale: float = 1.0
+    #: Cumulative ceiling for this component over one episode. Required for
+    #: HIGH_WATER, whose driving measurement is usually unbounded: mining ore
+    #: pays per ore, so a policy that mines and never smelts could out-earn
+    #: finishing the task several times over. Capping the total keeps the
+    #: subgoal a hint rather than a substitute goal.
+    cap: float | None = None
 
 
 # ---------------------------------------------------------------------- task
