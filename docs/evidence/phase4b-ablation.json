@@ -1,0 +1,421 @@
+{
+  "phase": "4b",
+  "question": "Is the gap between familiar and unfamiliar structures an abstraction problem or a tuning problem?",
+  "method": "Arms differ only in whether the primitive action catalog is augmented with temporally extended skills. Same seed, same budget, same evaluation episodes. Every row is a single training seed: PLAN 4.5 requires three, so nothing here meets that bar.",
+  "caveats": [
+    "The random baseline is a property of the action space, not the task: adding skills raised mine_smelt's floor from 0.00 to 0.80 at the original 3-plate target, which is why the target was raised to 12.",
+    "Run-to-run variance is large. Two mine_smelt runs at the 3-plate target, same seed and budget, scored 1.00 and 0.72.",
+    "Skill arms are matched on agent decisions, not primitive environment steps. A skill decision consumes several primitive steps, so the skill arm sees more game time for the same number of learner samples.",
+    "supply_furnace is not a usable benchmark against this action set: its random baseline on the structural split is 0.88."
+  ],
+  "runs": [
+    {
+      "run_id": "ab-deliver-flat-20260907T183459-89403fc5",
+      "task": "deliver",
+      "arm": "flat",
+      "total_steps": 25000,
+      "note": null,
+      "wall_seconds": 482.7,
+      "decisions_per_second": 51.79,
+      "seeds": {
+        "successes": 0,
+        "episodes": 25,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1332
+        ],
+        "random_success_rate": 0.16,
+        "random_wilson_95": [
+          0.064,
+          0.3465
+        ]
+      },
+      "val": {
+        "successes": 0,
+        "episodes": 25,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1332
+        ],
+        "random_success_rate": 0.2,
+        "random_wilson_95": [
+          0.0886,
+          0.3913
+        ]
+      },
+      "structures": {
+        "successes": 0,
+        "episodes": 25,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1332
+        ],
+        "random_success_rate": 0.12,
+        "random_wilson_95": [
+          0.0417,
+          0.2996
+        ]
+      }
+    },
+    {
+      "run_id": "ab3-deliver-skills-20260907T193250-ad351a38",
+      "task": "deliver",
+      "arm": "skills",
+      "total_steps": 25000,
+      "note": "stable addressing",
+      "wall_seconds": 565.5,
+      "decisions_per_second": 44.21,
+      "seeds": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.16,
+        "random_wilson_95": [
+          0.064,
+          0.3465
+        ]
+      },
+      "val": {
+        "successes": 17,
+        "episodes": 25,
+        "success_rate": 0.68,
+        "wilson_95": [
+          0.4841,
+          0.828
+        ],
+        "random_success_rate": 0.2,
+        "random_wilson_95": [
+          0.0886,
+          0.3913
+        ]
+      },
+      "structures": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.12,
+        "random_wilson_95": [
+          0.0417,
+          0.2996
+        ]
+      }
+    },
+    {
+      "run_id": "ab-deliver-skills-20260907T184354-2ed5d59a",
+      "task": "deliver",
+      "arm": "skills",
+      "total_steps": 25000,
+      "note": "rank addressing incl. obstacles",
+      "wall_seconds": 545.4,
+      "decisions_per_second": 45.84,
+      "seeds": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.16,
+        "random_wilson_95": [
+          0.064,
+          0.3465
+        ]
+      },
+      "val": {
+        "successes": 15,
+        "episodes": 25,
+        "success_rate": 0.6,
+        "wilson_95": [
+          0.4074,
+          0.766
+        ],
+        "random_success_rate": 0.2,
+        "random_wilson_95": [
+          0.0886,
+          0.3913
+        ]
+      },
+      "structures": {
+        "successes": 0,
+        "episodes": 25,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1332
+        ],
+        "random_success_rate": 0.12,
+        "random_wilson_95": [
+          0.0417,
+          0.2996
+        ]
+      }
+    },
+    {
+      "run_id": "ab2-deliver-skills-20260907T185529-b5524ee0",
+      "task": "deliver",
+      "arm": "skills",
+      "total_steps": 25000,
+      "note": "rank addressing + obstacle sidestep",
+      "wall_seconds": 956.4,
+      "decisions_per_second": 26.14,
+      "seeds": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.16,
+        "random_wilson_95": [
+          0.064,
+          0.3465
+        ]
+      },
+      "val": {
+        "successes": 18,
+        "episodes": 25,
+        "success_rate": 0.72,
+        "wilson_95": [
+          0.5242,
+          0.8572
+        ],
+        "random_success_rate": 0.2,
+        "random_wilson_95": [
+          0.0886,
+          0.3913
+        ]
+      },
+      "structures": {
+        "successes": 0,
+        "episodes": 25,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1332
+        ],
+        "random_success_rate": 0.12,
+        "random_wilson_95": [
+          0.0417,
+          0.2996
+        ]
+      }
+    },
+    {
+      "run_id": "sk-navigate-20260907T194546-65f59a90",
+      "task": "navigate",
+      "arm": "skills",
+      "total_steps": 25000,
+      "note": null,
+      "wall_seconds": 905.8,
+      "decisions_per_second": 27.6,
+      "seeds": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.16,
+        "random_wilson_95": [
+          0.064,
+          0.3465
+        ]
+      },
+      "val": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.2,
+        "random_wilson_95": [
+          0.0886,
+          0.3913
+        ]
+      },
+      "structures": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.2,
+        "random_wilson_95": [
+          0.0886,
+          0.3913
+        ]
+      }
+    },
+    {
+      "run_id": "sk2-mine_smelt-20260907T203409-87f06c67",
+      "task": "mine_smelt",
+      "arm": "skills",
+      "total_steps": 25000,
+      "note": "12-plate target",
+      "wall_seconds": 1769.7,
+      "decisions_per_second": 14.13,
+      "seeds": {
+        "successes": 16,
+        "episodes": 25,
+        "success_rate": 0.64,
+        "wilson_95": [
+          0.4452,
+          0.7975
+        ],
+        "random_success_rate": 0.2,
+        "random_wilson_95": [
+          0.0886,
+          0.3913
+        ]
+      },
+      "val": {
+        "successes": 16,
+        "episodes": 25,
+        "success_rate": 0.64,
+        "wilson_95": [
+          0.4452,
+          0.7975
+        ],
+        "random_success_rate": 0.28,
+        "random_wilson_95": [
+          0.1428,
+          0.4758
+        ]
+      },
+      "structures": {
+        "successes": 17,
+        "episodes": 25,
+        "success_rate": 0.68,
+        "wilson_95": [
+          0.4841,
+          0.828
+        ],
+        "random_success_rate": 0.24,
+        "random_wilson_95": [
+          0.115,
+          0.4343
+        ]
+      }
+    },
+    {
+      "run_id": "sk50-mine_smelt-20260907T211231-9bd8547e",
+      "task": "mine_smelt",
+      "arm": "skills",
+      "total_steps": 50000,
+      "note": "12-plate target",
+      "wall_seconds": 1719.3,
+      "decisions_per_second": 29.08,
+      "seeds": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.2,
+        "random_wilson_95": [
+          0.0886,
+          0.3913
+        ]
+      },
+      "val": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.28,
+        "random_wilson_95": [
+          0.1428,
+          0.4758
+        ]
+      },
+      "structures": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.24,
+        "random_wilson_95": [
+          0.115,
+          0.4343
+        ]
+      }
+    },
+    {
+      "run_id": "sk-supply_furnace-20260907T200100-7ff9d57a",
+      "task": "supply_furnace",
+      "arm": "skills",
+      "total_steps": 25000,
+      "note": null,
+      "wall_seconds": 1015.6,
+      "decisions_per_second": 24.61,
+      "seeds": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 0.96,
+        "random_wilson_95": [
+          0.8046,
+          0.9929
+        ]
+      },
+      "val": {
+        "successes": 25,
+        "episodes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "random_success_rate": 1.0,
+        "random_wilson_95": [
+          0.8668,
+          1.0
+        ]
+      },
+      "structures": {
+        "successes": 5,
+        "episodes": 25,
+        "success_rate": 0.2,
+        "wilson_95": [
+          0.0886,
+          0.3913
+        ],
+        "random_success_rate": 0.88,
+        "random_wilson_95": [
+          0.7004,
+          0.9583
+        ]
+      }
+    }
+  ]
+}

@@ -788,6 +788,27 @@ This is a stopgap scoped to obstacles. The general fix is to address by
 declared entity *type* as well as rank, so that a scene dense in belts or pipes
 - Phase 7 - cannot shadow the machine the agent needs.
 
+Extending the budget settled the one family that looked like a counterexample:
+
+    mine_smelt @12 plates, skills, structural split
+        25k steps   17/25 = 0.68   random 0.24
+        50k steps   25/25 = 1.00   random 0.24
+
+At 25k this read as evidence that skills were not enough for a production task.
+It was evidence of nothing but the budget.
+
+Three families now clear the 80% structural bar, with a production qualifier
+among them - `navigate` 1.00 (random 0.20), `deliver` 1.00 (random 0.12),
+`mine_smelt` 1.00 (random 0.24). **This does not meet PLAN 4.5**, which
+requires three training seeds per family; every number above is a single seed,
+on a benchmark where two runs at the same seed and budget scored 1.00 and 0.72.
+The bar is cleared on one sample and the claim needs nine runs.
+
+Full per-run detail, including the two failed addressing variants and the
+disqualified `supply_furnace`, is in `docs/evidence/phase4b-ablation.json`.
+That file exists because the alternative was a ledger claim checkable only
+against gitignored `runtime/runs/` - the Phase 1 failure mode.
+
 ### 4.4 / 4.5 - not yet done
 
 The shaping-dependence comparison and the three-seed release result remain.
