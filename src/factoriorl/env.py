@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from typing import Any
 
 import gymnasium as gym
@@ -107,11 +108,18 @@ class FactorioEnv(gym.Env):
         nearest_resource = min(tiles, key=distance) if tiles else None
         character = self._observation.get("character") or {}
         position = character.get("position", [0, 0])
-        return {
+        context = {
             "target": nearest_entity["h"] if nearest_entity else None,
             "resource": nearest_resource["h"] if nearest_resource else None,
-            "ahead": [round(position[0]) + 2, round(position[1])],
         }
+        # One placement position per facing, tile-aligned. A single fixed offset
+        # made a belt gap fillable from exactly one standing position.
+        # floor, not round: positions are tile centres and banker's rounding
+        # would send adjacent placements to the wrong tile half the time.
+        tile_x, tile_y = math.floor(position[0]), math.floor(position[1])
+        for direction, (dx, dy) in catalog_module.PLACE_OFFSETS.items():
+            context[f"at_{direction}"] = [tile_x + dx + 0.5, tile_y + dy + 0.5]
+        return context
 
     def action_masks(self) -> np.ndarray:
         """sb3-contrib's masking protocol.

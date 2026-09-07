@@ -37,6 +37,10 @@ from factoriorl.worker import WorkerManager
 GATE_SPEED = 30.0
 RESET_TARGET = 500
 RANDOM_EPISODE_STEPS = 40
+#: Episodes per family for the reference-solution check.
+REFERENCE_EPISODES = 3
+#: A reference solution that cannot finish reliably indicates a task defect.
+REFERENCE_THRESHOLD = 0.99
 
 
 @dataclass
@@ -197,6 +201,33 @@ def run_phase3_gate(worker_id: str = "phase3-gate") -> dict:
                 f"{task_id}: held-out family differs from training families",
                 test_info["layout_family"] not in {f.name for f in task.spec.families("train")},
                 held_out=test_info.get("layout_family"),
+            )
+
+        # ---- 2b. reference solutions (PLAN.md 3.2) ---------------------
+        # The check this gate was missing. A task whose scripted solution
+        # cannot finish is unsolvable *through the catalog the policy is
+        # given* -- a task defect, not a training result. Without this the
+        # gate passed while five of six families were unlearnable.
+        from factoriorl.tasks.reference import solve
+
+        for task_id, task in sorted(tasks.items()):
+            solved = 0
+            reasons: set[str] = set()
+            for index in range(REFERENCE_EPISODES):
+                ref_env = FactorioEnv(task, session, plan, branch=Branch.TRAIN, split="train")
+                ref_env._episode_index = index - 1
+                ref_env.reset()
+                trace = solve(ref_env)
+                solved += int(trace.succeeded)
+                if trace.stuck_reason:
+                    reasons.add(trace.stuck_reason)
+            rate = solved / REFERENCE_EPISODES
+            report.check(
+                "reference",
+                f"{task_id}: the scripted solution completes the task",
+                rate >= REFERENCE_THRESHOLD,
+                reference_rate=round(rate, 2),
+                stuck_reasons=sorted(reasons)[:3],
             )
 
         # ---- 3. reset correctness -------------------------------------

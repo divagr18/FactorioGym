@@ -227,6 +227,9 @@ function world.build_blueprint(hash)
   local radius = blueprint.radius or 64
   local destroyed = clear_scene(srf, radius)
   world.ensure_character()
+  -- Deterministic lighting: solar output must not depend on what time of day
+  -- the map happens to be at when an episode starts.
+  srf.always_day = true
 
   local aliases = {}
   for _, spec in pairs(blueprint.resources or {}) do
@@ -265,6 +268,15 @@ function world.build_blueprint(hash)
     for item, count in pairs(character.inventory) do
       inv.insert({ name = item, count = count })
     end
+  end
+
+  -- Declared unlocks. Evaluator setup, recorded in the blueprint rather than
+  -- applied invisibly: a task that gives the agent an item must also make that
+  -- item placeable, or the profile's technology guard refuses it.
+  local force = game.forces["player"]
+  for _, recipe_name in pairs(blueprint.unlock_recipes or {}) do
+    local recipe = force.recipes[recipe_name]
+    if recipe then recipe.enabled = true end
   end
 
   storage.frrl_scene = {

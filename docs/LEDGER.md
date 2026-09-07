@@ -446,7 +446,30 @@ detects being stuck instead of spinning out its budget.
 
 ## Phase 3 - Task engine, reset correctness, RL spaces
 
-**Status: Accepted** (2026-09-07)
+**Status: Needs correction** (2026-09-07, downgraded from Accepted)
+
+> **Correction.** This was marked Accepted on the strength of a 65/65 gate. The
+> gate does not test what PLAN 3.2 actually requires. 3.2 says each family must
+> provide "a scripted solution", a random baseline, and a declared solvability
+> suite. **The scripted reference solutions were never implemented**, and the
+> gate's own docstring quotes "reference solutions" while no gate section runs
+> one. The random baselines exist only inside training runs, not in the gate.
+>
+> This is the same class of error as the Phase 1 premature acceptance: a gate
+> that passes on the checks it happens to contain, for a phase whose
+> requirements it does not cover.
+>
+> The cost was concrete. Phase 4's feasibility sweep found that **five of six
+> families cannot be learned as designed**, and three never succeed even during
+> training. The cause is a catalog defect: all three `place_*` templates bind
+> their position to `$ahead` -- the character's tile plus two east -- so
+> repairing a belt gap at x=7 requires standing at exactly x=5, and the only
+> reward gradient before the repair is a high-water counter that stays at zero
+> until the repair is already done. A scripted solver could not have been
+> written without noticing this, which is precisely why PLAN asks for one.
+>
+> Everything else in this entry stands and was genuinely measured. 3.2 is
+> incomplete; the sections below marked 3.1 and 3.3 through 3.6 are not.
 
 Gate evidence: `docs/evidence/phase3-gate.json` - **65/65 checks, passed: true**,
 produced by `uv run factoriorl phase3-gate`.
@@ -498,7 +521,7 @@ be affordable.
 Blueprints are installed once and referenced by hash thereafter, so a
 steady-state reset carries a hash rather than the whole scene.
 
-### 3.3 - Six introductory families
+### 3.3 - Six introductory families (**incomplete**: no scripted solutions)
 
 `navigate`, `deliver`, `mine_smelt`, `supply_furnace`, `repair_belt`,
 `restore_power`. Each declares four layout families across train/val/test, and

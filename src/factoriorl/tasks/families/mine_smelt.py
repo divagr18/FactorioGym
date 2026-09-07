@@ -32,7 +32,9 @@ FAMILIES = (
     LayoutFamily("near_patch", "train"),
     LayoutFamily("fuelled_furnace", "train"),
     LayoutFamily("split_patch", "val"),
-    LayoutFamily("far_patch", "test"),
+    # Matched distance, different arrangement: the patch is screened rather
+    # than farther away.
+    LayoutFamily("screened_patch", "test"),
 )
 
 SPEC = TaskSpec(
@@ -64,6 +66,10 @@ SPEC = TaskSpec(
         "move_east",
         "move_south",
         "move_west",
+        "step_north",
+        "step_east",
+        "step_south",
+        "step_west",
         "mine_nearest",
         "mine_nearest_5",
         "take_iron-ore_5",
@@ -77,7 +83,7 @@ SPEC = TaskSpec(
 
 def generate(family: LayoutFamily, rng) -> Blueprint:
     angle = rng.uniform(0, 2 * math.pi)
-    distance = rng.uniform(8.0, 14.0) if family.name != "far_patch" else rng.uniform(20.0, 28.0)
+    distance = rng.uniform(8.0, 14.0)
     centre = (round(math.cos(angle) * distance), round(math.sin(angle) * distance))
 
     resources = []
@@ -92,7 +98,14 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
                 ResourceSpec("iron-ore", (centre[0] + dx + 6, centre[1] + 5), amount=800)
             )
 
-    furnace = (round(centre[0] * 0.4), round(centre[1] * 0.4))
+    if family.name == "screened_patch":
+        for offset in (-2, -1, 1, 2):
+            resources.append(
+                ResourceSpec("iron-ore", (centre[0] + 3, centre[1] + offset), amount=800)
+            )
+    # Offset perpendicular to the patch bearing, so walking to the ore never
+    # runs into the furnace itself.
+    furnace = (round(centre[0] * 0.35) + 2, round(centre[1] * 0.35) - 3)
     contents = {"coal": 6} if family.name == "fuelled_furnace" else {}
     entities = [EntitySpec("stone-furnace", furnace, contents=contents, marker="furnace")]
     inventory = {"coal": 10} if family.name != "fuelled_furnace" else {"coal": 4}

@@ -43,11 +43,51 @@ class ActionTemplate:
         return body
 
 
+DIRECTIONS = ("north", "east", "south", "west")
+
+#: A 30-tick move covers about 4.45 tiles, so a catalog with only that stride
+#: cannot approach anything within ~4 tiles: the agent overshoots and
+#: oscillates forever. The reference solvers hit this on every family. A short
+#: stride costs four action indices and makes positioning possible at all.
+LONG_MOVE_TICKS = 30
+SHORT_MOVE_TICKS = 7
+
+
 def _move_templates() -> list[ActionTemplate]:
-    return [
-        ActionTemplate(f"move_{d}", "move", {"direction": d, "ticks": 30})
-        for d in ("north", "east", "south", "west")
+    templates = [
+        ActionTemplate(f"move_{d}", "move", {"direction": d, "ticks": LONG_MOVE_TICKS})
+        for d in DIRECTIONS
     ]
+    templates += [
+        ActionTemplate(f"step_{d}", "move", {"direction": d, "ticks": SHORT_MOVE_TICKS})
+        for d in DIRECTIONS
+    ]
+    return templates
+
+
+#: Placement offsets, one per facing. Binding placement to a single fixed
+#: offset (character + 2 east) meant a belt gap could only ever be filled by
+#: standing exactly two tiles west of it -- an unreachable precondition for an
+#: agent that also could not position precisely.
+PLACE_OFFSETS = {"north": (0, -1), "east": (1, 0), "south": (0, 1), "west": (-1, 0)}
+
+
+def _place_templates(items: tuple[str, ...]) -> list[ActionTemplate]:
+    out = []
+    for item in items:
+        short = item.replace("-", "_")
+        for direction in DIRECTIONS:
+            out.append(
+                ActionTemplate(
+                    f"place_{short}_{direction}",
+                    "place",
+                    # Facing follows the placement direction: "place a belt to
+                    # my east" means one that carries east.
+                    {"item": item, "position": f"$at_{direction}", "direction": direction},
+                    requires=f"at_{direction}",
+                )
+            )
+    return out
 
 
 def _transfer_templates(items: tuple[str, ...]) -> list[ActionTemplate]:
@@ -88,24 +128,7 @@ PRIMITIVE_V1: tuple[ActionTemplate, ...] = tuple(
         *_transfer_templates(("iron-ore", "coal", "iron-plate", "stone")),
         ActionTemplate("craft_stone_furnace", "craft", {"recipe": "stone-furnace", "count": 1}),
         ActionTemplate("craft_iron_gear", "craft", {"recipe": "iron-gear-wheel", "count": 1}),
-        ActionTemplate(
-            "place_stone_furnace",
-            "place",
-            {"item": "stone-furnace", "position": "$ahead"},
-            requires="ahead",
-        ),
-        ActionTemplate(
-            "place_transport_belt",
-            "place",
-            {"item": "transport-belt", "position": "$ahead"},
-            requires="ahead",
-        ),
-        ActionTemplate(
-            "place_small_electric_pole",
-            "place",
-            {"item": "small-electric-pole", "position": "$ahead"},
-            requires="ahead",
-        ),
+        *_place_templates(("stone-furnace", "transport-belt", "small-electric-pole")),
         ActionTemplate("rotate_target", "rotate", {"handle": "$target"}, requires="target"),
         ActionTemplate(WAIT, "wait", {}),
     ]

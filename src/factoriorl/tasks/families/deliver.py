@@ -27,7 +27,9 @@ FAMILIES = (
     LayoutFamily("two_chest", "train"),
     LayoutFamily("decoy_chest", "train"),
     LayoutFamily("stacked_depot", "val"),
-    LayoutFamily("far_depot", "test"),
+    # Structural holdout at matched distance: the destination sits behind a
+    # wall segment, so the route differs while the distance does not.
+    LayoutFamily("screened_depot", "test"),
 )
 
 SPEC = TaskSpec(
@@ -68,6 +70,10 @@ SPEC = TaskSpec(
         "move_east",
         "move_south",
         "move_west",
+        "step_north",
+        "step_east",
+        "step_south",
+        "step_west",
         "take_iron-plate_5",
         "take_iron-plate_20",
         "give_iron-plate_5",

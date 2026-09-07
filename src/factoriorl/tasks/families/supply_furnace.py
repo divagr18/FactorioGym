@@ -59,6 +59,10 @@ SPEC = TaskSpec(
         "move_east",
         "move_south",
         "move_west",
+        "step_north",
+        "step_east",
+        "step_south",
+        "step_west",
         "take_iron-ore_5",
         "take_iron-ore_20",
         "give_iron-ore_5",
@@ -71,7 +75,7 @@ SPEC = TaskSpec(
 
 def generate(family: LayoutFamily, rng) -> Blueprint:
     angle = rng.uniform(0, 2 * math.pi)
-    ore_distance = rng.uniform(5.0, 10.0) if family.name != "far_ore" else rng.uniform(18.0, 26.0)
+    ore_distance = rng.uniform(5.0, 10.0)
     ore_chest = (round(math.cos(angle) * ore_distance, 1), round(math.sin(angle) * ore_distance, 1))
     furnace_angle = angle + rng.uniform(1.5, 2.5)
     furnace = (round(math.cos(furnace_angle) * 8), round(math.sin(furnace_angle) * 8))

@@ -28,7 +28,9 @@ FAMILIES = (
     LayoutFamily("pole_gap", "train"),
     LayoutFamily("pole_gap_far", "train"),
     LayoutFamily("two_gaps", "val"),
-    LayoutFamily("long_chain", "test"),
+    # Same chain length as training, gap in a different place: structure, not
+    # magnitude.
+    LayoutFamily("gap_near_drill", "test"),
 )
 
 SPEC = TaskSpec(
@@ -48,33 +50,48 @@ SPEC = TaskSpec(
         "move_east",
         "move_south",
         "move_west",
-        "place_small_electric_pole",
+        "step_north",
+        "step_east",
+        "step_south",
+        "step_west",
+        "place_small_electric_pole_north",
+        "place_small_electric_pole_east",
+        "place_small_electric_pole_south",
+        "place_small_electric_pole_west",
         "wait",
     ),
 )
 
 
 def generate(family: LayoutFamily, rng) -> Blueprint:
-    chain = 5 if family.name != "long_chain" else 8
-    gap = rng.randint(1, chain - 1)
+    chain = 5
+    gap = rng.randint(1, chain - 2)
+    if family.name == "gap_near_drill":
+        gap = chain - 1
     gaps = {gap}
     if family.name == "two_gaps":
         gaps.add(min(chain - 1, gap + 2))
 
+    # Solar rather than a boiler: a boiler needs a water supply, and without
+    # one the drill could never be powered no matter where the missing pole
+    # went -- the task would be unsolvable for a reason unrelated to the fault
+    # it is meant to test.
     entities = [
-        EntitySpec("boiler", (-6.0, 0.0), direction="east", marker="boiler", contents={"coal": 20}),
-        EntitySpec("steam-engine", (-2.0, 0.0), direction="east", marker="engine"),
+        EntitySpec("solar-panel", (-10.0, -8.0), marker="generator"),
+        EntitySpec("solar-panel", (-7.0, -8.0)),
+        EntitySpec("solar-panel", (-4.0, -8.0)),
+        EntitySpec("small-electric-pole", (-1.0, -8.0)),
     ]
     for index in range(chain):
         if index in gaps:
             continue
-        entities.append(EntitySpec("small-electric-pole", (float(2 + index * 4), 0.0)))
+        entities.append(EntitySpec("small-electric-pole", (float(2 + index * 4), -8.0)))
     drill_x = float(2 + chain * 4)
     entities.append(
-        EntitySpec("electric-mining-drill", (drill_x, 0.0), direction="south", marker="drill")
+        EntitySpec("electric-mining-drill", (drill_x, -8.0), direction="south", marker="drill")
     )
     resources = tuple(
-        ResourceSpec("iron-ore", (drill_x + dx, float(dy)), amount=1000)
+        ResourceSpec("iron-ore", (drill_x + dx, float(dy) - 8.0), amount=1000)
         for dx in (-1.0, 0.0, 1.0)
         for dy in (-1, 0, 1)
     )
@@ -84,7 +101,8 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         resources=resources,
         character_position=(0.0, 0.0),
         character_inventory={"small-electric-pole": 4},
-        markers={"drill": (drill_x, 0.0)},
+        unlock_recipes=("small-electric-pole",),
+        markers={"drill": (drill_x, -8.0)},
         radius=64,
     )
 

@@ -392,6 +392,13 @@ local function handle_reset(request)
   if payload.scenario then
     storage.frrl_scenario_name = payload.scenario
   end
+  -- Character state is reset *before* the scene is built, not after. Building
+  -- a blueprint sets the character's position and starting inventory, and
+  -- reset_state clears both -- so running it afterwards silently discarded
+  -- every item a task meant to hand the agent. That is why repair_belt could
+  -- never place a belt it was explicitly given.
+  actions.reset_state()
+
   local scene
   if payload.blueprint_hash then
     if not world.has_blueprint(payload.blueprint_hash) then
@@ -403,7 +410,6 @@ local function handle_reset(request)
   else
     scene = world.reset_scene()
   end
-  actions.reset_state()
   -- Cumulative statistics are exactly where cross-episode leakage hides, and
   -- nothing cleared them before.
   world.clear_statistics()

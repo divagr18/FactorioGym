@@ -25,8 +25,10 @@ FAMILIES = (
     LayoutFamily("open", "train"),
     LayoutFamily("wall_corridor", "train"),
     LayoutFamily("pillar_field", "val"),
-    # Held out structurally, not merely by seed.
-    LayoutFamily("wall_ring", "test"),
+    # Held out structurally at *matched* difficulty: the same goal-distance
+    # range as training, a different obstacle topology. A holdout that is
+    # simply farther away measures difficulty, not transfer.
+    LayoutFamily("wall_arc", "test"),
 )
 
 SPEC = TaskSpec(
@@ -48,7 +50,17 @@ SPEC = TaskSpec(
     max_decision_steps=150,
     max_game_ticks=9000,
     catalog="primitive-v1",
-    catalog_subset=("move_north", "move_east", "move_south", "move_west", "wait"),
+    catalog_subset=(
+        "move_north",
+        "move_east",
+        "move_south",
+        "move_west",
+        "step_north",
+        "step_east",
+        "step_south",
+        "step_west",
+        "wait",
+    ),
 )
 
 
@@ -81,13 +93,18 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
                 continue
             taken.add(candidate)
             entities.append(EntitySpec("stone-wall", (float(candidate[0]), float(candidate[1]))))
-    elif family.name == "wall_ring":
-        for step in range(0, 360, 30):
-            angle = math.radians(step)
-            radius = distance * 0.6
-            position = (round(math.cos(angle) * radius, 1), round(math.sin(angle) * radius, 1))
-            if math.dist(position, goal) > 4 and math.hypot(*position) > 4:
-                entities.append(EntitySpec("stone-wall", position))
+    elif family.name == "wall_arc":
+        # An arc across the direct line, open at both ends: a different
+        # topology to walk around, not a harder one to reach.
+        taken = set()
+        for step in range(-60, 61, 15):
+            angle = bearing + math.radians(step)
+            radius = distance * 0.55
+            tile = (round(math.cos(angle) * radius), round(math.sin(angle) * radius))
+            if tile in taken or math.dist(tile, goal) < 3 or math.hypot(*tile) < 3:
+                continue
+            taken.add(tile)
+            entities.append(EntitySpec("stone-wall", (float(tile[0]), float(tile[1]))))
 
     return Blueprint(
         entities=tuple(entities),

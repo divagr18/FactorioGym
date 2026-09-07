@@ -138,6 +138,15 @@ def cmd_runs(args) -> int:
     return 0 if result["ok"] else 1
 
 
+def cmd_profile(args) -> int:
+    from factoriorl.profiling import run_profile
+
+    counts = tuple(int(x) for x in args.workers.split(","))
+    report = run_profile(worker_counts=counts, task_id=args.task, steps_per_worker=args.steps)
+    print(json.dumps(report, indent=2))
+    return 0
+
+
 def cmd_phase4_gate(args) -> int:
     from factoriorl.gate_phase4 import run_phase4_gate
 
@@ -283,6 +292,10 @@ def main(argv: list[str] | None = None) -> int:
     train_cmd.add_argument("--prefix", default="train")
 
     sub.add_parser("doctor-train", help="check the training stack and CUDA")
+    prof = sub.add_parser("profile", help="worker-count throughput profiling (PLAN 4.3)")
+    prof.add_argument("--workers", default="1,2,4,8")
+    prof.add_argument("--task", default="navigate")
+    prof.add_argument("--steps", type=int, default=120)
     gate4 = sub.add_parser("phase4-gate", help="run the Phase 4 exit gate")
     gate4.add_argument("--mode", choices=("reproduce", "full"), default="reproduce")
 
@@ -325,6 +338,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_train(args)
     if args.command == "doctor-train":
         return cmd_doctor_train(args)
+    if args.command == "profile":
+        return cmd_profile(args)
     if args.command == "phase4-gate":
         return cmd_phase4_gate(args)
     if args.command == "tasks":

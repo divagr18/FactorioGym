@@ -52,9 +52,15 @@ SPEC = TaskSpec(
         "move_east",
         "move_south",
         "move_west",
-        "place_transport_belt",
+        "step_north",
+        "step_east",
+        "step_south",
+        "step_west",
+        "place_transport_belt_north",
+        "place_transport_belt_east",
+        "place_transport_belt_south",
+        "place_transport_belt_west",
         "rotate_target",
-        "give_iron-plate_5",
         "wait",
     ),
 )
@@ -90,13 +96,26 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
             EntitySpec("transport-belt", (float(start_x + index), LINE_Y), direction=direction)
         )
     # Inserters move items on and off the line, so the belt is the only thing
-    # standing between source and sink.
+    # standing between source and sink. Burner inserters, because the scene has
+    # no power network: electric ones would never move an item even after a
+    # correct repair, making the task unsolvable for reasons unrelated to the
+    # belt.
     entities.append(
-        EntitySpec("inserter", (float(start_x - 1), LINE_Y), direction="east", marker="loader")
+        EntitySpec(
+            "burner-inserter",
+            (float(start_x - 1), LINE_Y),
+            direction="east",
+            marker="loader",
+            contents={"coal": 5},
+        )
     )
     entities.append(
         EntitySpec(
-            "inserter", (float(start_x + length), LINE_Y), direction="east", marker="unloader"
+            "burner-inserter",
+            (float(start_x + length), LINE_Y),
+            direction="east",
+            marker="unloader",
+            contents={"coal": 5},
         )
     )
 
@@ -104,6 +123,7 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         entities=tuple(entities),
         character_position=(0.0, 0.0),
         character_inventory={"transport-belt": 5},
+        unlock_recipes=("transport-belt",),
         markers={"sink": (float(start_x + length + 1), LINE_Y)},
         radius=64,
     )

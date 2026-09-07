@@ -1,0 +1,164 @@
+{
+  "steps_per_run": 25000,
+  "seed": 11,
+  "concurrency": 3,
+  "wall_seconds": 2672.3,
+  "runs": [
+    {
+      "run_id": "sweep-20260907T094808-52d98f77",
+      "task": "deliver",
+      "total_steps": 25000,
+      "wall_seconds": 1320.1,
+      "steps_per_second": 19.23,
+      "held_out": {
+        "episodes": 20,
+        "successes": 0,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1611
+        ],
+        "mean_episode_reward": 0.5625,
+        "mean_episode_steps": 250.0
+      },
+      "random_baseline": {
+        "episodes": 10,
+        "successes": 1,
+        "success_rate": 0.1,
+        "wilson_95": [
+          0.0179,
+          0.4042
+        ]
+      },
+      "episodes_logged": 151,
+      "final_train_success_rate": 0.65,
+      "ok": true,
+      "signal": false
+    },
+    {
+      "run_id": "sweep-20260907T094808-35848ed3",
+      "task": "supply_furnace",
+      "total_steps": 25000,
+      "wall_seconds": 1280.1,
+      "steps_per_second": 19.84,
+      "held_out": {
+        "episodes": 20,
+        "successes": 7,
+        "success_rate": 0.35,
+        "wilson_95": [
+          0.1812,
+          0.5671
+        ],
+        "mean_episode_reward": 1.1237,
+        "mean_episode_steps": 253.8
+      },
+      "random_baseline": {
+        "episodes": 10,
+        "successes": 3,
+        "success_rate": 0.3,
+        "wilson_95": [
+          0.1078,
+          0.6032
+        ]
+      },
+      "episodes_logged": 319,
+      "final_train_success_rate": 1.0,
+      "ok": true,
+      "signal": false
+    },
+    {
+      "run_id": "sweep-20260907T094808-223b8fc6",
+      "task": "mine_smelt",
+      "total_steps": 25000,
+      "wall_seconds": 1631.9,
+      "steps_per_second": 15.51,
+      "held_out": {
+        "episodes": 20,
+        "successes": 0,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1611
+        ],
+        "mean_episode_reward": -0.4,
+        "mean_episode_steps": 400.0
+      },
+      "random_baseline": {
+        "episodes": 10,
+        "successes": 0,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.2775
+        ]
+      },
+      "episodes_logged": 62,
+      "final_train_success_rate": 0.0,
+      "ok": true,
+      "signal": false
+    },
+    {
+      "run_id": "sweep-20260907T100928-4d1e2966",
+      "task": "repair_belt",
+      "total_steps": 25000,
+      "wall_seconds": 1392.2,
+      "steps_per_second": 18.21,
+      "held_out": {
+        "episodes": 20,
+        "successes": 0,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1611
+        ],
+        "mean_episode_reward": -0.3,
+        "mean_episode_steps": 300.0
+      },
+      "random_baseline": {
+        "episodes": 10,
+        "successes": 0,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.2775
+        ]
+      },
+      "episodes_logged": 83,
+      "final_train_success_rate": 0.0,
+      "ok": true,
+      "signal": false
+    },
+    {
+      "run_id": "sweep-20260907T101008-f6e38a3e",
+      "task": "restore_power",
+      "total_steps": 25000,
+      "wall_seconds": 1224.7,
+      "steps_per_second": 20.74,
+      "held_out": {
+        "episodes": 20,
+        "successes": 0,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.1611
+        ],
+        "mean_episode_reward": -0.25,
+        "mean_episode_steps": 250.0
+      },
+      "random_baseline": {
+        "episodes": 10,
+        "successes": 0,
+        "success_rate": 0.0,
+        "wilson_95": [
+          0.0,
+          0.2775
+        ]
+      },
+      "episodes_logged": 100,
+      "final_train_success_rate": 0.0,
+      "ok": true,
+      "signal": false
+    }
+  ],
+  "candidates": []
+}

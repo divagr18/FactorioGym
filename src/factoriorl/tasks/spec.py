@@ -76,6 +76,10 @@ class Blueprint:
     character_position: tuple[float, float] = (0.0, 0.0)
     character_inventory: dict[str, int] = field(default_factory=dict)
     markers: dict[str, tuple[float, float]] = field(default_factory=dict)
+    #: Recipes this scenario unlocks. Declared, not implied: the action
+    #: profile's placement guard refuses an item whose recipe is locked, so a
+    #: task handing out such an item must say so.
+    unlock_recipes: tuple[str, ...] = ()
     radius: int = 64
 
     def to_dict(self) -> dict:
@@ -87,6 +91,7 @@ class Blueprint:
                 "inventory": self.character_inventory,
             },
             "markers": {k: list(v) for k, v in self.markers.items()},
+            "unlock_recipes": list(self.unlock_recipes),
             "radius": self.radius,
         }
 
