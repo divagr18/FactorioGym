@@ -5,276 +5,19 @@
     1,
     2
   ],
-  "shaped_held_out_mean": 0.52,
-  "sparse_held_out_mean": 0.66,
+  "shaped_held_out_mean": 0.7,
+  "sparse_held_out_mean": 0.96,
   "same_success_predicate": true,
   "interpretation": "shaping hurt, which usually means the shaping signal points away from the success predicate -- a reward defect, not a tuning knob",
   "runs": [
     {
-      "run_id": "shaped-20260908T002112-c810e1bd",
+      "run_id": "shaped-20260908T024750-fa270329",
       "task": "deliver",
       "eval_split": "val",
       "total_steps": 25000,
-      "wall_seconds": 754.3,
-      "steps_per_second": 34.88,
+      "wall_seconds": 756.6,
+      "steps_per_second": 36.28,
       "held_out": {
-        "episodes": 25,
-        "successes": 24,
-        "success_rate": 0.96,
-        "wilson_95": [
-          0.8046,
-          0.9929
-        ],
-        "mean_episode_reward": 1.282,
-        "mean_episode_steps": 7.2,
-        "deterministic": true,
-        "split": "test",
-        "random_baseline": {
-          "episodes": 25,
-          "successes": 20,
-          "success_rate": 0.8,
-          "wilson_95": [
-            0.6087,
-            0.9114
-          ],
-          "cached": false
-        }
-      },
-      "random_baseline": {
-        "episodes": 25,
-        "successes": 20,
-        "success_rate": 0.8,
-        "wilson_95": [
-          0.6087,
-          0.9114
-        ],
-        "cached": false
-      },
-      "evaluation": {
-        "seeds": {
-          "episodes": 25,
-          "successes": 25,
-          "success_rate": 1.0,
-          "wilson_95": [
-            0.8668,
-            1.0
-          ],
-          "mean_episode_reward": 1.3412,
-          "mean_episode_steps": 3.1,
-          "deterministic": true,
-          "split": "train",
-          "random_baseline": {
-            "episodes": 25,
-            "successes": 22,
-            "success_rate": 0.88,
-            "wilson_95": [
-              0.7004,
-              0.9583
-            ],
-            "cached": false
-          }
-        },
-        "val": {
-          "episodes": 25,
-          "successes": 12,
-          "success_rate": 0.48,
-          "wilson_95": [
-            0.3003,
-            0.665
-          ],
-          "mean_episode_reward": 0.5914,
-          "mean_episode_steps": 80.6,
-          "deterministic": true,
-          "split": "val",
-          "random_baseline": {
-            "episodes": 25,
-            "successes": 12,
-            "success_rate": 0.48,
-            "wilson_95": [
-              0.3003,
-              0.665
-            ],
-            "cached": false
-          }
-        },
-        "structures": {
-          "episodes": 25,
-          "successes": 24,
-          "success_rate": 0.96,
-          "wilson_95": [
-            0.8046,
-            0.9929
-          ],
-          "mean_episode_reward": 1.282,
-          "mean_episode_steps": 7.2,
-          "deterministic": true,
-          "split": "test",
-          "random_baseline": {
-            "episodes": 25,
-            "successes": 20,
-            "success_rate": 0.8,
-            "wilson_95": [
-              0.6087,
-              0.9114
-            ],
-            "cached": false
-          }
-        }
-      },
-      "episodes_logged": 1358,
-      "final_train_success_rate": 0.25,
-      "ok": true,
-      "shaped": true,
-      "seed": 1
-    },
-    {
-      "run_id": "sparse-20260908T003353-ddab6d78",
-      "task": "deliver",
-      "eval_split": "val",
-      "total_steps": 25000,
-      "wall_seconds": 636.7,
-      "steps_per_second": 45.5,
-      "held_out": {
-        "episodes": 25,
-        "successes": 25,
-        "success_rate": 1.0,
-        "wilson_95": [
-          0.8668,
-          1.0
-        ],
-        "mean_episode_reward": 0.9888,
-        "mean_episode_steps": 3.1,
-        "deterministic": true,
-        "split": "test",
-        "random_baseline": {
-          "episodes": 25,
-          "successes": 20,
-          "success_rate": 0.8,
-          "wilson_95": [
-            0.6087,
-            0.9114
-          ],
-          "cached": true
-        }
-      },
-      "random_baseline": {
-        "episodes": 25,
-        "successes": 20,
-        "success_rate": 0.8,
-        "wilson_95": [
-          0.6087,
-          0.9114
-        ],
-        "cached": true
-      },
-      "evaluation": {
-        "seeds": {
-          "episodes": 25,
-          "successes": 25,
-          "success_rate": 1.0,
-          "wilson_95": [
-            0.8668,
-            1.0
-          ],
-          "mean_episode_reward": 0.9902,
-          "mean_episode_steps": 4.0,
-          "deterministic": true,
-          "split": "train",
-          "random_baseline": {
-            "episodes": 25,
-            "successes": 22,
-            "success_rate": 0.88,
-            "wilson_95": [
-              0.7004,
-              0.9583
-            ],
-            "cached": true
-          }
-        },
-        "val": {
-          "episodes": 25,
-          "successes": 16,
-          "success_rate": 0.64,
-          "wilson_95": [
-            0.4452,
-            0.7975
-          ],
-          "mean_episode_reward": 0.5442,
-          "mean_episode_steps": 80.5,
-          "deterministic": true,
-          "split": "val",
-          "random_baseline": {
-            "episodes": 25,
-            "successes": 12,
-            "success_rate": 0.48,
-            "wilson_95": [
-              0.3003,
-              0.665
-            ],
-            "cached": true
-          }
-        },
-        "structures": {
-          "episodes": 25,
-          "successes": 25,
-          "success_rate": 1.0,
-          "wilson_95": [
-            0.8668,
-            1.0
-          ],
-          "mean_episode_reward": 0.9888,
-          "mean_episode_steps": 3.1,
-          "deterministic": true,
-          "split": "test",
-          "random_baseline": {
-            "episodes": 25,
-            "successes": 20,
-            "success_rate": 0.8,
-            "wilson_95": [
-              0.6087,
-              0.9114
-            ],
-            "cached": true
-          }
-        }
-      },
-      "episodes_logged": 1179,
-      "final_train_success_rate": 0.25,
-      "ok": true,
-      "shaped": false,
-      "seed": 1
-    },
-    {
-      "run_id": "shaped-20260908T004423-8c91a0dc",
-      "task": "deliver",
-      "eval_split": "val",
-      "total_steps": 25000,
-      "wall_seconds": 861.6,
-      "steps_per_second": 34.64,
-      "held_out": {
-        "episodes": 25,
-        "successes": 2,
-        "success_rate": 0.08,
-        "wilson_95": [
-          0.0222,
-          0.2497
-        ],
-        "mean_episode_reward": -0.1273,
-        "mean_episode_steps": 25.2,
-        "deterministic": true,
-        "split": "test",
-        "random_baseline": {
-          "episodes": 25,
-          "successes": 19,
-          "success_rate": 0.76,
-          "wilson_95": [
-            0.5657,
-            0.885
-          ],
-          "cached": false
-        }
-      },
-      "random_baseline": {
         "episodes": 25,
         "successes": 19,
         "success_rate": 0.76,
@@ -282,102 +25,8 @@
           0.5657,
           0.885
         ],
-        "cached": false
-      },
-      "evaluation": {
-        "seeds": {
-          "episodes": 25,
-          "successes": 25,
-          "success_rate": 1.0,
-          "wilson_95": [
-            0.8668,
-            1.0
-          ],
-          "mean_episode_reward": 1.3396,
-          "mean_episode_steps": 3.4,
-          "deterministic": true,
-          "split": "train",
-          "random_baseline": {
-            "episodes": 25,
-            "successes": 19,
-            "success_rate": 0.76,
-            "wilson_95": [
-              0.5657,
-              0.885
-            ],
-            "cached": false
-          }
-        },
-        "val": {
-          "episodes": 25,
-          "successes": 19,
-          "success_rate": 0.76,
-          "wilson_95": [
-            0.5657,
-            0.885
-          ],
-          "mean_episode_reward": 1.0136,
-          "mean_episode_steps": 46.8,
-          "deterministic": true,
-          "split": "val",
-          "random_baseline": {
-            "episodes": 25,
-            "successes": 13,
-            "success_rate": 0.52,
-            "wilson_95": [
-              0.335,
-              0.6997
-            ],
-            "cached": false
-          }
-        },
-        "structures": {
-          "episodes": 25,
-          "successes": 2,
-          "success_rate": 0.08,
-          "wilson_95": [
-            0.0222,
-            0.2497
-          ],
-          "mean_episode_reward": -0.1273,
-          "mean_episode_steps": 25.2,
-          "deterministic": true,
-          "split": "test",
-          "random_baseline": {
-            "episodes": 25,
-            "successes": 19,
-            "success_rate": 0.76,
-            "wilson_95": [
-              0.5657,
-              0.885
-            ],
-            "cached": false
-          }
-        }
-      },
-      "episodes_logged": 1263,
-      "final_train_success_rate": 0.15,
-      "ok": true,
-      "shaped": true,
-      "seed": 2
-    },
-    {
-      "run_id": "sparse-20260908T005845-20c33599",
-      "task": "deliver",
-      "eval_split": "val",
-      "total_steps": 25000,
-      "wall_seconds": 910.6,
-      "steps_per_second": 32.46,
-      "held_out": {
-        "episodes": 25,
-        "successes": 8,
-        "success_rate": 0.32,
-        "wilson_95": [
-          0.172,
-          0.5159
-        ],
-        "mean_episode_reward": 0.133,
-        "mean_episode_steps": 130.0,
+        "mean_episode_reward": 1.0241,
+        "mean_episode_steps": 18.3,
         "deterministic": true,
         "episodes_touched": [
           0,
@@ -417,36 +66,36 @@
         "split": "test",
         "random_baseline": {
           "episodes": 25,
-          "successes": 18,
-          "success_rate": 0.72,
+          "successes": 1,
+          "success_rate": 0.04,
           "wilson_95": [
-            0.5242,
-            0.8572
+            0.0071,
+            0.1954
           ],
           "cached": false
         }
       },
       "random_baseline": {
         "episodes": 25,
-        "successes": 18,
-        "success_rate": 0.72,
+        "successes": 1,
+        "success_rate": 0.04,
         "wilson_95": [
-          0.5242,
-          0.8572
+          0.0071,
+          0.1954
         ],
         "cached": false
       },
       "evaluation": {
         "seeds": {
           "episodes": 25,
-          "successes": 25,
-          "success_rate": 1.0,
+          "successes": 23,
+          "success_rate": 0.92,
           "wilson_95": [
-            0.8668,
-            1.0
+            0.7503,
+            0.9778
           ],
-          "mean_episode_reward": 0.9896,
-          "mean_episode_steps": 3.3,
+          "mean_episode_reward": 1.2342,
+          "mean_episode_steps": 4.1,
           "deterministic": true,
           "episodes_touched": [
             0,
@@ -481,31 +130,30 @@
             29,
             30,
             31,
-            32,
-            33
+            32
           ],
           "split": "train",
           "random_baseline": {
             "episodes": 25,
-            "successes": 17,
-            "success_rate": 0.68,
+            "successes": 4,
+            "success_rate": 0.16,
             "wilson_95": [
-              0.4841,
-              0.828
+              0.064,
+              0.3465
             ],
             "cached": false
           }
         },
         "val": {
           "episodes": 25,
-          "successes": 17,
-          "success_rate": 0.68,
+          "successes": 11,
+          "success_rate": 0.44,
           "wilson_95": [
-            0.4841,
-            0.828
+            0.2667,
+            0.6293
           ],
-          "mean_episode_reward": 0.6037,
-          "mean_episode_steps": 63.4,
+          "mean_episode_reward": 0.6065,
+          "mean_episode_steps": 57.0,
           "deterministic": true,
           "episodes_touched": [
             0,
@@ -545,25 +193,25 @@
           "split": "val",
           "random_baseline": {
             "episodes": 25,
-            "successes": 12,
-            "success_rate": 0.48,
+            "successes": 0,
+            "success_rate": 0.0,
             "wilson_95": [
-              0.3003,
-              0.665
+              0.0,
+              0.1332
             ],
             "cached": false
           }
         },
         "structures": {
           "episodes": 25,
-          "successes": 8,
-          "success_rate": 0.32,
+          "successes": 19,
+          "success_rate": 0.76,
           "wilson_95": [
-            0.172,
-            0.5159
+            0.5657,
+            0.885
           ],
-          "mean_episode_reward": 0.133,
-          "mean_episode_steps": 130.0,
+          "mean_episode_reward": 1.0241,
+          "mean_episode_steps": 18.3,
           "deterministic": true,
           "episodes_touched": [
             0,
@@ -603,18 +251,795 @@
           "split": "test",
           "random_baseline": {
             "episodes": 25,
-            "successes": 18,
-            "success_rate": 0.72,
+            "successes": 1,
+            "success_rate": 0.04,
             "wilson_95": [
-              0.5242,
-              0.8572
+              0.0071,
+              0.1954
             ],
             "cached": false
           }
         }
       },
-      "episodes_logged": 1520,
-      "final_train_success_rate": 0.2,
+      "episodes_logged": 809,
+      "final_train_success_rate": 0.05,
+      "ok": true,
+      "shaped": true,
+      "seed": 1
+    },
+    {
+      "run_id": "sparse-20260908T030026-27fae357",
+      "task": "deliver",
+      "eval_split": "val",
+      "total_steps": 25000,
+      "wall_seconds": 787.7,
+      "steps_per_second": 38.65,
+      "held_out": {
+        "episodes": 25,
+        "successes": 23,
+        "success_rate": 0.92,
+        "wilson_95": [
+          0.7503,
+          0.9778
+        ],
+        "mean_episode_reward": 0.8907,
+        "mean_episode_steps": 4.4,
+        "deterministic": true,
+        "episodes_touched": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "split": "test",
+        "random_baseline": {
+          "episodes": 25,
+          "successes": 1,
+          "success_rate": 0.04,
+          "wilson_95": [
+            0.0071,
+            0.1954
+          ],
+          "cached": true
+        }
+      },
+      "random_baseline": {
+        "episodes": 25,
+        "successes": 1,
+        "success_rate": 0.04,
+        "wilson_95": [
+          0.0071,
+          0.1954
+        ],
+        "cached": true
+      },
+      "evaluation": {
+        "seeds": {
+          "episodes": 25,
+          "successes": 25,
+          "success_rate": 1.0,
+          "wilson_95": [
+            0.8668,
+            1.0
+          ],
+          "mean_episode_reward": 0.985,
+          "mean_episode_steps": 3.9,
+          "deterministic": true,
+          "episodes_touched": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35
+          ],
+          "split": "train",
+          "random_baseline": {
+            "episodes": 25,
+            "successes": 4,
+            "success_rate": 0.16,
+            "wilson_95": [
+              0.064,
+              0.3465
+            ],
+            "cached": true
+          }
+        },
+        "val": {
+          "episodes": 25,
+          "successes": 10,
+          "success_rate": 0.4,
+          "wilson_95": [
+            0.234,
+            0.5926
+          ],
+          "mean_episode_reward": 0.3154,
+          "mean_episode_steps": 70.4,
+          "deterministic": true,
+          "episodes_touched": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33
+          ],
+          "split": "val",
+          "random_baseline": {
+            "episodes": 25,
+            "successes": 0,
+            "success_rate": 0.0,
+            "wilson_95": [
+              0.0,
+              0.1332
+            ],
+            "cached": true
+          }
+        },
+        "structures": {
+          "episodes": 25,
+          "successes": 23,
+          "success_rate": 0.92,
+          "wilson_95": [
+            0.7503,
+            0.9778
+          ],
+          "mean_episode_reward": 0.8907,
+          "mean_episode_steps": 4.4,
+          "deterministic": true,
+          "episodes_touched": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "split": "test",
+          "random_baseline": {
+            "episodes": 25,
+            "successes": 1,
+            "success_rate": 0.04,
+            "wilson_95": [
+              0.0071,
+              0.1954
+            ],
+            "cached": true
+          }
+        }
+      },
+      "episodes_logged": 945,
+      "final_train_success_rate": 0.3,
+      "ok": true,
+      "shaped": false,
+      "seed": 1
+    },
+    {
+      "run_id": "shaped-20260908T031334-e902d484",
+      "task": "deliver",
+      "eval_split": "val",
+      "total_steps": 25000,
+      "wall_seconds": 802.2,
+      "steps_per_second": 37.8,
+      "held_out": {
+        "episodes": 25,
+        "successes": 16,
+        "success_rate": 0.64,
+        "wilson_95": [
+          0.4452,
+          0.7975
+        ],
+        "mean_episode_reward": 0.8628,
+        "mean_episode_steps": 38.3,
+        "deterministic": true,
+        "episodes_touched": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "split": "test",
+        "random_baseline": {
+          "episodes": 25,
+          "successes": 2,
+          "success_rate": 0.08,
+          "wilson_95": [
+            0.0222,
+            0.2497
+          ],
+          "cached": false
+        }
+      },
+      "random_baseline": {
+        "episodes": 25,
+        "successes": 2,
+        "success_rate": 0.08,
+        "wilson_95": [
+          0.0222,
+          0.2497
+        ],
+        "cached": false
+      },
+      "evaluation": {
+        "seeds": {
+          "episodes": 25,
+          "successes": 22,
+          "success_rate": 0.88,
+          "wilson_95": [
+            0.7004,
+            0.9583
+          ],
+          "mean_episode_reward": 1.1789,
+          "mean_episode_steps": 17.8,
+          "deterministic": true,
+          "episodes_touched": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "split": "train",
+          "random_baseline": {
+            "episodes": 25,
+            "successes": 2,
+            "success_rate": 0.08,
+            "wilson_95": [
+              0.0222,
+              0.2497
+            ],
+            "cached": false
+          }
+        },
+        "val": {
+          "episodes": 25,
+          "successes": 18,
+          "success_rate": 0.72,
+          "wilson_95": [
+            0.5242,
+            0.8572
+          ],
+          "mean_episode_reward": 0.9735,
+          "mean_episode_steps": 31.6,
+          "deterministic": true,
+          "episodes_touched": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "split": "val",
+          "random_baseline": {
+            "episodes": 25,
+            "successes": 1,
+            "success_rate": 0.04,
+            "wilson_95": [
+              0.0071,
+              0.1954
+            ],
+            "cached": false
+          }
+        },
+        "structures": {
+          "episodes": 25,
+          "successes": 16,
+          "success_rate": 0.64,
+          "wilson_95": [
+            0.4452,
+            0.7975
+          ],
+          "mean_episode_reward": 0.8628,
+          "mean_episode_steps": 38.3,
+          "deterministic": true,
+          "episodes_touched": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "split": "test",
+          "random_baseline": {
+            "episodes": 25,
+            "successes": 2,
+            "success_rate": 0.08,
+            "wilson_95": [
+              0.0222,
+              0.2497
+            ],
+            "cached": false
+          }
+        }
+      },
+      "episodes_logged": 592,
+      "final_train_success_rate": 0.15,
+      "ok": true,
+      "shaped": true,
+      "seed": 2
+    },
+    {
+      "run_id": "sparse-20260908T032656-bf9317e0",
+      "task": "deliver",
+      "eval_split": "val",
+      "total_steps": 25000,
+      "wall_seconds": 722.7,
+      "steps_per_second": 42.96,
+      "held_out": {
+        "episodes": 25,
+        "successes": 25,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.8668,
+          1.0
+        ],
+        "mean_episode_reward": 0.985,
+        "mean_episode_steps": 5.6,
+        "deterministic": true,
+        "episodes_touched": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33
+        ],
+        "split": "test",
+        "random_baseline": {
+          "episodes": 25,
+          "successes": 2,
+          "success_rate": 0.08,
+          "wilson_95": [
+            0.0222,
+            0.2497
+          ],
+          "cached": true
+        }
+      },
+      "random_baseline": {
+        "episodes": 25,
+        "successes": 2,
+        "success_rate": 0.08,
+        "wilson_95": [
+          0.0222,
+          0.2497
+        ],
+        "cached": true
+      },
+      "evaluation": {
+        "seeds": {
+          "episodes": 25,
+          "successes": 25,
+          "success_rate": 1.0,
+          "wilson_95": [
+            0.8668,
+            1.0
+          ],
+          "mean_episode_reward": 0.9877,
+          "mean_episode_steps": 3.8,
+          "deterministic": true,
+          "episodes_touched": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "split": "train",
+          "random_baseline": {
+            "episodes": 25,
+            "successes": 2,
+            "success_rate": 0.08,
+            "wilson_95": [
+              0.0222,
+              0.2497
+            ],
+            "cached": true
+          }
+        },
+        "val": {
+          "episodes": 25,
+          "successes": 18,
+          "success_rate": 0.72,
+          "wilson_95": [
+            0.5242,
+            0.8572
+          ],
+          "mean_episode_reward": 0.6717,
+          "mean_episode_steps": 40.4,
+          "deterministic": true,
+          "episodes_touched": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "split": "val",
+          "random_baseline": {
+            "episodes": 25,
+            "successes": 1,
+            "success_rate": 0.04,
+            "wilson_95": [
+              0.0071,
+              0.1954
+            ],
+            "cached": true
+          }
+        },
+        "structures": {
+          "episodes": 25,
+          "successes": 25,
+          "success_rate": 1.0,
+          "wilson_95": [
+            0.8668,
+            1.0
+          ],
+          "mean_episode_reward": 0.985,
+          "mean_episode_steps": 5.6,
+          "deterministic": true,
+          "episodes_touched": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33
+          ],
+          "split": "test",
+          "random_baseline": {
+            "episodes": 25,
+            "successes": 2,
+            "success_rate": 0.08,
+            "wilson_95": [
+              0.0222,
+              0.2497
+            ],
+            "cached": true
+          }
+        }
+      },
+      "episodes_logged": 660,
+      "final_train_success_rate": 0.05,
       "ok": true,
       "shaped": false,
       "seed": 2

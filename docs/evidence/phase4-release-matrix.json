@@ -1,0 +1,130 @@
+{
+  "plan_section": "4.5",
+  "generated_at": "2026-09-07T23:11:02Z",
+  "threshold": 0.8,
+  "holdout": {
+    "id": null,
+    "content_hash": "f77aa2c291f720f9601e8d94fa0f9b9daa4a90de37e1d4629c53aeac126135f4",
+    "episodes_per_task": 100,
+    "declared_candidates": [
+      "navigate",
+      "deliver",
+      "mine_smelt"
+    ],
+    "declared_at": "2026-09-07T20:21:20Z",
+    "declared_at_commit": "89bcb6cc72205e549fdc6abefae3e0f22799d138"
+  },
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "eval_episodes": 100,
+  "action_space": "primitive+skills",
+  "families": {
+    "navigate": {
+      "category": "movement",
+      "seeds_completed": 0,
+      "seeds_outside_frozen_range": 0,
+      "structural_success_rate_mean": null,
+      "structural_success_rate_per_seed": [],
+      "unfamiliar_seed_rate_mean": null,
+      "meets_threshold": false,
+      "diagnosis": "no complete cell",
+      "cells": []
+    },
+    "deliver": {
+      "category": "logistics",
+      "seeds_completed": 0,
+      "seeds_outside_frozen_range": 0,
+      "structural_success_rate_mean": null,
+      "structural_success_rate_per_seed": [],
+      "unfamiliar_seed_rate_mean": null,
+      "meets_threshold": false,
+      "diagnosis": "no complete cell",
+      "cells": []
+    },
+    "mine_smelt": {
+      "category": "production",
+      "seeds_completed": 0,
+      "seeds_outside_frozen_range": 0,
+      "structural_success_rate_mean": null,
+      "structural_success_rate_per_seed": [],
+      "unfamiliar_seed_rate_mean": null,
+      "meets_threshold": false,
+      "diagnosis": "no complete cell",
+      "cells": []
+    }
+  },
+  "acceptance": {
+    "families_meeting_threshold": [],
+    "qualifying_production_or_repair": [],
+    "requires": "at least three families at 0.80, at least one production or repair",
+    "accepted": false
+  },
+  "runs": [
+    {
+      "ok": false,
+      "task": "navigate",
+      "seed": 1,
+      "steps": 25000,
+      "error": "RL\\src\\factoriorl\\cli.py\", line 398, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"D:\\FactorioRL\\src\\factoriorl\\cli.py\", line 381, in main\n    return cmd_train(args)\n  File \"D:\\FactorioRL\\src\\factoriorl\\cli.py\", line 182, in cmd_train\n    result = train(\n        TrainConfig(\n    ...<10 lines>...\n        )\n    )\n  File \"D:\\FactorioRL\\src\\factoriorl\\learn\\train.py\", line 464, in train\n    raise ValueError(f\"holdout {config.holdout} does not cover task {config.task_id!r}\")\nValueError: holdout D:\\FactorioRL\\docs\\evidence\\holdout_v1.json does not cover task 'navigate'"
+    },
+    {
+      "ok": false,
+      "task": "navigate",
+      "seed": 2,
+      "steps": 25000,
+      "error": "RL\\src\\factoriorl\\cli.py\", line 398, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"D:\\FactorioRL\\src\\factoriorl\\cli.py\", line 381, in main\n    return cmd_train(args)\n  File \"D:\\FactorioRL\\src\\factoriorl\\cli.py\", line 182, in cmd_train\n    result = train(\n        TrainConfig(\n    ...<10 lines>...\n        )\n    )\n  File \"D:\\FactorioRL\\src\\factoriorl\\learn\\train.py\", line 464, in train\n    raise ValueError(f\"holdout {config.holdout} does not cover task {config.task_id!r}\")\nValueError: holdout D:\\FactorioRL\\docs\\evidence\\holdout_v1.json does not cover task 'navigate'"
+    },
+    {
+      "ok": false,
+      "task": "navigate",
+      "seed": 3,
+      "steps": 25000,
+      "error": "RL\\src\\factoriorl\\cli.py\", line 398, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"D:\\FactorioRL\\src\\factoriorl\\cli.py\", line 381, in main\n    return cmd_train(args)\n  File \"D:\\FactorioRL\\src\\factoriorl\\cli.py\", line 182, in cmd_train\n    result = train(\n        TrainConfig(\n    ...<10 lines>...\n        )\n    )\n  File \"D:\\FactorioRL\\src\\factoriorl\\learn\\train.py\", line 464, in train\n    raise ValueError(f\"holdout {config.holdout} does not cover task {config.task_id!r}\")\nValueError: holdout D:\\FactorioRL\\docs\\evidence\\holdout_v1.json does not cover task 'navigate'"
+    },
+    {
+      "ok": false,
+      "task": "deliver",
+      "seed": 1,
+      "steps": 25000,
+      "error": ""
+    },
+    {
+      "ok": false,
+      "task": "deliver",
+      "seed": 2,
+      "steps": 25000,
+      "error": ""
+    },
+    {
+      "ok": false,
+      "task": "deliver",
+      "seed": 3,
+      "steps": 25000,
+      "error": ""
+    },
+    {
+      "ok": false,
+      "task": "mine_smelt",
+      "seed": 1,
+      "steps": 50000,
+      "error": ""
+    },
+    {
+      "ok": false,
+      "task": "mine_smelt",
+      "seed": 2,
+      "steps": 50000,
+      "error": ""
+    },
+    {
+      "ok": false,
+      "task": "mine_smelt",
+      "seed": 3,
+      "steps": 50000,
+      "error": ""
+    }
+  ]
+}

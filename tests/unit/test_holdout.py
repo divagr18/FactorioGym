@@ -399,3 +399,53 @@ def test_verify_exits_non_zero_on_drift(tmp_path, document):
     )
     assert result.returncode == 1, result.stdout
     assert "VERIFY FAILED" in result.stdout
+
+
+# ------------------------------------------------------- the consumer side
+
+
+def test_train_can_load_every_task_the_committed_holdout_covers():
+    """The freeze is worthless if the training entrypoint cannot read it.
+
+    ``train`` looked the task table up at the top level of the document while it
+    lives under ``holdout``, so ``--holdout`` raised "does not cover task" for
+    every task the file plainly covered and the frozen path had never once run.
+    Nothing caught it: ``freeze_holdout.py --verify`` checks the file against the
+    generators, and the tests above check the tool, but neither one ever asked
+    the consumer to open it.
+
+    That is precisely the gap ``RELEASE_RUNNER_CONTRACT`` warns about -- no
+    downstream check can tell whether the episodes behind a published number
+    were the frozen ones -- so the consumer is exercised here directly.
+    """
+    from factoriorl.learn.train import TrainConfig, _load_frozen_holdout
+    from factoriorl.tasks import get
+
+    path = ROOT / "docs" / "evidence" / "holdout_v1.json"
+    document = json.loads(path.read_text(encoding="utf-8"))
+    covered = sorted(document["holdout"]["tasks"])
+    assert covered, "the committed holdout covers no tasks"
+
+    for task_id in covered:
+        loaded = _load_frozen_holdout(TrainConfig(task_id=task_id, holdout=str(path)), get(task_id))
+        assert loaded is not None
+        assert loaded["content_hash"] == document["content_hash"]
+
+
+def test_train_rejects_a_task_the_holdout_does_not_cover():
+    """The error must name what the file *does* cover.
+
+    The message it replaces said only that the task was missing, which was true
+    of every task under the old lookup and so read as a problem with the task
+    rather than with the lookup. Listing the covered set makes the two
+    distinguishable at a glance.
+    """
+    from factoriorl.learn.train import TrainConfig, _load_frozen_holdout
+    from factoriorl.tasks import get
+
+    path = ROOT / "docs" / "evidence" / "holdout_v1.json"
+    with pytest.raises(ValueError, match="does not cover task") as raised:
+        _load_frozen_holdout(
+            TrainConfig(task_id="no_such_family", holdout=str(path)), get("navigate")
+        )
+    assert "navigate" in str(raised.value), "the error does not say what is covered"

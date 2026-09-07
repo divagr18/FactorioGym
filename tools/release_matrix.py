@@ -49,8 +49,47 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from factoriorl.profiling import COMMIT_HEADROOM, commit_status  # noqa: E402
+
 PYTHON = ROOT / ".venv" / "Scripts" / "python.exe"
 EVIDENCE = ROOT / "docs" / "evidence"
+
+#: How long to wait for commit headroom before giving up on a cell. An
+#: overnight run shares the machine with whatever else is open, and the first
+#: attempt at this matrix lost six of nine cells to a memory wall that reported
+#: itself as an empty error string: Windows refused to start the subprocess at
+#: all, so there was no traceback, no run directory and nothing to diagnose from.
+#: Waiting is better than failing, because the thing being waited on is usually
+#: the previous cell's own teardown.
+HEADROOM_WAIT_SECONDS = 600
+HEADROOM_POLL_SECONDS = 20
+
+
+def await_headroom() -> dict:
+    """Block until commit use is under the ceiling, and report what was seen.
+
+    Returns the last commit reading with ``proceeded`` saying whether headroom
+    actually arrived. A cell that starts anyway would reproduce the empty-error
+    failure this exists to replace, so the caller skips instead.
+    """
+    deadline = time.time() + HEADROOM_WAIT_SECONDS
+    status = commit_status()
+    waited = 0.0
+    while status["used_fraction"] > COMMIT_HEADROOM and time.time() < deadline:
+        print(
+            f"    waiting for memory: {status['used_fraction']:.0%} of "
+            f"{status['commit_limit_gb']:.1f} GB committed, ceiling {COMMIT_HEADROOM:.0%}",
+            flush=True,
+        )
+        time.sleep(HEADROOM_POLL_SECONDS)
+        waited += HEADROOM_POLL_SECONDS
+        status = commit_status()
+    status["waited_seconds"] = waited
+    status["proceeded"] = status["used_fraction"] <= COMMIT_HEADROOM
+    return status
+
 
 THRESHOLD = 0.80
 
@@ -97,12 +136,16 @@ def run_cell(task: str, seed: int, steps: int, episodes: int, holdout: Path, ski
     started = time.perf_counter()
     process = subprocess.run(command, cwd=str(ROOT), capture_output=True, text=True, check=False)
     if process.returncode != 0:
+        # The tail, not the head. A traceback ends with the exception type and
+        # message and begins with frames from the interpreter's entry point, so
+        # a head-truncated capture shows the least useful part -- which is what
+        # turned a one-word lookup bug into an unreadable "FAILED:" line.
         return {
             "ok": False,
             "task": task,
             "seed": seed,
             "steps": steps,
-            "error": process.stderr.strip()[-600:],
+            "error": process.stderr.strip()[-2000:],
         }
     result = json.loads(process.stdout[process.stdout.index("{") :])
     result["ok"] = True
@@ -207,7 +250,8 @@ def main() -> int:
     seeds = [int(s) for s in args.seeds.split(",")]
     print(
         f"release matrix: {tasks} x seeds {seeds}, {args.eval_episodes} held-out episodes\n"
-        f"holdout {frozen.get('holdout_id')} hash {frozen['content_hash'][:16]} "
+        f"holdout {frozen['holdout'].get('holdout_id')} "
+        f"hash {frozen['content_hash'][:16]} "
         f"declared {declared} at {(frozen.get('declaration') or {}).get('declared_at')}\n",
         flush=True,
     )
@@ -218,12 +262,31 @@ def main() -> int:
         steps = args.steps or DEFAULT_STEPS.get(task, FALLBACK_STEPS)
         cells: list[dict] = []
         for seed in seeds:
+            headroom = await_headroom()
+            if not headroom["proceeded"]:
+                row = {
+                    "ok": False,
+                    "task": task,
+                    "seed": seed,
+                    "steps": steps,
+                    "skipped": "memory_ceiling",
+                    "commit_before": headroom,
+                    "error": (
+                        f"skipped: commit use {headroom['used_fraction']:.0%} still above "
+                        f"the {COMMIT_HEADROOM:.0%} ceiling after "
+                        f"{HEADROOM_WAIT_SECONDS}s"
+                    ),
+                }
+                raw.append(row)
+                print(f"{task:14s} seed={seed} SKIPPED: {row['error']}", flush=True)
+                continue
             row = run_cell(
                 task, seed, steps, args.eval_episodes, holdout_path, skills=not args.no_skills
             )
+            row["commit_before"] = headroom
             raw.append(row)
             if not row["ok"]:
-                print(f"{task:14s} seed={seed} FAILED: {row['error'][:300]}", flush=True)
+                print(f"{task:14s} seed={seed} FAILED: {row['error'][-400:]}", flush=True)
                 continue
             cell = summarise(row)
             cells.append(cell)
@@ -280,7 +343,7 @@ def main() -> int:
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "threshold": THRESHOLD,
         "holdout": {
-            "id": frozen.get("holdout_id"),
+            "id": frozen["holdout"].get("holdout_id"),
             "content_hash": frozen["content_hash"],
             "episodes_per_task": frozen["holdout"]["episodes_per_task"],
             "declared_candidates": declared,

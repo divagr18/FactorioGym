@@ -312,6 +312,44 @@ def random_baseline(env: FactorioEnv, episodes: int, rng: np.random.Generator) -
     }
 
 
+def _load_frozen_holdout(config: TrainConfig, task) -> dict | None:
+    """Read and check the frozen holdout, or return None when none was asked for.
+
+    Every rejection here is a property of the file and the task, so none of it
+    needs an engine, a worker or a trained policy -- which is the whole reason
+    it runs before any of those exist.
+
+    The task table is nested under ``holdout``, beside ``seed_plan`` and
+    ``start_index``. Reading it from the top level instead returned ``None`` for
+    every task, so `--holdout` raised "does not cover task" for tasks the file
+    plainly covered, and the frozen-holdout path had therefore never once
+    executed successfully.
+    """
+    if not config.holdout:
+        return None
+    frozen = json.loads(Path(config.holdout).read_text(encoding="utf-8"))
+    spec = frozen["holdout"]
+    if spec["split"] != "test":
+        raise ValueError(
+            f"holdout {config.holdout} freezes the {spec['split']!r} split; "
+            "the release evaluation is defined on the structural (test) split"
+        )
+    recorded = (spec.get("tasks") or {}).get(config.task_id)
+    if recorded is None:
+        covered = sorted((spec.get("tasks") or {}).keys())
+        raise ValueError(
+            f"holdout {config.holdout} does not cover task {config.task_id!r}; "
+            f"it covers {covered}"
+        )
+    if recorded.get("task_version") != task.spec.version:
+        raise ValueError(
+            f"holdout was frozen against {config.task_id} "
+            f"v{recorded.get('task_version')} but this run is v{task.spec.version}; "
+            "a holdout is only meaningful for the task it was frozen against"
+        )
+    return frozen
+
+
 def train(config: TrainConfig) -> dict:
     started = time.perf_counter()
     run_id = manifest_module.new_run_id(config.run_prefix)
@@ -333,6 +371,13 @@ def train(config: TrainConfig) -> dict:
     seeded = seed_everything(config.master_seed)
     plan = SeedPlan(master=config.master_seed, run_id=run_id)
     task = get(config.task_id)
+
+    # Checked here, beside the gamma guard, because everything it can reject is
+    # knowable before a single step is taken. It used to be validated after
+    # `model.learn` returned, so a one-word mistake in a holdout path cost a
+    # full training run to discover: three release cells trained 25,000 steps
+    # each, twenty-one minutes apiece, and then raised on a config error.
+    frozen = _load_frozen_holdout(config, task)
 
     manager = WorkerManager()
     # Run-scoped worker id. A fixed "train-<task>" name collides the moment two
@@ -449,25 +494,8 @@ def train(config: TrainConfig) -> dict:
 
         # A frozen holdout replaces the *structural* row's seed plan and start
         # index. The other two rows stay on the run's own plan: they are
-        # diagnostics for this run, not the published result.
-        frozen = None
-        if config.holdout:
-            frozen = json.loads(Path(config.holdout).read_text(encoding="utf-8"))
-            spec = frozen["holdout"]
-            if spec["split"] != "test":
-                raise ValueError(
-                    f"holdout {config.holdout} freezes the {spec['split']!r} split; "
-                    "the release evaluation is defined on the structural (test) split"
-                )
-            recorded = (frozen.get("tasks") or {}).get(config.task_id)
-            if recorded is None:
-                raise ValueError(f"holdout {config.holdout} does not cover task {config.task_id!r}")
-            if recorded.get("task_version") != task.spec.version:
-                raise ValueError(
-                    f"holdout was frozen against {config.task_id} "
-                    f"v{recorded.get('task_version')} but this run is v{task.spec.version}; "
-                    "a holdout is only meaningful for the task it was frozen against"
-                )
+        # diagnostics for this run, not the published result. Loaded and
+        # validated at the top of `train`; see `_load_frozen_holdout`.
 
         # Three rows, because one number cannot say which failure happened.
         # PLAN section 3 puts the threshold on unfamiliar *structures* and
