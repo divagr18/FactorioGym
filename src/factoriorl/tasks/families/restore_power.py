@@ -54,6 +54,10 @@ SPEC = TaskSpec(
         "step_east",
         "step_south",
         "step_west",
+        "nudge_north",
+        "nudge_east",
+        "nudge_south",
+        "nudge_west",
         "place_small_electric_pole_north",
         "place_small_electric_pole_east",
         "place_small_electric_pole_south",
@@ -64,7 +68,10 @@ SPEC = TaskSpec(
 
 
 def generate(family: LayoutFamily, rng) -> Blueprint:
-    chain = 5
+    # `pole_gap_far` was a byte-identical copy of `pole_gap` for the same
+    # reason `gap_far` was a copy of `gap`: a name implying distance, and a
+    # generator with no distance parameter.
+    chain = 8 if family.name == "pole_gap_far" else 5
     gap = rng.randint(1, chain - 2)
     if family.name == "gap_near_drill":
         gap = chain - 1
@@ -76,17 +83,31 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
     # one the drill could never be powered no matter where the missing pole
     # went -- the task would be unsolvable for a reason unrelated to the fault
     # it is meant to test.
+    #
+    # The two poles on the row above the farm are load-bearing, not decoration.
+    # A small pole's supply area is 5x5, so the pole at x=-1 reaches only to
+    # x=-3: it collected the nearest panel and left the other two reporting
+    # `not_plugged_in_electric_network`. One connected panel is 60 kW against a
+    # 90 kW drill, so the drill stayed unpowered however well the chain was
+    # repaired. These two poles bring all three panels (180 kW) onto the
+    # network and are within the 7.5-tile wire reach of each other and of the
+    # chain head.
     entities = [
         EntitySpec("solar-panel", (-10.0, -8.0), marker="generator"),
         EntitySpec("solar-panel", (-7.0, -8.0)),
         EntitySpec("solar-panel", (-4.0, -8.0)),
+        EntitySpec("small-electric-pole", (-9.0, -11.0)),
+        EntitySpec("small-electric-pole", (-5.0, -11.0)),
         EntitySpec("small-electric-pole", (-1.0, -8.0)),
     ]
     for index in range(chain):
         if index in gaps:
             continue
         entities.append(EntitySpec("small-electric-pole", (float(2 + index * 4), -8.0)))
-    drill_x = float(2 + chain * 4)
+    # One tile closer than the pole spacing: a 3x3 drill centred 4 tiles from
+    # the last pole has its near edge exactly on the boundary of that pole's
+    # supply area, which does not count as covered.
+    drill_x = float(1 + chain * 4)
     entities.append(
         EntitySpec("electric-mining-drill", (drill_x, -8.0), direction="south", marker="drill")
     )

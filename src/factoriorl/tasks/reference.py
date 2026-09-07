@@ -123,17 +123,20 @@ class Driver:
             dx, dy = target[0] - here[0], target[1] - here[1]
             if abs(dx) <= tolerance and abs(dy) <= tolerance:
                 return True
-            # A long stride covers ~4.45 tiles and a short one ~1.0, so use
-            # the short stride once inside long-stride range -- otherwise the
-            # walk overshoots and oscillates forever, which is exactly what the
-            # first run of these solvers exposed.
-            far = max(abs(dx), abs(dy)) > 5.0
-            prefix = "move" if far else "step"
+            # Three strides: ~4.45 tiles, ~1.04, ~0.30. Each tier must be
+            # finer than the error it is asked to close, or the walk oscillates
+            # on that stride's lattice instead of converging. Two tiers was not
+            # enough: a 1.04-tile minimum stride cannot land within 0.4 of a
+            # tile centre, which is what every placement needs.
+            error = max(abs(dx), abs(dy))
+            prefix = "move" if error > 5.0 else ("step" if error > 1.5 else "nudge")
             key = (
                 (f"{prefix}_east" if dx > 0 else f"{prefix}_west")
                 if abs(dx) >= abs(dy)
                 else (f"{prefix}_south" if dy > 0 else f"{prefix}_north")
             )
+            if key not in self.index:
+                key = key.replace("nudge_", "step_")
             if key not in self.index:
                 key = key.replace("step_", "move_")
             if not self.do(key):
@@ -141,17 +144,34 @@ class Driver:
             moved = self.position
             if math.dist(here, moved) < 0.05:
                 stalled += 1
-                if stalled >= 3:
-                    # Entity reach is 10 tiles, so being blocked a few tiles
-                    # short of a machine is close enough to interact with it --
-                    # the goal was never to stand on top of it.
-                    if math.dist(moved, target) <= interact_range:
-                        return True
+                # Entity reach is 10 tiles, so being blocked a few tiles short
+                # of a machine is close enough to interact with it -- the goal
+                # was never to stand on top of it.
+                if math.dist(moved, target) <= interact_range:
+                    return True
+                # Greedy axis-first movement walks straight into any obstacle
+                # placed across the direct line, which is exactly what a
+                # structural holdout like `screened_depot` puts there. Slide
+                # along the blocking face instead of giving up: commit to the
+                # perpendicular axis for a few strides, alternating sides on
+                # each successive stall so a wall is escaped whichever end is
+                # nearer. This is still not pathfinding (PLAN defers that to
+                # 5.1) -- it is enough to round a convex obstacle, and a
+                # reference solver is allowed to be more capable than the
+                # policy it validates the task for.
+                if stalled > MAX_SIDESTEPS:
                     self.trace.stuck_reason = (
                         f"blocked walking toward {target} at {moved} "
                         "(no pathfinding until Phase 5.1)"
                     )
                     return False
+                sideways = ("north", "south") if abs(dx) >= abs(dy) else ("west", "east")
+                side = sideways[stalled % 2]
+                for _ in range(SIDESTEP_STRIDES):
+                    if not self.do(
+                        f"step_{side}" if f"step_{side}" in self.index else f"move_{side}"
+                    ):
+                        return False
             else:
                 stalled = 0
         self.trace.stuck_reason = f"walk budget exhausted heading to {target}"
@@ -229,13 +249,24 @@ def solve_mine_smelt(driver: Driver) -> None:
             return
         if not driver.do("mine_nearest_5"):
             return
-        # Mining is ongoing: it needs intervals to finish before the ore is in
-        # the inventory to hand over.
-        for _ in range(10):
-            if driver.inventory().get("iron-ore", 0) >= 1:
+        # Mining is ongoing, and slow: about four decision intervals per ore.
+        # Wait for the *whole* batch, because `give_iron-ore_5` transfers five
+        # or fails with `no_items` -- and walking to the furnace cancels
+        # mining, so there is no second chance to top up. Waiting for one ore
+        # and leaving is why this family reported `no_items` while mining was
+        # in fact working perfectly.
+        carried = 0
+        for _ in range(40):
+            carried = driver.inventory().get("iron-ore", 0)
+            if carried >= GIVE_BATCH:
                 break
             if not driver.do("wait"):
                 return
+        if carried < GIVE_BATCH:
+            driver.trace.stuck_reason = (
+                f"mined only {carried} ore in 40 intervals, need {GIVE_BATCH}"
+            )
+            return
         if not driver.walk_to(furnace, interact_range=6.0):
             return
         if not driver.do("give_coal_5"):
@@ -250,27 +281,88 @@ def solve_mine_smelt(driver: Driver) -> None:
 
 
 def solve_repair_belt(driver: Driver) -> None:
-    """Walk to where a belt must go and place it.
+    """Repair every defect on the line, not just the first one.
 
-    This is the solver that exposes the catalog defect: `place_transport_belt`
-    binds its position to the character's tile plus two east, so the only way
-    to place into a gap is to stand exactly two tiles west of it.
+    The layout families differ in *how many* and *what kind* of defect there is
+    -- `double_gap` has two holes, `misrotation` leaves a belt facing the wrong
+    way -- so a solver that places one belt and stops passes `gap` and fails
+    the rest. It fixes whatever the observation still shows is wrong.
     """
-    gap = _belt_gap(driver)
-    if gap is None:
-        driver.trace.stuck_reason = "could not locate the belt gap from the observation"
-        return
-    # Placement is welded to character + (2, 0).
-    stand = (gap[0] - 1, gap[1])
-    if not driver.walk_to(stand, tolerance=0.4, budget=120):
-        return
-    if not driver.do("place_transport_belt_east"):
-        return
-    for _ in range(30):
+    for _ in range(6):
+        if driver.success or driver.terminated:
+            break
+        gap = _belt_gap(driver)
+        if gap is not None:
+            # Approach from the south and place north. Standing west of the gap
+            # and placing east would be the obvious route, but placement binds
+            # to floor(position), so the standing tile selects the target -- and
+            # the tile west of a gap holds a belt. South wins over north because
+            # the catalog welds facing to the placement offset: a north-placed
+            # belt is one clockwise rotation from the east the line needs.
+            if not driver.walk_to((gap[0], gap[1] + 1.0), tolerance=0.35, budget=140):
+                return
+            if not driver.do("place_transport_belt_north"):
+                return
+            if not _rotate_to_east(driver, gap):
+                return
+            continue
+        crooked = _misrotated_belt(driver)
+        if crooked is None:
+            break
+        if not driver.walk_to((crooked[0], crooked[1] + 1.0), tolerance=0.35, budget=140):
+            return
+        if not _rotate_to_east(driver, crooked):
+            return
+    for _ in range(40):
         if driver.success or driver.terminated:
             return
         if not driver.do("wait"):
             return
+
+
+def _rotate_to_east(driver: Driver, position) -> bool:
+    """Turn the belt at `position` until it faces east, or give up."""
+    for _ in range(4):
+        belt = _entity_at(driver, position)
+        if belt is None or belt.get("d") == _EAST:
+            return True
+        if not driver.do("rotate_target"):
+            return False
+    return True
+
+
+def _misrotated_belt(driver: Driver):
+    belts = [
+        e for e in driver.env._observation.get("entities", []) if e.get("name") == "transport-belt"
+    ]
+    if not belts:
+        return None
+    ys = [math.floor(e["p"][1]) for e in belts]
+    line_y = max(set(ys), key=ys.count)
+    for belt in sorted(belts, key=lambda e: e["p"][0]):
+        if math.floor(belt["p"][1]) == line_y and belt.get("d") != _EAST:
+            return (belt["p"][0], belt["p"][1])
+    return None
+
+
+#: How many times a walk may slide along a blocking face before it is
+#: declared stuck, and how far each slide goes.
+MAX_SIDESTEPS = 6
+SIDESTEP_STRIDES = 3
+
+#: `give_<item>_5` moves five at a time or nothing.
+GIVE_BATCH = 5
+
+#: Factorio 2.0 uses 16 directions, so east is 4 rather than 2.
+_EAST = 4
+
+
+def _entity_at(driver: Driver, position, radius: float = 0.4):
+    for entity in driver.env._observation.get("entities", []):
+        point = entity.get("p") or [0, 0]
+        if math.dist(point, position) <= radius:
+            return entity
+    return None
 
 
 def _belt_gap(driver: Driver) -> tuple[float, float] | None:
@@ -286,7 +378,9 @@ def _belt_gap(driver: Driver) -> tuple[float, float] | None:
     xs = sorted({math.floor(e["p"][0]) for e in belts if math.floor(e["p"][1]) == line_y})
     for left, right in zip(xs, xs[1:], strict=False):
         if right - left > 1:
-            return (float(left + 1), float(line_y))
+            # Tile centre, not tile index: everything downstream is world
+            # coordinates, and tile n spans [n, n+1).
+            return (left + 1.5, line_y + 0.5)
     return None
 
 
@@ -312,9 +406,12 @@ def solve_restore_power(driver: Driver) -> None:
     if gap_x is None:
         driver.trace.stuck_reason = "no poles visible to infer the gap from"
         return
-    if not driver.walk_to((gap_x - 1, -8.0), tolerance=0.45, budget=140):
+    # The tile west of the gap holds a pole, so approach from the north and
+    # place south. Poles are rotationally symmetric, so unlike the belt there
+    # is nothing to correct afterwards.
+    if not driver.walk_to((gap_x + 0.5, -8.5), tolerance=0.35, budget=160):
         return
-    if not driver.do("place_small_electric_pole_east"):
+    if not driver.do("place_small_electric_pole_south"):
         return
     for _ in range(20):
         if driver.success or driver.terminated:

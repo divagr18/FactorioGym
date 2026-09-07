@@ -1,166 +1,55 @@
 {
-  "episodes_per_split": 3,
+  "episodes_per_split": 10,
   "tasks": {
     "deliver": {
       "splits": {
         "train": {
-          "reference_success": 3,
-          "episodes": 3,
+          "reference_success": 10,
+          "episodes": 10,
           "reference_rate": 1.0,
-          "random_rate": 0.33,
-          "mean_steps": 14.7,
+          "random_rate": 0.2,
+          "mean_steps": 15.8,
           "stuck_reasons": [],
           "last_errors": []
         },
         "test": {
-          "reference_success": 3,
-          "episodes": 3,
+          "reference_success": 10,
+          "episodes": 10,
           "reference_rate": 1.0,
-          "random_rate": 0.67,
-          "mean_steps": 14.7,
+          "random_rate": 0.0,
+          "mean_steps": 16.9,
           "stuck_reasons": [],
           "last_errors": []
-        }
-      }
-    },
-    "mine_smelt": {
-      "splits": {
-        "train": {
-          "reference_success": 0,
-          "episodes": 3,
-          "reference_rate": 0.0,
-          "random_rate": 0.0,
-          "mean_steps": 118.7,
-          "stuck_reasons": [
-            "blocked walking toward (-5, 9) at (0, 0) (no pathfinding until Phase 5.1)",
-            "solver finished without reaching the success predicate"
-          ],
-          "last_errors": [
-            "give_iron-ore_5: no_items"
-          ]
-        },
-        "test": {
-          "reference_success": 0,
-          "episodes": 3,
-          "reference_rate": 0.0,
-          "random_rate": 0.0,
-          "mean_steps": 118.7,
-          "stuck_reasons": [
-            "blocked walking toward (-5, 9) at (0, 0) (no pathfinding until Phase 5.1)",
-            "solver finished without reaching the success predicate"
-          ],
-          "last_errors": [
-            "give_iron-ore_5: no_items"
-          ]
         }
       }
     },
     "navigate": {
       "splits": {
         "train": {
-          "reference_success": 3,
-          "episodes": 3,
+          "reference_success": 10,
+          "episodes": 10,
           "reference_rate": 1.0,
-          "random_rate": 0.33,
-          "mean_steps": 6.3,
+          "random_rate": 0.2,
+          "mean_steps": 8.2,
           "stuck_reasons": [],
           "last_errors": []
         },
         "test": {
-          "reference_success": 3,
-          "episodes": 3,
+          "reference_success": 10,
+          "episodes": 10,
           "reference_rate": 1.0,
-          "random_rate": 0.33,
-          "mean_steps": 6.3,
-          "stuck_reasons": [],
-          "last_errors": []
-        }
-      }
-    },
-    "repair_belt": {
-      "splits": {
-        "train": {
-          "reference_success": 0,
-          "episodes": 3,
-          "reference_rate": 0.0,
-          "random_rate": 0.0,
-          "mean_steps": 35.3,
-          "stuck_reasons": [
-            "solver finished without reaching the success predicate"
-          ],
-          "last_errors": []
-        },
-        "test": {
-          "reference_success": 0,
-          "episodes": 3,
-          "reference_rate": 0.0,
-          "random_rate": 0.0,
-          "mean_steps": 35.3,
-          "stuck_reasons": [
-            "solver finished without reaching the success predicate"
-          ],
-          "last_errors": []
-        }
-      }
-    },
-    "restore_power": {
-      "splits": {
-        "train": {
-          "reference_success": 0,
-          "episodes": 3,
-          "reference_rate": 0.0,
-          "random_rate": 0.0,
-          "mean_steps": 30.0,
-          "stuck_reasons": [
-            "solver finished without reaching the success predicate"
-          ],
-          "last_errors": []
-        },
-        "test": {
-          "reference_success": 0,
-          "episodes": 3,
-          "reference_rate": 0.0,
-          "random_rate": 0.0,
-          "mean_steps": 140.0,
-          "stuck_reasons": [
-            "walk budget exhausted heading to (17, -8.0)"
-          ],
-          "last_errors": []
-        }
-      }
-    },
-    "supply_furnace": {
-      "splits": {
-        "train": {
-          "reference_success": 3,
-          "episodes": 3,
-          "reference_rate": 1.0,
-          "random_rate": 0.67,
-          "mean_steps": 44.0,
-          "stuck_reasons": [],
-          "last_errors": []
-        },
-        "test": {
-          "reference_success": 3,
-          "episodes": 3,
-          "reference_rate": 1.0,
-          "random_rate": 0.67,
-          "mean_steps": 44.0,
+          "random_rate": 0.2,
+          "mean_steps": 8.2,
           "stuck_reasons": [],
           "last_errors": []
         }
       }
     }
   },
-  "wall_seconds": 369.1,
+  "wall_seconds": 181.2,
   "solvable": [
     "deliver",
-    "navigate",
-    "supply_furnace"
+    "navigate"
   ],
-  "defective": [
-    "mine_smelt",
-    "repair_belt",
-    "restore_power"
-  ]
+  "defective": []
 }

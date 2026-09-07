@@ -187,6 +187,7 @@ def cmd_train(args) -> int:
             shaping=not args.no_shaping,
             workers=args.workers if args.workers is not None else default_workers(),
             eval_episodes=args.eval_episodes,
+            eval_split=args.eval_split,
             run_prefix=args.prefix,
         )
     )
@@ -307,6 +308,12 @@ def main(argv: list[str] | None = None) -> int:
     train_cmd.add_argument("--steps", type=int, default=50_000)
     train_cmd.add_argument("--seed", type=int, default=20260907)
     train_cmd.add_argument("--eval-episodes", type=int, default=20)
+    train_cmd.add_argument(
+        "--eval-split",
+        choices=("val", "test"),
+        default="val",
+        help="val for routine runs and sweeps; test only for a release evaluation",
+    )
     train_cmd.add_argument("--no-shaping", action="store_true")
     train_cmd.add_argument("--prefix", default="train")
     train_cmd.add_argument(

@@ -81,6 +81,11 @@ SPEC = TaskSpec(
 )
 
 
+#: Far enough from spawn that the character never starts inside the furnace,
+#: close enough to carry ore back inside the episode budget.
+FURNACE_RADIUS = 6.0
+
+
 def generate(family: LayoutFamily, rng) -> Blueprint:
     angle = rng.uniform(0, 2 * math.pi)
     distance = rng.uniform(8.0, 14.0)
@@ -103,9 +108,16 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
             resources.append(
                 ResourceSpec("iron-ore", (centre[0] + 3, centre[1] + offset), amount=800)
             )
-    # Offset perpendicular to the patch bearing, so walking to the ore never
-    # runs into the furnace itself.
-    furnace = (round(centre[0] * 0.35) + 2, round(centre[1] * 0.35) - 3)
+    # Perpendicular to the patch bearing at a fixed radius, so walking to the
+    # ore never runs into the furnace *and* the furnace can never land on the
+    # spawn tile. Scaling the patch centre and adding a constant offset did
+    # exactly that: a patch centred (-5, 9) put the furnace at (0, 0) and the
+    # character spawned inside its 2x2 footprint, blocked on its first move.
+    furnace_angle = angle + math.pi / 2
+    furnace = (
+        round(math.cos(furnace_angle) * FURNACE_RADIUS),
+        round(math.sin(furnace_angle) * FURNACE_RADIUS),
+    )
     contents = {"coal": 6} if family.name == "fuelled_furnace" else {}
     entities = [EntitySpec("stone-furnace", furnace, contents=contents, marker="furnace")]
     inventory = {"coal": 10} if family.name != "fuelled_furnace" else {"coal": 4}

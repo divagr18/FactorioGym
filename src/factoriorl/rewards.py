@@ -73,7 +73,13 @@ class RewardAccountant:
             elif component.kind is RewardKind.POTENTIAL:
                 self._potential[component.name] = value
 
-    def step(self, observation: dict, truth: dict, succeeded: bool) -> dict[str, float]:
+    def step(
+        self,
+        observation: dict,
+        truth: dict,
+        succeeded: bool,
+        terminated: bool = False,
+    ) -> dict[str, float]:
         """Reward components for one transition. Keys are stable per task."""
         out: dict[str, float] = {}
         for component in self.components:
@@ -96,7 +102,17 @@ class RewardAccountant:
             elif component.kind is RewardKind.POTENTIAL:
                 previous = self._potential.get(component.name, value)
                 self._potential[component.name] = value
-                out[component.name] = component.weight * (GAMMA * value - previous)
+                # Phi(terminal) must be 0, or the shaping does not telescope to
+                # a policy-independent -w*Phi(s0) and the invariance guarantee
+                # is void. Termination is entry to an absorbing state whose
+                # value is zero by definition; truncation is NOT termination --
+                # the episode is cut, the state still has value -- so only
+                # `terminated` zeroes it. Left unbranched, this paid a second
+                # success bonus on `navigate` (Phi(s_T) ~ 0.97 against a sparse
+                # weight of 1.0), and would pay for failing *near* the goal
+                # once failure predicates exist.
+                phi_next = 0.0 if terminated else value
+                out[component.name] = component.weight * (GAMMA * phi_next - previous)
             else:
                 out[component.name] = 0.0
         return out

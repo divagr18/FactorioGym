@@ -265,3 +265,57 @@ def test_different_runs_do_not_share_episode_seeds():
     a = SeedPlan(master=7, run_id="run-a")
     b = SeedPlan(master=7, run_id="run-b")
     assert a.episode_seed(Branch.TRAIN, 0) != b.episode_seed(Branch.TRAIN, 0)
+
+
+# ---------------------------------------------------- potential-based shaping
+
+
+def _potential_task_components():
+    return (
+        RewardComponent(
+            name="approach",
+            kind=RewardKind.POTENTIAL,
+            weight=1.0,
+            predicate=Predicate(PredicateKind.NEAR_MARKER, marker="goal", threshold=30.0),
+        ),
+    )
+
+
+def _phi_run(accountant, values, terminate_last):
+    """Score a trajectory whose potential takes `values`, returning the
+    discounted sum of the shaping term."""
+    total, discount = 0.0, 1.0
+    for index, value in enumerate(values):
+        last = index == len(values) - 1
+        observation = {"character": {"position": [value, 0.0]}, "entities": []}
+        truth = {"markers": {"goal": [0.0, 0.0]}}
+        components = accountant.step(
+            observation, truth, succeeded=False, terminated=terminate_last and last
+        )
+        total += discount * components["approach"]
+        discount *= GAMMA
+    return total
+
+
+def test_potential_shaping_telescopes_to_a_policy_independent_constant():
+    """Ng-Harada-Russell invariance: the discounted shaping over an episode must
+    equal -w*Phi(s0) regardless of the path taken. That only holds if Phi is
+    zeroed at a terminal state -- without the branch, the sum keeps a
+    path-dependent gamma^T*Phi(s_T) term and the guarantee is void."""
+    task = get("navigate")
+    components = [c for c in task.spec.rewards if c.kind is RewardKind.POTENTIAL]
+    if not components:
+        pytest.skip("navigate declares no potential component")
+
+    start = {"character": {"position": [10.0, 0.0]}, "entities": []}
+    truth = {"markers": {"goal": [0.0, 0.0]}}
+
+    sums = []
+    for path in ([8.0, 5.0, 1.0], [9.0, 9.0, 1.0]):
+        accountant = RewardAccountant(task.spec.rewards, shaping_enabled=True)
+        accountant.reset(start, truth)
+        phi0 = accountant._potential[components[0].name]
+        sums.append(round(_phi_run(accountant, path, terminate_last=True), 9))
+        expected = round(-components[0].weight * phi0, 9)
+    assert sums[0] == sums[1], "shaping depends on the path taken"
+    assert abs(sums[0] - expected) < 1e-9, f"expected {expected}, got {sums[0]}"

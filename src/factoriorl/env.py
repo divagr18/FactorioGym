@@ -218,10 +218,14 @@ class FactorioEnv(gym.Env):
             self._truth = truth
 
         succeeded = self._succeeded()
-        components = self.accountant.step(self._observation, self._truth, succeeded)
+        # Termination is decided *before* the transition is scored: the
+        # potential-based shaping needs to know whether s' is absorbing.
+        terminated = succeeded or self._failed()
+        components = self.accountant.step(
+            self._observation, self._truth, succeeded, terminated=terminated
+        )
         reward = RewardAccountant.total(components)
 
-        terminated = succeeded or self._failed()
         truncated = (not terminated) and (
             self._steps >= self.spec_.max_decision_steps
             or self._observation.get("tick", 0) >= self.spec_.max_game_ticks

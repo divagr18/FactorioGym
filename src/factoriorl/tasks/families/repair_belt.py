@@ -56,6 +56,10 @@ SPEC = TaskSpec(
         "step_east",
         "step_south",
         "step_west",
+        "nudge_north",
+        "nudge_east",
+        "nudge_south",
+        "nudge_west",
         "place_transport_belt_north",
         "place_transport_belt_east",
         "place_transport_belt_south",
@@ -69,13 +73,23 @@ LINE_Y = 0.0
 
 
 def generate(family: LayoutFamily, rng) -> Blueprint:
-    length = rng.randint(6, 9)
-    start_x = 4
-    gap_index = rng.randint(2, length - 2)
+    # `gap_far` used to be a byte-identical copy of `gap`: the name promised a
+    # distance variation the generator never implemented, so two of the four
+    # declared layout families were the same content.
+    if family.name == "gap_far":
+        length = rng.randint(11, 14)
+        start_x = 4
+        gap_index = rng.randint(length - 4, length - 2)
+    else:
+        length = rng.randint(6, 9)
+        start_x = 4
+        gap_index = rng.randint(2, length - 2)
     gaps = {gap_index}
     if family.name == "double_gap":
-        other = rng.randint(2, length - 2)
-        gaps.add(other)
+        # Distinct, or `double_gap` silently degenerates into `gap`.
+        choices = [i for i in range(2, length - 1) if i != gap_index]
+        if choices:
+            gaps.add(choices[rng.randrange(len(choices))])
 
     entities = [
         EntitySpec(
@@ -100,11 +114,18 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
     # no power network: electric ones would never move an item even after a
     # correct repair, making the task unsolvable for reasons unrelated to the
     # belt.
+    #
+    # Both face *west*, which reads backwards until you check the engine: an
+    # inserter's `direction` points at its PICKUP tile and it drops 1.2 tiles
+    # behind itself. Built facing east, the loader picked from the belt and
+    # dropped into the source chest -- the line ran in reverse, both inserters
+    # sat in `waiting_for_source_items`, and a perfectly repaired belt still
+    # delivered nothing.
     entities.append(
         EntitySpec(
             "burner-inserter",
             (float(start_x - 1), LINE_Y),
-            direction="east",
+            direction="west",
             marker="loader",
             contents={"coal": 5},
         )
@@ -113,7 +134,7 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         EntitySpec(
             "burner-inserter",
             (float(start_x + length), LINE_Y),
-            direction="east",
+            direction="west",
             marker="unloader",
             contents={"coal": 5},
         )

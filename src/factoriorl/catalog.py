@@ -49,8 +49,16 @@ DIRECTIONS = ("north", "east", "south", "west")
 #: cannot approach anything within ~4 tiles: the agent overshoots and
 #: oscillates forever. The reference solvers hit this on every family. A short
 #: stride costs four action indices and makes positioning possible at all.
+#: The character runs at 0.1484 tiles/tick, so a 7-tick stride covers 1.039
+#: tiles. That is 2.6x the tolerance a solver needs to land on a specific tile,
+#: which left the walker oscillating between two points on a ~1-tile lattice --
+#: never blocked, just unable to stop anywhere useful. Placement binds to
+#: floor(position), so *tile-level* precision is a hard requirement of the
+#: action set, not a nicety. A 2-tick nudge covers 0.297 tiles and bounds the
+#: final positioning error at ~0.15.
 LONG_MOVE_TICKS = 30
 SHORT_MOVE_TICKS = 7
+NUDGE_MOVE_TICKS = 2
 
 
 def _move_templates() -> list[ActionTemplate]:
@@ -60,6 +68,10 @@ def _move_templates() -> list[ActionTemplate]:
     ]
     templates += [
         ActionTemplate(f"step_{d}", "move", {"direction": d, "ticks": SHORT_MOVE_TICKS})
+        for d in DIRECTIONS
+    ]
+    templates += [
+        ActionTemplate(f"nudge_{d}", "move", {"direction": d, "ticks": NUDGE_MOVE_TICKS})
         for d in DIRECTIONS
     ]
     return templates

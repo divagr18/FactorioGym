@@ -50,6 +50,13 @@ class TrainConfig:
     ent_coef: float = 0.01
     shaping: bool = True
     eval_episodes: int = 20
+    #: PLAN section 3: validation supports debugging and model selection;
+    #: test results use frozen layouts *excluded from tuning*. Routine runs
+    #: and sweeps therefore report `val`; only a declared release evaluation
+    #: passes `test`, and every result records which split produced it. The
+    #: routine loop defaulted to `test`, which spent the holdout on
+    #: candidate selection.
+    eval_split: str = "val"
     device: str = "auto"
     #: Parallel workers. A 30-tick interval costs ~16 ms of engine time that no
     #: setting can remove, so overlapping workers is the only way to step
@@ -61,6 +68,7 @@ class TrainConfig:
     def to_dict(self) -> dict:
         return {
             "task_id": self.task_id,
+            "eval_split": self.eval_split,
             "total_steps": self.total_steps,
             "master_seed": self.master_seed,
             "learning_rate": self.learning_rate,
@@ -292,8 +300,7 @@ def train(config: TrainConfig) -> dict:
                 "rollout": {
                     "steps_per_env": steps_per_env,
                     "buffer": steps_per_env * max(config.workers, 1),
-                    "updates": config.total_steps
-                    // max(steps_per_env * max(config.workers, 1), 1),
+                    "updates": config.total_steps // max(steps_per_env * max(config.workers, 1), 1),
                 },
             },
         ).write()
@@ -303,21 +310,30 @@ def train(config: TrainConfig) -> dict:
         curve.write()
         model.save(run_dir / "model")
 
-        # Evaluation runs on the held-out split and a disjoint seed branch, so
+        # Evaluation runs on a held-out split and a disjoint seed branch, so
         # an evaluation episode can never be one the policy trained on.
         eval_env = FactorioEnv(
-            task, session, plan, branch=Branch.EVAL, split="test", shaping=config.shaping
+            task,
+            session,
+            plan,
+            branch=Branch.EVAL,
+            split=config.eval_split,
+            shaping=config.shaping,
         )
         held_out = evaluate(eval_env, model, config.eval_episodes)
         baseline = random_baseline(
-            FactorioEnv(task, session, plan, branch=Branch.EVAL, split="test"),
-            min(config.eval_episodes, 10),
+            FactorioEnv(task, session, plan, branch=Branch.EVAL, split=config.eval_split),
+            # The baseline shares the evaluation budget: a 10-episode
+            # baseline has a Wilson interval so wide that almost no
+            # held-out rate can clear its upper bound.
+            config.eval_episodes,
             np.random.default_rng(config.master_seed),
         )
 
         result = {
             "run_id": run_id,
             "task": config.task_id,
+            "eval_split": config.eval_split,
             "total_steps": config.total_steps,
             "wall_seconds": round(time.perf_counter() - started, 1),
             "steps_per_second": round(

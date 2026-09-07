@@ -91,9 +91,10 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         round(math.sin(src_angle) * src_distance, 1),
     )
 
-    dst_distance = (
-        rng.uniform(14.0, 24.0) if family.name != "far_depot" else rng.uniform(26.0, 34.0)
-    )
+    # One distance range for every family. A holdout that is simply farther
+    # away measures added difficulty, not transfer; `screened_depot` varies the
+    # route instead, at matched distance.
+    dst_distance = rng.uniform(14.0, 24.0)
     dst_angle = src_angle + rng.uniform(math.pi * 0.5, math.pi * 1.5)
     dst = (
         round(math.cos(dst_angle) * dst_distance, 1),
@@ -112,6 +113,25 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         entities.append(EntitySpec("wooden-chest", decoy, contents={"coal": 30}, marker="decoy"))
     elif family.name == "stacked_depot":
         entities.append(EntitySpec("wooden-chest", (dst[0] + 2, dst[1]), marker="dst_neighbour"))
+    elif family.name == "screened_depot":
+        # A wall segment across the direct line to the depot: same distance,
+        # different route. Laid perpendicular to the bearing so it screens the
+        # approach rather than merely standing near it.
+        normal = dst_angle + math.pi * 0.5
+        centre = (
+            math.cos(dst_angle) * dst_distance * 0.6,
+            math.sin(dst_angle) * dst_distance * 0.6,
+        )
+        taken = {(round(dst[0]), round(dst[1])), (round(src[0]), round(src[1])), (0, 0)}
+        for offset in (-2.0, -1.0, 0.0, 1.0, 2.0):
+            tile = (
+                round(centre[0] + math.cos(normal) * offset),
+                round(centre[1] + math.sin(normal) * offset),
+            )
+            if tile in taken:
+                continue
+            taken.add(tile)
+            entities.append(EntitySpec("stone-wall", (float(tile[0]), float(tile[1]))))
 
     return Blueprint(
         entities=tuple(entities),
