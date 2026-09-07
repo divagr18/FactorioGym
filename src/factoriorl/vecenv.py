@@ -141,12 +141,20 @@ class FactorioVecEnv(VecEnv):
         return _stack(observations), np.array(rewards, dtype=np.float32), np.array(dones), infos
 
     def close(self) -> None:
-        self._executor.shutdown(wait=False)
+        # Sessions first, executor second. A worker thread parked on a socket
+        # read does not return until that socket is closed, and
+        # ThreadPoolExecutor threads are non-daemon -- the interpreter joins
+        # them at exit. Shutting the executor down first therefore left a
+        # completed run hanging forever on a thread that could never finish,
+        # holding every engine in its pool: eight idle Factorio processes
+        # competing with whatever ran next, which silently halves the
+        # throughput of the following measurement rather than failing.
         for env in self.envs:
             try:
                 env.session.close()
             except OSError:
                 pass
+        self._executor.shutdown(wait=False, cancel_futures=True)
         self.pool.close(preserve_evidence=False)
 
     # ---- the bits sb3-contrib's masking and SB3's plumbing reach for -----
