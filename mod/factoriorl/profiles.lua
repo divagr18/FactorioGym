@@ -16,7 +16,22 @@
 -- it cannot silently miss a nested field it was never told about, because the
 -- omission happens at the point of construction instead.
 
+local matrix = require("matrix")
+
 local profiles = {}
+
+--- The action catalog a profile offers, composed from the two ordered lists in
+--- `matrix.lua`. Composing it here rather than writing it out twice is what
+--- keeps a new assisted action from having to be added in two places, one of
+--- which would eventually be forgotten.
+local function action_catalog(include_assisted)
+  local names = {}
+  for _, name in ipairs(matrix.ORDER) do names[#names + 1] = name end
+  if include_assisted then
+    for _, name in ipairs(matrix.ASSISTED_ORDER) do names[#names + 1] = name end
+  end
+  return names
+end
 
 profiles.OBSERVATION = {
   ["local-v1"] = {
@@ -122,16 +137,38 @@ profiles.ACTION = {
       placement = "assembled",
     },
     placement_requires_unlocked_recipe = true,
+    actions = action_catalog(false),
+    -- No terrain memory, and that is a cost decision as much as a scope one:
+    -- folding explored terrain costs two engine queries and ~49 block rewrites
+    -- per observation, and a primitive run can never navigate, so it would be
+    -- paying per step for a store nothing reads. Every Phase 3 and Phase 4
+    -- measurement therefore still describes the same observation path it did
+    -- before navigation existed.
+    terrain_memory = false,
   },
-  -- Declared now, unavailable until Phase 5, so the assisted contract is
-  -- visible from Phase 2 and cannot be retro-fitted into primitive-v1 by
-  -- accident.
+  -- Available from Phase 5.1. The capability list is deliberately narrow:
+  -- known-terrain navigation is implemented, bounded batches (PLAN.md 5.2) are
+  -- not, and PLAN.md 6.4 forbids advertising deferred functionality as
+  -- available -- so `assistance` names what this profile actually does today
+  -- and gains "+bounded-batches" when 5.2 lands.
   ["assisted-v1"] = {
     name = "assisted-v1",
     version = 1,
-    assistance = "navigation+bounded-batches",
-    available = false,
-    drivers = {},
+    assistance = "navigation",
+    available = true,
+    drivers = {
+      mining = "native",
+      crafting = "native",
+      placement = "assembled",
+      -- Spelled out because PLAN.md section 2 requires any approximation to be
+      -- documented in the action profile, and because the alternative -- the
+      -- engine pathfinder, or a teleport -- is exactly what an assistance
+      -- profile is most likely to be quietly implemented with.
+      navigation = "own A* over explored terrain, walked with walking_state",
+    },
+    placement_requires_unlocked_recipe = true,
+    actions = action_catalog(true),
+    terrain_memory = true,
   },
 }
 
@@ -144,6 +181,21 @@ end
 
 function profiles.action(name)
   return profiles.ACTION[name or profiles.DEFAULT_ACTION]
+end
+
+--- May this action profile send `action_name`?
+---
+--- `actions.dispatch` asks before every action, so an assisted action sent to
+--- a primitive worker is rejected as unknown rather than executed. That is the
+--- mechanism behind "primitive and assisted capabilities are distinguishable"
+--- (PLAN.md 2.5) and behind every Phase 3/4 result staying comparable: a
+--- primitive run cannot reach `navigate` even if a client asks for it.
+function profiles.permits(action_profile, action_name)
+  if not action_profile or not action_profile.actions then return true end
+  for _, declared in ipairs(action_profile.actions) do
+    if declared == action_name then return true end
+  end
+  return false
 end
 
 --- Does this observation profile declare `key` as a top-level key?

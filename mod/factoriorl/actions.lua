@@ -17,6 +17,8 @@ local protocol = require("protocol")
 local matrix = require("matrix")
 local handles = require("handles")
 local inflight = require("inflight")
+local navigation = require("navigation")
+local profiles = require("profiles")
 local world = require("world")
 
 local CODE, STATUS, ERR = protocol.CODE, protocol.STATUS, protocol.ERR
@@ -123,20 +125,22 @@ end
 
 local H = {}
 
-H.move = function(_, request, payload, respond, err)
-  local ch = character()
-  if not ch then
-    return respond(request, CODE.REJECTED, nil, err(ERR.PRECONDITION, "no character present"))
-  end
-  -- A new move supersedes a running one: a policy emitting a direction every
-  -- step must not have to spend an action cancelling first. The superseded
-  -- entry settles as `cancelled` exactly once.
-  --
-  -- Moving also interrupts mining, because the two are physically exclusive
-  -- for a character -- walking away from a rock stops mining it. Without this
-  -- the mine poller keeps re-asserting mining_state every tick and pins the
-  -- character in place, so a move would be accepted and then silently do
-  -- nothing.
+--- Take exclusive control of the character's body.
+---
+-- A new move supersedes a running one: a policy emitting a direction every
+-- step must not have to spend an action cancelling first. The superseded
+-- entry settles as `cancelled` exactly once.
+--
+-- Moving also interrupts mining, because the two are physically exclusive
+-- for a character -- walking away from a rock stops mining it. Without this
+-- the mine poller keeps re-asserting mining_state every tick and pins the
+-- character in place, so a move would be accepted and then silently do
+-- nothing.
+--
+-- `navigate` shares the "move" slot (see inflight.lua), so this one helper
+-- gives both actions the same rule: whoever last asked to use the body has it,
+-- and the loser settles as cancelled with its partial result intact.
+local function take_over_body()
   local superseded = {}
   for _, slot in ipairs({ "move", "mine" }) do
     local occupant = inflight.occupant(slot)
@@ -152,6 +156,17 @@ H.move = function(_, request, payload, respond, err)
   if #superseded > 0 then
     storage.frrl_superseded = superseded
   end
+  local ids = {}
+  for _, item in ipairs(superseded) do ids[#ids + 1] = item.request_id end
+  return ids
+end
+
+H.move = function(_, request, payload, respond, err)
+  local ch = character()
+  if not ch then
+    return respond(request, CODE.REJECTED, nil, err(ERR.PRECONDITION, "no character present"))
+  end
+  local superseded = take_over_body()
   ch.walking_state = { walking = true, direction = DIRECTIONS[payload.direction] }
   inflight.start(request.request_id, "move", {
     deadline_tick = game.tick + payload.ticks,
@@ -161,11 +176,105 @@ H.move = function(_, request, payload, respond, err)
     action = "move",
     direction = payload.direction,
     ticks = payload.ticks,
-    superseded = (function()
-      local ids = {}
-      for _, item in ipairs(superseded) do ids[#ids + 1] = item.request_id end
-      return ids
-    end)(),
+    superseded = superseded,
+  })
+end
+
+--- Known-terrain navigation (PLAN.md 5.1).
+---
+-- The route is planned here, at the paused tick the request is handled, so a
+-- rejection carries no partial change: nothing has been touched and the body
+-- has not been taken over. Everything after the plan succeeds is the ordinary
+-- ongoing-action path -- one in-flight entry, settled exactly once by the
+-- poller in `navigation.lua`.
+--
+-- What this handler does *not* do is the point of it. It does not teleport. It
+-- does not ask the engine for a path (that would consult the true map and
+-- route the agent around obstacles it has never seen). And when the target is
+-- an entity it does not open, take from, rotate or mine it: it walks to a
+-- position from which the agent could choose to, and stops.
+H.navigate = function(_, request, payload, respond, err)
+  local ch = character()
+  if not ch then
+    return respond(request, CODE.REJECTED, nil, err(ERR.PRECONDITION, "no character present"))
+  end
+  -- `matrix.validate` checks field types; "exactly one of these two" is a
+  -- cross-field rule it cannot express, so it lives here.
+  if (payload.position == nil) == (payload.handle == nil) then
+    return respond(request, CODE.REJECTED, nil,
+      err(ERR.MISSING_FIELD,
+        "exactly one of payload.position or payload.handle is required"))
+  end
+
+  local goal, code, message, details = navigation.goal_for(ch, payload)
+  if not goal then
+    return respond(request, CODE.REJECTED, nil, err(code, message, details))
+  end
+
+  -- Look before planning. The store is only ever written from an observation,
+  -- so this is the step that makes "routes use only known terrain" mean
+  -- "terrain this character has stood close enough to see".
+  navigation.observe(ch)
+
+  if navigation.arrived(ch, goal) then
+    -- Already within tolerance. Zero ticks is the correct amount of game time
+    -- for zero distance; inventing an in-flight entry that settles next tick
+    -- would bill the agent for movement that did not happen.
+    return respond(request, CODE.OK, {
+      status = STATUS.COMPLETED,
+      action = "navigate",
+      arrived = true,
+      ticks_walked = 0,
+      route_length = 0,
+      position = { ch.position.x, ch.position.y },
+      destination = { goal.x, goal.y },
+      target = payload.handle,
+      tolerance = goal.radius,
+    })
+  end
+
+  local route, reason, plan_details = navigation.plan(ch.position.x, ch.position.y, goal)
+  if not route then
+    -- Naming the obstacle is only possible where the agent has looked;
+    -- `blocker_at` refuses an unexplored tile, so an unreachable destination
+    -- beyond the sensor region reports "no_route" without a name rather than
+    -- reading the true map to produce one.
+    local blocker = navigation.blocker_at(ch, math.floor(goal.x), math.floor(goal.y))
+    return respond(request, CODE.REJECTED, nil,
+      err(reason == "search_budget" and ERR.PRECONDITION or ERR.COLLISION,
+        "no route over known terrain (" .. reason .. ")",
+        {
+          reason = reason,
+          blocked_by = blocker,
+          destination = { goal.x, goal.y },
+          search = plan_details,
+        }))
+  end
+
+  local superseded = take_over_body()
+  local data = navigation.begin(ch, goal, route, payload)
+  inflight.start(request.request_id, "navigate", {
+    deadline_tick = data.deadline_tick,
+    target_handle = payload.handle,
+    data = data,
+  })
+  -- Command the body now rather than on the first poll, so the opening tick of
+  -- the interval is spent walking instead of deciding to walk.
+  navigation.launch(ch, data)
+
+  local legs, legs_truncated = navigation.report_legs(route)
+  return respond(request, CODE.OK, {
+    status = STATUS.RUNNING,
+    action = "navigate",
+    destination = { goal.x, goal.y },
+    target = payload.handle,
+    tolerance = goal.radius,
+    route_length = #route,
+    legs = legs,
+    legs_truncated = legs_truncated,
+    max_ticks = payload.max_ticks,
+    replan_limit = payload.replan_limit,
+    superseded = superseded,
   })
 end
 
@@ -177,6 +286,21 @@ H.mine = function(_, request, payload, respond, err)
   if inflight.occupant("mine") then
     return respond(request, CODE.REJECTED, nil,
       err(ERR.BUSY, "a mining operation is already running"))
+  end
+  -- A running navigation drives `walking_state` every tick and the mine poller
+  -- re-asserts `mining_state` every tick; run together they pin the character
+  -- in place and the navigator reports the stall as an obstacle that is not
+  -- there. Rejecting is the honest outcome. This is reachable only under an
+  -- assistance profile -- `navigate` cannot exist otherwise -- so `mine`
+  -- behaves bit-for-bit as before under `primitive-v1`, and `busy` was already
+  -- one of its declared failures.
+  local body = inflight.occupant("move")
+  if body then
+    local occupant = inflight.get(body)
+    if occupant and occupant.action == "navigate" then
+      return respond(request, CODE.REJECTED, nil,
+        err(ERR.BUSY, "a navigation is running; cancel it or issue a move to take control"))
+    end
   end
   local target, reason = handles.resolve(payload.handle)
   if not target then
@@ -574,6 +698,19 @@ function actions.dispatch(state, request, respond, err)
   if not handler or not matrix.ACTIONS[name] then
     return respond(request, CODE.REJECTED, nil,
       err(ERR.UNKNOWN_ACTION, "unknown action: " .. tostring(name)))
+  end
+  -- The action profile is a capability boundary, not a label. An assisted
+  -- action sent to a worker running `primitive-v1` is rejected as unknown --
+  -- the same answer as a made-up action name, because from that profile's
+  -- point of view it is one. Without this check the assisted catalog would be
+  -- reachable from any run, and no Phase 3 or Phase 4 number could claim to
+  -- have been measured without navigation assistance.
+  local action_profile = profiles.action(state and state.action_profile)
+  if not profiles.permits(action_profile, name) then
+    return respond(request, CODE.REJECTED, nil,
+      err(ERR.UNKNOWN_ACTION,
+        "unknown action: " .. tostring(name),
+        { action_profile = action_profile and action_profile.name or nil }))
   end
   local code, message, details = matrix.validate(name, request.payload)
   if code then

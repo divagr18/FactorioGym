@@ -13,6 +13,26 @@
 -- Phase 2.0 spike: build 10, entity (reach) 10, resource 2.7, pickup 1. There
 -- is no single reach distance, and `can_reach_entity` applies the engine's
 -- bounding-box-aware rule rather than centre-to-centre distance.
+--
+-- There are two ordered catalogs, not one:
+--
+--   * `ORDER` is the primitive catalog. It is frozen: it is what
+--     `primitive-v1` offers, what `src/factoriorl/action_matrix.py` mirrors
+--     field for field, and what `docs/ACTION_MATRIX.md` is generated from.
+--     Every Phase 3 and Phase 4 result was measured against exactly these ten
+--     actions, so adding to it would silently redefine what those numbers mean.
+--   * `ASSISTED_ORDER` holds actions that exist only under an assistance
+--     profile. `profiles.lua` composes the two into each profile's catalog and
+--     `actions.dispatch` refuses anything outside it, which is what makes
+--     "navigation is absent from primitive-v1" a property of the dispatcher
+--     rather than a claim in a document.
+--
+-- The Python mirror and the generated documentation currently cover `ORDER`
+-- only. Mirroring `navigate` into `action_matrix.py` (and regenerating
+-- `docs/ACTION_MATRIX.md` from it) is a Python-side follow-up; it is left
+-- undone here rather than done by hand, because a hand-edited
+-- `docs/ACTION_MATRIX.md` fails `factoriorl action-matrix --check` and a
+-- doc that fails its own freshness check is worse than one that is behind.
 
 local protocol = require("protocol")
 local ERR = protocol.ERR
@@ -41,6 +61,12 @@ matrix.ORDER = {
   "research",
   "wait",
   "cancel",
+}
+
+--- Assistance-profile actions (PLAN.md 5.1 onward). Not part of `ORDER`; see
+--- the header for why the primitive catalog is frozen.
+matrix.ASSISTED_ORDER = {
+  "navigate",
 }
 
 matrix.ACTIONS = {
@@ -245,6 +271,66 @@ matrix.ACTIONS = {
       target_request_id = { kind = "string", required = true },
     },
   },
+
+  -- ------------------------------------------------------------- assisted
+
+  navigate = {
+    -- Assistance, not a new physical capability: it plans a route over the
+    -- agent's own explored-terrain memory and then walks it with the same
+    -- `walking_state` a `move` uses. No teleport, no engine pathfinder, no
+    -- privileged look at unexplored ground.
+    assistance_only = true,
+    ongoing = true,
+    -- Same reasoning as `move`, and it shares `move`'s in-flight slot: two
+    -- operations driving `walking_state` would fight for one body. A new
+    -- navigate replaces the old plan, a `move` takes manual control back, and
+    -- both interrupt mining, which walking away from a rock does anyway.
+    supersedes = true,
+    supersedes_actions = { "move", "mine" },
+    cancellable = true,
+    -- Navigation itself is not a reach-limited interaction. It ends *beside* a
+    -- target and touches nothing: it never opens, takes from, mines or
+    -- otherwise completes the interaction the agent navigated there to perform.
+    reach = matrix.REACH.NONE,
+    mutates_inventory = false,
+    time = "walks the planned route with walking_state, one cardinal command "
+      .. "per tick at the character's own running speed (0.1484 tiles/tick); "
+      .. "the route consumes real game time and cannot be skipped",
+    cancel_boundary = "walking stops at the paused tick the cancel is "
+      .. "processed; the partial walk stands and the report carries the "
+      .. "position reached and the waypoints left",
+    failure_codes = {
+      ERR.MISSING_FIELD,
+      ERR.BAD_TYPE,
+      ERR.PRECONDITION,
+      ERR.UNKNOWN_HANDLE,
+      ERR.TARGET_MISSING,
+      ERR.INVALID_TARGET,
+      -- `collision` carries every "the route is blocked" outcome, discriminated
+      -- by `result.reason`: destination_blocked, no_route, blocked,
+      -- replan_limit. `precondition` carries the two budget stops,
+      -- time_budget and search_budget. A dedicated `route_not_found` code
+      -- would read better and needs a matching value in Python's ErrorCode,
+      -- which is outside this change; the reason field is the discriminator
+      -- until then.
+      ERR.COLLISION,
+    },
+    payload = {
+      position = { kind = "position", required = false },
+      handle = { kind = "string", required = false },
+      -- The minimum is 1.0 tile and that is a derivation, not a preference: a
+      -- route ends on a tile centre, an arbitrary requested point can be a
+      -- tile corner 0.7072 away from the nearest centre, and the per-tick
+      -- walker leaves ~0.25 of residual error. Anything tighter would be a
+      -- promise the walker cannot keep, and demanding sub-tile precision from
+      -- a strided walk is exactly what left earlier solvers oscillating on a
+      -- lattice (see src/factoriorl/catalog.py). Sub-tile positioning is the
+      -- primitive `move` nudge's job, not navigation's.
+      tolerance = { kind = "number", min = 1.0, max = 8.0, required = false },
+      max_ticks = { kind = "int", min = 1, max = 36000, required = false, default = 3600 },
+      replan_limit = { kind = "int", min = 0, max = 32, required = false, default = 8 },
+    },
+  },
 }
 
 --- Validate a request payload against an action's declared schema.
@@ -265,6 +351,22 @@ function matrix.validate(action_name, payload)
     elseif rule.kind == "int" then
       if type(value) ~= "number" or value ~= math.floor(value) then
         return ERR.BAD_TYPE, "payload." .. field .. " must be an integer",
+          { field = field, got = tostring(value) }
+      end
+      if rule.min and value < rule.min then
+        return ERR.BAD_TYPE, "payload." .. field .. " must be >= " .. rule.min,
+          { field = field, got = value }
+      end
+      if rule.max and value > rule.max then
+        return ERR.BAD_TYPE, "payload." .. field .. " must be <= " .. rule.max,
+          { field = field, got = value }
+      end
+    elseif rule.kind == "number" then
+      -- Distinct from "int": a navigation tolerance is a distance in tiles and
+      -- rounding it to an integer would quietly change what the agent asked
+      -- for. JSON numbers arrive as Lua numbers either way.
+      if type(value) ~= "number" then
+        return ERR.BAD_TYPE, "payload." .. field .. " must be a number",
           { field = field, got = tostring(value) }
       end
       if rule.min and value < rule.min then
@@ -321,10 +423,20 @@ function matrix.with_defaults(action_name, payload)
   return out
 end
 
+--- Every action name a profile could offer, primitive catalog first.
+function matrix.all_names()
+  local names = {}
+  for _, name in ipairs(matrix.ORDER) do names[#names + 1] = name end
+  for _, name in ipairs(matrix.ASSISTED_ORDER) do names[#names + 1] = name end
+  return names
+end
+
 --- Serialisable form, for the `describe` request and doc generation.
+--- Assistance actions are included and flagged, so a client that pins the
+--- matrix can see which of them its profile will actually be allowed to send.
 function matrix.describe()
   local out = {}
-  for _, name in ipairs(matrix.ORDER) do
+  for _, name in ipairs(matrix.all_names()) do
     local spec = matrix.ACTIONS[name]
     local fields = {}
     for field, rule in pairs(spec.payload) do
@@ -342,6 +454,7 @@ function matrix.describe()
       ongoing = spec.ongoing,
       supersedes = spec.supersedes,
       cancellable = spec.cancellable,
+      assistance_only = spec.assistance_only or false,
       reach = spec.reach,
       mutates_inventory = spec.mutates_inventory,
       time = spec.time,

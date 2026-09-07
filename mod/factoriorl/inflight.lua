@@ -15,6 +15,7 @@
 
 local protocol = require("protocol")
 local handles = require("handles")
+local navigation = require("navigation")
 
 local STATUS = protocol.STATUS
 local ERR = protocol.ERR
@@ -22,8 +23,18 @@ local ERR = protocol.ERR
 local inflight = {}
 
 --- One operation per slot; crafting is a genuine engine queue, so it is exempt.
+---
+--- `navigate` shares the `move` slot rather than getting its own, and that is
+--- the whole of its supersede story. Both drive `walking_state`, so two of them
+--- running at once would fight for the same body every tick and the observable
+--- result would depend on poller iteration order -- a nondeterminism that
+--- would leak into every trace. Sharing the slot means a `move` supersedes a
+--- running `navigate` for free (the agent taking manual control back), a new
+--- `navigate` supersedes the old one (a new destination replaces the old
+--- plan), and neither needs a special case in the other's handler.
 local SLOT_OF = {
   move = "move",
+  navigate = "move",
   mine = "mine",
   advance = "advance",
 }
@@ -84,6 +95,13 @@ function inflight.start(request_id, action, fields)
     goal = fields.goal,
     baseline = fields.baseline,
     recipe = fields.recipe,
+    -- Free-form per-operation state, for operations that carry more than a
+    -- deadline and a goal count -- currently only `navigate`, which holds its
+    -- route, waypoint index and replan budget here. Subject to the storage
+    -- rule at the top of this file: plain serialisable tables only, no
+    -- closures and no LuaEntity keys, because `on_load` restores this whole
+    -- structure from `storage` and autosave is on.
+    data = fields.data,
     terminal = false,
   }
   s.entries[request_id] = entry
@@ -154,6 +172,13 @@ POLLS.mine = function(entry)
   return nil
 end
 
+--- Route following lives in `navigation.lua`; this is only the registry hook.
+--- It stays a thin forward so the poller table keeps its property of holding
+--- nothing but module-level functions looked up by a stored `kind` string.
+POLLS.navigate = function(entry)
+  return navigation.poll(entry)
+end
+
 POLLS.craft = function(entry)
   local ch = character()
   if not ch then
@@ -192,6 +217,18 @@ function inflight.progress(entry)
     return ch.character_mining_progress
   elseif entry.action == "craft" and ch then
     return ch.crafting_queue_progress
+  elseif entry.action == "navigate" and ch and entry.data and entry.data.goal then
+    -- Fraction of the original distance closed, not fraction of the time
+    -- budget spent. `navigate` carries a deadline only as a safety stop, so
+    -- deadline-based progress would report a route that is nearly finished as
+    -- barely started, and would climb steadily while the character stood
+    -- against a wall.
+    local total = entry.data.start_distance or 0
+    if total > 0 then
+      local left = navigation.goal_distance(entry.data.goal, ch.position.x, ch.position.y)
+      return math.max(0.0, math.min(1.0, (total - left) / total))
+    end
+    return nil
   elseif entry.deadline_tick then
     local span = entry.deadline_tick - entry.started_tick
     if span > 0 then
@@ -258,6 +295,21 @@ function inflight.cancel(entry)
   if entry.action == "move" and ch then
     ch.walking_state = { walking = false }
     result.position = { ch.position.x, ch.position.y }
+  elseif entry.action == "navigate" and ch then
+    -- Stopping the body is the whole cancellation: a route is a plan, not a
+    -- commitment the world has to be walked back out of. The partial walk
+    -- stands, which is why the report says where the character actually is and
+    -- how much of the route was left.
+    navigation.stop(ch)
+    result.position = { ch.position.x, ch.position.y }
+    local d = entry.data
+    if d then
+      result.arrived = false
+      result.destination = { d.goal.x, d.goal.y }
+      result.waypoints_remaining = math.max(0, #d.route - d.index + 1)
+      result.remaining = navigation.goal_distance(d.goal, ch.position.x, ch.position.y)
+      result.replans = d.replans
+    end
   elseif entry.action == "mine" and ch then
     -- Native behaviour: partial mining progress is discarded.
     result.progress_lost = ch.character_mining_progress
