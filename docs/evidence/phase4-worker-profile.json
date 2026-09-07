@@ -4,166 +4,166 @@
   "steps_per_worker": 200,
   "commit_at_start": {
     "commit_limit_gb": 34.98,
-    "commit_available_gb": 16.87,
-    "commit_used_gb": 18.11,
-    "used_fraction": 0.518,
-    "ram_available_gb": 10.6
+    "commit_available_gb": 17.04,
+    "commit_used_gb": 17.94,
+    "used_fraction": 0.513,
+    "ram_available_gb": 11.25
   },
   "configurations": [
     {
       "workers": 1,
       "decision_ticks": 30,
       "steps": 200,
-      "wall_seconds": 3.68,
-      "steps_per_second": 54.39,
-      "steps_per_second_per_worker": 54.39,
-      "step_ms_mean": 18.02,
-      "step_ms_p95": 27.14,
-      "reset_ms_mean": 6.04,
-      "encode_ms_mean": 0.258,
-      "observation_bytes_mean": 1445,
-      "simulated_ticks_per_second": 1631.8,
+      "wall_seconds": 2.63,
+      "steps_per_second": 76.03,
+      "steps_per_second_per_worker": 76.03,
+      "step_ms_mean": 12.99,
+      "step_ms_p95": 17.9,
+      "reset_ms_mean": 5.4,
+      "encode_ms_mean": 0.058,
+      "observation_bytes_mean": 1078,
+      "simulated_ticks_per_second": 2280.9,
       "commit_before": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 16.87,
-        "commit_used_gb": 18.11,
-        "used_fraction": 0.518,
-        "ram_available_gb": 10.6
+        "commit_available_gb": 17.04,
+        "commit_used_gb": 17.94,
+        "used_fraction": 0.513,
+        "ram_available_gb": 11.25
       },
       "commit_peak": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 16.72,
-        "commit_used_gb": 18.26,
-        "used_fraction": 0.522,
-        "ram_available_gb": 10.46
+        "commit_available_gb": 16.85,
+        "commit_used_gb": 18.13,
+        "used_fraction": 0.518,
+        "ram_available_gb": 11.08
       }
     },
     {
       "workers": 4,
       "decision_ticks": 30,
       "steps": 800,
-      "wall_seconds": 4.29,
-      "steps_per_second": 186.68,
-      "steps_per_second_per_worker": 46.67,
-      "step_ms_mean": 19.32,
-      "step_ms_p95": 28.7,
-      "reset_ms_mean": 5.6,
-      "encode_ms_mean": 0.371,
-      "observation_bytes_mean": 17462,
-      "simulated_ticks_per_second": 5600.5,
+      "wall_seconds": 4.7,
+      "steps_per_second": 170.22,
+      "steps_per_second_per_worker": 42.55,
+      "step_ms_mean": 19.81,
+      "step_ms_p95": 36.61,
+      "reset_ms_mean": 5.85,
+      "encode_ms_mean": 0.162,
+      "observation_bytes_mean": 1113,
+      "simulated_ticks_per_second": 5106.5,
       "commit_before": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 16.88,
-        "commit_used_gb": 18.1,
-        "used_fraction": 0.518,
-        "ram_available_gb": 10.64
+        "commit_available_gb": 16.98,
+        "commit_used_gb": 17.99,
+        "used_fraction": 0.514,
+        "ram_available_gb": 11.21
       },
       "commit_peak": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 16.29,
-        "commit_used_gb": 18.69,
-        "used_fraction": 0.534,
-        "ram_available_gb": 10.09
+        "commit_available_gb": 16.38,
+        "commit_used_gb": 18.6,
+        "used_fraction": 0.532,
+        "ram_available_gb": 10.66
       }
     },
     {
       "workers": 8,
       "decision_ticks": 30,
       "steps": 1600,
-      "wall_seconds": 7.46,
-      "steps_per_second": 214.55,
-      "steps_per_second_per_worker": 26.82,
-      "step_ms_mean": 35.02,
-      "step_ms_p95": 52.32,
-      "reset_ms_mean": 6.81,
-      "encode_ms_mean": 0.464,
-      "observation_bytes_mean": 17558,
-      "simulated_ticks_per_second": 6436.6,
+      "wall_seconds": 6.13,
+      "steps_per_second": 261.12,
+      "steps_per_second_per_worker": 32.64,
+      "step_ms_mean": 25.54,
+      "step_ms_p95": 38.75,
+      "reset_ms_mean": 6.33,
+      "encode_ms_mean": 0.083,
+      "observation_bytes_mean": 1198,
+      "simulated_ticks_per_second": 7833.7,
       "commit_before": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 16.71,
-        "commit_used_gb": 18.27,
-        "used_fraction": 0.522,
-        "ram_available_gb": 10.57
+        "commit_available_gb": 17.0,
+        "commit_used_gb": 17.98,
+        "used_fraction": 0.514,
+        "ram_available_gb": 11.21
       },
       "commit_peak": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 15.41,
-        "commit_used_gb": 19.57,
-        "used_fraction": 0.559,
-        "ram_available_gb": 9.35
+        "commit_available_gb": 15.77,
+        "commit_used_gb": 19.2,
+        "used_fraction": 0.549,
+        "ram_available_gb": 10.01
       }
     },
     {
       "workers": 12,
       "decision_ticks": 30,
       "steps": 2400,
-      "wall_seconds": 10.46,
-      "steps_per_second": 229.37,
-      "steps_per_second_per_worker": 19.11,
-      "step_ms_mean": 49.46,
-      "step_ms_p95": 73.37,
-      "reset_ms_mean": 8.89,
-      "encode_ms_mean": 0.467,
-      "observation_bytes_mean": 18999,
-      "simulated_ticks_per_second": 6881.2,
+      "wall_seconds": 8.59,
+      "steps_per_second": 279.35,
+      "steps_per_second_per_worker": 23.28,
+      "step_ms_mean": 39.74,
+      "step_ms_p95": 58.13,
+      "reset_ms_mean": 7.93,
+      "encode_ms_mean": 0.067,
+      "observation_bytes_mean": 879,
+      "simulated_ticks_per_second": 8380.4,
       "commit_before": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 16.79,
-        "commit_used_gb": 18.19,
-        "used_fraction": 0.52,
-        "ram_available_gb": 10.64
+        "commit_available_gb": 16.98,
+        "commit_used_gb": 17.99,
+        "used_fraction": 0.514,
+        "ram_available_gb": 11.16
       },
       "commit_peak": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 15.04,
-        "commit_used_gb": 19.94,
-        "used_fraction": 0.57,
-        "ram_available_gb": 8.97
+        "commit_available_gb": 15.16,
+        "commit_used_gb": 19.82,
+        "used_fraction": 0.567,
+        "ram_available_gb": 9.47
       }
     },
     {
       "workers": 16,
       "decision_ticks": 30,
       "steps": 3200,
-      "wall_seconds": 13.8,
-      "steps_per_second": 231.81,
-      "steps_per_second_per_worker": 14.49,
-      "step_ms_mean": 65.5,
-      "step_ms_p95": 99.49,
-      "reset_ms_mean": 16.83,
-      "encode_ms_mean": 0.485,
-      "observation_bytes_mean": 18178,
-      "simulated_ticks_per_second": 6954.3,
+      "wall_seconds": 11.75,
+      "steps_per_second": 272.27,
+      "steps_per_second_per_worker": 17.02,
+      "step_ms_mean": 56.44,
+      "step_ms_p95": 84.21,
+      "reset_ms_mean": 14.52,
+      "encode_ms_mean": 0.081,
+      "observation_bytes_mean": 1229,
+      "simulated_ticks_per_second": 8168.0,
       "commit_before": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 16.89,
-        "commit_used_gb": 18.09,
-        "used_fraction": 0.517,
-        "ram_available_gb": 10.72
+        "commit_available_gb": 16.03,
+        "commit_used_gb": 18.95,
+        "used_fraction": 0.542,
+        "ram_available_gb": 10.59
       },
       "commit_peak": {
         "commit_limit_gb": 34.98,
-        "commit_available_gb": 14.47,
-        "commit_used_gb": 20.5,
-        "used_fraction": 0.586,
-        "ram_available_gb": 8.48
+        "commit_available_gb": 13.72,
+        "commit_used_gb": 21.26,
+        "used_fraction": 0.608,
+        "ram_available_gb": 8.5
       }
     }
   ],
-  "per_worker_commit_gb": 0.23,
+  "per_worker_commit_gb": 0.28,
   "default_workers": {
-    "workers": 12,
-    "steps_per_second": 229.37,
-    "speedup_vs_one_worker": 4.22,
-    "per_worker_efficiency": 0.35,
-    "reason": "highest measured throughput inside the commit headroom: 229.4 steps/s, 4.2x a single worker at 35% per-worker efficiency; each doubling up to here bought at least 115%"
+    "workers": 8,
+    "steps_per_second": 261.12,
+    "speedup_vs_one_worker": 3.43,
+    "per_worker_efficiency": 0.43,
+    "reason": "highest measured throughput inside the commit headroom: 261.1 steps/s, 3.4x a single worker at 43% per-worker efficiency; each doubling up to here bought at least 115%"
   },
   "bottleneck": {
     "component": "environment_step",
-    "step_ms_mean": 65.5,
-    "encode_ms_mean": 0.485,
+    "step_ms_mean": 56.44,
+    "encode_ms_mean": 0.081,
     "note": "the environment round trip dominates; observation serialisation is two orders of magnitude smaller"
   },
-  "completed_at": "2026-09-07T17:56:35"
+  "completed_at": "2026-09-07T18:25:56"
 }

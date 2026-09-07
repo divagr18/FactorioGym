@@ -629,6 +629,30 @@ long-running worker matches a freshly launched one** on the same scene.
 Reset now also clears cumulative production statistics, which nothing did
 before and which is exactly where cross-episode leakage hides.
 
+**A leak the 504-reset run could not see.** Reset restored the character's
+position, inventory, walking state, mining state and crafting queue, and never
+its **facing**. An episode therefore began pointing wherever the previous
+episode's last move had left the character, and facing is not cosmetic: the
+encoder puts `direction / 16` into the self vector, so the first observation of
+every episode carried a trace of the previous one. Episodes were not
+independent.
+
+The digest is why it survived so long. It recorded position, health, inventory
+and crafting queue but not direction, so a run comparing 504 digests could
+never have disagreed about the one field that differed. Direction is now in the
+digest, which is the part of this fix that stops it recurring.
+
+Assigning `ch.direction` does not work here, and the reason is worth recording:
+the engine applies the write on the *following* tick, and the world is paused
+between decisions, so the reset observation would still report the stale value.
+The character is recreated at reset instead - a character created this tick
+reads direction 0 immediately, and reset already invalidates every outstanding
+handle, so nothing else is holding the old entity across the boundary.
+
+Found by a reconstruction test written for an unrelated payload change, which
+is the argument for writing reconstruction tests: it was comparing two
+observation profiles and the only field that disagreed belonged to neither.
+
 ### Bugs the gate found
 
 - **Factorio 2.0 has 16 compass directions, not 8.** Encoding `direction / 8.0`
@@ -644,8 +668,9 @@ before and which is exactly where cross-episode leakage hides.
 invariants per family, reward-component sums, shaping-off parity, held-out split
 reachability, **the scripted reference solution for every family**, the 504-reset
 leakage run with a fresh-worker comparison, and the throughput numbers Phase 4.3
-builds on. **71/71, no skipped criteria, exit 0, 17 seconds.** 12.62 ms mean
-step, 4.28 ms mean reset, 79.2 steps/s single worker.
+builds on. **71/71, no skipped criteria, exit 0.** 11.95 ms mean step, 4.19 ms
+mean reset, 83.7 steps/s single worker - down from 12.62 ms and up from 79.2
+steps/s after the observation payload work below.
 
 ## Phase 4 - Compact RL baseline
 
