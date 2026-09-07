@@ -76,6 +76,13 @@ class FactorioVecEnv(VecEnv):
         # different scenes and could not be compared as paired measurements.
         self._cursor: itertools.count | None = None
         self._cursor_lock = threading.Lock()
+        #: Episode indices actually handed out since the last retarget.
+        #:
+        #: A run can cite a frozen holdout's hash without having evaluated a
+        #: single one of its episodes, and no downstream check could tell --
+        #: a manifest carries whatever hash it is given. Recording what was
+        #: issued turns the citation into something falsifiable.
+        self._issued: list[int] = []
 
         for index in range(num_workers):
             worker = self.pool.start(f"{worker_prefix}-{index}")
@@ -126,11 +133,13 @@ class FactorioVecEnv(VecEnv):
                 # failure mode a frozen holdout exists to prevent.
                 inner.seed_plan = plan
         self._cursor = itertools.count(start_index)
+        self._issued = []
 
     def _reset_one(self, env):
         if self._cursor is not None:
             with self._cursor_lock:
                 index = next(self._cursor)
+                self._issued.append(index)
             # reset() increments before use, so seed it one below the target.
             env.unwrapped._episode_index = index - 1
         return env.reset()
@@ -206,6 +215,17 @@ class FactorioVecEnv(VecEnv):
         if isinstance(indices, int):
             return [self.envs[indices]]
         return [self.envs[i] for i in indices]
+
+    def issued_episodes(self) -> list[int]:
+        """Episode indices handed out since the last retarget.
+
+        More are started than are scored: with N workers the last N-1 episodes
+        are begun and abandoned when the count is reached, and an episode
+        dropped as an infrastructure failure advances the cursor too. So this
+        is the set the evaluation *touched*, which is the honest thing to check
+        a frozen holdout against.
+        """
+        return list(self._issued)
 
     def action_masks(self) -> np.ndarray:
         return np.stack([env.action_masks() for env in self.envs])

@@ -503,22 +503,27 @@ def train(config: TrainConfig) -> dict:
                 # the most expensive moment in a run -- three times over.
                 vec_env.retarget(split, Branch.EVAL, row_start, plan=row_plan)
                 rows[label] = evaluate_parallel(vec_env, model, config.eval_episodes)
+                rows[label]["episodes_touched"] = vec_env.issued_episodes()
             else:
-                rows[label] = evaluate(
-                    _wrap(
-                        FactorioEnv(
-                            task,
-                            session,
-                            plan,
-                            branch=Branch.EVAL,
-                            split=split,
-                            shaping=config.shaping,
-                        ),
-                        config.skills,
+                # The single-worker path needs the frozen plan and start index
+                # as much as the vectorised one. Left on the run's own plan it
+                # would cite a holdout and evaluate entirely different scenes,
+                # with nothing downstream able to tell -- the exact failure a
+                # frozen holdout exists to prevent, reintroduced in the branch
+                # nobody looks at.
+                serial = _wrap(
+                    FactorioEnv(
+                        task,
+                        session,
+                        row_plan,
+                        branch=Branch.EVAL,
+                        split=split,
+                        shaping=config.shaping,
                     ),
-                    model,
-                    config.eval_episodes,
+                    config.skills,
                 )
+                serial.unwrapped._episode_index = row_start - 1
+                rows[label] = evaluate(serial, model, config.eval_episodes)
             rows[label]["split"] = split
 
             # Loop variables are bound as defaults, not captured: the closure
@@ -539,18 +544,32 @@ def train(config: TrainConfig) -> dict:
                     # shared cursor happened to reach.
                     vec_env.retarget(split, Branch.EVAL, row_start, plan=row_plan)
                     return random_baseline_parallel(vec_env, config.eval_episodes, rng)
-                return random_baseline(
-                    _wrap(
-                        FactorioEnv(task, session, plan, branch=Branch.EVAL, split=split),
-                        config.skills,
-                    ),
-                    config.eval_episodes,
-                    rng,
+                floor_env = _wrap(
+                    FactorioEnv(task, session, row_plan, branch=Branch.EVAL, split=split),
+                    config.skills,
                 )
+                floor_env.unwrapped._episode_index = row_start - 1
+                return random_baseline(floor_env, config.eval_episodes, rng)
 
             rows[label]["random_baseline"] = cached_random_baseline(
                 task, split, config.master_seed, config.eval_episodes, measure_baseline
             )
+
+        # Coverage, not just citation. If this run claims a frozen holdout, say
+        # whether the episodes it actually touched fall inside the frozen range
+        # -- otherwise the hash in the manifest is decoration.
+        if frozen is not None and "structures" in rows:
+            spec = frozen["holdout"]
+            low = spec["start_index"]
+            high = low + spec["episodes_per_task"]
+            touched = rows["structures"].get("episodes_touched") or []
+            rows["structures"]["holdout"] = {
+                "id": spec.get("holdout_id"),
+                "content_hash": frozen["content_hash"],
+                "frozen_range": [low, high],
+                "episodes_touched": len(touched),
+                "within_frozen_range": bool(touched) and all(low <= i < high for i in touched),
+            }
 
         # `held_out` stays the acceptance number and remains the structural
         # row; `eval_split` names the split that selection may look at.
