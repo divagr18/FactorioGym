@@ -243,6 +243,15 @@ class SkillRunner:
             steps += 1
             if result["terminated"] or result["truncated"]:
                 return self._finish(result, total, steps, "episode_ended")
+            # The mod already knows when the batch is done: a mine runs as an
+            # in-flight operation and settles when the count is reached or the
+            # resource is gone. Waiting for the inventory to stop rising
+            # instead cost eight idle decisions on every batch -- pure overhead
+            # charged to the skill, which would have shown up in the ablation
+            # as skills being slower rather than as this bug.
+            inflight = self.env._observation.get("inflight") or []
+            if not any(entry.get("action") == "mine" for entry in inflight):
+                return self._finish(result, total, steps, "complete")
             now = self._carried()
             if now > held:
                 held = now
