@@ -235,6 +235,12 @@ State the statistical method alongside the numbers:
 
 At least three introductory families must achieve 80% held-out success across 100 evaluation episodes per training seed, with three training seeds.
 
+**Held-out means unfamiliar structures.** The threshold is carried by the test layout families, not by unseen seeds of familiar ones. Evaluating on content whose shape the policy has already seen measures memorisation, and the history of game-AI benchmarks is largely the history of that mistake being made and corrected. Every run also publishes the unfamiliar-*seed* rate on the training layouts, not as an alternative bar but as the diagnostic that separates "did not learn" from "learned and did not transfer" -- a distinction the structural number alone cannot make.
+
+No general result guarantees that a policy trained on one set of structures performs on a disjoint set; the training distribution puts no mass there. That is a reason to expect a flat baseline to miss this bar and to record the miss, not a reason to move it. A missed threshold is reported under section 4's rules for failed gates.
+
+A structural threshold is only meaningful if the held-out split is genuinely distinct content, so the generator diagnostics above are a precondition for reporting against it: a holdout whose generator admits one scene is evaluated once regardless of the episode count.
+
 At least one qualifying family must involve production or repair. Navigation and delivery alone are insufficient.
 
 Publish per-seed results, aggregate uncertainty, random and scripted baselines, training time, and failure examples.
@@ -686,13 +692,60 @@ Run three training seeds and frozen held-out evaluation.
 
 **Acceptance:**
 
-- At least three task families meet the agreed 80% threshold.
+- At least three task families meet the agreed 80% threshold on the **test (structural) split**.
 - At least one is production or repair.
 - Evaluate 100 held-out episodes per family per training seed.
+- Publish the unfamiliar-seed rate on training layouts beside every structural rate, and never select a candidate family or a hyperparameter on the test split.
 - Publish checkpoints, resolved configurations, curves, and failure examples.
 - Record whether the overnight training target was met.
 
 **Phase 4 exit gate:** another run can reproduce the learning procedure and evaluate the provided checkpoints without manual intervention.
+
+---
+
+### Phase 4b — Temporal abstraction ablation
+
+**Purpose:** establish, by measurement rather than argument, whether the gap between familiar and unfamiliar structures is an abstraction problem or a tuning problem. Phase 4's flat catalog is the baseline; this phase adds temporally extended actions and changes nothing else.
+
+The reason to run this before Phase 7 rather than inside Phase 8 is cost. Sample complexity grows steeply in the horizon, and horizon is the only term in that relationship the design controls. Phase 7's persistent factories and Phase 9's progression are long-horizon by construction, so a negative result here is worth having before either is built on the assumption that flat policies suffice. It is also unusually cheap right now: the reference solutions required by 3.2 already exist and already decompose into phases.
+
+**Dependencies:** Phase 4. The flat baseline is the comparison point and must exist first.
+
+**Primary owners:** learning, tasks.
+
+#### 4b.1 — Extract task-agnostic skills
+
+Turn the recurring phases of the reference solutions into named skills with declared preconditions and effects.
+
+**Acceptance:**
+
+- Every skill is expressed in terms the observation already exposes.
+- No skill encodes a family's solution. A skill may be "walk to the nearest entity of a named type" or "insert N of an item into a target"; it may not be "repair the belt gap". A skill library that names the answer moves privileged information into the action space, which section 2 forbids for masks and which is forbidden here for the same reason.
+- Skills are shared across families rather than defined per family, since sharing is the only route by which they can transfer.
+- A test reconstructs each skill's availability from a policy-visible observation alone.
+
+#### 4b.2 — Expose skills as temporally extended actions
+
+Offer skills alongside the primitive catalog, with availability expressed through the existing action mask.
+
+**Acceptance:**
+
+- The primitive catalog remains available and unchanged; skills are added, not substituted.
+- A skill reports running, completed, failed, or cancelled like any other ongoing action, and its underlying ticks and actions are preserved in the trace.
+- The catalog hash, action-profile version, and skill-library version are recorded in the manifest.
+- No new learning algorithm is introduced. Section 3's ordering rule stands: the baseline works first.
+
+#### 4b.3 — Run the ablation
+
+Train flat and skill-augmented policies under identical seeds, budgets, and evaluation.
+
+**Acceptance:**
+
+- Both arms are evaluated on the same held-out episodes and reported with the seed and structural rows required above.
+- The result is reported whichever way it comes out, including no improvement.
+- Wall-clock and sample cost are reported per arm, since a skill layer that only wins on wall clock is a different claim from one that wins on samples.
+
+**Phase 4b exit gate:** a published comparison of flat and skill-augmented policies on identical holdouts, with the skill library's independence from task solutions demonstrated by test.
 
 ---
 
@@ -844,7 +897,12 @@ Create a release checklist and compatibility statement.
 
 **Purpose:** connect construction, growth, repair, and adaptation.
 
-**Dependencies:** Phase 6.
+This phase is two jobs with different dependencies, and separating them keeps the benchmark from waiting on the agent:
+
+- **7a — benchmark construction (7.1, 7.2, 7.3, 7.5).** Persistent stages, the production curriculum, interventions, and structural holdouts. None of it depends on the agent being capable, and all of it is useful independently of who scores on it.
+- **7b — agent results (7.4 and the exit gate).** Recovery evaluation and the end-to-end persistent episode. These are long-horizon by construction and depend on the temporal abstraction established in Phase 4b and developed in Phase 8.
+
+**Dependencies:** Phase 6 for 7a. Phase 4b, and in practice Phase 8, for 7b.
 
 **Primary owners:** tasks, runtime, learning.
 
@@ -900,7 +958,9 @@ Hold out factory layouts, fault combinations, and resource arrangements.
 - Publish split definitions and generator versions.
 - Report ordinary-seed and structural generalization separately.
 
-**Phase 7 exit gate:** one persistent episode demonstrates construction, increased demand, disruption, recovery, and continued expansion.
+**Phase 7a exit gate:** the persistent stages, curriculum increments, interventions, and structural holdouts are built, validated by scripted solutions, and published with their generator versions.
+
+**Phase 7b exit gate:** one persistent episode demonstrates construction, increased demand, disruption, recovery, and continued expansion.
 
 ---
 
@@ -1150,13 +1210,17 @@ Phase 0: Engine feasibility
     → Phase 2: Embodied actions and observations
     → Phase 3: Tasks, resets, and Gymnasium
     → Phase 4: Reproducible RL
+    → Phase 4b: Temporal abstraction ablation
     → Phase 6: First public release
-    → Phase 7: Persistent factories
+    → Phase 7a: Persistent factories, interventions, holdouts
     → Phase 8: Learned skills and hybrid control
+    → Phase 7b: Recovery evaluation and the persistent episode
     → Phase 9: Rocket progression
 ```
 
 Phase 5 starts after the necessary Phase 2–3 contracts stabilize and runs alongside Phase 4. Both must pass before Phase 6.
+
+Phase 4b sits on the critical path because its result decides how Phases 7b, 8 and 9 are built rather than merely informing them, and because it is cheapest immediately after Phase 4, while the reference solutions and the flat baseline are both current. Phase 7 splits: 7a builds the benchmark and depends only on Phase 6, while 7b reports agent results on it and waits for the skill layer.
 
 Phase 10 begins once persistent-state checkpointing can be validated. Phase 11 begins with the first release and continues throughout development.
 
