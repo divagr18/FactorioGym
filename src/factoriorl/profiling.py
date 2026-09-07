@@ -297,7 +297,15 @@ def run_profile(
             used = result.commit_peak.get("commit_used_gb", 0) - result.commit_before.get(
                 "commit_used_gb", 0
             )
-            per_worker_commit = max(used, 0.35)
+            # A measured cost with an explicit margin, not a flat constant.
+            # The old 0.35 GB floor was roughly double the measured 0.17 GB a
+            # worker actually commits, so the projection refused configurations
+            # that would have fit -- and a guard that skips good configurations
+            # is only marginally better than one that misses bad ones. The 1.5x
+            # covers steady-state growth the first worker has not paid yet;
+            # the small absolute floor covers a measurement that reads as ~0
+            # because another process freed memory during the sample.
+            per_worker_commit = max(used * 1.5, 0.2)
             report["per_worker_commit_gb"] = round(per_worker_commit, 2)
 
     report["default_workers"] = choose_default_workers(report["configurations"])
