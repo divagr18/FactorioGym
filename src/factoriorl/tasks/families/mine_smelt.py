@@ -73,6 +73,30 @@ SPEC = TaskSpec(
     ),
     max_decision_steps=400,
     max_game_ticks=24000,
+    # Success is a force production statistic, so no predicate names a position
+    # and the split audit had nothing to measure a route to: it reported this
+    # task's difficulty parity as unmeasurable, which PLAN.md section 3 requires
+    # to be published before a held-out score can be read as transfer.
+    #
+    # The route is spawn -> ore patch -> furnace, and `patch` is its far end:
+    # everything the character does afterwards is a shuttle between two points it
+    # has already reached. It is also the only end that varies. The furnace is
+    # placed at FURNACE_RADIUS from spawn by construction, so its distance spans
+    # roughly one tile of integer-rounding jitter (5.4 to 6.4 over 500 seeds)
+    # against the patch's six (7.8 to 14.3); measuring to `furnace` would compare
+    # that rounding noise between splits and return a parity near 1.00 that had
+    # checked nothing about the task -- the false green this declaration avoids.
+    #
+    # The diagnostics descriptor is a single spawn -> marker walk, not the whole
+    # multi-leg route, so this understates the absolute cost of a scene. It does
+    # not distort the *comparison* between splits, which is what parity asks
+    # about: the patch bearing sets the furnace bearing, so the carry leg scales
+    # with the leg being measured rather than varying independently of it.
+    #
+    # No version bump: this says where difficulty is measured, not what the task
+    # is. The scenes, predicates, rewards and budgets are untouched, so a result
+    # produced before this line is still a result for this task.
+    difficulty_marker="patch",
     landmarks=(
         Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-ore", at_least=1),
         Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-ore", at_least=5),

@@ -371,3 +371,130 @@ def test_an_unmeasurable_difficulty_split_is_incomplete_not_passing():
     )
     assert entry["difficulty_parity"] == "unavailable"
     assert entry["verdict"] == "incomplete"
+
+
+# ------------------------------------------------- declared difficulty marker
+
+
+def _produced_only_spec(task_id: str, difficulty_marker: str | None = None) -> TaskSpec:
+    """A task shaped like `mine_smelt`: success is a production count, not a place."""
+    return TaskSpec(
+        id=task_id,
+        version="0.0.0",
+        description="succeeds on a production statistic",
+        layout_families=(LayoutFamily("a", "train"), LayoutFamily("b", "test")),
+        success=(Predicate(PredicateKind.PRODUCED, item="iron-plate", at_least=5),),
+        rewards=(RewardComponent("made", RewardKind.SPARSE_SUCCESS, shaping=False),),
+        difficulty_marker=difficulty_marker,
+    )
+
+
+def _separated_generator(family: LayoutFamily, rng) -> Blueprint:
+    """Same goal geometry in both splits, with the holdout screened by a wall.
+
+    Difficulty is deliberately matched -- the goal distance is drawn from one
+    distribution for both families -- so a measurable parity here should be a
+    *passing* parity. The wall gives the holdout the structural separation the
+    tool also requires, so the verdict turns on the parity and nothing else.
+    """
+    goal = (round(rng.uniform(8.0, 30.0), 1), 0.0)
+    extra = ()
+    if family.name == "b":
+        extra = tuple(EntitySpec("stone-wall", (float(x), 4.0)) for x in range(-12, 12))
+    return _blueprint(goal=goal, extra=extra)
+
+
+def test_a_declared_difficulty_marker_makes_parity_measurable():
+    """The `mine_smelt`/`supply_furnace` fix, in miniature.
+
+    Success is a production count, so no predicate names a position and every
+    difficulty descriptor came back None. Declaring where the route ends is what
+    turns "unmeasurable" into a published number; without this the task can never
+    support the transfer claim PLAN.md section 3 asks for.
+    """
+    task = RegisteredTask(
+        spec=_produced_only_spec("declared", "goal"), generate=_separated_generator
+    )
+    entry = gd.analyse_task_object(task, samples=64, plan=gd.SeedPlan(1, "t"))
+
+    assert entry["goal_marker"] == "goal"
+    assert entry["goal_marker_source"] == "declared"
+    for key in gd.DIFFICULTY_DESCRIPTORS:
+        assert entry["difficulty_overlap"][key] is not None, key
+    assert entry["difficulty_parity"] == "ok"
+    assert entry["verdict"] == "pass", entry["failures"]
+
+
+def test_a_task_declaring_no_difficulty_marker_is_still_incomplete():
+    """The escape hatch must stay shut for a task that does not use it.
+
+    Adding `difficulty_marker` gave every task a way out of the `incomplete`
+    verdict, which makes it more important, not less, that the way out is an
+    explicit declaration. An undeclared task must not slide to `pass` on a marker
+    the tool picked for itself -- the blueprint here declares a perfectly
+    goal-shaped `goal` marker, and the tool must still refuse to measure to it.
+    """
+    task = RegisteredTask(spec=_produced_only_spec("undeclared"), generate=_separated_generator)
+    entry = gd.analyse_task_object(task, samples=64, plan=gd.SeedPlan(1, "t"))
+
+    assert entry["goal_marker"] is None
+    assert entry["goal_marker_source"] is None
+    assert entry["difficulty_parity"] == "unavailable"
+    assert entry["verdict"] == "incomplete"
+    assert any("no difficulty_marker" in f for f in entry["failures"])
+
+
+def test_a_predicate_named_marker_is_still_used_when_nothing_is_declared():
+    """`navigate` and `deliver` must keep working unchanged.
+
+    Their success predicate names a position and that position is the goal, so
+    the inference is correct there. A fix for the production families that turned
+    the positional families' parity off would trade one unmeasured claim for two.
+    """
+    spec = TaskSpec(
+        id="positional",
+        version="0.0.0",
+        description="succeeds by standing somewhere",
+        layout_families=(LayoutFamily("a", "train"), LayoutFamily("b", "test")),
+        success=(Predicate(PredicateKind.CHARACTER_WITHIN, marker="goal", within=2.0),),
+        rewards=(RewardComponent("arrived", RewardKind.SPARSE_SUCCESS, shaping=False),),
+    )
+    task = RegisteredTask(spec=spec, generate=_separated_generator)
+    entry = gd.analyse_task_object(task, samples=64, plan=gd.SeedPlan(1, "t"))
+
+    assert entry["goal_marker"] == "goal"
+    assert entry["goal_marker_source"] == "success/failure predicate"
+    assert entry["difficulty_parity"] == "ok"
+
+
+def test_a_declared_marker_the_generator_never_places_is_reported():
+    """A typo in `difficulty_marker` must read as a typo, not as "not declared".
+
+    Every difficulty descriptor comes back None for a marker no blueprint
+    carries, which lands the task on the same `incomplete` verdict as a task that
+    declared nothing -- under a message saying no marker was declared, which is
+    the opposite of what happened. Silently misreporting the cause of an
+    unmeasured number is the same class of defect as reporting it green.
+    """
+    task = RegisteredTask(spec=_produced_only_spec("typo", "gaol"), generate=_separated_generator)
+    entry = gd.analyse_task_object(task, samples=32, plan=gd.SeedPlan(1, "t"))
+
+    assert entry["layout_families"]["a"]["missing_marker"] == 32
+    assert entry["verdict"] != "pass"
+    assert any("declares no marker named 'gaol'" in f for f in entry["failures"])
+
+
+def test_the_production_families_declare_where_their_difficulty_is_measured():
+    """The two families this field was added for must actually use it.
+
+    Pinned by marker name rather than by re-running the audit: the point is that
+    the declaration exists and names a marker the generator places, which is
+    cheap to check and is the part a later edit could silently drop.
+    """
+    from factoriorl.tasks import get
+
+    for task_id, expected in (("mine_smelt", "patch"), ("supply_furnace", "ore_chest")):
+        task = get(task_id)
+        assert task.spec.difficulty_marker == expected
+        blueprint = task.generate(task.spec.layout_families[0], random.Random(7))
+        assert expected in blueprint.markers

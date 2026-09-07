@@ -66,6 +66,26 @@ SPEC = TaskSpec(
     ),
     max_decision_steps=300,
     max_game_ticks=18000,
+    # Success is a force production statistic and names no position, so the split
+    # audit reported this task's difficulty parity as unmeasurable. The route is
+    # spawn -> ore chest -> furnace, and `ore_chest` is the leg that decides how
+    # hard a scene is: its distance is drawn per scene and is the one term any
+    # family varies -- `far_ore` draws uniform(15, 21) against uniform(5, 10)
+    # everywhere else. The furnace is pinned to a radius of 8, so its distance
+    # spans about one tile of integer-rounding jitter (7.6 to 8.6 over 500 seeds);
+    # measuring to `furnace` would compare that rounding noise between splits and
+    # publish a per-family difficulty column in which `far_ore` -- the family that
+    # exists precisely to be farther -- looked identical to training.
+    #
+    # The descriptor measures one spawn -> marker walk, not the full
+    # spawn -> chest -> furnace -> chest shuttle, so it understates the absolute
+    # cost of a scene. `ore_chest` is still the right leg to publish, because the
+    # furnace leg is near-constant and contributes nothing a parity comparison
+    # could read.
+    #
+    # No version bump: this declares where difficulty is measured, not what the
+    # task is; no scene, predicate, reward or budget changes.
+    difficulty_marker="ore_chest",
     landmarks=(
         Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-ore", at_least=1),
         Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-ore", at_least=5),

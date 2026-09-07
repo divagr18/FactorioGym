@@ -22,6 +22,13 @@ check and were found by hand instead:
 * ``supply_furnace.far_ore`` had no generator branch, so the validation split
   silently scored the training layout.
 
+Difficulty is measured as a route, so it needs a position to route *to*. A task
+states that position in ``TaskSpec.difficulty_marker``; where it does not, the
+marker is taken from a positional success or failure predicate. A task offering
+neither is reported ``INCOMPLETE`` rather than ``PASS`` -- see the verdict
+comment at the end of ``analyse_task_object`` for why an unmeasured claim must
+never wear a green verdict.
+
 This tool is engine-free: blueprints are pure Python, so a split can be audited
 without a Factorio worker, and the audit is cheap enough to run on every change
 to a generator.
@@ -261,17 +268,47 @@ def _bfs(
 
 
 def goal_marker(spec) -> str | None:
-    """The marker a success (or failure) predicate names, or None.
+    """The marker difficulty is measured to, or None if the task declares none.
 
-    Deliberately derived from the *declaration* rather than guessed. `mine_smelt`
-    and `supply_furnace` succeed on a force production statistic and name no
-    marker at all, so there is no position their difficulty can be measured
-    against; the honest answer there is "unavailable", not a distance to whatever
-    marker happens to look goal-shaped.
+    Two sources, in order, and never a guess:
+
+    1. ``spec.difficulty_marker``, the task's explicit statement of where the
+       route it is scored on ends. A task whose success is a production count
+       has a perfectly well-defined route -- spawn to the ore patch and back to
+       the furnace -- that no predicate mentions, and this is how it says so.
+    2. Otherwise the marker a success (or failure) predicate names. For
+       `navigate` and `deliver` the predicate names a position and that position
+       *is* the goal, so the fallback is correct rather than convenient.
+
+    If neither exists the answer is None, and the caller reports the parity as
+    unmeasurable. It must stay None rather than falling back to "whichever marker
+    the blueprint happens to declare first": `mine_smelt` declares `furnace` at a
+    fixed radius from spawn, so that guess would report the same distance for
+    every scene in every family and produce a parity of 1.00 that checked
+    nothing -- a green number standing in for an unmeasured claim, which is the
+    single defect this tool exists to remove.
     """
+    if getattr(spec, "difficulty_marker", None):
+        return spec.difficulty_marker
     for predicate in (*spec.success, *spec.failure):
         if predicate.marker:
             return predicate.marker
+    return None
+
+
+def goal_marker_source(spec) -> str | None:
+    """Whether the measured marker was declared or inferred from a predicate.
+
+    Published alongside the marker so a reader of the report can tell a route the
+    task author chose from one the tool derived, without re-deriving it. The two
+    carry different warranties: a declared marker is a reviewable claim, an
+    inferred one is only as good as the predicate it came from.
+    """
+    if getattr(spec, "difficulty_marker", None):
+        return "declared"
+    for predicate in (*spec.success, *spec.failure):
+        if predicate.marker:
+            return "success/failure predicate"
     return None
 
 
@@ -465,17 +502,26 @@ def sample_family(task, family, samples: int, plan: SeedPlan) -> dict:
     though its result is discarded.
     """
     split_size = max(1, len(task.spec.families(family.split)))
+    marker = goal_marker(task.spec)
     digests: list[str] = []
     records: list[dict[str, float | None]] = []
     unreachable = 0
+    missing_marker = 0
     for index in range(samples):
         rng = plan.generator_rng(Branch.TRAIN, index)
         rng.randrange(split_size)
         blueprint = task.generate(family, rng)
         digests.append(scene_digest(blueprint))
         values = describe(task, blueprint)
-        if goal_marker(task.spec) and values["goal_distance"] is not None:
-            unreachable += int(values["path_length"] is None)
+        if marker:
+            # A marker the task declares but the generator never places would
+            # otherwise sink without trace: every difficulty descriptor comes
+            # back None and the verdict is `incomplete` with a message saying no
+            # marker was declared, which is the opposite of what happened. A
+            # typo in `difficulty_marker` must read as a typo.
+            missing_marker += int(marker not in blueprint.markers)
+            if values["goal_distance"] is not None:
+                unreachable += int(values["path_length"] is None)
         records.append(values)
     return {
         "split": family.split,
@@ -483,6 +529,7 @@ def sample_family(task, family, samples: int, plan: SeedPlan) -> dict:
         "digests": digests,
         "records": records,
         "unreachable_goals": unreachable,
+        "missing_marker": missing_marker,
     }
 
 
@@ -542,6 +589,7 @@ def analyse_task_object(task, samples: int, plan: SeedPlan) -> dict:
     entry: dict = {
         "version": spec.version,
         "goal_marker": goal_marker(spec),
+        "goal_marker_source": goal_marker_source(spec),
         "layout_families": {},
         "duplicate_families": [],
         "difficulty_overlap": {},
@@ -559,6 +607,7 @@ def analyse_task_object(task, samples: int, plan: SeedPlan) -> dict:
             "distinct_scenes": distinct,
             "distinct_fraction": round(distinct / sampled["samples"], 4),
             "unreachable_goals": sampled["unreachable_goals"],
+            "missing_marker": sampled["missing_marker"],
             "descriptors": {
                 key: _summarise(sampled["records"], key)
                 for key in (*DIFFICULTY_DESCRIPTORS, *STRUCTURAL_DESCRIPTORS)
@@ -574,6 +623,12 @@ def analyse_task_object(task, samples: int, plan: SeedPlan) -> dict:
             entry["failures"].append(
                 f"{name} ({sampled['split']}) has {sampled['unreachable_goals']} scenes "
                 "whose goal is not reachable by a cardinal walk"
+            )
+        if sampled["missing_marker"]:
+            entry["failures"].append(
+                f"{name} ({sampled['split']}) has {sampled['missing_marker']} scenes whose "
+                f"blueprint declares no marker named '{entry['goal_marker']}', so difficulty "
+                "was measured against nothing there"
             )
     entry["distinct_scenes_total"] = len(total_digests)
 
@@ -660,13 +715,19 @@ def analyse_task_object(task, samples: int, plan: SeedPlan) -> dict:
         entry["verdict"] = "fail"
     elif entry["difficulty_parity"] == "unavailable":
         # Not a pass. PLAN.md requires difficulty parity to be *published*, and a
-        # task that declares no positional success marker cannot produce the
-        # number. Reporting that as a pass would reproduce the failure this tool
-        # exists to remove: a green result standing in for an unmeasured claim.
+        # task that names no position -- neither a `difficulty_marker` nor a
+        # positional success predicate -- cannot produce the number. Reporting
+        # that as a pass would reproduce the failure this tool exists to remove:
+        # a green result standing in for an unmeasured claim. Note that adding
+        # `difficulty_marker` gave every task a way *out* of this verdict, which
+        # makes it more important, not less, that the way out is an explicit
+        # declaration: an undeclared task must still land here rather than
+        # sliding to `pass` on a marker the tool picked for itself.
         entry["verdict"] = "incomplete"
         entry["failures"].append(
-            "difficulty parity is unmeasurable: no success or failure predicate names a "
-            "marker, so there is no declared position to measure a route to"
+            "difficulty parity is unmeasurable: the task declares no difficulty_marker and "
+            "no success or failure predicate names a marker, so there is no declared "
+            "position to measure a route to"
         )
     else:
         entry["verdict"] = "pass"
@@ -693,7 +754,15 @@ def _mean(summary: dict, width: int) -> str:
 
 def print_report(report: dict) -> None:
     for task_id, entry in sorted(report["tasks"].items()):
-        print(f"\n{task_id}  (v{entry['version']}, goal marker: {entry['goal_marker'] or 'none'})")
+        # The source is printed next to the marker so the reader can see at a
+        # glance whether the route was chosen by the task author or derived from
+        # a predicate; a report that showed only the name would make the two
+        # indistinguishable.
+        source = f", {entry['goal_marker_source']}" if entry["goal_marker"] else ""
+        print(
+            f"\n{task_id}  (v{entry['version']}, "
+            f"difficulty measured to: {entry['goal_marker'] or 'none'}{source})"
+        )
         header = (
             f"{'layout family':<18}{'split':<7}{'distinct':>9}{'obst':>7}{'path':>8}{'slack':>8}"
         )

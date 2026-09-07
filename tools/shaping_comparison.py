@@ -11,6 +11,13 @@ convergence; if shaping changed what "success" means, they will not -- and the
 success predicate is identical by construction here, because disabling shaping
 zeroes the shaping weights and touches nothing else.
 
+That last clause was false until recently and the comparison was worthless
+because of it: the step cost was gated on the same flag, so `--no-shaping`
+removed the time pressure as well and the two arms were not one variable apart.
+Step cost is charged in both arms now -- it is the task's requirement that the
+goal be reached promptly, not a shaping term -- and `RewardComponent.shaping`
+decides what the flag actually silences.
+
 Run: uv run python tools/shaping_comparison.py --task supply_furnace --steps 40000
 """
 
@@ -27,7 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON = ROOT / ".venv" / "Scripts" / "python.exe"
 
 
-def run(task: str, steps: int, seed: int, shaped: bool) -> dict:
+def run(task: str, steps: int, seed: int, shaped: bool, skills: bool) -> dict:
     command = [
         str(PYTHON),
         "-m",
@@ -46,6 +53,12 @@ def run(task: str, steps: int, seed: int, shaped: bool) -> dict:
     ]
     if not shaped:
         command.append("--no-shaping")
+    # The comparison has to run on an action space where the task is learnable
+    # at all. A flat policy scores zero on `deliver` with shaping *and* without
+    # it, and two zeroes do not distinguish "shaping did not help" from
+    # "nothing could have helped".
+    if skills:
+        command.append("--skills")
     started = time.perf_counter()
     process = subprocess.run(command, cwd=str(ROOT), capture_output=True, text=True, check=False)
     if process.returncode != 0:
@@ -63,13 +76,18 @@ def main() -> int:
     parser.add_argument("--task", default="navigate")
     parser.add_argument("--steps", type=int, default=40_000)
     parser.add_argument("--seeds", default="1,2")
+    parser.add_argument(
+        "--no-skills",
+        action="store_true",
+        help="compare over primitive actions only; most families cannot learn there",
+    )
     args = parser.parse_args()
 
     seeds = [int(s) for s in args.seeds.split(",")]
     runs = []
     for seed in seeds:
         for shaped in (True, False):
-            result = run(args.task, args.steps, seed, shaped)
+            result = run(args.task, args.steps, seed, shaped, skills=not args.no_skills)
             runs.append(result)
             label = "shaped" if shaped else "sparse"
             if result["ok"]:

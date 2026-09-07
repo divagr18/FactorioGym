@@ -12,6 +12,7 @@
     "deliver": {
       "version": "1.0.0",
       "goal_marker": "dst",
+      "goal_marker_source": "success/failure predicate",
       "layout_families": {
         "two_chest": {
           "split": "train",
@@ -19,6 +20,7 @@
           "distinct_scenes": 200,
           "distinct_fraction": 1.0,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -88,6 +90,7 @@
           "distinct_scenes": 200,
           "distinct_fraction": 1.0,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -157,6 +160,7 @@
           "distinct_scenes": 200,
           "distinct_fraction": 1.0,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -226,6 +230,7 @@
           "distinct_scenes": 200,
           "distinct_fraction": 1.0,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -338,7 +343,8 @@
     },
     "mine_smelt": {
       "version": "1.1.0",
-      "goal_marker": null,
+      "goal_marker": "patch",
+      "goal_marker_source": "declared",
       "layout_families": {
         "near_patch": {
           "split": "train",
@@ -346,18 +352,31 @@
           "distinct_scenes": 158,
           "distinct_fraction": 0.79,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
-              "available": 0
+              "available": 200,
+              "min": 7.8102,
+              "mean": 10.895,
+              "max": 14.3178
             },
             "path_length": {
-              "available": 0
+              "available": 200,
+              "min": 7.0,
+              "mean": 12.06,
+              "max": 17.0
             },
             "detour_factor": {
-              "available": 0
+              "available": 200,
+              "min": 0.8682,
+              "mean": 1.1019,
+              "max": 1.2636
             },
             "budget_slack": {
-              "available": 0
+              "available": 200,
+              "min": 100.0,
+              "mean": 128.1666,
+              "max": 200.0
             },
             "obstacle_count": {
               "available": 200,
@@ -384,7 +403,10 @@
               "max": 0.0
             },
             "goal_isolation": {
-              "available": 0
+              "available": 200,
+              "min": 9.8489,
+              "mean": 12.5267,
+              "max": 16.0312
             },
             "content_tile_count": {
               "available": 200,
@@ -400,18 +422,31 @@
           "distinct_scenes": 158,
           "distinct_fraction": 0.79,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
-              "available": 0
+              "available": 200,
+              "min": 7.8102,
+              "mean": 10.895,
+              "max": 14.3178
             },
             "path_length": {
-              "available": 0
+              "available": 200,
+              "min": 7.0,
+              "mean": 12.06,
+              "max": 17.0
             },
             "detour_factor": {
-              "available": 0
+              "available": 200,
+              "min": 0.8682,
+              "mean": 1.1019,
+              "max": 1.2636
             },
             "budget_slack": {
-              "available": 0
+              "available": 200,
+              "min": 100.0,
+              "mean": 128.1666,
+              "max": 200.0
             },
             "obstacle_count": {
               "available": 200,
@@ -438,7 +473,10 @@
               "max": 0.0
             },
             "goal_isolation": {
-              "available": 0
+              "available": 200,
+              "min": 9.8489,
+              "mean": 12.5267,
+              "max": 16.0312
             },
             "content_tile_count": {
               "available": 200,
@@ -454,18 +492,31 @@
           "distinct_scenes": 158,
           "distinct_fraction": 0.79,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
-              "available": 0
+              "available": 200,
+              "min": 7.8102,
+              "mean": 10.895,
+              "max": 14.3178
             },
             "path_length": {
-              "available": 0
+              "available": 200,
+              "min": 7.0,
+              "mean": 12.06,
+              "max": 17.0
             },
             "detour_factor": {
-              "available": 0
+              "available": 200,
+              "min": 0.8682,
+              "mean": 1.1019,
+              "max": 1.2636
             },
             "budget_slack": {
-              "available": 0
+              "available": 200,
+              "min": 100.0,
+              "mean": 128.1666,
+              "max": 200.0
             },
             "obstacle_count": {
               "available": 200,
@@ -492,7 +543,10 @@
               "max": 0.0
             },
             "goal_isolation": {
-              "available": 0
+              "available": 200,
+              "min": 9.8489,
+              "mean": 12.5267,
+              "max": 16.0312
             },
             "content_tile_count": {
               "available": 200,
@@ -508,18 +562,31 @@
           "distinct_scenes": 158,
           "distinct_fraction": 0.79,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
-              "available": 0
+              "available": 200,
+              "min": 7.8102,
+              "mean": 10.895,
+              "max": 14.3178
             },
             "path_length": {
-              "available": 0
+              "available": 200,
+              "min": 7.0,
+              "mean": 12.06,
+              "max": 17.0
             },
             "detour_factor": {
-              "available": 0
+              "available": 200,
+              "min": 0.8682,
+              "mean": 1.1019,
+              "max": 1.2636
             },
             "budget_slack": {
-              "available": 0
+              "available": 200,
+              "min": 100.0,
+              "mean": 128.1666,
+              "max": 200.0
             },
             "obstacle_count": {
               "available": 200,
@@ -546,7 +613,10 @@
               "max": 0.0
             },
             "goal_isolation": {
-              "available": 0
+              "available": 200,
+              "min": 9.8489,
+              "mean": 12.5267,
+              "max": 16.0312
             },
             "content_tile_count": {
               "available": 200,
@@ -559,50 +629,49 @@
       },
       "duplicate_families": [],
       "difficulty_overlap": {
-        "goal_distance": null,
-        "path_length": null,
-        "detour_factor": null,
-        "budget_slack": null
+        "goal_distance": 1.0,
+        "path_length": 1.0,
+        "detour_factor": 1.0,
+        "budget_slack": 1.0
       },
       "structural_overlap": {
         "obstacle_count": 1.0,
         "occupancy_fraction": 0.71,
         "entity_type_count": 1.0,
         "distractor_count": 1.0,
-        "goal_isolation": null,
+        "goal_isolation": 1.0,
         "content_tile_count": 0.0
       },
-      "failures": [
-        "difficulty parity is unmeasurable: no success or failure predicate names a marker, so there is no declared position to measure a route to"
-      ],
+      "failures": [],
       "distinct_scenes_total": 632,
       "difficulty_means": {
         "goal_distance": {
-          "train": null,
-          "test": null
+          "train": 10.895,
+          "test": 10.895
         },
         "path_length": {
-          "train": null,
-          "test": null
+          "train": 12.06,
+          "test": 12.06
         },
         "detour_factor": {
-          "train": null,
-          "test": null
+          "train": 1.1019,
+          "test": 1.1019
         },
         "budget_slack": {
-          "train": null,
-          "test": null
+          "train": 128.1666,
+          "test": 128.1666
         }
       },
-      "difficulty_parity": "unavailable",
+      "difficulty_parity": "ok",
       "separating_descriptors": [
         "content_tile_count"
       ],
-      "verdict": "incomplete"
+      "verdict": "pass"
     },
     "navigate": {
       "version": "1.0.0",
       "goal_marker": "goal",
+      "goal_marker_source": "success/failure predicate",
       "layout_families": {
         "open": {
           "split": "train",
@@ -610,6 +679,7 @@
           "distinct_scenes": 200,
           "distinct_fraction": 1.0,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -676,6 +746,7 @@
           "distinct_scenes": 200,
           "distinct_fraction": 1.0,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -745,6 +816,7 @@
           "distinct_scenes": 200,
           "distinct_fraction": 1.0,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -814,6 +886,7 @@
           "distinct_scenes": 200,
           "distinct_fraction": 1.0,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -922,38 +995,40 @@
       "verdict": "pass"
     },
     "repair_belt": {
-      "version": "1.0.0",
+      "version": "1.1.0",
       "goal_marker": "sink",
+      "goal_marker_source": "success/failure predicate",
       "layout_families": {
         "gap": {
           "split": "train",
           "samples": 200,
-          "distinct_scenes": 18,
-          "distinct_fraction": 0.09,
+          "distinct_scenes": 172,
+          "distinct_fraction": 0.86,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
-              "min": 11.0,
-              "mean": 12.535,
-              "max": 14.0
+              "min": 10.4403,
+              "mean": 16.0022,
+              "max": 21.4709
             },
             "path_length": {
               "available": 200,
               "min": 11.0,
-              "mean": 12.535,
-              "max": 14.0
+              "mean": 18.885,
+              "max": 27.0
             },
             "detour_factor": {
               "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
+              "min": 1.0398,
+              "mean": 1.1751,
+              "max": 1.2804
             },
             "budget_slack": {
               "available": 200,
-              "min": 75.0,
-              "mean": 92.125,
+              "min": 42.8571,
+              "mean": 64.7679,
               "max": 100.0
             },
             "obstacle_count": {
@@ -964,9 +1039,9 @@
             },
             "occupancy_fraction": {
               "available": 200,
-              "min": 0.0076,
-              "mean": 0.008,
-              "max": 0.0084
+              "min": 0.0041,
+              "mean": 0.0055,
+              "max": 0.0074
             },
             "entity_type_count": {
               "available": 200,
@@ -977,8 +1052,8 @@
             "distractor_count": {
               "available": 200,
               "min": 8.0,
-              "mean": 9.535,
-              "max": 11.0
+              "mean": 9.93,
+              "max": 12.0
             },
             "goal_isolation": {
               "available": 200,
@@ -989,40 +1064,41 @@
             "content_tile_count": {
               "available": 200,
               "min": 9.0,
-              "mean": 10.535,
-              "max": 12.0
+              "mean": 10.93,
+              "max": 13.0
             }
           }
         },
         "gap_far": {
           "split": "train",
           "samples": 200,
-          "distinct_scenes": 12,
-          "distinct_fraction": 0.06,
+          "distinct_scenes": 145,
+          "distinct_fraction": 0.725,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
-              "min": 16.0,
-              "mean": 17.535,
-              "max": 19.0
+              "min": 16.2788,
+              "mean": 20.7745,
+              "max": 25.0799
             },
             "path_length": {
               "available": 200,
-              "min": 16.0,
-              "mean": 17.535,
-              "max": 19.0
+              "min": 17.0,
+              "mean": 24.035,
+              "max": 31.0
             },
             "detour_factor": {
               "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
+              "min": 1.0347,
+              "mean": 1.154,
+              "max": 1.272
             },
             "budget_slack": {
               "available": 200,
-              "min": 60.0,
-              "mean": 67.275,
+              "min": 42.8571,
+              "mean": 51.925,
               "max": 75.0
             },
             "obstacle_count": {
@@ -1033,9 +1109,9 @@
             },
             "occupancy_fraction": {
               "available": 200,
-              "min": 0.0065,
-              "mean": 0.0068,
-              "max": 0.0071
+              "min": 0.0037,
+              "mean": 0.0047,
+              "max": 0.0061
             },
             "entity_type_count": {
               "available": 200,
@@ -1045,8 +1121,8 @@
             },
             "distractor_count": {
               "available": 200,
-              "min": 13.0,
-              "mean": 14.535,
+              "min": 14.0,
+              "mean": 15.08,
               "max": 16.0
             },
             "goal_isolation": {
@@ -1057,8 +1133,8 @@
             },
             "content_tile_count": {
               "available": 200,
-              "min": 14.0,
-              "mean": 15.535,
+              "min": 15.0,
+              "mean": 16.08,
               "max": 17.0
             }
           }
@@ -1066,32 +1142,33 @@
         "misrotation": {
           "split": "val",
           "samples": 200,
-          "distinct_scenes": 18,
-          "distinct_fraction": 0.09,
+          "distinct_scenes": 172,
+          "distinct_fraction": 0.86,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
-              "min": 11.0,
-              "mean": 12.535,
-              "max": 14.0
+              "min": 10.4403,
+              "mean": 16.0022,
+              "max": 21.4709
             },
             "path_length": {
               "available": 200,
               "min": 11.0,
-              "mean": 12.535,
-              "max": 14.0
+              "mean": 18.885,
+              "max": 27.0
             },
             "detour_factor": {
               "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
+              "min": 1.0398,
+              "mean": 1.1751,
+              "max": 1.2804
             },
             "budget_slack": {
               "available": 200,
-              "min": 75.0,
-              "mean": 92.125,
+              "min": 42.8571,
+              "mean": 64.7679,
               "max": 100.0
             },
             "obstacle_count": {
@@ -1102,9 +1179,9 @@
             },
             "occupancy_fraction": {
               "available": 200,
-              "min": 0.0076,
-              "mean": 0.008,
-              "max": 0.0084
+              "min": 0.0041,
+              "mean": 0.0055,
+              "max": 0.0074
             },
             "entity_type_count": {
               "available": 200,
@@ -1115,8 +1192,8 @@
             "distractor_count": {
               "available": 200,
               "min": 8.0,
-              "mean": 9.535,
-              "max": 11.0
+              "mean": 9.93,
+              "max": 12.0
             },
             "goal_isolation": {
               "available": 200,
@@ -1127,40 +1204,41 @@
             "content_tile_count": {
               "available": 200,
               "min": 9.0,
-              "mean": 10.535,
-              "max": 12.0
+              "mean": 10.93,
+              "max": 13.0
             }
           }
         },
         "double_gap": {
           "split": "test",
           "samples": 200,
-          "distinct_scenes": 33,
-          "distinct_fraction": 0.165,
+          "distinct_scenes": 189,
+          "distinct_fraction": 0.945,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
-              "min": 11.0,
-              "mean": 12.535,
-              "max": 14.0
+              "min": 10.4403,
+              "mean": 18.0318,
+              "max": 25.0799
             },
             "path_length": {
               "available": 200,
               "min": 11.0,
-              "mean": 12.535,
-              "max": 14.0
+              "mean": 21.095,
+              "max": 31.0
             },
             "detour_factor": {
               "available": 200,
-              "min": 1.0,
-              "mean": 1.0,
-              "max": 1.0
+              "min": 1.0384,
+              "mean": 1.1658,
+              "max": 1.2804
             },
             "budget_slack": {
               "available": 200,
-              "min": 75.0,
-              "mean": 92.125,
+              "min": 42.8571,
+              "mean": 59.2714,
               "max": 100.0
             },
             "obstacle_count": {
@@ -1171,9 +1249,9 @@
             },
             "occupancy_fraction": {
               "available": 200,
-              "min": 0.0076,
-              "mean": 0.008,
-              "max": 0.0084
+              "min": 0.0037,
+              "mean": 0.0052,
+              "max": 0.0074
             },
             "entity_type_count": {
               "available": 200,
@@ -1184,8 +1262,8 @@
             "distractor_count": {
               "available": 200,
               "min": 7.0,
-              "mean": 8.535,
-              "max": 10.0
+              "mean": 11.14,
+              "max": 15.0
             },
             "goal_isolation": {
               "available": 200,
@@ -1196,63 +1274,58 @@
             "content_tile_count": {
               "available": 200,
               "min": 8.0,
-              "mean": 9.535,
-              "max": 11.0
+              "mean": 12.14,
+              "max": 16.0
             }
           }
         }
       },
       "duplicate_families": [],
       "difficulty_overlap": {
-        "goal_distance": 0.5,
-        "path_length": 0.5,
-        "detour_factor": 1.0,
-        "budget_slack": 0.6575
+        "goal_distance": 0.9,
+        "path_length": 0.9325,
+        "detour_factor": 0.945,
+        "budget_slack": 0.945
       },
       "structural_overlap": {
         "obstacle_count": 1.0,
-        "occupancy_fraction": 0.5,
+        "occupancy_fraction": 0.9225,
         "entity_type_count": 1.0,
-        "distractor_count": 0.3425,
+        "distractor_count": 0.0,
         "goal_isolation": 1.0,
-        "content_tile_count": 0.3425
+        "content_tile_count": 0.0
       },
-      "failures": [
-        "gap (train) admits 18 distinct scenes over 200 seeds, below the declared minimum of 32",
-        "gap_far (train) admits 12 distinct scenes over 200 seeds, below the declared minimum of 32",
-        "misrotation (val) admits 18 distinct scenes over 200 seeds, below the declared minimum of 32",
-        "difficulty parity: train/test overlap on goal_distance is 0.50, below 0.60 (train mean 15.035, test mean 12.535); the holdout is narrower or easier than training, so a held-out score is not a transfer score",
-        "difficulty parity: train/test overlap on path_length is 0.50, below 0.60 (train mean 15.035, test mean 12.535); the holdout is narrower or easier than training, so a held-out score is not a transfer score"
-      ],
-      "distinct_scenes_total": 81,
+      "failures": [],
+      "distinct_scenes_total": 678,
       "difficulty_means": {
         "goal_distance": {
-          "train": 15.035,
-          "test": 12.535
+          "train": 18.3884,
+          "test": 18.0318
         },
         "path_length": {
-          "train": 15.035,
-          "test": 12.535
+          "train": 21.46,
+          "test": 21.095
         },
         "detour_factor": {
-          "train": 1.0,
-          "test": 1.0
+          "train": 1.1646,
+          "test": 1.1658
         },
         "budget_slack": {
-          "train": 79.7,
-          "test": 92.125
+          "train": 58.3464,
+          "test": 59.2714
         }
       },
-      "difficulty_parity": "violated",
+      "difficulty_parity": "ok",
       "separating_descriptors": [
         "content_tile_count",
         "distractor_count"
       ],
-      "verdict": "fail"
+      "verdict": "pass"
     },
     "restore_power": {
       "version": "1.1.0",
       "goal_marker": "drill",
+      "goal_marker_source": "success/failure predicate",
       "layout_families": {
         "pole_gap": {
           "split": "train",
@@ -1260,6 +1333,7 @@
           "distinct_scenes": 120,
           "distinct_fraction": 0.6,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -1329,6 +1403,7 @@
           "distinct_scenes": 155,
           "distinct_fraction": 0.775,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -1398,6 +1473,7 @@
           "distinct_scenes": 120,
           "distinct_fraction": 0.6,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -1467,6 +1543,7 @@
           "distinct_scenes": 101,
           "distinct_fraction": 0.505,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
@@ -1574,7 +1651,8 @@
     },
     "supply_furnace": {
       "version": "1.1.0",
-      "goal_marker": null,
+      "goal_marker": "ore_chest",
+      "goal_marker_source": "declared",
       "layout_families": {
         "linear_row": {
           "split": "train",
@@ -1582,18 +1660,31 @@
           "distinct_scenes": 199,
           "distinct_fraction": 0.995,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
-              "available": 0
+              "available": 200,
+              "min": 5.0,
+              "mean": 7.4417,
+              "max": 10.0
             },
             "path_length": {
-              "available": 0
+              "available": 200,
+              "min": 4.0,
+              "mean": 7.6,
+              "max": 12.0
             },
             "detour_factor": {
-              "available": 0
+              "available": 200,
+              "min": 0.6587,
+              "mean": 1.0103,
+              "max": 1.3462
             },
             "budget_slack": {
-              "available": 0
+              "available": 200,
+              "min": 100.0,
+              "mean": 146.5,
+              "max": 300.0
             },
             "obstacle_count": {
               "available": 200,
@@ -1620,7 +1711,10 @@
               "max": 0.0
             },
             "goal_isolation": {
-              "available": 0
+              "available": 200,
+              "min": 9.4641,
+              "mean": 12.853,
+              "max": 16.868
             },
             "content_tile_count": {
               "available": 200,
@@ -1636,18 +1730,31 @@
           "distinct_scenes": 199,
           "distinct_fraction": 0.995,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
-              "available": 0
+              "available": 200,
+              "min": 5.0,
+              "mean": 7.4417,
+              "max": 10.0
             },
             "path_length": {
-              "available": 0
+              "available": 200,
+              "min": 4.0,
+              "mean": 7.6,
+              "max": 12.0
             },
             "detour_factor": {
-              "available": 0
+              "available": 200,
+              "min": 0.6587,
+              "mean": 1.0103,
+              "max": 1.3462
             },
             "budget_slack": {
-              "available": 0
+              "available": 200,
+              "min": 100.0,
+              "mean": 146.5,
+              "max": 300.0
             },
             "obstacle_count": {
               "available": 200,
@@ -1674,7 +1781,10 @@
               "max": 1.0
             },
             "goal_isolation": {
-              "available": 0
+              "available": 200,
+              "min": 6.5008,
+              "mean": 11.9847,
+              "max": 16.6481
             },
             "content_tile_count": {
               "available": 200,
@@ -1690,18 +1800,31 @@
           "distinct_scenes": 200,
           "distinct_fraction": 1.0,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
-              "available": 0
+              "available": 200,
+              "min": 14.9893,
+              "mean": 17.9286,
+              "max": 20.9805
             },
             "path_length": {
-              "available": 0
+              "available": 200,
+              "min": 14.0,
+              "mean": 21.03,
+              "max": 28.0
             },
             "detour_factor": {
-              "available": 0
+              "available": 200,
+              "min": 0.8743,
+              "mean": 1.1716,
+              "max": 1.3831
             },
             "budget_slack": {
-              "available": 0
+              "available": 200,
+              "min": 42.8571,
+              "mean": 58.3036,
+              "max": 75.0
             },
             "obstacle_count": {
               "available": 200,
@@ -1728,7 +1851,10 @@
               "max": 0.0
             },
             "goal_isolation": {
-              "available": 0
+              "available": 200,
+              "min": 17.1353,
+              "mean": 22.2386,
+              "max": 27.4707
             },
             "content_tile_count": {
               "available": 200,
@@ -1744,18 +1870,31 @@
           "distinct_scenes": 199,
           "distinct_fraction": 0.995,
           "unreachable_goals": 0,
+          "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
-              "available": 0
+              "available": 200,
+              "min": 5.0,
+              "mean": 7.4417,
+              "max": 10.0
             },
             "path_length": {
-              "available": 0
+              "available": 200,
+              "min": 4.0,
+              "mean": 7.6,
+              "max": 12.0
             },
             "detour_factor": {
-              "available": 0
+              "available": 200,
+              "min": 0.6587,
+              "mean": 1.0103,
+              "max": 1.3462
             },
             "budget_slack": {
-              "available": 0
+              "available": 200,
+              "min": 100.0,
+              "mean": 146.5,
+              "max": 300.0
             },
             "obstacle_count": {
               "available": 200,
@@ -1782,7 +1921,10 @@
               "max": 1.0
             },
             "goal_isolation": {
-              "available": 0
+              "available": 200,
+              "min": 2.8284,
+              "mean": 2.8284,
+              "max": 2.8284
             },
             "content_tile_count": {
               "available": 200,
@@ -1795,58 +1937,56 @@
       },
       "duplicate_families": [],
       "difficulty_overlap": {
-        "goal_distance": null,
-        "path_length": null,
-        "detour_factor": null,
-        "budget_slack": null
+        "goal_distance": 1.0,
+        "path_length": 1.0,
+        "detour_factor": 1.0,
+        "budget_slack": 1.0
       },
       "structural_overlap": {
         "obstacle_count": 0.5,
         "occupancy_fraction": 0.3225,
         "entity_type_count": 1.0,
         "distractor_count": 0.5,
-        "goal_isolation": null,
+        "goal_isolation": 0.0,
         "content_tile_count": 0.0
       },
-      "failures": [
-        "difficulty parity is unmeasurable: no success or failure predicate names a marker, so there is no declared position to measure a route to"
-      ],
+      "failures": [],
       "distinct_scenes_total": 797,
       "difficulty_means": {
         "goal_distance": {
-          "train": null,
-          "test": null
+          "train": 7.4417,
+          "test": 7.4417
         },
         "path_length": {
-          "train": null,
-          "test": null
+          "train": 7.6,
+          "test": 7.6
         },
         "detour_factor": {
-          "train": null,
-          "test": null
+          "train": 1.0103,
+          "test": 1.0103
         },
         "budget_slack": {
-          "train": null,
-          "test": null
+          "train": 146.5,
+          "test": 146.5
         }
       },
-      "difficulty_parity": "unavailable",
+      "difficulty_parity": "ok",
       "separating_descriptors": [
         "content_tile_count",
+        "goal_isolation",
         "occupancy_fraction"
       ],
-      "verdict": "incomplete"
+      "verdict": "pass"
     }
   },
-  "wall_seconds": 1.8,
+  "wall_seconds": 2.5,
   "passing": [
     "deliver",
-    "navigate",
-    "restore_power"
-  ],
-  "failing": [
     "mine_smelt",
+    "navigate",
     "repair_belt",
+    "restore_power",
     "supply_furnace"
-  ]
+  ],
+  "failing": []
 }

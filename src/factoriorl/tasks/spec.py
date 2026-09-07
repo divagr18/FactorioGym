@@ -252,11 +252,48 @@ class TaskSpec:
     #: `flat-v1` is a policy over primitive actions. A skill layer is a
     #: different profile and must be distinguishable in a published result.
     deliberation_profile: str = "flat-v1"
+    #: The blueprint marker that difficulty is measured *to*, naming the far end
+    #: of the route a solution must walk. Declared here rather than inferred,
+    #: because the two are only accidentally the same thing.
+    #:
+    #: For `navigate` and `deliver` the success predicate names a position and
+    #: that position *is* the goal, so reading the marker off the predicate is
+    #: correct. For a task whose success is a production count -- `mine_smelt`
+    #: and `supply_furnace` succeed on a force production statistic -- the route
+    #: that determines difficulty is still perfectly well defined (spawn to the
+    #: ore patch and back to the furnace; spawn to the ore chest and on to the
+    #: furnace) but nothing in the predicate says so. Without this field
+    #: `tools/generator_diagnostics.py` had no position to measure a route to and
+    #: reported both families' difficulty parity as unmeasurable, which PLAN.md
+    #: section 3 requires to be published before a held-out score may be called a
+    #: transfer score.
+    #:
+    #: The alternative -- having the tool pick whichever marker looks
+    #: goal-shaped -- is what this field exists to prevent. `mine_smelt` declares
+    #: both `patch` and `furnace`, and the furnace is pinned to a fixed radius
+    #: from spawn, its distance spanning about one tile of integer-rounding jitter
+    #: against the patch's six. A guess that landed on it would hand back a parity
+    #: near 1.00 that had compared rounding noise, not the task. Declaring the
+    #: marker makes the choice reviewable instead of accidental.
+    #:
+    #: This is metadata about how the task is *measured*, not about what the task
+    #: *is*: it changes no scene, no predicate and no budget, so setting it does
+    #: not warrant a `version` bump. For the same reason it is deliberately
+    #: absent from `to_dict()` -- see the note there.
+    difficulty_marker: str | None = None
 
     def families(self, split: str) -> tuple[LayoutFamily, ...]:
         return tuple(f for f in self.layout_families if f.split == split)
 
     def to_dict(self) -> dict:
+        # `difficulty_marker` is deliberately not published here. This dict is
+        # what `learn/train.py` hands to `manifest.config_digest`, so every key
+        # in it is part of the identity a run is compared by. Adding a key that
+        # describes only how the split audit measures the task would change that
+        # digest for `mine_smelt` and `supply_furnace` without changing the task,
+        # and two runs of a byte-identical task would then read as runs of
+        # different tasks. The marker is published where it is actually used, in
+        # the generator-diagnostics report.
         return {
             "id": self.id,
             "version": self.version,
