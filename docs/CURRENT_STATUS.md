@@ -5,7 +5,7 @@ and carries its own staleness banner. Direction comes from
 [`docs/DEVELOPMENT_REDIRECTION.md`](DEVELOPMENT_REDIRECTION.md); this file is day-to-day
 state. Read this before treating any older summary as current fact.
 
-**Last reconciled:** 2026-09-08, after R0 and R1 (`1a780ab`).
+**Last reconciled:** 2026-09-09, after R3.1 (`623f7dd`).
 
 ---
 
@@ -13,7 +13,10 @@ state. Read this before treating any older summary as current fact.
 
 **Nothing is running.** Both machines idle.
 
-Results against the live holdout (`holdout_v3`, `4227eb56`), all single-seed:
+Results against the live holdout (`holdout_v3`, now `ff22dedd` -- it was `4227eb56`
+when these were measured; `build_line` was added and then re-frozen, and every
+existing per-task `entry_hash` is unchanged, so the rows below still describe the
+scenes they were measured on. See §3.3):
 
 | task | held-out greedy / stochastic | floor | training |
 |---|---|---|---|
@@ -58,6 +61,7 @@ Do not infer a holdout from a filename. Read `holdout.id` and `holdout.task_entr
 
 | id | version | gamma | steps | layout families (train / val / **test**) | published markers |
 |---|---|---|---|---|---|
+`build_line` | **1.1.0** | unset | 600 | `square_patch` / `offset_patch` / **`narrow_patch`** | `patch` |
 `deliver` | 1.3.0 | unset | 120 | `two_chest`,`decoy_chest` / `stacked_depot` / **`screened_depot`** | `dst` |
 `mine_smelt` | 1.2.0 | unset | 400 | `near_patch`,`fuelled_furnace` / `split_patch` / **`screened_patch`** | — |
 `navigate` | 1.2.0 | 0.997 | 150 | `open`,`wall_corridor` / `pillar_field` / **`wall_arc`** | `goal` |
@@ -66,8 +70,10 @@ Do not infer a holdout from a filename. Read `holdout.id` and `holdout.task_entr
 `restore_power` | **1.6.0** | 0.999 | 250 | `pole_gap`,`pole_gap_far` / `two_gaps` / **`gap_near_drill`** | `drill`,`gap`,`gap2` |
 `supply_furnace` | 1.2.0 | unset | 300 | `linear_row`,`two_furnaces` / `far_ore` / **`shared_input`** | — |
 
-All seven: observation `local-v2`, action `primitive-v1`, deliberation `flat-v1`,
-`decision_ticks` 30.
+All eight: observation `local-v2`, deliberation `flat-v1`, `decision_ticks` 30. Seven
+use action profile `primitive-v1`; **`build_line` uses `parameterized-v1`**, and it is
+the only task whose success is a conjunction (both machines `BUILT` **and**
+`SUSTAINED_OUTPUT` of 10 plates per 3600 ticks, not before tick 7200).
 
 ### 3.2 Stack
 
@@ -77,25 +83,35 @@ Engine | Factorio 2.0.60 build 83512 win64 |
 Mod | 0.1.0, source digest `8fb6913497f291c9` (readable only from run manifests) |
 Protocol | 2 |
 Observation profiles | `local-v1`, **`local-v2`** (radius 32, entity_cap 48, grid 65×65) |
-Action catalog | `primitive-v1`, 46 templates |
+Action catalog | `primitive-v1`, 46 templates; **`parameterized-v1`**, 22 templates |
 Skills | `approach_entity_0..3`, `approach_resource`, `mine_batch` (`SKILL_BUDGET` 60) |
-Policy extractor | `EXTRACTOR_VERSION` 4 |
+Policy extractor | `EXTRACTOR_VERSION` **7** (was 4; checkpoints do not cross that boundary) |
 `assisted-v1` action profile | declared in the mod, **not implemented** on the Python side |
-Tests | 440 total: 376 engine-free, 64 engine-marked |
+Tests | **642 engine-free** (`tests/unit` + `tests/contract`), plus engine-marked |
 
 ### 3.3 Holdouts
 
 | | `holdout_v1` | `holdout_v2` | **`holdout_v3`** (live) |
 |---|---|---|---|
-content hash | `4d8b9507…` | `df72fe29…` | `4227eb56…` |
+content hash | `4d8b9507…` | `df72fe29…` | `ff22dedd…` (was `4227eb56…`, then `97a190f3…`) |
 seed run_id / start | `holdout-v1` / 1000 | `holdout-v2` / 2000 | `holdout-v3` / 3000 |
 declared candidates | navigate, deliver, mine_smelt | deliver, repair_belt, restore_power | deliver, repair_belt, restore_power |
+tasks frozen | 3 | 6 | **8** (`build_line` added 2026-09-09, deliberately **not** a candidate) |
 `--verify` vs source | **fails** (repair/restore now 1.6.0) | **fails** (same) | **OK** |
 status | closed | closed | live |
 
 All three share `master = 20260908` and differ only by `run_id` and `start_index`, so their
 episode streams are disjoint. Per-task `entry_hash` is recorded inside `holdout_v3` only; v1
 and v2 predate the field.
+
+**`holdout_v3`'s content hash moved twice on 2026-09-09 and no existing result was
+invalidated.** `build_line` was added with `--add-task`, which copies existing entries
+verbatim; then its own entry was re-frozen with `--replace-task` when it reached v1.1.0.
+Both modes exist because `--refreeze` rebuilds the document and would drop
+`declaration.declared_at` -- the timestamp that is the entire evidence the candidate set
+predates any held-out result. `--replace-task` refuses an entry any manifest cites.
+All seven pre-existing `entry_hash` values are byte-identical, verified against a copy
+taken before the change, and `stale_citations` reports no run as stale.
 
 ---
 
@@ -192,37 +208,88 @@ which a seed learned was a lottery. That is not transfer variance.
 |---|---|---|
 Exact stepping, worker lifecycle, protocol v2 | verified | `phase1-engine-suite.txt`, `phase2-gate.json` |
 Task engine, RL spaces, reset correctness | verified | `phase3-gate.json` |
-Reference solvers, 7 families | implemented; **published rate for `plate_line` only** | `phase3-solvability.json` |
-PPO training pipeline | runs; **correctness open** (R1.1, R1.3) | §5.2 |
-Frozen holdout evaluation | runs; **termination unproven** (R1.2) | §5.2 |
+Reference solvers, 8 families | implemented; **1.00 on every task and split** | `phase3-solvability.json` |
+PPO training pipeline | runs; R1 complete | R1 |
+Frozen holdout evaluation | terminates under injected failure; records **per-scene outcomes** | R1.2, §10 |
 Paired greedy/stochastic evaluation | verified | `repair_belt-curriculum-holdout_v3.json` |
 Three-family mastery (PLAN 4.5) | **not met** | §4 |
+Split audit over every task | published for **all eight**; `plate_line` fails on a real finding | `phase3-generator-diagnostics.json` |
+Held-out *combination* coverage (§9) | checked by set containment; both v1.6.0 fixes confirmed | §7 |
+Regression suite, separate from any rate (§10) | 10 cases, all open findings | `regression_scenes.json` |
 LLM agent loop, addressed actions | works on `deliver` and `plate_line` commissioning | `phase5-agent-runs.json`, `phase5-demonstration.json` |
-Construction (agent builds machinery) | **not demonstrated** — the existing demo starts from preplaced machines | redirection §2 |
+Construction (**reference** builder builds machinery) | **R3.1 gate passes**, 15/15 on a real engine | `r3-construction.json` |
+Construction (**agent** builds machinery) | **not demonstrated** — R3.2 needs a bounded LLM baseline; the gate stays unmet until an agent passes | redirection R3.2 |
 Recovery (validated disruption + no-action control) | **not demonstrated** | redirection R4 |
 `assisted-v1` action profile | **not implemented** | §3.2 |
 Release packaging | `release/` snapshot is **stale** (predates the curve-logger and holdout_v3 corrections) | — |
 
 ---
 
-## 7. Next work package
+## 7. What R3.1 delivered, and what is next
 
-**R0, R1 and R2 are complete.** 486 engine-free tests, lint and format clean.
-R2.1's gate passes on a real engine: `docs/evidence/r2-conformance.json`, 15/15.
-
-What R2 delivered:
+**R0, R1, R2 and R3.1 are complete.** 642 engine-free tests, lint and format clean.
+R3.1's gate passes on a real engine: `docs/evidence/r3-construction.json`, 15/15.
 
 | | |
 |---|---|
-R2.1 | `parameterized-v1`: arguments declared by writing `"?name"` into a payload, so the catalog digest covers them. `place_at(item, position, direction)` decouples tile from facing -- the thing `primitive-v1` could not express. Verified live: wanted facing 4, got 4. Handle addressing replaces distance rank, and 12 of 12 handles survived movement. `effects.py` separates commanded / expected / observed per synthesis §5 |
-R2.2 | `ParameterizedEnv`: a `MultiDiscrete` space, one dimension per argument, masked per dimension. Real PPO updates run; no sampled action in a whole rollout lands on a masked index; RL and LLM paths produce byte-identical payloads from matched states |
-R2.3 | A stopped machine now says *why* -- `no_fuel` and `no_power` were the same single bit. Readable status, an explicit `working` flag, fuel and output contents, and 22 observable recipes where the domain was empty |
+Truth channel | `working_counts`, `placed_counts` and `built` are prototype-keyed. `containers`/`working` key on `scene.aliases`, bound at install, so **no predicate could name a machine the agent placed**. `BUILT`/`ANY_WORKING` can |
+Sustained output | `SUSTAINED_OUTPUT(item, at_least, over_ticks, not_before_tick)` reads a windowed `(tick, produced)` history. `PRODUCED` is a timestamp-free counter: "30 plates, 15 in the last window" and "30 plates, dead since tick 4000" were the same number |
+§12 metrics | `ProductionMetrics` reports time to first sustained output, cumulative production and final rate **per simulated tick**, never per decision, and says which denominator it used in the payload |
+`build_line` | Ore on the ground, machines in the inventory, nothing built. Success = both machines `BUILT` **and** `SUSTAINED_OUTPUT`. Reference 1.00 on all three splits, random floor 0.00 |
+Validators | Success-false-at-reset and multi-tile footprint overlap now **exist**; `validate_all`'s docstring had claimed both and grep found only the sentence |
+§9 coverage | Set containment over categorical cells, in `factoriorl.tasks.coverage`, published for all eight tasks. Both v1.6.0 fixes confirmed by the rule, not by their commit messages |
+§10 split | `evaluate_parallel` records per-scene rows; `factoriorl.regression` holds named cases and carries **no pooled rate** |
+R3.1's "must not complete the evaluated run" | `reference.solve` raises on `Branch.EVAL` |
 
-Next is **R3 — construct and commission a real small factory**. R2.3 put the
-materials in the item vocabulary and the recipes in the observation, so the
-contract needed for construction now exists.
+### 7.1 Two things the gate caught in work done the same day
 
-Two limitations to carry into R3, both stated in code:
+Both are recorded because a gate that only confirms is not doing its job.
+
+- **`ANY_WORKING` is unusable as an acceptance conjunct.** Over 102,451 samples a
+  *healthy* plate line reads status `working` on **7.5%** of ticks: one burner drill
+  outpaces one stone furnace, so it sits in `waiting_for_space_in_destination` 87%
+  of the time. Conjoining it would have failed correct builds nine times in ten.
+- **A trailing window that begins at tick 0 spans construction.** `build_line` was
+  accepted at tick 3600 with a drill mined out 90 ticks earlier, because the window
+  still held every plate the line had ever made -- so at those parameters
+  `SUSTAINED_OUTPUT` was doing almost nothing `PRODUCED` does not.
+  `not_before_tick = 2 * over_ticks` moves the earliest acceptable window to
+  `[3600, 7200]`, entirely post-construction. Reference solvability went 120 → 240
+  steps, which is tick 7200 exactly.
+
+### 7.2 Open findings
+
+- **`plate_line` fails the split audit**: 10 of 200 `commissioning_walled` scenes
+  start the character **on a wall tile**. The screen is at x = 6 and the start is
+  drawn at radius 5..9, so 5% of scenes land inside the neutral wall, and
+  `build_blueprint` teleports without a collision check. Recorded as ten regression
+  cases, all `expected_present`. **Deliberately unfixed**: the generator's bytes are
+  what this task's commissioning evidence and its `holdout_v3` entry describe, the
+  reference still commissions at 1.00, and the defect has not been shown to change
+  any measurement.
+- **`restore_power`'s test split admits only 101 distinct scenes over 200 seeds**
+  (`gap_near_drill`), and `two_gaps` 117. Below `deliver`'s 200 but above
+  `MIN_DISTINCT_SCENES`; it means a Wilson interval over 200 episodes there is
+  narrower than the content justifies.
+- **`build_line` has no agent result.** R3.2 asks for a bounded LLM baseline
+  reporting supplied knowledge, assistance, game time, decisions and inference
+  usage. **A failed agent is a valid baseline result; the construction
+  demonstration gate stays unmet until an agent actually passes.**
+
+### 7.3 Next
+
+**R3.2** — the bounded LLM baseline on `build_line`, then **R4** (recovery, which
+needs the intervention-freshness fix first) and **R5** (interpretable learning
+experiments).
+
+Deferred deliberately, with its own gate, nothing depending on it:
+**synthesis §8 candidate scoring** — score placement candidates by their resulting
+local structure instead of one unrelated logit per index, using the per-entity
+embeddings before pooling. It bumps `EXTRACTOR_VERSION` and its gate is §8's own:
+compare representations on translated and rotated valid layouts with candidate set,
+information and budget held fixed, treating symmetry as a *tested* property.
+
+Two interface limitations carried forward, both stated in code:
 
 - **Argument masks cannot depend on the sampled operation.** Index 0 of each
   argument dimension is an `UNUSED` sentinel and a needed-but-unused argument
@@ -230,10 +297,7 @@ Two limitations to carry into R3, both stated in code:
   distribution: stock sb3 fetches masks before the forward pass, samples all
   sub-distributions independently from one flat head, and sums independent
   factors in `log_prob`.
-- **`docs/research/book-synthesis-2026-09-09.md` §8** proposes scoring placement
-  candidates by their resulting local structure rather than one unrelated logit
-  per index, which may generalise across translated and rotated layouts. That is
-  a representation experiment with its own gate, not part of R2.
+- **`assisted-v1` is declared in the mod and not implemented on the Python side.**
 
 **Every skill-augmented number predating `8e6bdb6` used a different objective**,
 and every checkpoint predating `e749e9c` a different observation encoding
