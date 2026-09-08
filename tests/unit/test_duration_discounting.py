@@ -11,8 +11,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import torch as th
-from sb3_contrib.common.maskable.buffers import MaskableRolloutBuffer
 from gymnasium import spaces
+from sb3_contrib.common.maskable.buffers import MaskableRolloutBuffer
 
 from factoriorl.learn.buffers import DurationAwareMaskableRolloutBuffer
 
