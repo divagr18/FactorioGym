@@ -404,6 +404,12 @@ def evaluate_parallel(
     # one score different subsets of the same window and the comparison PLAN
     # section 3 calls paired quietly stops being paired.
     scored: set[int] = set()
+    # One row per scored episode. `evaluate_parallel` recorded counts only, so
+    # "how many failed" was answerable and "which scenes failed" was not --
+    # synthesis section 10's split between a benchmark number and a diagnostic
+    # one needs the second, and a rate with no scene identities cannot be
+    # turned into a regression case.
+    per_scene: list[dict] = []
     unrecovered: list[int] = []
     incomplete: str | None = None
     reset_failures: list[dict] = []
@@ -468,6 +474,22 @@ def evaluate_parallel(
                 successes += int(bool(info.get("success")))
                 lengths.append(int(steps[index]))
                 rewards.append(float(totals[index]))
+                row = {
+                    "episode_index": episode,
+                    "layout_family": info.get("layout_family"),
+                    "success": bool(info.get("success")),
+                    "steps": int(steps[index]),
+                    "reward": round(float(totals[index]), 4),
+                    # Why it ended, which pass/fail alone does not say: a policy
+                    # that ran out of budget and one that hit a failure
+                    # predicate are different diagnoses.
+                    "terminated": bool(info.get("terminated", not info.get("TimeLimit.truncated"))),
+                    "truncated": bool(info.get("TimeLimit.truncated")),
+                    "action_error": info.get("action_error"),
+                }
+                if info.get("production") is not None:
+                    row["production"] = info["production"]
+                per_scene.append(row)
             totals[index] = 0.0
             steps[index] = 0
     rate = successes / counted if counted else 0.0
@@ -480,6 +502,17 @@ def evaluate_parallel(
         "mean_episode_steps": round(float(np.mean(lengths)), 1) if lengths else 0.0,
         "deterministic": deterministic,
         "scored_episodes": sorted(scored) if only_indices is not None else None,
+        # Sorted by identity, not by finish order: worker scheduling decides
+        # the latter, so two runs over the same frozen set would produce rows
+        # in different orders and diff as if the outcomes had changed.
+        "per_scene": sorted(
+            per_scene, key=lambda r: (r["episode_index"] is None, r["episode_index"])
+        ),
+        "failed_scenes": sorted(
+            r["episode_index"]
+            for r in per_scene
+            if not r["success"] and r["episode_index"] is not None
+        ),
         "incomplete_coverage": incomplete,
         "reset_failures": reset_failures or None,
         "unrecovered_episodes": unrecovered or None,

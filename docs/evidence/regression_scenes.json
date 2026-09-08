@@ -1,0 +1,111 @@
+{
+  "schema": "factoriorl.regression/1",
+  "seed_plan": {
+    "master": 777,
+    "run_id": "generator-diagnostics",
+    "branch": "train"
+  },
+  "note": "Individually named scenes, not a distribution. Reported per case and never averaged: a hand-picked set of hard scenes makes a rate that describes nothing.",
+  "cases": [
+    {
+      "case_id": "plate_line-walled-start-on-wall-002",
+      "task": "plate_line",
+      "layout_family": "commissioning_walled",
+      "episode_index": 2,
+      "blueprint_digest": "3c8308f42b6735df",
+      "finding": "The character starts on a wall tile. The screen sits at x=6 and the start is drawn at radius 5..9 from the drill at a random angle, so 10 of 200 scenes place the character inside the neutral wall; build_blueprint teleports without a collision check. Surfaced by the split audit, which had never been run on this task. Deliberately not fixed: the generator bytes are what this task commissioning evidence and its holdout_v3 entry describe, and the reference still commissions at 1.00.",
+      "kind": "scene_property",
+      "expected_present": true
+    },
+    {
+      "case_id": "plate_line-walled-start-on-wall-020",
+      "task": "plate_line",
+      "layout_family": "commissioning_walled",
+      "episode_index": 20,
+      "blueprint_digest": "0e9d7bcb01bee12e",
+      "finding": "The character starts on a wall tile. The screen sits at x=6 and the start is drawn at radius 5..9 from the drill at a random angle, so 10 of 200 scenes place the character inside the neutral wall; build_blueprint teleports without a collision check. Surfaced by the split audit, which had never been run on this task. Deliberately not fixed: the generator bytes are what this task commissioning evidence and its holdout_v3 entry describe, and the reference still commissions at 1.00.",
+      "kind": "scene_property",
+      "expected_present": true
+    },
+    {
+      "case_id": "plate_line-walled-start-on-wall-081",
+      "task": "plate_line",
+      "layout_family": "commissioning_walled",
+      "episode_index": 81,
+      "blueprint_digest": "0b025626843b2728",
+      "finding": "The character starts on a wall tile. The screen sits at x=6 and the start is drawn at radius 5..9 from the drill at a random angle, so 10 of 200 scenes place the character inside the neutral wall; build_blueprint teleports without a collision check. Surfaced by the split audit, which had never been run on this task. Deliberately not fixed: the generator bytes are what this task commissioning evidence and its holdout_v3 entry describe, and the reference still commissions at 1.00.",
+      "kind": "scene_property",
+      "expected_present": true
+    },
+    {
+      "case_id": "plate_line-walled-start-on-wall-084",
+      "task": "plate_line",
+      "layout_family": "commissioning_walled",
+      "episode_index": 84,
+      "blueprint_digest": "e787ef0dad67d15c",
+      "finding": "The character starts on a wall tile. The screen sits at x=6 and the start is drawn at radius 5..9 from the drill at a random angle, so 10 of 200 scenes place the character inside the neutral wall; build_blueprint teleports without a collision check. Surfaced by the split audit, which had never been run on this task. Deliberately not fixed: the generator bytes are what this task commissioning evidence and its holdout_v3 entry describe, and the reference still commissions at 1.00.",
+      "kind": "scene_property",
+      "expected_present": true
+    },
+    {
+      "case_id": "plate_line-walled-start-on-wall-099",
+      "task": "plate_line",
+      "layout_family": "commissioning_walled",
+      "episode_index": 99,
+      "blueprint_digest": "5a45610e04f8400d",
+      "finding": "The character starts on a wall tile. The screen sits at x=6 and the start is drawn at radius 5..9 from the drill at a random angle, so 10 of 200 scenes place the character inside the neutral wall; build_blueprint teleports without a collision check. Surfaced by the split audit, which had never been run on this task. Deliberately not fixed: the generator bytes are what this task commissioning evidence and its holdout_v3 entry describe, and the reference still commissions at 1.00.",
+      "kind": "scene_property",
+      "expected_present": true
+    },
+    {
+      "case_id": "plate_line-walled-start-on-wall-103",
+      "task": "plate_line",
+      "layout_family": "commissioning_walled",
+      "episode_index": 103,
+      "blueprint_digest": "8f0c83aa9a15b69d",
+      "finding": "The character starts on a wall tile. The screen sits at x=6 and the start is drawn at radius 5..9 from the drill at a random angle, so 10 of 200 scenes place the character inside the neutral wall; build_blueprint teleports without a collision check. Surfaced by the split audit, which had never been run on this task. Deliberately not fixed: the generator bytes are what this task commissioning evidence and its holdout_v3 entry describe, and the reference still commissions at 1.00.",
+      "kind": "scene_property",
+      "expected_present": true
+    },
+    {
+      "case_id": "plate_line-walled-start-on-wall-130",
+      "task": "plate_line",
+      "layout_family": "commissioning_walled",
+      "episode_index": 130,
+      "blueprint_digest": "fb1e35997b935af7",
+      "finding": "The character starts on a wall tile. The screen sits at x=6 and the start is drawn at radius 5..9 from the drill at a random angle, so 10 of 200 scenes place the character inside the neutral wall; build_blueprint teleports without a collision check. Surfaced by the split audit, which had never been run on this task. Deliberately not fixed: the generator bytes are what this task commissioning evidence and its holdout_v3 entry describe, and the reference still commissions at 1.00.",
+      "kind": "scene_property",
+      "expected_present": true
+    },
+    {
+      "case_id": "plate_line-walled-start-on-wall-145",
+      "task": "plate_line",
+      "layout_family": "commissioning_walled",
+      "episode_index": 145,
+      "blueprint_digest": "052bd8ec43c450c1",
+      "finding": "The character starts on a wall tile. The screen sits at x=6 and the start is drawn at radius 5..9 from the drill at a random angle, so 10 of 200 scenes place the character inside the neutral wall; build_blueprint teleports without a collision check. Surfaced by the split audit, which had never been run on this task. Deliberately not fixed: the generator bytes are what this task commissioning evidence and its holdout_v3 entry describe, and the reference still commissions at 1.00.",
+      "kind": "scene_property",
+      "expected_present": true
+    },
+    {
+      "case_id": "plate_line-walled-start-on-wall-172",
+      "task": "plate_line",
+      "layout_family": "commissioning_walled",
+      "episode_index": 172,
+      "blueprint_digest": "56557f6d6c324258",
+      "finding": "The character starts on a wall tile. The screen sits at x=6 and the start is drawn at radius 5..9 from the drill at a random angle, so 10 of 200 scenes place the character inside the neutral wall; build_blueprint teleports without a collision check. Surfaced by the split audit, which had never been run on this task. Deliberately not fixed: the generator bytes are what this task commissioning evidence and its holdout_v3 entry describe, and the reference still commissions at 1.00.",
+      "kind": "scene_property",
+      "expected_present": true
+    },
+    {
+      "case_id": "plate_line-walled-start-on-wall-186",
+      "task": "plate_line",
+      "layout_family": "commissioning_walled",
+      "episode_index": 186,
+      "blueprint_digest": "b81a6fee3a6e9be2",
+      "finding": "The character starts on a wall tile. The screen sits at x=6 and the start is drawn at radius 5..9 from the drill at a random angle, so 10 of 200 scenes place the character inside the neutral wall; build_blueprint teleports without a collision check. Surfaced by the split audit, which had never been run on this task. Deliberately not fixed: the generator bytes are what this task commissioning evidence and its holdout_v3 entry describe, and the reference still commissions at 1.00.",
+      "kind": "scene_property",
+      "expected_present": true
+    }
+  ]
+}
