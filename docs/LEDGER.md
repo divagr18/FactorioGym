@@ -918,6 +918,64 @@ training run completes unattended.
   of a run is far worse than recording an unknown GPU, so the probe now degrades
   to a reason string.
 
+### The `deliver` seed-3 collapse, and the shaping term that caused it
+
+The release matrix put `deliver` at 0.67, 0.38 and 0.00 across three training
+seeds. The third is not noise around a mean; it is a different policy, and the
+mechanism is legible.
+
+**It is not the data.** All three seeds drew the same two layout families and
+recorded zero excluded episodes. Seed 3's last success was at timestep 15,872,
+with nothing in the final 9,000 steps.
+
+**It is not entropy collapse.** Seed 3's policy entropy is 2.24 against a
+uniform 2.94 -- *higher* than seed 2's 1.93. The policies did not stop
+exploring; they explored toward different answers.
+
+**They converged on different actions.** On one fixed batch of observations,
+seeds 1 and 2 put their greedy mass on `give_iron-plate_20` and seed 3 puts it
+on `take_iron-plate_20`, on every input. Under a deterministic evaluation that
+is a policy that picks plates up and never delivers them, which is 0.00 on all
+three rows.
+
+The evaluation arithmetic confirms it on real episodes rather than sampled
+observations:
+
+| seed | structural | mean reward | mean steps (budget 120) |
+|---|---|---|---|
+| 1 | 0.67 | +0.890 | 27.9 |
+| 2 | 0.38 | +0.540 | 65.9 |
+| 3 | 0.00 | +0.062 | 95.9 |
+
+Seed 3 runs to truncation and earns +0.06. A take-and-hold policy earns the
+`carried` high-water cap of 0.15 and pays the step cost, ~0.11 over a full
+episode: about +0.04, plus whatever partial credit luck supplies. Seeds 1 and 2
+terminate early because they finish.
+
+**The defect.** `carried` pays 0.02 per plate to a cap of 0.15 for having plates
+in inventory. Taking is unambiguous and always available: the source is the one
+container with contents, and the reward arrives immediately. Delivering pays
+only at the destination -- and the destination is not identifiable from the
+observation, as the `gpt-5.6-luna` run showed in the same session. So the
+gradient sees a reliable positive for `take` and a gamble for `give`, and a seed
+that finds the reliable term first has no pressure to leave it.
+
+That makes the seed variance a property of the reward rather than of the
+optimiser: whether a run escapes the local optimum is decided by whether it
+stumbles into enough correct deliveries early. It also means the two findings of
+this session are one finding. The unobservable destination is what turns `give`
+into a gamble, and `carried` is what makes standing still with full pockets pay.
+
+**What this does not establish.** One seed collapsed, so this is a mechanism
+with a worked example, not a measured rate. The paired shaped-versus-sparse
+comparison that would measure it was withdrawn the same day for being unpaired,
+and re-running it under the frozen holdout is the test.
+
+**Why it is not fixed here.** Reward weights are part of the task spec, so
+changing them bumps `deliver`'s version, and the frozen holdout is validated
+against v1.1.0 -- the change requires a re-freeze and a new candidate
+declaration, which is a forward commitment rather than a patch.
+
 ## Phase 5 - Assisted agent interface
 
 ### 5.3 - Model adapters, first live results
