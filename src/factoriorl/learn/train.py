@@ -137,6 +137,51 @@ class TrainConfig:
         }
 
 
+class RolloutAborted(RuntimeError):
+    """An infrastructure failure reached the rollout; no update may use it."""
+
+    def __init__(self, cause: str, timestep: int) -> None:
+        super().__init__(
+            f"infrastructure failure during rollout collection at timestep {timestep}: {cause}"
+        )
+        self.cause = cause
+        self.timestep = timestep
+
+
+class RolloutGuard(BaseCallback):
+    """Abort collection when an infrastructure failure enters the rollout.
+
+    `excluded_from_metrics` used to be a reporting flag only. Nothing in the
+    training path read it, so a transport failure was added to the rollout
+    buffer like any other transition and included in the next optimizer update
+    -- with a value target bootstrapped off the stale observation the failed
+    step returned. A simulator fault was, in effect, learned from.
+
+    `OnPolicyAlgorithm.learn` is `continue_training = self.collect_rollouts(...)`
+    then `if not continue_training: break` and only then `self.train()`, and
+    `collect_rollouts` checks `callback.on_step()` on every step. Returning
+    False therefore stops collection *before* any optimizer update touches the
+    contaminated buffer, which is what the redirection asks for: explicit
+    rollout failure in preference to deleting transitions out of a buffer
+    SB3 does not expose per-transition.
+
+    The run is then marked incomplete rather than reporting a rate, and the
+    last valid checkpoint is preserved.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.aborted: RolloutAborted | None = None
+
+    def _on_step(self) -> bool:
+        for info in self.locals.get("infos") or []:
+            cause = info.get("infrastructure_failure")
+            if cause:
+                self.aborted = RolloutAborted(str(cause), int(self.num_timesteps))
+                return False
+        return True
+
+
 class CurveLogger(BaseCallback):
     """Append one row per episode. CSV, because curves must be diffable.
 
@@ -639,9 +684,36 @@ def train(config: TrainConfig) -> dict:
         ).write()
 
         curve = CurveLogger(run_dir / "curve.csv", started, num_envs=config.workers)
-        model.learn(total_timesteps=config.total_steps, callback=curve, progress_bar=False)
+        guard = RolloutGuard()
+        model.learn(
+            total_timesteps=config.total_steps,
+            callback=[guard, curve],
+            progress_bar=False,
+        )
+        # Order matters: the curve and the checkpoint are written before the
+        # abort is raised, so an aborted run still leaves its evidence and its
+        # last valid checkpoint on disk rather than only a traceback.
         curve.write()
         model.save(run_dir / "model")
+        if guard.aborted is not None:
+            (run_dir / "status.json").write_text(
+                json.dumps(
+                    {
+                        "run_id": run_id,
+                        "state": "aborted_infrastructure",
+                        "cause": guard.aborted.cause,
+                        "timestep": guard.aborted.timestep,
+                        "note": (
+                            "Collection stopped before the next optimizer update, so no "
+                            "gradient step used the contaminated rollout. No success rate is "
+                            "reported: an infrastructure fault is not a task outcome."
+                        ),
+                    },
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+            raise guard.aborted
 
         # A frozen holdout replaces the *structural* row's seed plan and start
         # index. The other two rows stay on the run's own plan: they are

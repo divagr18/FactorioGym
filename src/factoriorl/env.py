@@ -384,8 +384,19 @@ class FactorioEnv(gym.Env):
             timed = self.session.step(payload, ticks=self.spec_.decision_ticks)
         except (InfrastructureFailure, ProtocolError) as exc:
             # A worker crash is an infrastructure failure, never a task outcome
-            # (PLAN.md section 2). Report it as truncated and excluded, so the
-            # trainer drops the transition instead of learning from it.
+            # (PLAN.md section 2).
+            #
+            # This comment used to claim the trainer "drops the transition
+            # instead of learning from it". It did not. `excluded_from_metrics`
+            # was read only by reporting code, while `vecenv.step_wait`
+            # synthesised `TimeLimit.truncated` for this return -- making it
+            # indistinguishable from a legitimate time limit -- so MaskablePPO
+            # bootstrapped `gamma * V(stale observation)` into the reward and
+            # added the transition to the rollout buffer unconditionally.
+            #
+            # `infrastructure_failure` is now the load-bearing key: `vecenv`
+            # refuses to dress it as a truncation, and `RolloutGuard` aborts
+            # collection before the next optimizer update.
             observation = encoders.encode(self._observation, self._goal_vector())
             return (
                 observation,

@@ -193,11 +193,23 @@ class FactorioVecEnv(VecEnv):
         for env, future in zip(self.envs, self._pending, strict=True):
             observation, reward, terminated, truncated, info = future.result()
             done = terminated or truncated
+            failed = bool(info.get("infrastructure_failure"))
             if done:
                 # SB3 expects auto-reset, with the final observation preserved
                 # so the learner can bootstrap correctly.
-                info = {**info, "terminal_observation": observation}
-                info["TimeLimit.truncated"] = truncated and not terminated
+                #
+                # Except after an infrastructure failure. `TimeLimit.truncated`
+                # plus a `terminal_observation` is precisely the shape
+                # `sb3_contrib` looks for to bootstrap
+                # `rewards[i] += gamma * V(terminal_obs)`, and the observation
+                # a failed step returns is the *stale* one from before the
+                # step, because the step never came back. Dressing a transport
+                # failure as a time limit therefore fabricated a value target
+                # for a legal action off an observation that never happened.
+                # The episode boundary is still reported, so the env resets;
+                # only the bootstrap is withheld.
+                info = {**info, "terminal_observation": None if failed else observation}
+                info["TimeLimit.truncated"] = bool(truncated and not terminated and not failed)
                 # Read before the reset overwrites it: this names the episode
                 # that just finished, not the one about to start.
                 info["episode_index"] = getattr(env.unwrapped, "_assigned_index", None)
