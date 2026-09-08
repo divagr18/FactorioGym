@@ -31,20 +31,53 @@ local INVENTORY_BY_TYPE = {
   ["assembling-machine"] = defines.inventory.assembling_machine_input,
 }
 
-local function contents_of(entity)
-  local which = INVENTORY_BY_TYPE[entity.type]
+-- The slots a *stopped* machine's cause lives in. Without these, "the drill
+-- has no fuel" and "the furnace has no ore" were the same absent field, so no
+-- agent could tell which to fix. R2.3 asks for legitimately observable state,
+-- and these are what a player reads off the machine.
+local FUEL_BY_TYPE = {
+  ["furnace"] = defines.inventory.fuel,
+  ["mining-drill"] = defines.inventory.fuel,
+  ["boiler"] = defines.inventory.fuel,
+  ["inserter"] = defines.inventory.fuel,
+}
+
+local OUTPUT_BY_TYPE = {
+  ["furnace"] = defines.inventory.furnace_result,
+  ["assembling-machine"] = defines.inventory.assembling_machine_output,
+}
+
+--- Readable name for an entity status code.
+--
+-- The wire carried a raw `defines.entity_status` integer, which the encoder
+-- collapsed to one bit and the language-model prompt rendered as "status 3".
+-- Neither client could act on it.
+local STATUS_NAMES = nil
+local function status_name(code)
+  if STATUS_NAMES == nil then
+    STATUS_NAMES = {}
+    for name, value in pairs(defines.entity_status) do
+      STATUS_NAMES[value] = name
+    end
+  end
+  return STATUS_NAMES[code]
+end
+
+local function inventory_contents(entity, which)
   if not which then return nil end
   local inv = entity.get_inventory(which)
   if not inv then return nil end
-  -- One call, not a loop over 80 slots.
-  local out = {}
-  local any = false
+  local out, any = {}, false
   for _, stack in pairs(inv.get_contents()) do
     out[stack.name] = (out[stack.name] or 0) + stack.count
     any = true
   end
   if not any then return nil end
   return out
+end
+
+local function contents_of(entity)
+  return inventory_contents(entity, INVENTORY_BY_TYPE[entity.type])
 end
 
 --- Compact record for one visible entity. Short keys only where they repeat
@@ -64,10 +97,17 @@ function sensor.entity_record(entity)
     if ok and recipe then record.recipe = recipe.name end
   end
   local ok_status, status = pcall(function() return entity.status end)
-  -- `working` is the boring case; omitting it keeps the payload down.
-  if ok_status and status and status ~= defines.entity_status.working then
+  -- `working` was omitted to keep the payload down, which made "working" and
+  -- "this type has no status" indistinguishable. Both are now stated.
+  if ok_status and status then
     record.status = status
+    record.st = status_name(status)
+    record.working = status == defines.entity_status.working
   end
+  local fuel = inventory_contents(entity, FUEL_BY_TYPE[entity.type])
+  if fuel then record.fuel = fuel end
+  local output = inventory_contents(entity, OUTPUT_BY_TYPE[entity.type])
+  if output then record.output = output end
   -- 2.0 moved this: max_health is on the entity, and get_health_ratio does
   -- the division. Only damaged entities carry the field, to keep the payload
   -- down.

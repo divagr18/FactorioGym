@@ -38,7 +38,10 @@ GRID_FEATURES = 128
 #: `events` block that `local-v2` now publishes. Same shape, different meaning,
 #: which is exactly the case this version exists to catch.
 #: 6: the inventory vector gained four item slots, so its width changed.
-EXTRACTOR_VERSION = 6
+#: 7: entity slots 11-15, previously always zero, carry the machine stop
+#:    cause, a working flag, whether a status exists at all, and fuel and
+#:    output totals.
+EXTRACTOR_VERSION = 7
 
 
 class FactorioExtractor(BaseFeaturesExtractor):

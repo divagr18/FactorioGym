@@ -288,16 +288,36 @@ def operate_a_chain(session, report: dict) -> None:
     # transfer's own confirmation does not establish.
     for _ in range(30):
         client.do("wait")
-    working = [
-        e
-        for e in (client.observation.get("entities") or [])
-        if "drill" in str(e.get("name")) and e.get("status") is None
+    drills = [
+        e for e in (client.observation.get("entities") or []) if "drill" in str(e.get("name"))
     ]
     check(
         report,
-        "machine reports working after fuelling",
-        bool(working),
-        note="status absent means working in the sensor contract",
+        "machine reports working explicitly, not by an absent field",
+        any(e.get("working") is True for e in drills),
+        states=[(e.get("st"), e.get("working")) for e in drills],
+    )
+    # R2.3: the cause of a stop, the fuel, and the craftable set are all
+    # legitimately observable and were not sent at all before.
+    check(
+        report,
+        "machine status carries a readable name",
+        all(isinstance(e.get("st"), str) for e in drills) and bool(drills),
+        names=sorted({str(e.get("st")) for e in drills}),
+    )
+    check(
+        report,
+        "fuel contents are observable",
+        any(e.get("fuel") for e in drills),
+        fuel=[e.get("fuel") for e in drills],
+    )
+    recipes = client.env.argument_domains()["recipes"]
+    check(
+        report,
+        "the craftable set is observable",
+        len(recipes) > 0,
+        count=len(recipes),
+        sample=recipes[:5],
     )
     report["operation_trace"] = client.log
 

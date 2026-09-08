@@ -184,7 +184,9 @@ class FactorioEnv(gym.Env):
                 item for item, count in (observation.get("inventory") or {}).items() if count
             ),
             "amounts": list(TRANSFER_AMOUNTS),
-            "recipes": [],
+            # Now observable (local-v2 v4), so `craft_recipe` and
+            # `set_recipe_at` stop being permanently masked.
+            "recipes": list(observation.get("recipes") or []),
             "technologies": [],
             "requests": [
                 str(entry["request_id"])

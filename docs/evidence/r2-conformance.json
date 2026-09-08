@@ -83,9 +83,42 @@
       ]
     },
     {
-      "check": "machine reports working after fuelling",
+      "check": "machine reports working explicitly, not by an absent field",
       "ok": true,
-      "note": "status absent means working in the sensor contract"
+      "states": [
+        [
+          "working",
+          true
+        ]
+      ]
+    },
+    {
+      "check": "machine status carries a readable name",
+      "ok": true,
+      "names": [
+        "working"
+      ]
+    },
+    {
+      "check": "fuel contents are observable",
+      "ok": true,
+      "fuel": [
+        {
+          "coal": 19
+        }
+      ]
+    },
+    {
+      "check": "the craftable set is observable",
+      "ok": true,
+      "count": 22,
+      "sample": [
+        "burner-inserter",
+        "burner-mining-drill",
+        "copper-plate",
+        "firearm-magazine",
+        "iron-chest"
+      ]
     }
   ],
   "placement_trace": [

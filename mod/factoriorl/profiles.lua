@@ -105,7 +105,9 @@ profiles.OBSERVATION = {
   ["local-v2"] = {
     name = "local-v2",
     -- 3: `events` added, so a settled action outcome is observable.
-    version = 3,
+    -- 4: `recipes`, plus per-entity status name, working flag, fuel and
+    --    output contents -- what a stopped machine's cause actually is.
+    version = 4,
     radius = 32,
     entity_cap = 48,
     entity_sweep_limit = 257,
@@ -122,7 +124,7 @@ profiles.OBSERVATION = {
       -- that, so without this a *failed* mine has no observable outcome
       -- anywhere -- and the language-model prompt's "recent action outcomes"
       -- section was empty on every run.
-      "remembered", "task", "inflight", "goal", "events",
+      "remembered", "task", "inflight", "goal", "events", "recipes",
     },
   },
 }

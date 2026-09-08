@@ -63,6 +63,26 @@ RESOURCES: tuple[str, ...] = ("iron-ore", "copper-ore", "coal", "stone")
 #: Factorio 2.0 uses 16 compass directions (0..15), not 8.
 DIRECTION_COUNT = 16.0
 
+#: Machine stop causes, in a declared order so an index means one thing across
+#: runs. The wire carries a readable name (`st`) alongside the raw code; before
+#: that, `no_fuel`, `no_power` and `waiting_for_source_items` were the same
+#: single bit, so nothing could tell which fault to fix.
+ENTITY_STATUS: tuple[str, ...] = (
+    "working",
+    "normal",
+    "no_power",
+    "low_power",
+    "no_fuel",
+    "no_minable_resources",
+    "waiting_for_source_items",
+    "waiting_for_space_in_destination",
+    "full_output",
+    "item_ingredient_shortage",
+    "missing_required_fluid",
+    "disabled",
+    "marked_for_deconstruction",
+)
+
 #: Action statuses that mean the engine has finished with a request.
 _SETTLED_STATUS = frozenset({"completed", "failed", "cancelled", "rejected"})
 #: ...and those that mean it refused or failed it.
@@ -236,6 +256,18 @@ def encode(
         # merely present.
         features[9] = 1.0 if remembered else 0.0
         features[10] = _log_count(record.get("age", 0), 3600.0) if remembered else 0.0
+        # Slots 11-15 were structurally zero in every observation of every
+        # task. They now carry what a player reads off a stopped machine.
+        status_name = record.get("st")
+        if status_name in ENTITY_STATUS:
+            features[11] = (ENTITY_STATUS.index(status_name) + 1) / len(ENTITY_STATUS)
+        working = record.get("working")
+        features[12] = 1.0 if working else 0.0
+        # Distinguishes "not working" from "this type has no status at all",
+        # which the absent-field encoding conflated.
+        features[13] = 1.0 if working is not None else 0.0
+        features[14] = _log_count(sum((record.get("fuel") or {}).values()))
+        features[15] = _log_count(sum((record.get("output") or {}).values()))
         entities[index] = features
         mask[index] = 1
 

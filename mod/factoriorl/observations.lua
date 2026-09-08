@@ -21,6 +21,30 @@ local function inventory_contents(inv)
   return out
 end
 
+--- Recipe names the character's force can currently craft.
+--
+-- Capped and sorted so the list is bounded and order-independent: an
+-- unbounded, order-varying list would make two identical scenes encode
+-- differently between steps.
+local RECIPE_CAP = 64
+local function enabled_recipes()
+  local force = game.forces.player
+  if not force then return {} end
+  local names = {}
+  for name, recipe in pairs(force.recipes) do
+    if recipe.enabled and not recipe.hidden then
+      names[#names + 1] = name
+    end
+  end
+  table.sort(names)
+  if #names > RECIPE_CAP then
+    local capped = {}
+    for index = 1, RECIPE_CAP do capped[index] = names[index] end
+    return capped
+  end
+  return names
+end
+
 local function character_state(ch, observation_profile)
   if not ch or not ch.valid then return { present = false } end
   local record = {
@@ -142,6 +166,11 @@ function observations.snapshot(state)
     goal = world.public_markers(),
     inflight = inflight.summary(),
     events = state.events or {},
+    -- What the force can actually make. Never sent before, so `craft` and
+    -- `set_recipe` had no observable vocabulary and a policy could not name a
+    -- legal value for either. Enabled recipes only, so this states a
+    -- capability rather than leaking the tech tree.
+    recipes = enabled_recipes(),
   }
   return profiles.filter(snapshot, observation_profile)
 end
