@@ -40,6 +40,7 @@ def write_run(tmp_path: Path) -> Path:
             "step": 0,
             "action_index": 14,
             "action_key": "approach_entity_1",
+            "target": "h1",
             "resolution": "model",
             "inference_ms": 2100,
             "prompt": "TASK deliver\nOBJECTIVE\n  dst at offset (+3.0, +4.0)",
@@ -178,3 +179,43 @@ def test_capture_is_not_reachable_from_a_policy_action_space():
 
     matrix = (ROOT / "mod" / "factoriorl" / "matrix.lua").read_text(encoding="utf-8")
     assert "take_screenshot" not in matrix
+
+
+def test_an_addressed_decision_is_distinguishable_from_a_default_one(tmp_path):
+    """`target` is the difference between "act on that chest" and "act on
+    whichever is nearest", and those produce different worlds. A replay that
+    rendered them the same could not explain either."""
+    page = replay.build(write_run(tmp_path), None).read_text(encoding="utf-8")
+    embedded = json.loads(re.search(r"const DECISIONS = (\[.*?\]);\n", page, re.S).group(1))
+    assert embedded[0]["target"] == "h1"
+    assert embedded[1].get("target") is None
+    # Named in the action panel, marked in the timeline, and ringed on the map.
+    assert "(addressed)" in page
+    assert "nearest entity (catalog default)" in page
+    assert "t-addr" in page
+
+
+def test_the_viewer_can_be_driven_without_a_mouse(tmp_path):
+    """Stepping a hundred decisions by clicking is how a trace goes unread."""
+    page = replay.build(write_run(tmp_path), None).read_text(encoding="utf-8")
+    assert "keydown" in page
+    for key in ("ArrowDown", "ArrowUp", "'j'", "'k'"):
+        assert key in page
+
+
+def test_the_timeline_can_be_narrowed(tmp_path):
+    """A failure three hundred decisions in is only findable if the list can be
+    reduced to failures."""
+    page = replay.build(write_run(tmp_path), None).read_text(encoding="utf-8")
+    for name in ("addressed", "assisted", "refused", "interventions", "solved"):
+        assert name in page
+    assert 'type="search"' in page
+
+
+def test_the_map_draws_where_the_character_has_been(tmp_path):
+    """A single frame cannot show pacing. The trail is what made a policy
+    walking nine tiles out and twelve back legible as a loop."""
+    page = replay.build(write_run(tmp_path), None).read_text(encoding="utf-8")
+    assert "trail" in page
+    # Built from earlier decisions in the same episode, never across episodes.
+    assert "DECISIONS[i].episode === DECISIONS[index].episode" in page

@@ -53,24 +53,35 @@ PAGE = """<!doctype html>
   :root {{
     --bg:#12141a; --panel:#1a1d26; --line:#2b3040; --ink:#e6e9f0; --dim:#98a0b3;
     --ok:#5ad19a; --bad:#ff7b72; --warn:#e3b341; --accent:#79b8ff; --evaluator:#c792ea;
+    --addr:#f0a35e;
   }}
   * {{ box-sizing:border-box; }}
   body {{ margin:0; background:var(--bg); color:var(--ink);
          font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }}
-  header {{ padding:10px 14px; border-bottom:1px solid var(--line); display:flex;
-            gap:18px; align-items:baseline; flex-wrap:wrap; }}
+  header {{ padding:8px 14px; border-bottom:1px solid var(--line); display:flex;
+            gap:16px; align-items:baseline; flex-wrap:wrap; }}
   header b {{ font-size:15px; }} header span {{ color:var(--dim); }}
-  .wrap {{ display:grid; grid-template-columns:300px 1fr 1fr; height:calc(100vh - 46px); }}
+  .key {{ border:1px solid var(--line); border-radius:3px; padding:0 4px; color:var(--dim); }}
+  .wrap {{ display:grid; grid-template-columns:320px 1fr 1fr; height:calc(100vh - 42px); }}
   .col {{ overflow:auto; border-right:1px solid var(--line); padding:10px; }}
-  .ep {{ color:var(--dim); margin:12px 0 4px; text-transform:uppercase; letter-spacing:.08em; }}
-  .row {{ padding:5px 7px; border-radius:5px; cursor:pointer; display:flex;
-          gap:8px; align-items:baseline; border:1px solid transparent; }}
+  .filters {{ display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px; }}
+  .filters button {{ background:var(--panel); color:var(--dim); border:1px solid var(--line);
+                     border-radius:4px; padding:2px 7px; cursor:pointer; font:inherit; }}
+  .filters button.on {{ color:var(--ink); border-color:var(--accent); }}
+  input[type=search] {{ width:100%; background:var(--panel); color:var(--ink);
+    border:1px solid var(--line); border-radius:4px; padding:4px 7px; font:inherit;
+    margin-bottom:8px; }}
+  .ep {{ color:var(--dim); margin:12px 0 4px; display:flex; justify-content:space-between;
+         text-transform:uppercase; letter-spacing:.07em; font-size:11px; }}
+  .row {{ padding:4px 7px; border-radius:5px; cursor:pointer; display:flex;
+          gap:7px; align-items:baseline; border:1px solid transparent; }}
   .row:hover {{ background:#232735; }}
   .row.sel {{ background:#2a3040; border-color:var(--accent); }}
   .row .k {{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
   .n {{ color:var(--dim); min-width:26px; }}
   .tag {{ font-size:11px; padding:0 5px; border-radius:3px; }}
   .t-ok {{ color:var(--ok); }} .t-bad {{ color:var(--bad); }} .t-warn {{ color:var(--warn); }}
+  .t-addr {{ color:var(--addr); }}
   h3 {{ margin:14px 0 6px; font-size:12px; color:var(--dim);
         text-transform:uppercase; letter-spacing:.08em; }}
   h3:first-child {{ margin-top:0; }}
@@ -80,13 +91,15 @@ PAGE = """<!doctype html>
   .evlabel {{ color:var(--evaluator); }}
   table {{ border-collapse:collapse; width:100%; }}
   td {{ padding:2px 6px 2px 0; vertical-align:top; }}
-  td.f {{ color:var(--dim); width:110px; }}
+  td.f {{ color:var(--dim); width:118px; }}
   canvas {{ background:var(--panel); border:1px solid var(--line); border-radius:6px;
             width:100%; height:auto; }}
   details {{ background:var(--panel); border:1px solid var(--line);
-             border-radius:6px; padding:7px 9px; }}
+             border-radius:6px; padding:7px 9px; margin-bottom:5px; }}
   summary {{ cursor:pointer; }}
   .empty {{ color:var(--dim); }}
+  .strip {{ display:flex; gap:1px; margin:6px 0 2px; }}
+  .strip i {{ flex:1; height:14px; background:var(--line); border-radius:1px; cursor:pointer; }}
 </style>
 <header>
   <b>{title}</b>
@@ -94,40 +107,108 @@ PAGE = """<!doctype html>
   <span>{model}</span>
   <span>{counts}</span>
   <span class="evlabel">purple = evaluator information, not visible to the agent</span>
+  <span><i class="key">j</i>/<i class="key">k</i> or arrows to step</span>
 </header>
 <div class="wrap">
-  <div class="col" id="timeline"></div>
+  <div class="col">
+    <input type="search" id="q" placeholder="filter by action, reason or handle">
+    <div class="filters" id="filters"></div>
+    <div id="timeline"></div>
+  </div>
   <div class="col" id="left"></div>
   <div class="col" id="right"></div>
 </div>
 <script>
 const DECISIONS = {data};
 const esc = s => String(s).replace(/[&<>]/g, c => ({{'&':'&amp;','<':'&lt;','>':'&gt;'}}[c]));
+let current = 0;
+let filter = 'all';
+let query = '';
+
+const FILTERS = [
+  ['all', 'all'],
+  ['addressed', 'addressed'],
+  ['assisted', 'assisted'],
+  ['errors', 'refused'],
+  ['interventions', 'interventions'],
+  ['solved', 'solved'],
+];
+
+function matches(d) {{
+  const r = d.result || {{}};
+  if (filter === 'addressed' && !d.target) return false;
+  if (filter === 'assisted' && !r.skill) return false;
+  if (filter === 'errors' && !r.action_error) return false;
+  if (filter === 'interventions' && (!d.resolution || d.resolution === 'model')) return false;
+  if (filter === 'solved' && !r.success) return false;
+  if (query) {{
+    const hay = [d.action_key, d.target, (d.attempts || []).map(a => a.text).join(' ')]
+      .join(' ').toLowerCase();
+    if (!hay.includes(query)) return false;
+  }}
+  return true;
+}}
 
 function badge(d) {{
   const r = d.result || {{}};
-  if (r.success) return '<span class="tag t-ok">solved</span>';
-  if (r.infrastructure_failure) return '<span class="tag t-warn">infra</span>';
-  if (r.action_error) return '<span class="tag t-bad">' + esc(r.action_error) + '</span>';
-  if (d.resolution && d.resolution !== 'model')
-    return '<span class="tag t-warn">intervention</span>';
-  return '';
+  let out = '';
+  if (d.target) out += `<span class="tag t-addr">&rarr;${{esc(d.target)}}</span>`;
+  if (r.success) out += '<span class="tag t-ok">solved</span>';
+  else if (r.infrastructure_failure) out += '<span class="tag t-warn">infra</span>';
+  else if (r.action_error) out += `<span class="tag t-bad">${{esc(r.action_error)}}</span>`;
+  else if (d.resolution && d.resolution !== 'model')
+    out += '<span class="tag t-warn">intervention</span>';
+  return out;
+}}
+
+function episodeSummary(rows) {{
+  const solved = rows.some(d => (d.result || {{}}).success);
+  const refused = rows.filter(d => (d.result || {{}}).action_error).length;
+  const addressed = rows.filter(d => d.target).length;
+  return `${{rows.length}} decisions &middot; ${{addressed}} addressed &middot; `
+       + `${{refused}} refused &middot; ${{solved ? 'solved' : 'unsolved'}}`;
+}}
+
+function renderFilters() {{
+  document.getElementById('filters').innerHTML = FILTERS.map(([k, label]) =>
+    `<button data-f="${{k}}" class="${{k === filter ? 'on' : ''}}">${{label}}</button>`).join('');
+  document.querySelectorAll('#filters button').forEach(b =>
+    b.onclick = () => {{ filter = b.dataset.f; renderFilters(); timeline(); }});
 }}
 
 function timeline() {{
   const host = document.getElementById('timeline');
-  let last = null, html = '';
+  const byEpisode = new Map();
   DECISIONS.forEach((d, i) => {{
-    if (d.episode !== last) {{
-      html += `<div class="ep">episode ${{d.episode}}</div>`;
-      last = d.episode;
-    }}
-    html += `<div class="row" data-i="${{i}}"><span class="n">${{d.step}}</span>`
-          + `<span class="k">${{esc(d.action_key)}}</span>${{badge(d)}}</div>`;
+    if (!byEpisode.has(d.episode)) byEpisode.set(d.episode, []);
+    byEpisode.get(d.episode).push(i);
   }});
-  host.innerHTML = html;
-  host.querySelectorAll('.row').forEach(el =>
+  let html = '';
+  for (const [episode, all] of byEpisode) {{
+    const shown = all.filter(i => matches(DECISIONS[i]));
+    if (!shown.length) continue;
+    html += `<div class="ep"><span>episode ${{episode}}</span>`
+          + `<span>${{episodeSummary(all.map(i => DECISIONS[i]))}}</span></div>`;
+    // One cell per decision, coloured by outcome: the shape of an episode at a
+    // glance, and a click target for jumping into it.
+    html += '<div class="strip">' + all.map(i => {{
+      const r = DECISIONS[i].result || {{}};
+      const colour = r.success ? 'var(--ok)' : r.action_error ? 'var(--bad)'
+                   : DECISIONS[i].target ? 'var(--addr)' : 'var(--line)';
+      const label = esc(DECISIONS[i].action_key);
+      return `<i data-i="${{i}}" style="background:${{colour}}" title="${{label}}"></i>`;
+    }}).join('') + '</div>';
+    html += shown.map(i => {{
+      const d = DECISIONS[i];
+      return `<div class="row" data-i="${{i}}"><span class="n">${{d.step}}</span>`
+           + `<span class="k">${{esc(d.action_key)}}</span>${{badge(d)}}</div>`;
+    }}).join('');
+  }}
+  host.innerHTML = html || '<div class="empty">nothing matches</div>';
+  host.querySelectorAll('[data-i]').forEach(el =>
     el.onclick = () => select(parseInt(el.dataset.i, 10)));
+  const sel = host.querySelector(`.row[data-i="${{current}}"]`);
+  if (sel) sel.classList.add('sel');
 }}
 
 function kv(rows) {{
@@ -135,12 +216,13 @@ function kv(rows) {{
     `<tr><td class="f">${{esc(k)}}</td><td>${{v}}</td></tr>`).join('') + '</table>';
 }}
 
-// The map is drawn from the observation only -- same entities, same resources,
-// same published objective the agent was given. Nothing from evaluator truth
-// reaches this canvas, which is why it is not marked as an overlay.
-function drawMap(o) {{
+// Drawn from the observation only -- same entities, same resources, same
+// published objective the agent was given. Nothing from evaluator truth reaches
+// this canvas, which is why it carries no overlay label.
+function drawMap(index) {{
   const c = document.getElementById('map');
   if (!c) return;
+  const o = DECISIONS[index].observation || {{}};
   const ctx = c.getContext('2d'), W = c.width, H = c.height, R = 34;
   const ch = (o.character || {{}}).position || [0, 0];
   const px = (x, y) => [W/2 + (x - ch[0]) / R * (W/2), H/2 + (y - ch[1]) / R * (H/2)];
@@ -148,17 +230,41 @@ function drawMap(o) {{
   ctx.strokeStyle = '#2b3040';
   ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H);
   ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+
+  // Where the character has already been this episode. A single frame cannot
+  // show pacing; the trail is what made a policy walking nine tiles out and
+  // twelve back legible as a loop rather than as progress.
+  const trail = [];
+  for (let i = index; i >= 0 && DECISIONS[i].episode === DECISIONS[index].episode; i--) {{
+    const p = ((DECISIONS[i].observation || {{}}).character || {{}}).position;
+    if (p) trail.unshift(p);
+  }}
+  if (trail.length > 1) {{
+    ctx.strokeStyle = '#3d4658'; ctx.lineWidth = 1.5; ctx.beginPath();
+    trail.forEach((p, n) => {{ const [x, y] = px(p[0], p[1]);
+      n ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }});
+    ctx.stroke();
+  }}
+
   ((o.resources || {{}}).tiles || []).forEach(t => {{
-    const [x, y] = px((t.p || [0,0])[0], (t.p || [0,0])[1]);
+    const p = t.p || t.offset || [0, 0];
+    const [x, y] = t.p ? px(p[0], p[1]) : px(ch[0] + p[0], ch[1] + p[1]);
     ctx.fillStyle = '#3b4a5a'; ctx.fillRect(x - 2, y - 2, 4, 4);
   }});
+  const target = DECISIONS[index].target;
   (o.entities || []).forEach(e => {{
     const p = e.p || e.offset || [0, 0];
     const [x, y] = e.p ? px(p[0], p[1]) : px(ch[0] + p[0], ch[1] + p[1]);
-    ctx.fillStyle = e.remembered ? '#5a6478' : '#79b8ff';
+    const handle = String(e.handle || e.h || '');
+    const addressed = target && handle === target;
+    ctx.fillStyle = addressed ? '#f0a35e' : e.remembered ? '#5a6478' : '#79b8ff';
     ctx.fillRect(x - 3, y - 3, 6, 6);
+    if (addressed) {{
+      ctx.strokeStyle = '#f0a35e'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(x, y, 8, 0, 6.284); ctx.stroke();
+    }}
     ctx.fillStyle = '#98a0b3'; ctx.font = '9px monospace';
-    ctx.fillText(String(e.handle || e.name || ''), x + 6, y + 3);
+    ctx.fillText(handle || String(e.name || ''), x + 6, y + 3);
   }});
   Object.entries(o.goal || {{}}).forEach(([name, p]) => {{
     const [x, y] = px(p[0], p[1]);
@@ -171,6 +277,7 @@ function drawMap(o) {{
 }}
 
 function select(i) {{
+  current = i;
   const d = DECISIONS[i], o = d.observation || {{}}, r = d.result || {{}};
   document.querySelectorAll('.row').forEach(el =>
     el.classList.toggle('sel', parseInt(el.dataset.i, 10) === i));
@@ -182,7 +289,7 @@ function select(i) {{
   left += '<h3>character</h3>' + kv([
     ['position', esc(JSON.stringify((o.character || {{}}).position))],
     ['tick', esc(o.tick)],
-    ['decision', esc(d.step)],
+    ['decision', esc(d.step) + ' of episode ' + esc(d.episode)],
   ]);
   left += '<h3>inventory</h3>' + (inv.length
     ? kv(inv.map(([k, v]) => [k, esc(v)])) : '<div class="empty">empty</div>');
@@ -196,6 +303,9 @@ function select(i) {{
 
   let right = '<h3>action</h3>' + kv([
     ['chosen', esc(d.action_key) + ' <span class="n">#' + esc(d.action_index) + '</span>'],
+    ['target', d.target
+      ? '<span class="t-addr">' + esc(d.target) + '</span> (addressed)'
+      : '<span class="empty">nearest entity (catalog default)</span>'],
     ['resolution', d.resolution === 'model' ? 'model'
       : '<span class="t-warn">' + esc(d.resolution) + ' (intervention)</span>'],
     ['status', esc(r.action_status)],
@@ -230,14 +340,38 @@ function select(i) {{
     + (a.failure ? ' <span class="t-bad">' + esc(a.failure) + '</span>' : ' ok')
     + ' &middot; ' + esc(Math.round(a.latency_ms || 0)) + ' ms'
     + ' &middot; ' + esc((a.usage || {{}}).total_tokens || 0) + ' tokens</summary><pre>'
-    + esc(a.text || a.error || '(no text)') + '</pre></details>').join('');
+    + esc(a.text || a.error || '(no text)') + '</pre>'
+    + (a.detail ? '<pre class="t-bad">' + esc(a.detail) + '</pre>' : '')
+    + '</details>').join('');
 
   right += '<h3>legal actions offered</h3><pre>'
-    + esc((d.legal_actions || []).map(a => a.index + ': ' + a.key).join('\\n')) + '</pre>';
+    + esc((d.legal_actions || []).map(a => a.index + ': ' + a.key).join('\n')) + '</pre>';
   document.getElementById('right').innerHTML = right;
-  drawMap(o);
+  drawMap(i);
 }}
 
+function move(delta) {{
+  const shown = DECISIONS.map((d, i) => i).filter(i => matches(DECISIONS[i]));
+  if (!shown.length) return;
+  const at = shown.indexOf(current);
+  const next = at === -1 ? 0 : Math.min(shown.length - 1, Math.max(0, at + delta));
+  select(shown[next]);
+  const row = document.querySelector(`.row[data-i="${{shown[next]}}"]`);
+  if (row) row.scrollIntoView({{block: 'nearest'}});
+}}
+
+document.addEventListener('keydown', e => {{
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'j' || e.key === 'ArrowDown') {{ e.preventDefault(); move(1); }}
+  if (e.key === 'k' || e.key === 'ArrowUp') {{ e.preventDefault(); move(-1); }}
+  if (e.key === 'g') select(0);
+  if (e.key === 'G') select(DECISIONS.length - 1);
+}});
+document.getElementById('q').addEventListener('input', e => {{
+  query = e.target.value.toLowerCase(); timeline();
+}});
+
+renderFilters();
 timeline();
 if (DECISIONS.length) select(0);
 </script>
