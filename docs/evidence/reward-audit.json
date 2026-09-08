@@ -1,0 +1,131 @@
+{
+  "what": "Shaping earnable while the success predicate is false, against the step cost of exhausting the budget. A task where the first exceeds the second has a positive-return strategy that is not success.",
+  "reports": [
+    {
+      "task": "deliver",
+      "version": "1.1.0",
+      "budget": 120,
+      "step_cost_weight": 0.001,
+      "pressure": 0.12,
+      "plateau": 0.35,
+      "idle_return": 0.23,
+      "violates": true,
+      "margin": 2.92,
+      "contributors": [
+        {
+          "name": "at_destination",
+          "cap": 0.2,
+          "why": "cap reached at 4 of the 20 success requires"
+        },
+        {
+          "name": "carried",
+          "cap": 0.15,
+          "why": "measures something success does not require"
+        }
+      ],
+      "exempt": []
+    },
+    {
+      "task": "mine_smelt",
+      "version": "1.1.0",
+      "budget": 400,
+      "step_cost_weight": 0.001,
+      "pressure": 0.4,
+      "plateau": 0.85,
+      "idle_return": 0.45,
+      "violates": true,
+      "margin": 2.12,
+      "contributors": [
+        {
+          "name": "plates_produced",
+          "cap": 0.6,
+          "why": "cap reached at 3 of the 12 success requires"
+        },
+        {
+          "name": "ore_mined",
+          "cap": 0.25,
+          "why": "measures something success does not require"
+        }
+      ],
+      "exempt": []
+    },
+    {
+      "task": "navigate",
+      "version": "1.0.0",
+      "budget": 150,
+      "step_cost_weight": 0.001,
+      "pressure": 0.15,
+      "plateau": 0.0,
+      "idle_return": -0.15,
+      "violates": false,
+      "margin": 0.0,
+      "contributors": [],
+      "exempt": [
+        {
+          "name": "approach",
+          "why": "potential-based; telescopes"
+        }
+      ]
+    },
+    {
+      "task": "repair_belt",
+      "version": "1.1.0",
+      "budget": 300,
+      "step_cost_weight": 0.001,
+      "pressure": 0.3,
+      "plateau": 0.0,
+      "idle_return": -0.3,
+      "violates": false,
+      "margin": 0.0,
+      "contributors": [],
+      "exempt": [
+        {
+          "name": "delivered",
+          "why": "cap needs 5, at or past the 1 for success"
+        }
+      ]
+    },
+    {
+      "task": "restore_power",
+      "version": "1.1.0",
+      "budget": 250,
+      "step_cost_weight": 0.001,
+      "pressure": 0.25,
+      "plateau": 0.0,
+      "idle_return": -0.25,
+      "violates": false,
+      "margin": 0.0,
+      "contributors": [],
+      "exempt": []
+    },
+    {
+      "task": "supply_furnace",
+      "version": "1.1.0",
+      "budget": 300,
+      "step_cost_weight": 0.001,
+      "pressure": 0.3,
+      "plateau": 0.8,
+      "idle_return": 0.5,
+      "violates": true,
+      "margin": 2.67,
+      "contributors": [
+        {
+          "name": "plates_produced",
+          "cap": 0.6,
+          "why": "cap reached at 4 of the 20 success requires"
+        },
+        {
+          "name": "ore_carried",
+          "cap": 0.2,
+          "why": "measures something success does not require"
+        }
+      ],
+      "exempt": []
+    }
+  ],
+  "violating": [
+    "deliver",
+    "mine_smelt",
+    "supply_furnace"
+  ]
+}

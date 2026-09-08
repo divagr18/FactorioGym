@@ -9,6 +9,7 @@ deliberately checkable without one.
 from __future__ import annotations
 
 import ast
+import json
 import random
 from pathlib import Path
 
@@ -25,6 +26,7 @@ from factoriorl.tasks.spec import (
     RewardKind,
 )
 
+ROOT = Path(__file__).resolve().parents[2]
 FAMILIES = ("navigate", "deliver", "mine_smelt", "supply_furnace", "repair_belt", "restore_power")
 
 
@@ -563,3 +565,52 @@ def test_the_baseline_cache_key_separates_action_spaces():
     flat = cache_key(task, "test", 11, 25, "primitive-v1")
     skills = cache_key(task, "test", 11, 25, "skills-v1")
     assert flat != skills, "a skills floor would be served from the primitive cache entry"
+
+
+# ------------------------------------------------- paying for stopping
+
+
+def test_shaping_plateaus_are_pinned_to_the_families_that_have_them():
+    """A task must not pay more for stopping than the budget charges for it.
+
+    Shaping earnable while the success predicate is still false is a plateau: an
+    agent banks it and idles, and the only thing opposing that is the step cost.
+    When the plateau exceeds the step cost of exhausting the budget, the episode
+    has a positive-return absorbing strategy that is not success.
+
+    `deliver` seed 3 is the worked example. It converged on `take_iron-plate_20`,
+    ran 95.9 steps of a 120 budget for +0.062 and scored 0.00 on all three
+    evaluation rows -- the reward's arithmetic working as written.
+
+    This pins the set rather than asserting it is empty, because emptying it
+    means changing reward weights, which bumps every task version and invalidates
+    a frozen holdout validated against the current ones. A new violation fails
+    here; fixing one also fails here, deliberately, so the pin is updated by
+    someone who meant to.
+    """
+    import subprocess
+    import sys as _sys
+
+    result = subprocess.run(
+        [_sys.executable, str(ROOT / "tools" / "reward_audit.py")],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+    )
+    report = json.loads((ROOT / "docs" / "evidence" / "reward-audit.json").read_text("utf-8"))
+    assert result.returncode == 1, "the audit must exit non-zero while violations stand"
+
+    assert report["violating"] == ["deliver", "mine_smelt", "supply_furnace"], (
+        "the set of families that pay for stopping changed; if this is a fix, update "
+        "the pin, and if it is not, a new reward plateau was introduced"
+    )
+
+    by_task = {r["task"]: r for r in report["reports"]}
+    # The three clean families are clean because nothing is earnable short of
+    # the goal -- repair_belt succeeds on the very quantity it pays for.
+    for task_id in ("navigate", "repair_belt", "restore_power"):
+        assert by_task[task_id]["plateau"] == 0.0
+        assert by_task[task_id]["idle_return"] < 0
+
+    # deliver's margin is the one that was measured collapsing.
+    assert by_task["deliver"]["idle_return"] > 0.2
