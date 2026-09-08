@@ -76,6 +76,9 @@ class FactorioVecEnv(VecEnv):
         # different scenes and could not be compared as paired measurements.
         self._cursor: itertools.count | None = None
         self._cursor_lock = threading.Lock()
+        #: Exclusive upper bound on issued episode indices, or None for an
+        #: unbounded stream. Set only by a frozen-holdout evaluation.
+        self._stop: int | None = None
         #: Episode indices actually handed out since the last retarget.
         #:
         #: A run can cite a frozen holdout's hash without having evaluated a
@@ -114,6 +117,7 @@ class FactorioVecEnv(VecEnv):
         branch: Branch,
         start_index: int = 0,
         plan: SeedPlan | None = None,
+        stop_index: int | None = None,
     ) -> None:
         """Point every worker at a different split, reusing the live engines.
 
@@ -133,15 +137,35 @@ class FactorioVecEnv(VecEnv):
                 # failure mode a frozen holdout exists to prevent.
                 inner.seed_plan = plan
         self._cursor = itertools.count(start_index)
+        self._stop = stop_index
         self._issued = []
 
     def _reset_one(self, env):
+        """Assign the next episode index, and tag the env with what it got.
+
+        The tag is what makes a frozen evaluation checkable. More episodes are
+        *started* than are scored -- with N workers the last N-1 are begun and
+        abandoned when the count is reached -- so "which episodes did this run
+        touch" and "which episodes did this run score" are different sets, and
+        only the second one can be compared across arms.
+
+        Past ``stop_index`` the env is reset without an assignment and tagged
+        None. It still has to produce an observation, because the vectorised
+        contract has no way to say "this slot is finished", but a None tag tells
+        the evaluator not to count it. That is what keeps a bounded holdout from
+        being scored on episodes outside itself.
+        """
         if self._cursor is not None:
             with self._cursor_lock:
                 index = next(self._cursor)
-                self._issued.append(index)
-            # reset() increments before use, so seed it one below the target.
-            env.unwrapped._episode_index = index - 1
+                if self._stop is not None and index >= self._stop:
+                    index = None
+                else:
+                    self._issued.append(index)
+            if index is not None:
+                # reset() increments before use, so seed it one below the target.
+                env.unwrapped._episode_index = index - 1
+            env.unwrapped._assigned_index = index
         return env.reset()
 
     def reset(self):
@@ -165,6 +189,9 @@ class FactorioVecEnv(VecEnv):
                 # so the learner can bootstrap correctly.
                 info = {**info, "terminal_observation": observation}
                 info["TimeLimit.truncated"] = truncated and not terminated
+                # Read before the reset overwrites it: this names the episode
+                # that just finished, not the one about to start.
+                info["episode_index"] = getattr(env.unwrapped, "_assigned_index", None)
                 observation, _ = self._reset_one(env)
             observations.append(observation)
             rewards.append(reward)

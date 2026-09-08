@@ -223,7 +223,13 @@ def _wilson(successes: int, total: int, z: float = 1.96) -> list[float]:
     return [round(max(0.0, centre - margin), 4), round(min(1.0, centre + margin), 4)]
 
 
-def evaluate_parallel(vec, model, episodes: int, deterministic: bool = True) -> dict:
+def evaluate_parallel(
+    vec,
+    model,
+    episodes: int,
+    deterministic: bool = True,
+    only_indices: set[int] | None = None,
+) -> dict:
     """Evaluate across every worker at once.
 
     Evaluation was the largest single cost in a run -- on a 25,000-step
@@ -239,6 +245,12 @@ def evaluate_parallel(vec, model, episodes: int, deterministic: bool = True) -> 
     counted = 0
     lengths: list[int] = []
     rewards: list[float] = []
+    # `only_indices` turns "the first N episodes to finish" into "these exact N
+    # episodes". Without it the scored set is decided by worker scheduling: the
+    # last N-1 episodes are started and abandoned, so a fast policy and a slow
+    # one score different subsets of the same window and the comparison PLAN
+    # section 3 calls paired quietly stops being paired.
+    scored: set[int] = set()
     while counted < episodes:
         masks = vec.action_masks()
         actions, _ = model.predict(observations, action_masks=masks, deterministic=deterministic)
@@ -249,9 +261,17 @@ def evaluate_parallel(vec, model, episodes: int, deterministic: bool = True) -> 
             if not done:
                 continue
             info = infos[index]
+            # `index` is the worker slot and indexes the accumulators;
+            # `episode` is which scene that worker just played. Naming both
+            # `index` read fine and silently indexed an 8-element array with an
+            # episode number.
+            episode = info.get("episode_index")
+            eligible = only_indices is None or (episode in only_indices and episode not in scored)
             # An infrastructure failure is not a task outcome, so it is dropped
             # rather than counted as a loss.
-            if not info.get("excluded_from_metrics") and counted < episodes:
+            if not info.get("excluded_from_metrics") and eligible and counted < episodes:
+                if episode is not None:
+                    scored.add(episode)
                 counted += 1
                 successes += int(bool(info.get("success")))
                 lengths.append(int(steps[index]))
@@ -267,6 +287,7 @@ def evaluate_parallel(vec, model, episodes: int, deterministic: bool = True) -> 
         "mean_episode_reward": round(float(np.mean(rewards)), 4) if rewards else 0.0,
         "mean_episode_steps": round(float(np.mean(lengths)), 1) if lengths else 0.0,
         "deterministic": deterministic,
+        "scored_episodes": sorted(scored) if only_indices is not None else None,
     }
 
 
@@ -338,8 +359,7 @@ def _load_frozen_holdout(config: TrainConfig, task) -> dict | None:
     if recorded is None:
         covered = sorted((spec.get("tasks") or {}).keys())
         raise ValueError(
-            f"holdout {config.holdout} does not cover task {config.task_id!r}; "
-            f"it covers {covered}"
+            f"holdout {config.holdout} does not cover task {config.task_id!r}; it covers {covered}"
         )
     if recorded.get("task_version") != task.spec.version:
         raise ValueError(
@@ -519,18 +539,30 @@ def train(config: TrainConfig) -> dict:
             if not task.spec.families(split):
                 continue
             row_plan, row_start = plan, 0
+            row_stop: int | None = None
+            frozen_indices: set[int] | None = None
             if frozen is not None and split == "test":
                 seeds_spec = frozen["holdout"]["seed_plan"]
                 row_plan = SeedPlan(master=seeds_spec["master"], run_id=seeds_spec["run_id"])
                 row_start = frozen["holdout"]["start_index"]
+                # The frozen set is a closed range, so the cursor stops at its
+                # end and the evaluation scores exactly those indices. Without
+                # both, a 100-episode holdout could never be covered by a
+                # 100-episode evaluation: the workers start more episodes than
+                # are scored, so the run touched 1000..1111 for a range ending
+                # at 1100 and reported itself out of range -- correctly.
+                row_stop = row_start + frozen["holdout"]["episodes_per_task"]
+                frozen_indices = set(range(row_start, row_stop))
             if config.workers > 1 and vec_env is not None:
                 # Retarget rather than rebuild. `split` and `branch` are plain
                 # attributes of `FactorioEnv`, so pointing the live engines at
                 # another split is assignment; building a vectorised
                 # environment per split would pay the worker launch storm --
                 # the most expensive moment in a run -- three times over.
-                vec_env.retarget(split, Branch.EVAL, row_start, plan=row_plan)
-                rows[label] = evaluate_parallel(vec_env, model, config.eval_episodes)
+                vec_env.retarget(split, Branch.EVAL, row_start, plan=row_plan, stop_index=row_stop)
+                rows[label] = evaluate_parallel(
+                    vec_env, model, config.eval_episodes, only_indices=frozen_indices
+                )
                 rows[label]["episodes_touched"] = vec_env.issued_episodes()
             else:
                 # The single-worker path needs the frozen plan and start index
@@ -599,12 +631,20 @@ def train(config: TrainConfig) -> dict:
             low = spec["start_index"]
             high = low + spec["episodes_per_task"]
             touched = rows["structures"].get("episodes_touched") or []
+            # Coverage is a claim about the episodes that produced the number,
+            # so it is judged on what was *scored*. `episodes_touched` stays in
+            # the record because the gap between the two is worth seeing, but
+            # it always overshoots: workers start episodes that are abandoned
+            # when the count is reached.
+            scored = rows["structures"].get("scored_episodes") or []
             rows["structures"]["holdout"] = {
                 "id": spec.get("holdout_id"),
                 "content_hash": frozen["content_hash"],
                 "frozen_range": [low, high],
                 "episodes_touched": len(touched),
-                "within_frozen_range": bool(touched) and all(low <= i < high for i in touched),
+                "episodes_scored": len(scored),
+                "within_frozen_range": bool(scored) and all(low <= i < high for i in scored),
+                "covers_frozen_set": sorted(scored) == list(range(low, high)),
             }
 
         # `held_out` stays the acceptance number and remains the structural

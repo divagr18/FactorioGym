@@ -93,6 +93,19 @@ def await_headroom() -> dict:
 
 THRESHOLD = 0.80
 
+#: A family also has to be *discriminative*: if a uniform random policy over the
+#: same action space already clears the bar, clearing it proves nothing. This is
+#: the ceiling `docs/research/ai-and-games.md` argues for and `tools/solvability.py`
+#: reports against.
+#:
+#: Declared here before any of this matrix's results were read, prompted by
+#: `navigate`, whose random floor over skills measures 0.99 on the train, val
+#: *and* test splits -- so the disqualification rests on a property of the task
+#: and its action space, visible without touching the holdout, and not on a
+#: held-out number. It makes acceptance strictly harder, never easier: PLAN
+#: section 4 forbids relaxing a threshold, not tightening one.
+FLOOR_CEILING = 0.10
+
 # PLAN 4.5 requires at least one qualifying family to involve production or
 # repair, and the task specs carry no category field, so the mapping is written
 # here explicitly rather than inferred from a task id at aggregation time.
@@ -320,17 +333,34 @@ def main() -> int:
             if c["unfamiliar_seed_success_rate"] is not None
         ]
         mean_structural = round(sum(rates) / len(rates), 4) if rates else None
+        floors = [
+            c["structural_random_floor"]
+            for c in covered
+            if c["structural_random_floor"] is not None
+        ]
+        mean_floor = round(sum(floors) / len(floors), 4) if floors else None
+        clears = bool(mean_structural is not None and mean_structural >= THRESHOLD)
+        discriminative = bool(mean_floor is not None and mean_floor <= FLOOR_CEILING)
         families[task] = {
             "category": CATEGORY.get(task, "unknown"),
             "seeds_completed": len(cells),
             "seeds_outside_frozen_range": excluded,
             "structural_success_rate_mean": mean_structural,
             "structural_success_rate_per_seed": rates,
+            "random_floor_mean": mean_floor,
             "unfamiliar_seed_rate_mean": round(sum(familiar) / len(familiar), 4)
             if familiar
             else None,
-            "meets_threshold": bool(mean_structural is not None and mean_structural >= THRESHOLD),
-            "diagnosis": diagnose(covered),
+            "clears_threshold": clears,
+            "discriminative": discriminative,
+            # Both, or the number is not evidence of anything.
+            "meets_threshold": clears and discriminative,
+            "diagnosis": diagnose(covered)
+            if discriminative
+            else (
+                f"not discriminative: a random policy over the same action space scores "
+                f"{mean_floor}, so clearing {THRESHOLD:.2f} here demonstrates nothing"
+            ),
             "cells": cells,
         }
 
@@ -357,7 +387,11 @@ def main() -> int:
         "acceptance": {
             "families_meeting_threshold": passing,
             "qualifying_production_or_repair": qualifying,
-            "requires": "at least three families at 0.80, at least one production or repair",
+            "requires": (
+                "at least three families at 0.80 whose random floor is at or below "
+                f"{FLOOR_CEILING}, at least one of them production or repair"
+            ),
+            "floor_ceiling": FLOOR_CEILING,
             "accepted": accepted,
         },
         "runs": raw,
@@ -372,6 +406,7 @@ def main() -> int:
         shown = "n/a" if mean_rate is None else f"{mean_rate:.2f}"
         print(
             f"  {task:14s} {family['category']:10s} structural={shown} "
+            f"floor={family['random_floor_mean']} "
             f"{'PASS' if family['meets_threshold'] else 'miss'} -- {family['diagnosis']}"
         )
     print(
