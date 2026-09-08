@@ -67,6 +67,24 @@ class ResourceSpec:
         return {"name": self.name, "position": list(self.position), "amount": self.amount}
 
 
+#: Items the mod counts in `truth["produced"]` unconditionally. Mirrors the
+#: literal in `mod/factoriorl/world.lua`; `test_tracked_items` asserts they
+#: agree, because a silent drift here means a task's output is invisible to its
+#: own success predicate.
+DEFAULT_TRACKED_ITEMS: frozenset[str] = frozenset(
+    {
+        "iron-plate",
+        "copper-plate",
+        "stone-furnace",
+        "iron-gear-wheel",
+        "iron-ore",
+        "copper-ore",
+        "coal",
+        "stone",
+    }
+)
+
+
 @dataclass(frozen=True)
 class Blueprint:
     """A complete, deterministic description of a scene."""
@@ -82,8 +100,12 @@ class Blueprint:
     unlock_recipes: tuple[str, ...] = ()
     radius: int = 64
 
-    def to_dict(self, public_markers: tuple[str, ...] = ()) -> dict:
-        return {
+    def to_dict(
+        self,
+        public_markers: tuple[str, ...] = (),
+        extra_tracked_items: tuple[str, ...] = (),
+    ) -> dict:
+        payload = {
             "public_markers": list(public_markers),
             "entities": [e.to_dict() for e in self.entities],
             "resources": [r.to_dict() for r in self.resources],
@@ -95,6 +117,13 @@ class Blueprint:
             "unlock_recipes": list(self.unlock_recipes),
             "radius": self.radius,
         }
+        # Emitted only when the task needs an item the mod does not already
+        # count. Adding the key unconditionally would move every blueprint
+        # digest and so invalidate every frozen holdout entry -- and with it
+        # every result measured against one.
+        if extra_tracked_items:
+            payload["extra_tracked_items"] = sorted(extra_tracked_items)
+        return payload
 
     # ---- engine-free structural validation (PLAN.md 3.2 solvability) -------
 
@@ -367,6 +396,24 @@ class TaskSpec:
 
     def families(self, split: str) -> tuple[LayoutFamily, ...]:
         return tuple(f for f in self.layout_families if f.split == split)
+
+    @property
+    def extra_tracked_items(self) -> tuple[str, ...]:
+        """Items this task measures that the mod does not count by default.
+
+        `truth["produced"]` was a fixed list of eight, so a task whose
+        objective named anything else would read zero from its own success
+        predicate -- silently, with no error anywhere. Derived from the
+        predicates rather than declared, so it cannot fall out of step with
+        what the task actually scores.
+        """
+        items: set[str] = set()
+        predicates = list(self.success)
+        predicates += [r.predicate for r in self.rewards if r.predicate is not None]
+        for predicate in predicates:
+            if predicate.item:
+                items.add(predicate.item)
+        return tuple(sorted(items - DEFAULT_TRACKED_ITEMS))
 
     @property
     def public_markers(self) -> tuple[str, ...]:

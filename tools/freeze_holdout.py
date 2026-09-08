@@ -237,7 +237,9 @@ def episode_spec(task, families, plan: SeedPlan, index: int) -> dict:
         # Digested exactly as `FactorioEnv._install` sends it, published
         # markers included -- otherwise the frozen digest names a payload no
         # run installs, which is the one thing this file exists to prevent.
-        "blueprint_digest": scene_digest(blueprint, task.spec.public_markers),
+        "blueprint_digest": scene_digest(
+            blueprint, task.spec.public_markers, task.spec.extra_tracked_items
+        ),
     }
 
 

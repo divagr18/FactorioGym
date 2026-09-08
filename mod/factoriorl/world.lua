@@ -338,6 +338,10 @@ function world.build_blueprint(hash)
     -- `decoy_1`, and showing those would hand the agent the whole scene
     -- instead of the objective.
     public_markers = blueprint.public_markers or {},
+    -- Items to count in `truth.produced` beyond the default list. A task whose
+    -- objective names something else read zero from its own success predicate,
+    -- with no error anywhere.
+    extra_tracked_items = blueprint.extra_tracked_items or {},
     radius = radius,
   }
   return { scenario = storage.frrl_scene.name, destroyed = destroyed }
@@ -402,11 +406,15 @@ function world.truth()
     end
   end
 
-  local produced = {}
-  for _, item in ipairs({
+  local tracked = {
     "iron-plate", "copper-plate", "stone-furnace", "iron-gear-wheel",
     "iron-ore", "copper-ore", "coal", "stone",
-  }) do
+  }
+  for _, item in ipairs(scene.extra_tracked_items or {}) do
+    tracked[#tracked + 1] = item
+  end
+  local produced = {}
+  for _, item in ipairs(tracked) do
     local count = stats.get_input_count(item)
     if count and count > 0 then produced[item] = count end
   end

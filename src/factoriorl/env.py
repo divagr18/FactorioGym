@@ -122,7 +122,10 @@ class FactorioEnv(gym.Env):
         # evaluator scores against them. Which of those the *observation* may
         # show is a property of the objective, and only the task knows it, so
         # the allowlist is declared here rather than inferred in the mod.
-        payload = blueprint.to_dict(public_markers=self.spec_.public_markers)
+        payload = blueprint.to_dict(
+            public_markers=self.spec_.public_markers,
+            extra_tracked_items=self.spec_.extra_tracked_items,
+        )
         digest = blueprint_digest(payload)
         if digest not in self._installed:
             self.session.define_scenario(payload, digest)

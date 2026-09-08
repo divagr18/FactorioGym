@@ -340,7 +340,11 @@ def goal_target_tiles(
 # ------------------------------------------------------------ scene identity
 
 
-def scene_digest(blueprint: Blueprint, public_markers: tuple[str, ...] = ()) -> str:
+def scene_digest(
+    blueprint: Blueprint,
+    public_markers: tuple[str, ...] = (),
+    extra_tracked_items: tuple[str, ...] = (),
+) -> str:
     """A canonical, process-stable digest of a blueprint's full content.
 
     Same algorithm as ``factoriorl.env.blueprint_digest`` -- canonical JSON,
@@ -352,14 +356,20 @@ def scene_digest(blueprint: Blueprint, public_markers: tuple[str, ...] = ()) -> 
 
     ``public_markers`` is part of the installed payload, so it is part of the
     identity: publishing a task's objective changes what an agent can see, and a
-    holdout frozen before that change must not silently pass afterwards.
+    holdout frozen before that change must not silently pass afterwards. So is
+    ``extra_tracked_items``, for the same reason -- it changes what the truth
+    channel counts. Both are empty for every task frozen so far, so no existing
+    digest moves; a caller that omits them where the task declares one would
+    name a payload no run installs.
 
     Built-in ``hash()`` is randomised per process (PYTHONHASHSEED) and this repo
     has already been bitten by that: seeding blueprint sampling with it made the
     task validation suite pass or fail at random. Nothing here may use it.
     """
     canonical = json.dumps(
-        blueprint.to_dict(public_markers=public_markers), sort_keys=True, separators=(",", ":")
+        blueprint.to_dict(public_markers=public_markers, extra_tracked_items=extra_tracked_items),
+        sort_keys=True,
+        separators=(",", ":"),
     )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
 
