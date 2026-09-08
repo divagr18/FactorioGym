@@ -299,13 +299,18 @@ productive furnace centres, and all three rotations of south's set match exactly
 Reflecting south's `{(0,2), (1,2)}` in y gives `{(0,-2), (1,-2)}`, while north's
 measured set is `{(-1,-2), (0,-2)}` — off by exactly one tile in x.
 
+**Translation is invariant**, checked at all four parities of drill centre, so
+the productive offsets are a property of the local structure and not of where it
+sits in the world.
+
 The cause is a parity: a 2×2 entity at integer centre `(cx, cy)` occupies tiles
 `{cx-1, cx} × {cy-1, cy}`, extending one tile in the negative direction and none
-in the positive. That bias survives a 90° rotation and does not survive a flip.
+in the positive. That bias is relative to the entity, which is why translation
+survives it; it survives a 90° rotation, and it does not survive a flip.
 
 **Design consequence, and the reason this test came first.** A candidate scorer
-may share parameters across **rotations** of a local structure and must **not**
-share them across reflections: a scorer assuming the full dihedral group would be
+may share parameters across **rotations and translations** of a local structure
+and must **not** share them across reflections: a scorer assuming the full dihedral group would be
 wrong on half its orbit, scoring `(1,-2)` valid for a north-facing drill where the
 engine starves it. The representation test is therefore informative, and the
 scorer itself remains deferred — it bumps `EXTRACTOR_VERSION`, and §8 asks for the

@@ -8,9 +8,9 @@ informative"*.
 
 `tools/symmetry_probe.py` ran that test on a real engine. These tests pin its
 published conclusion, because the conclusion is the deliverable: a candidate
-scorer may share parameters across **rotations** of a local structure and must
-**not** share them across reflections. A scorer assuming the full dihedral
-group would be wrong on half its orbit.
+scorer may share parameters across **rotations and translations** of a local
+structure and must **not** share them across reflections. A scorer assuming the
+full dihedral group would be wrong on half its orbit.
 """
 
 from __future__ import annotations
@@ -54,9 +54,7 @@ class TestTheTransforms:
 
 class TestTheMeasuredResult:
     def test_every_facing_admits_exactly_two_productive_placements(self, report):
-        counts = {
-            facing: len(body["productive"]) for facing, body in report["facings"].items()
-        }
+        counts = {facing: len(body["productive"]) for facing, body in report["facings"].items()}
         assert counts == {"north": 2, "east": 2, "south": 2, "west": 2}, counts
 
     def test_rotation_is_invariant(self, report):
@@ -69,7 +67,8 @@ class TestTheMeasuredResult:
     def test_reflection_is_not_invariant(self, report):
         """The finding. A 2x2 entity at centre (cx, cy) occupies tiles
         {cx-1, cx} x {cy-1, cy}: it extends one tile in the negative direction
-        and none in the positive. That bias survives a 90-degree rotation and
+        and none in the positive. That bias is relative to the entity, which is
+        why translation survives it; it survives a 90-degree rotation, and it
         does not survive a flip."""
         base = {tuple(o) for o in report["facings"]["south"]["productive"]}
         north = {tuple(o) for o in report["facings"]["north"]["productive"]}
@@ -102,22 +101,18 @@ class TestTheMeasuredResult:
 
 class TestTranslation:
     def test_translation_is_invariant(self, report):
-        """The other half of "translated/rotated". Odd and even drill offsets
-        both, because a 2x2 footprint has a parity."""
-        if not report.get("translations"):
-            pytest.skip("this evidence file predates the translation arm")
+        """The other half of "translated/rotated". Both parities of drill
+        centre, because a 2x2 footprint has one."""
+        assert report["translations"], "the evidence must carry the translation arm"
         base = {tuple(o) for o in report["facings"]["south"]["productive"]}
         for origin, body in report["translations"].items():
             assert {tuple(o) for o in body["productive"]} == base, origin
 
-    def test_both_parities_were_tested(self, report):
-        if not report.get("translations"):
-            pytest.skip("this evidence file predates the translation arm")
-        origins = [
-            tuple(int(v) for v in key.split(",")) for key in report["translations"]
-        ]
+    def test_every_parity_was_tested(self, report):
+        assert report["translations"], "the evidence must carry the translation arm"
+        origins = [tuple(int(v) for v in key.split(",")) for key in report["translations"]]
         parities = {(x % 2, y % 2) for x, y in origins}
-        assert len(parities) >= 2, f"only one parity tested: {origins}"
+        assert parities == {(0, 0), (0, 1), (1, 0), (1, 1)}, origins
 
 
 def test_the_conclusion_is_recorded_where_a_scorer_author_will_read_it():

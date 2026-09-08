@@ -1547,6 +1547,56 @@
       }
     }
   },
+  "translations": {
+    "5,0": {
+      "productive": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    "0,5": {
+      "productive": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    "3,-7": {
+      "productive": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    "-6,-6": {
+      "productive": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    }
+  },
   "checks": [
     {
       "check": "rotating south's productive set 90 degrees gives west's",
@@ -1659,6 +1709,102 @@
         "south": 2,
         "west": 2
       }
+    },
+    {
+      "check": "translating the drill to (5, 0) leaves the productive offsets unchanged",
+      "holds": true,
+      "expected": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "actual": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "check": "translating the drill to (0, 5) leaves the productive offsets unchanged",
+      "holds": true,
+      "expected": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "actual": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "check": "translating the drill to (3, -7) leaves the productive offsets unchanged",
+      "holds": true,
+      "expected": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "actual": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "check": "translating the drill to (-6, -6) leaves the productive offsets unchanged",
+      "holds": true,
+      "expected": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "actual": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
     }
   ],
   "symmetric": false

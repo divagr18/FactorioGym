@@ -1271,5 +1271,8 @@ to catch. Recorded, not patched.
   gives `{(0,-2), (1,-2)}` where north's measured set is `{(-1,-2), (0,-2)}`.
   The cause is the 2x2 footprint's parity -- it extends one tile in the negative
   direction and none in the positive, which survives a 90-degree rotation and
-  not a flip. So the symmetry group is C4, not D4, and any shared placement
-  scorer may tie parameters across rotations but not across reflections.
+  not a flip. **Translation is invariant**, checked at all four parities of
+  drill centre -- (5,0), (0,5), (3,-7), (-6,-6) -- so the parity is relative to
+  the entity, not to the world lattice. The symmetry group is therefore C4 plus
+  translation, not D4, and any shared placement scorer may tie parameters across
+  rotations and translations but not across reflections.
