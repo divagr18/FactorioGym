@@ -6,8 +6,8 @@
     "split": "train"
   },
   "supplied_knowledge": {
-    "system_prompt": "You are controlling a single character in Factorio through a bounded action catalog. Each turn you receive the character's local observation and the exact list of actions the environment will currently accept, then choose one.\n\nRules:\n- Choose exactly one action, by its numeric index, from the LEGAL ACTIONS list.\n- An index that is not in that list will be rejected and you will be asked again.\n- Positions are given as offsets from the character in tiles. The x axis grows east and the y axis grows south.\n- One decision advances the world by a fixed interval, so movement, mining and crafting take several decisions to finish. Actions still in progress are listed under \"in flight\".\n- You cannot see beyond the sensor radius. Entities marked REMEMBERED are what was there when you last saw them, not what is there now.\n\nSome actions act on an entity. Those say \"the nearest entity\" in their description, and by default that is what they do. To act on a *particular* one instead, add its handle -- the [hN] shown beside it -- as \"target\".\n\nSome actions need arguments you must supply. Those are marked \"[needs: ...]\" in the LEGAL ACTIONS list, and the legal values for each argument name are listed under ARGUMENT VALUES. Supply exactly the names it asks for, no more.\n\nReply with a single JSON object and nothing else:\n{\"action\": <index>, \"reason\": \"<one short sentence>\"}\nor, to choose which entity it acts on:\n{\"action\": <index>, \"target\": \"<hN>\", \"reason\": \"<one short sentence>\"}\nor, for an action marked [needs: ...]:\n{\"action\": <index>, \"arguments\": {\"<name>\": <value>}, \"reason\": \"<why>\"}",
-    "system_prompt_digest": "90e0dfaa137c0a33",
+    "system_prompt": "You are controlling a single character in Factorio through a bounded action catalog. Each turn you receive the character's local observation and the exact list of actions the environment will currently accept, then choose one.\n\nRules:\n- Choose exactly one action, by its numeric index, from the LEGAL ACTIONS list.\n- An index that is not in that list will be rejected and you will be asked again.\n- Entity and resource positions are shown as offsets from the character in tiles. The x axis grows east and the y axis grows south.\n- Argument values under ARGUMENT VALUES are ABSOLUTE world coordinates, not offsets. Your own absolute position is the one under CHARACTER. To act on a tile you can see at offset (dx, dy), add that offset to your own position.\n- One decision advances the world by a fixed interval, so movement, mining and crafting take several decisions to finish. Actions still in progress are listed under \"in flight\".\n- You cannot see beyond the sensor radius. Entities marked REMEMBERED are what was there when you last saw them, not what is there now.\n\nSome actions act on an entity. Those say \"the nearest entity\" in their description, and by default that is what they do. To act on a *particular* one instead, add its handle -- the [hN] shown beside it -- as \"target\".\n\nSome actions need arguments you must supply. Those are marked \"[needs: ...]\" in the LEGAL ACTIONS list, and the legal values for each argument name are listed under ARGUMENT VALUES. Supply exactly the names it asks for, no more.\n\nReply with a single JSON object and nothing else:\n{\"action\": <index>, \"reason\": \"<one short sentence>\"}\nor, to choose which entity it acts on:\n{\"action\": <index>, \"target\": \"<hN>\", \"reason\": \"<one short sentence>\"}\nor, for an action marked [needs: ...]:\n{\"action\": <index>, \"arguments\": {\"<name>\": <value>}, \"reason\": \"<why>\"}",
+    "system_prompt_digest": "2460900777b4e2ac",
     "task_description": "Build a plate line from nothing: place a burner mining drill on the ore, place a stone furnace where the drill drops, fuel both, and keep the line producing.",
     "summary_encoding_version": 2,
     "observation_profile": "local-v2",
@@ -25,41 +25,1831 @@
     "reference_geometry_present_in_prompt": [],
     "note": "The task's declared description is supplied; the placement geometry the reference builder measured on an engine is not. No reference solver is imported by this tool."
   },
-  "assistance": null,
+  "assistance": "wait-batch:12",
+  "profiles": {
+    "observation": "local-v2",
+    "action": "primitive-v1",
+    "assistance": "wait-batch:12",
+    "goal_encoding": null,
+    "summary_encoding": 2,
+    "deliberation": "language-model-v1",
+    "catalog": "parameterized-v1",
+    "catalog_digest": "7222fb372fe51f63",
+    "resolved_catalog": [
+      "move_north",
+      "move_east",
+      "move_south",
+      "move_west",
+      "step_north",
+      "step_east",
+      "step_south",
+      "step_west",
+      "nudge_north",
+      "nudge_east",
+      "nudge_south",
+      "nudge_west",
+      "place_at",
+      "mine_at",
+      "rotate_at",
+      "rotate_at_reverse",
+      "give_to",
+      "take_from",
+      "set_recipe_at",
+      "craft_recipe",
+      "cancel_request",
+      "wait"
+    ]
+  },
   "game_time": {
     "ticks_per_decision": 30,
     "max_game_ticks": 18000,
     "episodes": [
       {
         "episode": 0,
-        "final_tick": null,
-        "steps": 17,
+        "final_tick": 8970,
+        "final_tick_source": "replay",
+        "steps": 300,
         "success": false,
-        "stopped": "model_failure",
+        "stopped": "step_ceiling",
         "production": null
       }
     ]
   },
   "decisions": {
-    "decisions": 0,
-    "fallback_decisions": 0,
+    "decisions": 300,
+    "fallback_decisions": 17,
     "waits_repeated_without_asking": 0,
-    "placements_issued": [],
-    "placements_accepted": [],
-    "transfers_issued": [],
-    "transfers_accepted": [],
-    "decision_failures": {}
+    "placements_issued": [
+      {
+        "episode": 0,
+        "step": 4,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            3.5,
+            -1.5
+          ],
+          "direction": "south"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 5,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            3.5,
+            -1.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 6,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            4.5,
+            -1.5
+          ],
+          "direction": "west"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 7,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            3.5,
+            -0.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 8,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            3.5,
+            -1.5
+          ],
+          "direction": "west"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 9,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            3.5,
+            -0.5
+          ],
+          "direction": "south"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 10,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            3.5,
+            -1.5
+          ],
+          "direction": "west"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 13,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 14,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            1.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 15,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 16,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 17,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            1.5,
+            2.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 21,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            1.5,
+            2.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 23,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 24,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            -0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 42,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            2.5,
+            2.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 43,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            3.5,
+            1.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 47,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 78,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 84,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 91,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 102,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "south"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 116,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 127,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 142,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 245,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 257,
+        "arguments": {
+          "item": "iron-ore",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "invalid_target",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 271,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 282,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            1.5,
+            3.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 284,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            1.5,
+            2.5
+          ],
+          "direction": "north"
+        },
+        "status": "rejected",
+        "error": "collision",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 287,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      }
+    ],
+    "placements_accepted": [
+      {
+        "episode": 0,
+        "step": 4,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            3.5,
+            -1.5
+          ],
+          "direction": "south"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 13,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 17,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            1.5,
+            2.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 43,
+        "arguments": {
+          "item": "stone-furnace",
+          "position": [
+            3.5,
+            1.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 47,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 78,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 84,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 91,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 102,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "south"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 116,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 127,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 142,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 245,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 271,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 287,
+        "arguments": {
+          "item": "burner-mining-drill",
+          "position": [
+            0.5,
+            0.5
+          ],
+          "direction": "north"
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      }
+    ],
+    "transfers_issued": [
+      {
+        "episode": 0,
+        "step": 18,
+        "arguments": {
+          "to": "h51",
+          "item": "coal",
+          "count": 20
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 19,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 20
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 20,
+        "arguments": {
+          "to": "h50",
+          "item": "coal",
+          "count": 20
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 48,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 49,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 5
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 54,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 56,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 59,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 61,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 62,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 64,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 65,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 68,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 69,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 73,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 74,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 77,
+        "arguments": {
+          "to": "h50",
+          "item": "coal",
+          "count": 5
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 79,
+        "arguments": {
+          "to": "h55",
+          "item": "coal",
+          "count": 5
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 85,
+        "arguments": {
+          "to": "h56",
+          "item": "coal",
+          "count": 5
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 86,
+        "arguments": {
+          "to": "h56",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 87,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 89,
+        "arguments": {
+          "to": "h56",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 92,
+        "arguments": {
+          "to": "h57",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 93,
+        "arguments": {
+          "to": "h57",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 94,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 96,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 99,
+        "arguments": {
+          "to": "h57",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 101,
+        "arguments": {
+          "to": "h52",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 103,
+        "arguments": {
+          "to": "h58",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 107,
+        "arguments": {
+          "to": "h58",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 108,
+        "arguments": {
+          "to": "h58",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 114,
+        "arguments": {
+          "to": "h58",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 117,
+        "arguments": {
+          "to": "h59",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 119,
+        "arguments": {
+          "to": "h59",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 122,
+        "arguments": {
+          "to": "h52",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 123,
+        "arguments": {
+          "to": "h59",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 125,
+        "arguments": {
+          "to": "h50",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 128,
+        "arguments": {
+          "to": "h60",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 137,
+        "arguments": {
+          "to": "h60",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 140,
+        "arguments": {
+          "to": "h60",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 143,
+        "arguments": {
+          "to": "h61",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 146,
+        "arguments": {
+          "to": "h52",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "out_of_reach",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 150,
+        "arguments": {
+          "to": "h52",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "out_of_reach",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 227,
+        "arguments": {
+          "to": "h61",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 234,
+        "arguments": {
+          "to": "h52",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 235,
+        "arguments": {
+          "to": "h61",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 243,
+        "arguments": {
+          "to": "h61",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 246,
+        "arguments": {
+          "to": "h62",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 249,
+        "arguments": {
+          "to": "h62",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 263,
+        "arguments": {
+          "to": "h62",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 265,
+        "arguments": {
+          "to": "h62",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 267,
+        "arguments": {
+          "to": "h62",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 273,
+        "arguments": {
+          "to": "h63",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 280,
+        "arguments": {
+          "to": "h63",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 288,
+        "arguments": {
+          "to": "h64",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 290,
+        "arguments": {
+          "to": "h64",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "rejected",
+        "error": "no_space",
+        "reason": null
+      }
+    ],
+    "transfers_accepted": [
+      {
+        "episode": 0,
+        "step": 18,
+        "arguments": {
+          "to": "h51",
+          "item": "coal",
+          "count": 20
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 19,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 20
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 20,
+        "arguments": {
+          "to": "h50",
+          "item": "coal",
+          "count": 20
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 48,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 49,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 5
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 54,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 56,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 59,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 61,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 62,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 64,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 65,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 68,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 69,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 73,
+        "arguments": {
+          "to": "h54",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 74,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 77,
+        "arguments": {
+          "to": "h50",
+          "item": "coal",
+          "count": 5
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 79,
+        "arguments": {
+          "to": "h55",
+          "item": "coal",
+          "count": 5
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 85,
+        "arguments": {
+          "to": "h56",
+          "item": "coal",
+          "count": 5
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 86,
+        "arguments": {
+          "to": "h56",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 87,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 92,
+        "arguments": {
+          "to": "h57",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 93,
+        "arguments": {
+          "to": "h57",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 94,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 96,
+        "arguments": {
+          "to": "h52",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 99,
+        "arguments": {
+          "to": "h57",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 101,
+        "arguments": {
+          "to": "h52",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 103,
+        "arguments": {
+          "to": "h58",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 107,
+        "arguments": {
+          "to": "h58",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 117,
+        "arguments": {
+          "to": "h59",
+          "item": "coal",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 122,
+        "arguments": {
+          "to": "h52",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      },
+      {
+        "episode": 0,
+        "step": 234,
+        "arguments": {
+          "to": "h52",
+          "item": "iron-ore",
+          "count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "reason": null
+      }
+    ],
+    "decision_failures": {
+      "bad_argument": 65,
+      "unknown_target": 14
+    }
   },
   "inference_usage": {
-    "provider_calls": 0,
-    "prompt_tokens": 0,
-    "completion_tokens": 0,
-    "total_tokens": 0
+    "provider_calls": 362,
+    "prompt_tokens": 727589,
+    "completion_tokens": 12010,
+    "total_tokens": 739599
   },
   "throughput": {},
   "success_rate": null,
-  "run_id": "r3agent-20260909T030327-483e6983",
-  "run_dir": "",
+  "run_id": "r3agent-20260909T030910-66a25cd6",
+  "run_dir": "D:\\FactorioRL\\runtime\\runs\\r3agent-20260909T030910-66a25cd6",
+  "episodes_played": 1,
   "verdict": "the agent did not complete construction; a failed baseline is a valid result",
-  "construction_demonstration_gate_met": false
+  "construction_demonstration_gate_met": false,
+  "replay": "D:\\FactorioRL\\runtime\\runs\\r3agent-20260909T030910-66a25cd6\\replay.html"
 }

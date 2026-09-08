@@ -644,8 +644,27 @@ class AgentLoop:
             # so it is carried through to the result rather than counted as a
             # loss the model earned.
             "excluded_from_metrics": bool(info.get("excluded_from_metrics", False)),
+            # Game time, not wall time: an agent run and a policy run are only
+            # comparable on the clock the environment advances, and a loop that
+            # stopped on its own step ceiling never sees the environment's
+            # terminal `info` -- so this is read from the observation.
+            "final_tick": int((self.env._observation or {}).get("tick") or 0),
+            # The §12 metrics for this episode: time to first sustained output,
+            # cumulative production and final rate, per simulated tick. R3.2
+            # asks for throughput, and a decision count is not throughput.
+            "production": self._production(),
             "wall_seconds": round(time.perf_counter() - started, 2),
         }
+
+    def _production(self) -> dict | None:
+        """The environment's own production metrics, if it keeps them."""
+        metrics = getattr(self.env, "metrics", None)
+        if metrics is None:
+            return None
+        try:
+            return metrics.report()
+        except Exception:  # noqa: BLE001 - a missing metric is not a failed run
+            return None
 
     def run(self) -> dict:
         """Play ``config.episodes`` episodes and write the run artifact."""

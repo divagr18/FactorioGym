@@ -128,6 +128,16 @@ def _usage_totals(result: dict) -> dict:
     }
 
 
+def _last_tick(result: dict, episode: int | None) -> int | None:
+    """The last game tick the replay recorded for one episode."""
+    ticks = [
+        int((row.get("observation") or {}).get("tick") or 0)
+        for row in _decisions(result)
+        if episode is None or row.get("episode") == episode
+    ]
+    return max(ticks) if ticks else None
+
+
 def _construction_evidence(result: dict) -> dict:
     """Which placements the agent issued, and what the engine said.
 
@@ -149,7 +159,10 @@ def _construction_evidence(result: dict) -> dict:
             if decision.get("resolution") != "model":
                 fallbacks += 1
             for attempt in decision.get("attempts") or []:
-                failure = (attempt.get("outcome") or {}).get("failure")
+                # `failure` is a top-level field on the recorded attempt, not
+                # nested under an `outcome`. Reading the wrong key reported no
+                # decision failures for a run whose aggregate counted 79.
+                failure = attempt.get("failure") or attempt.get("error_kind")
                 if failure:
                     failures[failure] = failures.get(failure, 0) + 1
             row = {
@@ -278,7 +291,16 @@ def main() -> int:
             "episodes": [
                 {
                     "episode": e.get("episode"),
-                    "final_tick": e.get("final_tick"),
+                    # `final_tick` and `production` are recorded per episode by
+                    # the loop. A run made before that landed still has the
+                    # game time in its replay, so it is read from there rather
+                    # than reported as unknown.
+                    "final_tick": e.get("final_tick")
+                    if e.get("final_tick") is not None
+                    else _last_tick(result, e.get("episode")),
+                    "final_tick_source": (
+                        "episode record" if e.get("final_tick") is not None else "replay"
+                    ),
                     "steps": e.get("steps"),
                     "success": e.get("success"),
                     "stopped": e.get("stopped"),
