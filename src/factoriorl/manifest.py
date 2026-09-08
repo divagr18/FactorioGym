@@ -77,7 +77,26 @@ def _git() -> dict:
 
     commit = run("rev-parse", "HEAD")
     status = run("status", "--porcelain")
-    return {"commit": commit, "dirty": bool(status)}
+    state = {"commit": commit, "dirty": bool(status)}
+    if status:
+        # A commit plus a boolean does not identify the code that ran. Several
+        # results in this repository were produced on dirty trees, and the
+        # working copy that produced them cannot be recovered from `dirty:
+        # true`. The digest is over the tracked diff *and* the porcelain
+        # status, so an untracked-but-loaded file changes it too, and two runs
+        # on the same dirty tree share an identifier while two different dirty
+        # trees do not.
+        diff = run("diff", "HEAD") or ""
+        payload = "\n--\n".join([status, diff]).encode()
+        state["diff_digest"] = hashlib.sha256(payload).hexdigest()[:16]
+        # Porcelain v1 is two status characters then the path, but a rename
+        # reads `R  old -> new` and an unmerged entry pads differently, so the
+        # status field is stripped rather than sliced at a fixed offset. A
+        # fixed `line[3:]` silently ate the first character of every path.
+        state["dirty_paths"] = sorted(
+            line[2:].strip() for line in status.splitlines() if len(line) > 2
+        )[:64]
+    return state
 
 
 def host_info() -> dict:
@@ -167,6 +186,37 @@ class RunManifest:
         path = directory / "manifest.json"
         path.write_text(json.dumps(self.to_dict(), indent=2), encoding="utf-8")
         return path
+
+
+def amend(run_id: str, patch: dict) -> Path | None:
+    """Merge facts into an already-written manifest.
+
+    The manifest is written before the first step so an interrupted run still
+    has one, which means anything only knowable afterwards -- the checkpoint's
+    hash, the seed streams each evaluated row actually used, how many episodes
+    were excluded -- had nowhere to go and was simply absent. Those are exactly
+    the fields R0.2 requires for two comparisons to be shown to have scored the
+    same scenes.
+
+    Merging one level deep, so `{"seeds": {...}}` extends the seeds block
+    rather than replacing it. A missing manifest is not an error: a smoke run
+    may never have written one, and losing provenance must not lose the run.
+    """
+    path = runs_dir() / run_id / "manifest.json"
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    for key, value in patch.items():
+        if isinstance(value, dict) and isinstance(document.get(key), dict):
+            document[key] = {**document[key], **value}
+        else:
+            document[key] = value
+    try:
+        path.write_text(json.dumps(document, indent=2), encoding="utf-8")
+    except OSError:
+        return None
+    return path
 
 
 def new_run_id(prefix: str = "run") -> str:

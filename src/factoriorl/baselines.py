@@ -23,14 +23,22 @@ from factoriorl.paths import runtime_dir
 
 #: Bump when the *meaning* of a stored baseline changes -- a different episode
 #: termination rule, say -- so entries written by older code are not reused.
-CACHE_VERSION = 2
+CACHE_VERSION = 3
 
 
 def baselines_dir() -> Path:
     return runtime_dir() / "baselines"
 
 
-def cache_key(task: Any, split: str, master_seed: int, episodes: int, action_space: str) -> str:
+def cache_key(
+    task: Any,
+    split: str,
+    master_seed: int,
+    episodes: int,
+    action_space: str,
+    seed_run_id: str = "",
+    start_index: int = 0,
+) -> str:
     """Everything that can move the floor, and nothing that cannot.
 
     Correctness is the whole point of this key. A baseline is the number every
@@ -51,6 +59,15 @@ def cache_key(task: Any, split: str, master_seed: int, episodes: int, action_spa
     published as 1.00 against 0.12 when its true floor with skills is nearer
     0.80. A random policy over temporally extended actions is a different agent,
     and the floor is a property of the action space as much as of the task.
+
+    `seed_run_id` and `start_index` close the same class of hole one level up.
+    An episode's scene is derived from `blake2b(master | run_id | branch |
+    index)`, so `master_seed` alone does not name the scenes. Every frozen
+    holdout in this repository uses `master = 20260908` and differs *only* by
+    `run_id` (`holdout-v1`/`-v2`/`-v3`) and `start_index` (1000/2000/3000).
+    For a task whose version did not change across them -- `deliver` is v1.3.0
+    in all three -- the key was byte-identical while the evaluated scenes were
+    disjoint, so a floor measured on one holdout could be served for another.
     """
     spec = task.spec
     resolved = catalog.resolve(spec.catalog, spec.catalog_subset)
@@ -64,6 +81,8 @@ def cache_key(task: Any, split: str, master_seed: int, episodes: int, action_spa
             "episodes": episodes,
             "catalog_digest": resolved.digest(),
             "action_space": action_space,
+            "seed_run_id": seed_run_id,
+            "start_index": start_index,
         },
         sort_keys=True,
         separators=(",", ":"),
@@ -106,6 +125,8 @@ def cached_random_baseline(
     episodes: int,
     compute,
     action_space: str = "primitive",
+    seed_run_id: str = "",
+    start_index: int = 0,
 ) -> dict:
     """Return the cached floor for this key, or compute and store it.
 
@@ -114,7 +135,7 @@ def cached_random_baseline(
     at all. The returned dict carries ``cached`` so a result file says whether
     its floor was measured in that run or recalled.
     """
-    digest = cache_key(task, split, master_seed, episodes, action_space)
+    digest = cache_key(task, split, master_seed, episodes, action_space, seed_run_id, start_index)
     path = baselines_dir() / f"{digest}.json"
     hit = _read(path)
     if hit is not None:
@@ -130,6 +151,11 @@ def cached_random_baseline(
             "master_seed": master_seed,
             "episodes": episodes,
             "catalog_digest": catalog.resolve(task.spec.catalog, task.spec.catalog_subset).digest(),
+            # Recorded, not merely hashed, so a cache file says which agent and
+            # which scene stream it describes without recomputing the key.
+            "action_space": action_space,
+            "seed_run_id": seed_run_id,
+            "start_index": start_index,
         },
         baseline,
     )

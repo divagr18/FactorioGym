@@ -732,6 +732,26 @@ def train(config: TrainConfig) -> dict:
             model={**describe(model), "extractor_version": EXTRACTOR_VERSION},
             extra={
                 "config": config.to_dict(),
+                # A citation `freeze_holdout.manifests_citing()` can actually
+                # find. It looked for a top-level `holdout` dict with an id and
+                # a hash, while runs recorded only `config.holdout` as a path
+                # string -- so it returned zero citations for every holdout and
+                # `stale_citations()` checked nothing at all.
+                **(
+                    {
+                        "holdout": {
+                            "id": frozen["holdout"].get("holdout_id"),
+                            "content_hash": frozen["content_hash"],
+                            "task_entry_hash": frozen.get("task_entry_hash"),
+                            "task": config.task_id,
+                            "start_index": frozen["holdout"]["start_index"],
+                            "episodes_per_task": frozen["holdout"]["episodes_per_task"],
+                            "seed_plan": frozen["holdout"]["seed_plan"],
+                        }
+                    }
+                    if frozen is not None
+                    else {}
+                ),
                 "rollout": {
                     "steps_per_env": steps_per_env,
                     "buffer": steps_per_env * max(config.workers, 1),
@@ -752,6 +772,18 @@ def train(config: TrainConfig) -> dict:
         # last valid checkpoint on disk rather than only a traceback.
         curve.write()
         model.save(run_dir / "model")
+        checkpoint = run_dir / "model.zip"
+        if checkpoint.is_file():
+            manifest_module.amend(
+                run_id,
+                {
+                    "model": {
+                        "checkpoint": checkpoint.name,
+                        "checkpoint_sha256": hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
+                        "checkpoint_bytes": checkpoint.stat().st_size,
+                    }
+                },
+            )
         if guard.aborted is not None:
             (run_dir / "status.json").write_text(
                 json.dumps(
@@ -791,6 +823,9 @@ def train(config: TrainConfig) -> dict:
         # has finished and the model is already saved -- so nothing may be
         # added below that resumes learning on `vec_env`.
         rows: dict[str, dict] = {}
+        # The stream each row was actually scored on. `master_seed` alone does
+        # not name the scenes, so two runs sharing it are not replications.
+        eval_streams: dict = {}
         for label, split in (
             ("seeds", "train"),
             ("val", "val"),
@@ -889,6 +924,17 @@ def train(config: TrainConfig) -> dict:
                 floor_env.unwrapped._episode_index = row_start - 1
                 return random_baseline(floor_env, config.eval_episodes, rng)
 
+            eval_streams[label] = {
+                "split": split,
+                "branch": Branch.EVAL.value,
+                "master": row_plan.master,
+                "run_id": row_plan.run_id,
+                "start_index": row_start,
+                "stop_index": row_stop,
+                "deterministic": True,
+                "stochastic_arm": bool(config.paired_stochastic_eval),
+                "excluded_episodes": rows[label].get("reset_failures") or [],
+            }
             rows[label]["random_baseline"] = cached_random_baseline(
                 task,
                 split,
@@ -899,6 +945,15 @@ def train(config: TrainConfig) -> dict:
                 # random policy over skills is a different agent from a random
                 # policy over primitives.
                 action_space=SKILL_PROFILE if config.skills else task.spec.action_profile,
+                # The stream the floor was actually measured on. `master_seed`
+                # alone does not name the scenes: an episode's scene comes from
+                # blake2b(master | run_id | branch | index), and every frozen
+                # holdout here shares master=20260908 while differing only in
+                # run_id and start_index. Without these a floor measured on one
+                # holdout was served for another whenever the task version had
+                # not moved between them.
+                seed_run_id=row_plan.run_id,
+                start_index=row_start,
             )
 
         # Coverage, not just citation. If this run claims a frozen holdout, say
@@ -945,6 +1000,7 @@ def train(config: TrainConfig) -> dict:
             "evaluation": rows,
             **curve.summary(),
         }
+        manifest_module.amend(run_id, {"seeds": {"eval_streams": eval_streams}})
         (run_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
         status = {"run_id": run_id, "state": "completed"}
         return result
