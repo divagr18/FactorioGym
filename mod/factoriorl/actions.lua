@@ -660,6 +660,112 @@ H.wait = function(_, request, _payload, respond, _err)
   return respond(request, CODE.OK, { status = STATUS.COMPLETED, action = "wait" })
 end
 
+--- PLAN 5.2: a bounded sequence of typed interactions.
+--
+-- Execution stops at the first failure and the response names both halves: the
+-- operations that completed and the index that did not. An agent that only
+-- learns "the batch failed" has to re-derive the world state by observing,
+-- which costs it the round trip the batch was meant to save.
+--
+-- Sub-operations run through the ordinary handler with a capturing `respond`,
+-- so validation, reach and every failure code are exactly the ones a
+-- standalone request would produce. Nothing about an operation's rules is
+-- restated here, which is what keeps a batch from drifting away from the
+-- actions it is made of.
+H.batch = function(state, request, payload, respond, err)
+  local operations = payload.operations or {}
+  local limit = math.min(payload.max_operations or matrix.BATCH_LIMIT, matrix.BATCH_LIMIT)
+  local completed = {}
+
+  for index, operation in ipairs(operations) do
+    if index > limit then
+      return respond(request, CODE.OK, {
+        action = "batch",
+        status = "completed",
+        requested = #operations,
+        executed = #completed,
+        stopped_at = index,
+        stopped_reason = "max_operations",
+        operations = completed,
+      })
+    end
+
+    local name = operation.action
+    local spec = matrix.ACTIONS[name]
+    local function fail(code, message, details)
+      return respond(request, CODE.REJECTED, {
+        action = "batch",
+        status = "rejected",
+        requested = #operations,
+        executed = #completed,
+        failed_at = index,
+        failed_action = name,
+        operations = completed,
+      }, err(code, message, details))
+    end
+
+    if not spec or not H[name] then
+      return fail(ERR.UNKNOWN_ACTION, "unknown action in batch: " .. tostring(name),
+        { index = index })
+    end
+    if not profiles.permits(profiles.action(state and state.action_profile), name) then
+      return fail(ERR.UNKNOWN_ACTION, "action not in this profile: " .. tostring(name),
+        { index = index })
+    end
+    if spec.ongoing then
+      return fail(ERR.PRECONDITION,
+        tostring(name) .. " is an ongoing action and cannot be batched",
+        { index = index, action = name })
+    end
+    if name == "batch" then
+      return fail(ERR.PRECONDITION, "a batch cannot contain a batch", { index = index })
+    end
+
+    local code, message, details = matrix.validate(name, operation)
+    if code then
+      return fail(code, message, details)
+    end
+
+    local captured = nil
+    local function capture(_request, response_code, result, error)
+      captured = { code = response_code, result = result, error = error }
+    end
+    H[name](state, request, matrix.with_defaults(name, operation), capture, err)
+
+    if not captured then
+      return fail(ERR.ENGINE, tostring(name) .. " produced no response inside a batch",
+        { index = index })
+    end
+    if captured.code ~= CODE.OK then
+      local error = captured.error or {}
+      return respond(request, CODE.REJECTED, {
+        action = "batch",
+        status = "rejected",
+        requested = #operations,
+        executed = #completed,
+        failed_at = index,
+        failed_action = name,
+        operations = completed,
+      }, err(error.code or ERR.PRECONDITION, error.message or "operation failed",
+        { index = index, action = name, details = error.details }))
+    end
+    completed[#completed + 1] = {
+      index = index,
+      action = name,
+      status = "completed",
+      result = captured.result,
+    }
+  end
+
+  return respond(request, CODE.OK, {
+    action = "batch",
+    status = "completed",
+    requested = #operations,
+    executed = #completed,
+    operations = completed,
+  })
+end
+
 H.cancel = function(_, request, payload, respond, err)
   local entry = inflight.get(payload.target_request_id)
   if not entry then

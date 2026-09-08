@@ -66,8 +66,14 @@ matrix.ORDER = {
 --- Assistance-profile actions (PLAN.md 5.1 onward). Not part of `ORDER`; see
 --- the header for why the primitive catalog is frozen.
 matrix.ASSISTED_ORDER = {
+  "batch",
   "navigate",
 }
+
+--- Hard ceiling on operations in one batch, whatever the caller asks for.
+--- A batch is executed inside a single request, so an unbounded one is an
+--- unbounded amount of engine work between two ticks.
+matrix.BATCH_LIMIT = 16
 
 matrix.ACTIONS = {
   move = {
@@ -274,6 +280,42 @@ matrix.ACTIONS = {
 
   -- ------------------------------------------------------------- assisted
 
+  --- A sequence of typed interactions executed under an explicit ceiling.
+  --
+  -- Only *instantaneous* operations are accepted. An ongoing action -- move,
+  -- navigate, mine, craft -- does not finish inside the request that starts it,
+  -- so a batch containing one could not say whether the operations after it ran
+  -- before or after it landed, and "the completed prefix" would stop meaning
+  -- anything. They are refused by name rather than silently reordered.
+  --
+  -- Reach is not re-implemented here. Each operation goes through the same
+  -- validation and the same handler a standalone request would, so
+  -- `REACH.ENTITY` is enforced per operation by the code that already enforces
+  -- it, and a batch cannot reach further than the character can.
+  batch = {
+    assistance_only = true,
+    ongoing = false,
+    supersedes = false,
+    cancellable = false,
+    reach = matrix.REACH.NONE,
+    mutates_inventory = true,
+    time = "instantaneous",
+    cancel_boundary = "n/a",
+    failure_codes = {
+      ERR.BAD_TYPE,
+      ERR.MISSING_FIELD,
+      ERR.UNKNOWN_ACTION,
+      ERR.PRECONDITION,
+    },
+    payload = {
+      operations = { kind = "list", required = true, max = matrix.BATCH_LIMIT },
+      -- The caller's own ceiling, at or below the protocol's. Present so an
+      -- agent can bound a batch more tightly than the server would.
+      max_operations = { kind = "int", min = 1, max = matrix.BATCH_LIMIT,
+        default = matrix.BATCH_LIMIT },
+    },
+  },
+
   navigate = {
     -- Assistance, not a new physical capability: it plans a route over the
     -- agent's own explored-terrain memory and then walks it with the same
@@ -396,6 +438,28 @@ function matrix.validate(action_name, payload)
         return ERR.BAD_TYPE,
           "payload." .. field .. " must be one of " .. table.concat(rule.values, "/"),
           { field = field, got = tostring(value) }
+      end
+    elseif rule.kind == "list" then
+      if type(value) ~= "table" then
+        return ERR.BAD_TYPE, "payload." .. field .. " must be a list",
+          { field = field, got = type(value) }
+      end
+      local count = 0
+      for index, entry in ipairs(value) do
+        count = index
+        if type(entry) ~= "table" or type(entry.action) ~= "string" then
+          return ERR.BAD_TYPE,
+            "payload." .. field .. "[" .. index .. "] must be an object with an action",
+            { field = field, index = index }
+        end
+      end
+      if count == 0 then
+        return ERR.BAD_TYPE, "payload." .. field .. " must not be empty", { field = field }
+      end
+      if rule.max and count > rule.max then
+        return ERR.BAD_TYPE,
+          "payload." .. field .. " holds " .. count .. ", the limit is " .. rule.max,
+          { field = field, got = count, limit = rule.max }
       end
     elseif rule.kind == "position" then
       local ok = type(value) == "table"

@@ -374,12 +374,20 @@ end
 
 local function handle_reset(request)
   local payload = request.payload or {}
+  -- A reset that omits a profile restores the default rather than keeping the
+  -- last episode's. Profiles are a capability boundary, so carrying one over
+  -- silently is how a run measured "without assistance" ends up having had it:
+  -- one episode asks for `assisted-v1`, every later episode inherits it, and
+  -- nothing in the manifest or the observation says so. An episode boundary
+  -- resets episode state, and this is episode state.
   if payload.observation_profile then
     if not profiles.observation(payload.observation_profile) then
       return respond(request, CODE.REJECTED, nil,
         err(ERR.INVALID_TARGET, "unknown observation profile"))
     end
     state.observation_profile = payload.observation_profile
+  else
+    state.observation_profile = profiles.DEFAULT_OBSERVATION
   end
   if payload.action_profile then
     local action_profile = profiles.action(payload.action_profile)
@@ -388,6 +396,8 @@ local function handle_reset(request)
         err(ERR.INVALID_TARGET, "unknown or unavailable action profile"))
     end
     state.action_profile = payload.action_profile
+  else
+    state.action_profile = profiles.DEFAULT_ACTION
   end
   if payload.scenario then
     storage.frrl_scenario_name = payload.scenario
