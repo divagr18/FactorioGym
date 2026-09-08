@@ -158,3 +158,23 @@ def test_no_credential_reaches_the_page(tmp_path):
     assert "OPENAI_API_KEY" not in page
     assert "credential_present" not in page
     assert "gpt-5.6-luna" in page
+
+
+def test_capture_is_not_reachable_from_a_policy_action_space():
+    """PLAN 5.6: 'screenshot capture is disabled in ordinary RL training'.
+
+    Capture is a client-side facility rather than an action in the matrix, so a
+    training run cannot request a frame even by accident and the action-mask
+    purity tests keep meaning what they say. Asserted on the catalogs a policy
+    can actually be given.
+    """
+    from factoriorl import catalog as catalog_module
+    from factoriorl.tasks import all_tasks, get
+
+    for task_id in all_tasks():
+        spec = get(task_id).spec
+        keys = catalog_module.resolve(spec.catalog, spec.catalog_subset).keys()
+        assert not [k for k in keys if "screenshot" in k or "capture" in k], task_id
+
+    matrix = (ROOT / "mod" / "factoriorl" / "matrix.lua").read_text(encoding="utf-8")
+    assert "take_screenshot" not in matrix
