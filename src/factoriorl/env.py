@@ -32,6 +32,7 @@ from factoriorl import catalog as catalog_module
 from factoriorl import encoders
 from factoriorl import rewards as rewards_module
 from factoriorl.errors import FactorioRLError, InfrastructureFailure, ProtocolError
+from factoriorl.production import ProductionMetrics
 from factoriorl.rewards import RewardAccountant
 from factoriorl.seeding import Branch, SeedPlan
 from factoriorl.session import WorkerSession
@@ -98,6 +99,10 @@ class FactorioEnv(gym.Env):
             shaping_enabled=shaping,
             gamma=self.spec_.gamma or rewards_module.GAMMA,
         )
+        #: Benchmark metrics, in simulated ticks. Deliberately separate from
+        #: the accountant: these describe the run and must not be able to
+        #: change what the agent is paid.
+        self.metrics = ProductionMetrics.for_task(self.spec_)
 
         self._episode_index = -1
         self._steps = 0
@@ -399,6 +404,8 @@ class FactorioEnv(gym.Env):
         self._observation = self.session.observe().response.result
         self._refresh_truth()
         self.accountant.reset(self._observation, self._truth)
+        self.metrics.reset()
+        self.metrics.record(self._observation, self._truth)
         return self._observation
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
@@ -584,6 +591,7 @@ class FactorioEnv(gym.Env):
             self._truth = truth
             self._record_window()
 
+        self.metrics.record(self._observation, self._truth)
         succeeded = self._succeeded()
         # Termination is decided *before* the transition is scored: the
         # potential-based shaping needs to know whether s' is absorbing.
@@ -609,6 +617,8 @@ class FactorioEnv(gym.Env):
             # Duration of this transition in primitive steps (R1.3).
             "primitive_steps": 1,
         }
+        if terminated or truncated:
+            info["production"] = self.metrics.report()
         return (
             encoders.encode(self._observation, self._goal_vector()),
             reward,
