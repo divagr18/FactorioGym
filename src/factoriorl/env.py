@@ -171,9 +171,15 @@ class FactorioEnv(gym.Env):
         # profile still produces a well-formed observation the encoder happily
         # reads -- so the task's `observation_profile` was decorative until it
         # was passed here.
+        # `action_profile` had the identical bug and it went unnoticed because
+        # every current task declares the worker's default: the field was
+        # recorded in manifests, resolved into the catalog digest, and never
+        # sent. The first task to declare `assisted-v1` would have run under
+        # `primitive-v1` while its manifest said otherwise.
         self.session.reset(
             blueprint_hash=digest,
             observation_profile=self.spec_.observation_profile,
+            action_profile=self.spec_.action_profile,
         )
         self._observation = self.session.observe().response.result
         self._refresh_truth()

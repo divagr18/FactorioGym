@@ -9,6 +9,7 @@ deliberately checkable without one.
 from __future__ import annotations
 
 import ast
+import inspect
 import json
 import random
 from pathlib import Path
@@ -651,3 +652,20 @@ def test_only_the_objective_is_published_never_the_decoys():
         f"deliver stopped generating its decoys; markers seen: {sorted(every_marker)}"
     )
     assert every_marker & set(task.spec.public_markers) == {"dst"}
+
+
+def test_begin_episode_sends_both_declared_profiles():
+    """Both profiles are episode state on the worker, so both must be re-sent.
+
+    Omitting one is silent: the worker's default still yields a well-formed
+    observation and a working catalog, the manifest still records what the task
+    declared, and nothing downstream can tell the two apart. The observation
+    profile was decorative for exactly that reason until it was passed; the
+    action profile had the same bug and no task had yet declared a non-default
+    value to expose it.
+    """
+    from factoriorl.env import FactorioEnv
+
+    source = inspect.getsource(FactorioEnv.begin_episode)
+    assert "observation_profile=self.spec_.observation_profile" in source
+    assert "action_profile=self.spec_.action_profile" in source
