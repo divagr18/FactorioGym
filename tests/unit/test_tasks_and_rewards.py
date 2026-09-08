@@ -616,3 +616,38 @@ def test_no_family_pays_a_policy_for_stopping():
         names = {c["name"] for c in by_task[task_id]["contributors"]}
         assert "at_destination" not in names
         assert "plates_produced" not in names
+
+
+def test_only_the_objective_is_published_never_the_decoys():
+    """Publishing the goal must not publish the scene.
+
+    `deliver` scores `dst` and also plants `decoy_0` and `decoy_1`, which exist
+    precisely to make the destination ambiguous -- that ambiguity is what took
+    its skill-space random floor from 0.80 down to 0.04. Publishing them would
+    undo the hardening and hand the agent the answer.
+
+    So the allowlist is derived from the objective rather than written by hand:
+    a marker is public only if a success or failure predicate names it.
+    """
+    for task_id in all_tasks():
+        spec = get(task_id).spec
+        named = {p.marker for p in (*spec.success, *spec.failure) if getattr(p, "marker", None)}
+        public = set(spec.public_markers)
+        assert public == named, f"{task_id}: public {public} is not the objective's {named}"
+        assert not {m for m in public if "decoy" in m}, f"{task_id} publishes a decoy"
+
+    # A scene names markers from two places and `world.public_markers` reads
+    # both: `blueprint.markers` holds bare positions, while entity markers
+    # become scene aliases. deliver's decoys live in the second, so a test that
+    # checked only the first would have passed while the decoys leaked.
+    task = get("deliver")
+    assert task.spec.public_markers == ("dst",)
+    every_marker: set[str] = set()
+    for family in task.spec.layout_families:
+        blueprint = task.generate(family, random.Random(11))
+        every_marker |= set(blueprint.markers)
+        every_marker |= {e.marker for e in blueprint.entities if getattr(e, "marker", None)}
+    assert {"decoy_0", "decoy_1", "src", "dst"} <= every_marker, (
+        f"deliver stopped generating its decoys; markers seen: {sorted(every_marker)}"
+    )
+    assert every_marker & set(task.spec.public_markers) == {"dst"}

@@ -340,7 +340,7 @@ def goal_target_tiles(
 # ------------------------------------------------------------ scene identity
 
 
-def scene_digest(blueprint: Blueprint) -> str:
+def scene_digest(blueprint: Blueprint, public_markers: tuple[str, ...] = ()) -> str:
     """A canonical, process-stable digest of a blueprint's full content.
 
     Same algorithm as ``factoriorl.env.blueprint_digest`` -- canonical JSON,
@@ -350,11 +350,17 @@ def scene_digest(blueprint: Blueprint) -> str:
     ``factoriorl.env`` pulls in gymnasium and numpy, and a split audit must stay
     runnable without the `rl` extra.
 
+    ``public_markers`` is part of the installed payload, so it is part of the
+    identity: publishing a task's objective changes what an agent can see, and a
+    holdout frozen before that change must not silently pass afterwards.
+
     Built-in ``hash()`` is randomised per process (PYTHONHASHSEED) and this repo
     has already been bitten by that: seeding blueprint sampling with it made the
     task validation suite pass or fail at random. Nothing here may use it.
     """
-    canonical = json.dumps(blueprint.to_dict(), sort_keys=True, separators=(",", ":"))
+    canonical = json.dumps(
+        blueprint.to_dict(public_markers=public_markers), sort_keys=True, separators=(",", ":")
+    )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
 
 

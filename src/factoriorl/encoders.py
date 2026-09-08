@@ -63,7 +63,16 @@ GOAL_FEATURES = 12
 #: changing -- the sensor contract (`local-v1`) is untouched, but a policy
 #: trained against version 1 read different semantics in the same slots.
 #: Version 2 appends observable landmarks after the success predicates.
-GOAL_ENCODING_VERSION = 2
+#: Version 3 reserves the last `GOAL_GEOMETRY_SLOTS` for where the objective
+#: *is*: offset to the nearest published marker, and whether one exists. Before
+#: it the vector said only whether the goal had been reached, never where it
+#: was, so `deliver`'s destination was unlearnable except as a placement habit
+#: of the generator.
+GOAL_ENCODING_VERSION = 3
+
+#: Tail slots of the goal vector holding (dx, dy, present) for the objective.
+#: Predicates fill from the front and stop short of these.
+GOAL_GEOMETRY_SLOTS = 3
 
 
 @dataclass(frozen=True)

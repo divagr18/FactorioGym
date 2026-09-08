@@ -7,6 +7,8 @@ local memory = require("memory")
 local profiles = require("profiles")
 local handles = require("handles")
 local inflight = require("inflight")
+-- `world` requires only `handles`, so this cannot close a require cycle.
+local world = require("world")
 
 local observations = {}
 
@@ -135,6 +137,9 @@ function observations.snapshot(state)
     -- the result away afterwards.
     force = force_declared and force_state(ch and ch.force or game.forces["player"]) or nil,
     task = { transfers = task.transfers, items_moved = task.items_moved },
+    -- Where the objective is. Only markers a success or failure predicate
+    -- names, chosen by the task at scene install; decoys never appear.
+    goal = world.public_markers(),
     inflight = inflight.summary(),
     events = state.events or {},
   }

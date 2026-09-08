@@ -287,6 +287,10 @@ class ObservationSummary:
     events: list[dict]
     actions: tuple[LegalAction, ...] = ()
     counters: dict = field(default_factory=dict)
+    #: Positions of the markers the objective names. `deliver` publishes
+    #: `dst` and not its two decoys, so this says which container to fill
+    #: without saying which are wrong.
+    goal: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -296,6 +300,7 @@ class ObservationSummary:
             "character": self.character,
             "inventory": self.inventory,
             "entities": self.entities,
+            "goal": self.goal,
             "entities_omitted": self.entities_omitted,
             "resources": self.resources,
             "inflight": self.inflight,
@@ -334,6 +339,20 @@ class ObservationSummary:
             progress = float(entry.get("progress") or 0.0)
             lines.append(f"  in flight: {entry.get('action')} (progress {progress:.2f})")
 
+        lines.append("")
+        if self.goal:
+            origin = (
+                (self.character.get("position") or [0.0, 0.0]) if self.character else [0.0, 0.0]
+            )
+            lines.append("OBJECTIVE")
+            for name in sorted(self.goal):
+                point = self.goal[name] or [0.0, 0.0]
+                dx = float(point[0]) - float(origin[0])
+                dy = float(point[1]) - float(origin[1])
+                lines.append(
+                    f"  {name} at offset ({dx:+.1f}, {dy:+.1f}), "
+                    f"{_distance(dx, dy):.1f} tiles {_compass(dx, dy)}"
+                )
         lines.append("")
         if self.inventory:
             lines.append("INVENTORY")
@@ -416,6 +435,7 @@ def summarise(
     entities, omitted = _entity_rows(observation, origin)
     return ObservationSummary(
         task=brief.to_dict(),
+        goal=observation.get("goal") or {},
         step=step,
         tick=int(observation.get("tick") or 0),
         character=character,

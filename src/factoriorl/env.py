@@ -84,7 +84,11 @@ class FactorioEnv(gym.Env):
         return families
 
     def _install(self, blueprint) -> str:
-        payload = blueprint.to_dict()
+        # The scene carries every marker, including decoys, because the
+        # evaluator scores against them. Which of those the *observation* may
+        # show is a property of the objective, and only the task knows it, so
+        # the allowlist is declared here rather than inferred in the mod.
+        payload = blueprint.to_dict(public_markers=self.spec_.public_markers)
         digest = blueprint_digest(payload)
         if digest not in self._installed:
             self.session.define_scenario(payload, digest)
@@ -210,13 +214,29 @@ class FactorioEnv(gym.Env):
         goal = np.zeros(encoders.GOAL_FEATURES, dtype=np.float32)
         goal[0] = min(1.0, self._steps / max(self.spec_.max_decision_steps, 1))
         cursor = 1
-        limit = encoders.GOAL_FEATURES - 1
+        limit = encoders.GOAL_FEATURES - encoders.GOAL_GEOMETRY_SLOTS
         for predicate in self.spec_.success[: limit - cursor]:
             goal[cursor] = 1.0 if predicate.evaluate(self._observation, self._truth) else 0.0
             cursor += 1
         for predicate in self.spec_.landmarks[: limit - cursor]:
             goal[cursor] = 1.0 if predicate.evaluate(self._observation, {}) else 0.0
             cursor += 1
+
+        # Where the objective is, not merely whether it has been met. The
+        # success flags above are zero until the episode is essentially over,
+        # which told a policy nothing about which of four identical containers
+        # it was scored on. This comes from the *observation*, so it carries no
+        # evaluator state: the mod publishes only the markers the task declared
+        # public, and decoys are absent from that set by construction.
+        published = self._observation.get("goal") or {}
+        if published:
+            position = (self._observation.get("character") or {}).get("position") or [0.0, 0.0]
+            name = next(iter(sorted(published)))
+            target = published[name]
+            scale = float(max(encoders.LOCAL_V1.radius, 1))
+            goal[-3] = float(np.clip((target[0] - position[0]) / scale, -1.0, 1.0))
+            goal[-2] = float(np.clip((target[1] - position[1]) / scale, -1.0, 1.0))
+            goal[-1] = 1.0
         return goal
 
     def _succeeded(self) -> bool:

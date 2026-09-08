@@ -34,7 +34,7 @@ SPEC = TaskSpec(
     # scenes and the holdout spans the pooled training difficulty. The version
     # is part of the random-baseline cache key, and none of the cached
     # baselines were measured against these scenes.
-    version="1.1.0",
+    version="1.2.0",
     description="Restore a broken belt line so items reach the unloading chest.",
     layout_families=FAMILIES,
     success=(

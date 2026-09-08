@@ -99,7 +99,7 @@ SPEC = TaskSpec(
     # part of the random-baseline cache key, so bumping it is what stops a
     # cached 0.80 floor -- or any published score measured against it -- from
     # being served for the harder task under the same name.
-    version="1.2.0",
+    version="1.3.0",
     description="Carry items from a source container to a destination container.",
     layout_families=FAMILIES,
     success=(

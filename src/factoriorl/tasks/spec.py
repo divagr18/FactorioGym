@@ -82,8 +82,9 @@ class Blueprint:
     unlock_recipes: tuple[str, ...] = ()
     radius: int = 64
 
-    def to_dict(self) -> dict:
+    def to_dict(self, public_markers: tuple[str, ...] = ()) -> dict:
         return {
+            "public_markers": list(public_markers),
             "entities": [e.to_dict() for e in self.entities],
             "resources": [r.to_dict() for r in self.resources],
             "character": {
@@ -284,6 +285,35 @@ class TaskSpec:
 
     def families(self, split: str) -> tuple[LayoutFamily, ...]:
         return tuple(f for f in self.layout_families if f.split == split)
+
+    @property
+    def public_markers(self) -> tuple[str, ...]:
+        """Markers the objective names, and which the agent may therefore see.
+
+        A benchmark whose objective is unstated is not testing generalisation,
+        it is testing guessing. `deliver` puts four identical containers in
+        every scene and scores exactly one of them, and nothing in the
+        observation said which: a language model spent whole episodes
+        delivering plates and taking them back to find out, and a trained
+        policy could only learn the generator's placement habits. `navigate`'s
+        goal was unpublished too -- it was merely the one non-wall entity in
+        the scene, which is why a single skill solved it 5/5.
+
+        Only markers a success or failure predicate references are published.
+        Decoys stay hidden: `deliver`'s `decoy_0` and `decoy_1` are absent
+        here, so the task still asks the agent to reach the right container
+        rather than handing it the scene.
+
+        This raises no random floor -- a uniform policy cannot read an
+        observation -- so every floor measured against the old contract stays
+        comparable to one measured against this one.
+        """
+        names: list[str] = []
+        for predicate in (*self.success, *self.failure):
+            name = getattr(predicate, "marker", None)
+            if name and name not in names:
+                names.append(name)
+        return tuple(names)
 
     def to_dict(self) -> dict:
         # `difficulty_marker` is deliberately not published here. This dict is

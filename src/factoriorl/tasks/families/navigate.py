@@ -33,7 +33,7 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="navigate",
-    version="1.0.0",
+    version="1.1.0",
     description="Walk to a marked work site within the step budget.",
     layout_families=FAMILIES,
     success=(Predicate(PredicateKind.CHARACTER_WITHIN, marker="goal", within=2.0),),

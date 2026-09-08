@@ -48,7 +48,7 @@ profiles.OBSERVATION = {
     keys = {
       "episode_id", "tick", "absolute_tick", "profiles", "character",
       "inventory", "sensor", "terrain", "resources", "entities",
-      "remembered", "force", "task", "inflight", "events",
+      "remembered", "force", "task", "inflight", "events", "goal",
     },
   },
   -- Opt-in, and deliberately not the default: `local-v1` is pinned by the
@@ -116,7 +116,7 @@ profiles.OBSERVATION = {
     keys = {
       "episode_id", "tick", "absolute_tick", "profiles", "character",
       "inventory", "sensor", "terrain", "resources", "entities",
-      "remembered", "task", "inflight",
+      "remembered", "task", "inflight", "goal",
     },
   },
 }

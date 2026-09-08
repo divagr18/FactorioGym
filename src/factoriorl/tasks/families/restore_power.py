@@ -37,7 +37,7 @@ SPEC = TaskSpec(
     id="restore_power",
     # 1.1.0: the line's row and starting column are sampled, so the holdout
     # admits a distribution of scenes rather than a single one.
-    version="1.1.0",
+    version="1.2.0",
     description="Reconnect a power pole chain so the mining drill runs again.",
     layout_families=FAMILIES,
     success=(Predicate(PredicateKind.ENTITY_WORKING, marker="drill"),),

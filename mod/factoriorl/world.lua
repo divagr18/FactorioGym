@@ -333,9 +333,39 @@ function world.build_blueprint(hash)
     name = "blueprint:" .. hash,
     aliases = aliases,
     markers = blueprint.markers or {},
+    -- Which markers `observations` may publish. Every other marker stays
+    -- evaluator-only: `deliver` scores `dst` and also carries `decoy_0` and
+    -- `decoy_1`, and showing those would hand the agent the whole scene
+    -- instead of the objective.
+    public_markers = blueprint.public_markers or {},
     radius = radius,
   }
   return { scenario = storage.frrl_scene.name, destroyed = destroyed }
+end
+
+--- Positions of the markers the task's objective names (PLAN.md 5.x).
+---
+--- This is deliberately a *subset* of `truth().markers`. The separation
+--- between observation and evaluator state stays structural: an unpublished
+--- marker is unreachable from `observe`, and the allowlist is set by the task
+--- at scene install rather than decided here.
+function world.public_markers()
+  local scene = storage.frrl_scene
+  if not scene then return nil end
+  local allowed = scene.public_markers or {}
+  if #allowed == 0 then return nil end
+  local out = {}
+  for _, name in pairs(allowed) do
+    local position = (scene.markers or {})[name]
+    local entity = (scene.aliases or {})[name]
+    if entity and entity.valid then
+      out[name] = { entity.position.x, entity.position.y }
+    elseif position then
+      out[name] = position
+    end
+  end
+  if next(out) == nil then return nil end
+  return out
 end
 
 -- ---------------------------------------------------------------- truth

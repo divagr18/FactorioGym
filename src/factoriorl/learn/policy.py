@@ -33,7 +33,7 @@ GRID_FEATURES = 128
 #: a checkpoint trained on the 65x65 grid loads against a 33x33 one without a
 #: single shape error, runs, and produces garbage -- with every gate green,
 #: because nothing else compares the two geometries.
-EXTRACTOR_VERSION = 3
+EXTRACTOR_VERSION = 4
 
 
 class FactorioExtractor(BaseFeaturesExtractor):
