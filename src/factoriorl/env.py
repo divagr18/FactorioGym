@@ -44,6 +44,17 @@ def blueprint_digest(payload: dict) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
 
 
+#: How far a placement candidate may be from the character. The character's
+#: build distance is 10 and `character.reach` is not in `local-v2`, so this is
+#: a deliberate constant well inside it: a candidate is never offered only to
+#: be refused for range. The runtime still enforces the real distance.
+PLACEMENT_RADIUS = 5
+
+#: The transfer counts a policy may name. Unbounded counts would make the
+#: argument domain unbounded; the runtime accepts 1..10000.
+TRANSFER_AMOUNTS = (1, 5, 20)
+
+
 class FactorioEnv(gym.Env):
     """One task on one worker."""
 
@@ -141,6 +152,98 @@ class FactorioEnv(gym.Env):
             context[f"at_{direction}"] = [tile_x + dx + 0.5, tile_y + dy + 0.5]
         return context
 
+    def argument_domains(self) -> dict[str, list]:
+        """Legal values for each declared argument, from the observation alone.
+
+        The same discipline the masks follow: every domain is reconstructible
+        from policy-visible data, so a parameterized action cannot smuggle
+        evaluator state through its argument list. Domains a task cannot yet
+        observe -- recipes, technologies -- come back empty rather than guessed,
+        because an argument the policy cannot see the values of is not
+        selectable.
+        """
+        observation = self._observation
+        origin = (observation.get("character") or {}).get("position") or [0.0, 0.0]
+
+        targets = [
+            str(record["h"]) for record in (observation.get("entities") or []) if record.get("h")
+        ]
+        targets += [
+            str(tile["h"])
+            for tile in ((observation.get("resources") or {}).get("tiles") or [])
+            if tile.get("h")
+        ]
+
+        return {
+            "targets": targets,
+            "placements": self._placement_candidates(origin, observation),
+            "directions": list(catalog_module.DIRECTIONS),
+            # Only what the agent is holding: proposing an item it does not
+            # have would be refused by the runtime for `no_items`, and the
+            # inventory is in the observation.
+            "items": sorted(
+                item for item, count in (observation.get("inventory") or {}).items() if count
+            ),
+            "amounts": list(TRANSFER_AMOUNTS),
+            "recipes": [],
+            "technologies": [],
+            "requests": [
+                str(entry["request_id"])
+                for entry in (observation.get("inflight") or [])
+                if isinstance(entry, dict) and entry.get("request_id")
+            ],
+        }
+
+    def _placement_candidates(self, origin, observation) -> list[list[float]]:
+        """Tile centres near the character with nothing visible standing there.
+
+        Bounded to `PLACEMENT_RADIUS`, which is inside the character's build
+        distance, so a candidate is never proposed only to be refused for
+        range. Occupancy and water come from the observation; the runtime still
+        enforces the real `can_place_entity`, so this narrows the choice rather
+        than deciding it.
+        """
+        occupied = {
+            (math.floor(record["p"][0]), math.floor(record["p"][1]))
+            for record in (observation.get("entities") or [])
+            if record.get("p")
+        }
+        occupied |= {
+            (math.floor(point[0]), math.floor(point[1]))
+            for point in ((observation.get("terrain") or {}).get("blocked") or [])
+        }
+        here = (math.floor(origin[0]), math.floor(origin[1]))
+        candidates = []
+        for dx in range(-PLACEMENT_RADIUS, PLACEMENT_RADIUS + 1):
+            for dy in range(-PLACEMENT_RADIUS, PLACEMENT_RADIUS + 1):
+                tile = (here[0] + dx, here[1] + dy)
+                if tile in occupied:
+                    continue
+                candidates.append([tile[0] + 0.5, tile[1] + 0.5])
+        return candidates
+
+    def step_arguments(self, action: int, arguments: dict):
+        """Take a parameterized action, validating each argument's domain.
+
+        Refused here rather than at the engine when the value is not in a
+        domain the policy could see, so an out-of-domain argument is a client
+        error with a name, not a generic rejection.
+        """
+        template = self.catalog.templates[int(action)]
+        domains = self.argument_domains()
+        for name in template.arguments:
+            if name not in arguments:
+                raise ValueError(f"{template.key} needs argument {name!r}")
+            domain_name = catalog_module.ARGUMENT_DOMAINS.get(name)
+            legal = domains.get(domain_name) if domain_name else None
+            if legal is not None and arguments[name] not in legal:
+                raise ValueError(
+                    f"{template.key}: {name}={arguments[name]!r} is not in "
+                    f"domain {domain_name!r} ({len(legal)} values)"
+                )
+        payload = template.bind(self._context(), arguments)
+        return self.step_payload(payload, action_key=template.key)
+
     def action_masks(self) -> np.ndarray:
         """sb3-contrib's masking protocol.
 
@@ -151,9 +254,25 @@ class FactorioEnv(gym.Env):
         """
         context = self._context()
         mask = np.ones(len(self.catalog), dtype=bool)
+        # Computed once: a parameterized catalog asks for the same domains on
+        # every template.
+        domains = (
+            self.argument_domains() if any(t.parameterized for t in self.catalog.templates) else {}
+        )
         for index, template in enumerate(self.catalog.templates):
             if template.requires and context.get(template.requires) is None:
                 mask[index] = False
+                continue
+            # An action one of whose arguments has no legal value cannot be
+            # issued. Masking it here is the generalisation of the wait-index
+            # fallback: sb3's masked categorical turns an all-false sub-mask
+            # into a *uniform* distribution over illegal values, silently, so
+            # the empty domain has to be handled before it ever gets there.
+            for name in template.arguments:
+                domain = catalog_module.ARGUMENT_DOMAINS.get(name)
+                if domain is not None and not domains.get(domain):
+                    mask[index] = False
+                    break
         # A legal no-op always exists.
         mask[self.catalog.wait_index] = True
         return mask

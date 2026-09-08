@@ -23,6 +23,32 @@ from typing import Any
 
 WAIT = "wait"
 
+#: Payload values beginning with this are *arguments*: the caller supplies them.
+#: Values beginning with "$" are bound from the observation-derived context
+#: instead, which is the older, fully-bound form.
+#:
+#: Declaring an argument by writing it into the payload means the catalog digest
+#: covers it with no extra field, so an action that gains or loses an argument
+#: is a different action by construction.
+ARGUMENT_PREFIX = "?"
+
+#: Which observation-derived domain supplies an argument's legal values. Every
+#: domain must be reconstructible from a policy-visible observation -- the same
+#: discipline `skill_context` follows -- or a masked argument would be smuggling
+#: evaluator state.
+ARGUMENT_DOMAINS: dict[str, str] = {
+    "handle": "targets",
+    "from": "targets",
+    "to": "targets",
+    "position": "placements",
+    "direction": "directions",
+    "item": "items",
+    "count": "amounts",
+    "recipe": "recipes",
+    "technology": "technologies",
+    "target_request_id": "requests",
+}
+
 
 @dataclass(frozen=True)
 class ActionTemplate:
@@ -34,11 +60,37 @@ class ActionTemplate:
     #: Which observation feature the mask builder consults, if any.
     requires: str = ""
 
-    def bind(self, context: dict) -> dict:
-        """Produce the wire payload, filling any runtime reference."""
+    @property
+    def arguments(self) -> tuple[str, ...]:
+        """Payload slots the caller must supply, in payload order."""
+        return tuple(
+            value[len(ARGUMENT_PREFIX) :]
+            for value in self.payload.values()
+            if isinstance(value, str) and value.startswith(ARGUMENT_PREFIX)
+        )
+
+    @property
+    def parameterized(self) -> bool:
+        return bool(self.arguments)
+
+    def bind(self, context: dict, arguments: dict | None = None) -> dict:
+        """Produce the wire payload.
+
+        `$name` is filled from the observation-derived context, as before.
+        `?name` is filled from `arguments`, and its absence is an error rather
+        than a silent `None` -- a payload with a missing position is a
+        different request, not the same one with a hole in it.
+        """
         body = {"action": self.action, **self.payload}
         for key, value in list(body.items()):
-            if isinstance(value, str) and value.startswith("$"):
+            if not isinstance(value, str):
+                continue
+            if value.startswith(ARGUMENT_PREFIX):
+                name = value[len(ARGUMENT_PREFIX) :]
+                if not arguments or name not in arguments:
+                    raise ValueError(f"{self.key} needs argument {name!r}")
+                body[key] = arguments[name]
+            elif value.startswith("$"):
                 body[key] = context.get(value[1:])
         return body
 
@@ -146,7 +198,58 @@ PRIMITIVE_V1: tuple[ActionTemplate, ...] = tuple(
     ]
 )
 
-CATALOGS: dict[str, tuple[ActionTemplate, ...]] = {"primitive-v1": PRIMITIVE_V1}
+#: The same verbs, taking arguments instead of being fully bound.
+#:
+#: `primitive-v1` welds *where* to *which facing*: `place_<item>_<direction>`
+#: targets `floor(position) + PLACE_OFFSETS[direction]` and sets the facing to
+#: the same direction, so filling a belt gap with an east-facing belt requires
+#: standing west of it -- on the belt line. The reference solver works around
+#: that with `place_transport_belt_north` then `rotate_target`, two ordered
+#: actions at tile precision, and `repair_belt` earned 7 successes in 221
+#: episodes trying to find them.
+#:
+#: The Lua `place` handler has always taken an arbitrary in-reach position and
+#: an independent direction, so this exposes an existing capability rather than
+#: adding one. Every verb here already has a handler that enforces reach,
+#: collision, inventory and technology.
+PARAMETERIZED_V1: tuple[ActionTemplate, ...] = tuple(
+    [
+        *_move_templates(),
+        # Position and facing chosen independently -- the point of the profile.
+        ActionTemplate(
+            "place_at",
+            "place",
+            {"item": "?item", "position": "?position", "direction": "?direction"},
+        ),
+        # A chosen resource, not merely the nearest one.
+        ActionTemplate("mine_at", "mine", {"handle": "?handle", "count": 1}),
+        ActionTemplate("rotate_at", "rotate", {"handle": "?handle"}),
+        ActionTemplate("rotate_at_reverse", "rotate", {"handle": "?handle", "reverse": True}),
+        ActionTemplate(
+            "give_to",
+            "transfer",
+            {"from": "character", "to": "?to", "item": "?item", "count": "?count"},
+        ),
+        ActionTemplate(
+            "take_from",
+            "transfer",
+            {"from": "?from", "to": "character", "item": "?item", "count": "?count"},
+        ),
+        # Permitted by `primitive-v1` in the mod and untemplated until now.
+        # Both stay masked until recipes are observable (R2.3): an argument
+        # whose domain the policy cannot see is not selectable, and reporting
+        # that honestly is better than guessing a vocabulary.
+        ActionTemplate("set_recipe_at", "set_recipe", {"handle": "?handle", "recipe": "?recipe"}),
+        ActionTemplate("craft_recipe", "craft", {"recipe": "?recipe", "count": "?count"}),
+        ActionTemplate("cancel_request", "cancel", {"target_request_id": "?target_request_id"}),
+        ActionTemplate(WAIT, "wait", {}),
+    ]
+)
+
+CATALOGS: dict[str, tuple[ActionTemplate, ...]] = {
+    "primitive-v1": PRIMITIVE_V1,
+    "parameterized-v1": PARAMETERIZED_V1,
+}
 
 
 @dataclass(frozen=True)
