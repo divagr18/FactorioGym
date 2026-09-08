@@ -1500,5 +1500,6 @@
       "skills": true,
       "seed": 2
     }
-  ]
+  ],
+  "pairing_caveat_2026_09_08": "These arms were also run without --holdout, so they were scored on different scene draws. The conclusion survives and the numbers do not: flat 0.01 against skills 0.79 is far outside what two 50-episode draws of one distribution can produce, but the exact rates are each one draw. Re-run under the frozen holdout for quotable figures; the tool now passes it by default and refuses an unpaired verdict."
 }

@@ -8,7 +8,7 @@
   "shaped_held_out_mean": 0.7,
   "sparse_held_out_mean": 0.96,
   "same_success_predicate": true,
-  "interpretation": "shaping hurt, which usually means the shaping signal points away from the success predicate -- a reward defect, not a tuning knob",
+  "interpretation": "WITHDRAWN -- see correction_2026_09_08. The arms were not paired.",
   "runs": [
     {
       "run_id": "shaped-20260908T024750-fa270329",
@@ -1044,5 +1044,13 @@
       "shaped": false,
       "seed": 2
     }
-  ]
+  ],
+  "correction_2026_09_08": {
+    "what": "The headline 'shaping hurt' is withdrawn. The two arms were never scored on the same episodes, so the difference between them cannot be separated from the difference between their scene draws.",
+    "why": "An episode seed is blake2b(master | run_id | branch | index) and train.py builds each run's SeedPlan with a fresh per-run id. Every arm reported touching indices 0,1,2..., and none of them saw the same worlds. --seed fixes the torch and numpy streams; it does not fix the scenes.",
+    "how_large_the_risk_is": "Large here, because the effect was small. Pooled, shaped scored 35/50 and sparse 48/50 over 25 episodes per arm per seed -- a gap of the size two independent 25-episode draws of the same distribution can produce. Contrast 4b, where flat 0.01 against skills 0.79 is far outside any plausible scene effect and survives the same criticism.",
+    "what_survives": "Nothing about the direction of the effect. The training curves are the one usable observation: both arms end at a comparable training success rate (0.12-0.14 shaped, 0.12-0.14 sparse), which is consistent with shaping neither helping nor hurting at this budget.",
+    "fixed_by": "Both comparison tools now pass --holdout by default so every arm scores one fixed frozen episode set, and both refuse to report a verdict unless the arms' recorded scored_episodes are identical. The guard was checked against these four runs and rejects them.",
+    "recorded": "2026-09-08"
+  }
 }

@@ -136,6 +136,47 @@ def interpret(
     return "no material difference between the arms at this budget"
 
 
+def pairing(runs: list[dict]) -> dict:
+    """Did every arm score the *same* episodes?
+
+    An episode seed is ``blake2b(master | run_id | branch | index)`` and each run
+    builds its plan with a fresh per-run id, so two arms both evaluating
+    "episodes 0..24" evaluate two different scene draws. Every arm here reported
+    touching indices 0,1,2... and none of them saw the same worlds.
+
+    That is fatal to a comparison and invisible in its output: the arms differ by
+    the variable under test *and* by the content they were scored on, and the
+    smaller the real effect, the more of the reported difference is scene luck.
+    Passing a frozen holdout makes both arms score one fixed set; this checks
+    that it actually happened rather than trusting the flag.
+    """
+    sets = []
+    for run in runs:
+        if not run.get("ok"):
+            continue
+        scored = ((run.get("evaluation") or {}).get("structures") or {}).get("scored_episodes")
+        sets.append(tuple(scored) if scored else None)
+    if not sets:
+        return {"paired": False, "reason": "no arm completed"}
+    if any(s is None for s in sets):
+        return {
+            "paired": False,
+            "reason": (
+                "at least one arm recorded no scored episode set, which means it did not "
+                "evaluate a frozen holdout; its scenes are a function of its own run id"
+            ),
+        }
+    if len(set(sets)) != 1:
+        return {
+            "paired": False,
+            "reason": (
+                f"arms scored {len(set(sets))} different episode sets; the comparison "
+                "confounds the variable under test with the scenes each arm was given"
+            ),
+        }
+    return {"paired": True, "episodes": len(sets[0])}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--task", default="deliver")
@@ -143,7 +184,9 @@ def main() -> int:
     parser.add_argument("--seeds", default="1,2")
     parser.add_argument("--eval-episodes", type=int, default=50)
     parser.add_argument(
-        "--holdout", default=None, help="frozen holdout JSON for the structural row"
+        "--holdout",
+        default="docs/evidence/holdout_v1.json",
+        help="frozen holdout both arms are scored on; '' to disable (unpaired)",
     )
     parser.add_argument("--out", default=None, help="report destination (default docs/evidence)")
     args = parser.parse_args()
@@ -188,7 +231,15 @@ def main() -> int:
         if skill_rate is None or skill_floor is None
         else round(skill_rate - skill_floor, 4),
     }
-    interpretation = interpret(flat_rate, skill_rate, margins, collision)
+    paired = pairing(runs)
+    if not paired["paired"]:
+        interpretation = (
+            f"REFUSED: the arms are not paired ({paired['reason']}). Both arms must be "
+            "scored on one fixed episode set or the gap between them includes the gap "
+            "between their scene draws."
+        )
+    else:
+        interpretation = interpret(flat_rate, skill_rate, margins, collision)
 
     report = {
         "plan_section": "4b.3",
@@ -204,6 +255,7 @@ def main() -> int:
         },
         "margin_over_own_floor": margins,
         "suspected_baseline_cache_collision": collision,
+        "pairing": paired,
         "interpretation": interpretation,
         "runs": runs,
     }

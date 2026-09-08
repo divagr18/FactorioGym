@@ -125,6 +125,19 @@ DEFAULT_STEPS = {"mine_smelt": 50_000, "supply_furnace": 50_000, "restore_power"
 FALLBACK_STEPS = 25_000
 
 
+def _shown(path: Path) -> str:
+    """Display path, without letting a relative --out abort a finished run.
+
+    `relative_to` raises when the path is not under ROOT, and a relative --out
+    is not -- so a completed matrix died on its own success message and exited
+    1, which is also the code the tool uses for "not accepted".
+    """
+    try:
+        return str(path.resolve().relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def run_cell(task: str, seed: int, steps: int, episodes: int, holdout: Path, skills: bool) -> dict:
     command = [
         str(PYTHON),
@@ -413,7 +426,7 @@ def main() -> int:
         f"\n  {len(passing)}/3 families at {THRESHOLD:.2f}; "
         f"production-or-repair among them: {qualifying or 'none'}\n"
         f"  ACCEPTED: {accepted}\n"
-        f"wrote {destination.relative_to(ROOT)}",
+        f"wrote {_shown(destination)}",
         flush=True,
     )
     return 0 if accepted else 1

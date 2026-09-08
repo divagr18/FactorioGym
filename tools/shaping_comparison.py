@@ -34,7 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON = ROOT / ".venv" / "Scripts" / "python.exe"
 
 
-def run(task: str, steps: int, seed: int, shaped: bool, skills: bool) -> dict:
+def run(task: str, steps: int, seed: int, shaped: bool, skills: bool, holdout: str) -> dict:
     command = [
         str(PYTHON),
         "-m",
@@ -53,6 +53,10 @@ def run(task: str, steps: int, seed: int, shaped: bool, skills: bool) -> dict:
     ]
     if not shaped:
         command.append("--no-shaping")
+    # Both arms score one fixed episode set. Without this each run draws its own
+    # scenes from its own run id and the comparison is unpaired.
+    if holdout:
+        command += ["--holdout", holdout]
     # The comparison has to run on an action space where the task is learnable
     # at all. A flat policy scores zero on `deliver` with shaping *and* without
     # it, and two zeroes do not distinguish "shaping did not help" from
@@ -71,11 +75,57 @@ def run(task: str, steps: int, seed: int, shaped: bool, skills: bool) -> dict:
     return result
 
 
+def pairing(runs: list[dict]) -> dict:
+    """Did every arm score the *same* episodes?
+
+    An episode seed is ``blake2b(master | run_id | branch | index)`` and each run
+    builds its plan with a fresh per-run id, so two arms both evaluating
+    "episodes 0..24" evaluate two different scene draws. Every arm here reported
+    touching indices 0,1,2... and none of them saw the same worlds.
+
+    That is fatal to a comparison and invisible in its output: the arms differ by
+    the variable under test *and* by the content they were scored on, and the
+    smaller the real effect, the more of the reported difference is scene luck.
+    Passing a frozen holdout makes both arms score one fixed set; this checks
+    that it actually happened rather than trusting the flag.
+    """
+    sets = []
+    for run in runs:
+        if not run.get("ok"):
+            continue
+        scored = ((run.get("evaluation") or {}).get("structures") or {}).get("scored_episodes")
+        sets.append(tuple(scored) if scored else None)
+    if not sets:
+        return {"paired": False, "reason": "no arm completed"}
+    if any(s is None for s in sets):
+        return {
+            "paired": False,
+            "reason": (
+                "at least one arm recorded no scored episode set, which means it did not "
+                "evaluate a frozen holdout; its scenes are a function of its own run id"
+            ),
+        }
+    if len(set(sets)) != 1:
+        return {
+            "paired": False,
+            "reason": (
+                f"arms scored {len(set(sets))} different episode sets; the comparison "
+                "confounds the variable under test with the scenes each arm was given"
+            ),
+        }
+    return {"paired": True, "episodes": len(sets[0])}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--task", default="navigate")
     parser.add_argument("--steps", type=int, default=40_000)
     parser.add_argument("--seeds", default="1,2")
+    parser.add_argument(
+        "--holdout",
+        default="docs/evidence/holdout_v1.json",
+        help="frozen holdout both arms are scored on; '' to disable (unpaired)",
+    )
     parser.add_argument(
         "--no-skills",
         action="store_true",
@@ -87,7 +137,14 @@ def main() -> int:
     runs = []
     for seed in seeds:
         for shaped in (True, False):
-            result = run(args.task, args.steps, seed, shaped, skills=not args.no_skills)
+            result = run(
+                args.task,
+                args.steps,
+                seed,
+                shaped,
+                skills=not args.no_skills,
+                holdout=args.holdout,
+            )
             runs.append(result)
             label = "shaped" if shaped else "sparse"
             if result["ok"]:
@@ -114,8 +171,15 @@ def main() -> int:
     shaped_rate = mean(shaped_runs, "success_rate")
     sparse_rate = mean(sparse_runs, "success_rate")
 
+    paired = pairing(runs)
     interpretation = "inconclusive"
-    if shaped_rate is not None and sparse_rate is not None:
+    if not paired["paired"]:
+        interpretation = (
+            f"REFUSED: the arms are not paired ({paired['reason']}). "
+            "A shaping difference measured across different scene draws cannot be "
+            "distinguished from the draws themselves."
+        )
+    elif shaped_rate is not None and sparse_rate is not None:
         if abs(shaped_rate - sparse_rate) < 0.1:
             interpretation = (
                 "shaping did not change the outcome at this budget: both reach a "
@@ -143,6 +207,7 @@ def main() -> int:
         # Both evaluated under the same success predicate: disabling shaping
         # zeroes the shaping weights and changes nothing else.
         "same_success_predicate": True,
+        "pairing": paired,
         "interpretation": interpretation,
         "runs": runs,
     }
