@@ -28,6 +28,56 @@ Engine pin: Factorio **2.0.60 (build 83512, win64)** - see
 > again. In practice the environment is the bottleneck at ~24 ms per step, not
 > the GPU, so the correction matters for honesty more than for feasibility.
 
+> **Measurement correction (2026-09-08). Every training-side number published
+> for `repair_belt` and `restore_power` before commit `8b68296` is withdrawn.**
+> `CurveLogger` kept one reward accumulator and one step counter for the whole
+> worker vector: it summed `rewards` across all eight workers, counted vector
+> steps as episode steps, and read the success flag from `infos[0]` only. A
+> success in any worker but the first was therefore recorded as a zero, and
+> `final_train_success_rate` -- the mean over the last twenty rows only --
+> reported 24 real successes as `0.0`.
+>
+> Both families were declared unlearnable off curves that contain successes
+> (24 and 19 on `restore_power`, 1 on `repair_belt`). On the fixed
+> instrumentation, `restore_power` scores **0.77** on the frozen structural
+> split against a **0.02** random floor, with 1.00 on training layouts --
+> against **0.00** previously recorded for the same family and holdout id.
+> Fixed in `8b68296` with `tests/unit/test_curve_logger.py`; result in
+> `docs/evidence/phase4-release-v3-restore_power.json`.
+>
+> Three further defects found in the same investigation:
+>
+> 1. **Evaluation was greedy-only.** Nothing guarantees the argmax policy is at
+>    least as good as the policy that trained; on a partially observed task the
+>    deterministic memoryless policies are a strictly weaker class. The
+>    structural row now also scores stochastically on identical episodes. On
+>    `restore_power` the two arms agreed exactly (0.77 both), so this was not
+>    the cause -- the arm's value is that it settles the question.
+>
+> 2. **`holdout_v2` was re-frozen five times** (`333bff22`, `1bd2358c`,
+>    `b41e4f0c`, `2fa1d92b`, `df72fe29`). The `phase4-release-v2-*` evidence
+>    cites `b41e4f0c`; the two repair families' episode sets changed twice
+>    after that, so those numbers describe scenes the current holdout no longer
+>    contains. Those two files are now marked `superseded`. `deliver`'s frozen
+>    entry is byte-identical across the last four freezes
+>    (`95dcef5ff8192eb9`), so its 0.92 stands. The integrity check hashed the
+>    whole file, so re-freezing one family invalidated the hash cited by all
+>    seven; holdouts now carry a per-task `entry_hash` and runs cite that.
+>
+> 3. **The `15-27 M` step exploration bound was cited as an impossibility
+>    proof.** `docs/research/rl-theory.md` is explicit that it is "a floor with
+>    no ceiling attached" -- a budget below which no guarantee exists, which
+>    argues that a 50,000-step run *cannot distinguish an unlearnable task from
+>    an unexplored one*. It is not evidence a task cannot be learned.
+>
+> The figures that prompted the re-check (`-0.3378`, and a `gapfix-...` run
+> directory) do not exist in this repository and were not read off disk. The
+> fix that was claimed to have been tested -- publishing the gap marker into
+> the observation -- had never been trained: `extra_public_markers` is absent
+> from the resolved spec of all twelve earlier repair/restore runs, so the goal
+> vector pointed at where success is *measured* rather than where the agent
+> must *act*. That, not the horizon, is the leading account of the 0.00.
+
 
 ## Phase 0 — Repository foundation and engine feasibility
 

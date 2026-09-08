@@ -1,4 +1,8 @@
 {
+  "superseded": true,
+  "superseded_note": "SUPERSEDED 2026-09-08. The training-side figures in this file were produced by the pre-8b68296 CurveLogger, which summed rewards across the whole worker vector and read the success flag from infos[0] only, so a success in any worker but the first was recorded as a zero. Separately, holdout_v2 was re-frozen twice after this file was written: it cites content_hash b41e4f0c576156bc, and this family's frozen episode set has changed since, so the held-out rate here was measured on scenes the current holdout no longer contains. Superseded by phase4-release-v3-<task>.json, which cites a per-task entry_hash. Retained as a record of what was published, not as a result.",
+  "superseded_by": "phase4-release-v3-repair_belt.json",
+  "task_entry_hash_when_measured": "8c6842970a462c82",
   "plan_section": "4.5",
   "generated_at": "2026-09-08T09:24:12Z",
   "threshold": 0.8,
