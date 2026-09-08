@@ -61,6 +61,7 @@ class FactorioVecEnv(VecEnv):
         branch: Branch = Branch.TRAIN,
         split: str = "train",
         shaping: bool = True,
+        start_curriculum: float = 0.0,
         speed: float = DEFAULT_SPEED,
         worker_prefix: str = "vec",
         skills: bool = False,
@@ -93,7 +94,15 @@ class FactorioVecEnv(VecEnv):
                 client.lua(f"game.speed = {speed} return game.speed")
             session = WorkerSession(worker.handle, timeout=30.0)
             session.status()
-            env = FactorioEnv(task, session, seed_plan, branch=branch, split=split, shaping=shaping)
+            env = FactorioEnv(
+                task,
+                session,
+                seed_plan,
+                branch=branch,
+                split=split,
+                shaping=shaping,
+                start_curriculum=start_curriculum,
+            )
             # Distinct episode streams per worker, so two workers never run the
             # same episode at the same time. Set before wrapping: `SkillEnv`
             # forwards attribute *reads* to the inner environment but an

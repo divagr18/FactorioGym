@@ -197,6 +197,7 @@ def cmd_train(args) -> int:
             eval_split=args.eval_split,
             holdout=args.holdout,
             skills=args.skills,
+            start_curriculum=args.start_curriculum,
             run_prefix=args.prefix,
         )
     )
@@ -428,6 +429,17 @@ def main(argv: list[str] | None = None) -> int:
         help="val for routine runs and sweeps; test only for a release evaluation",
     )
     train_cmd.add_argument("--no-shaping", action="store_true")
+    train_cmd.add_argument(
+        "--start-curriculum",
+        type=float,
+        default=0.0,
+        metavar="FRACTION",
+        help=(
+            "exploring starts: fraction of TRAINING episodes beginning beside the "
+            "task's focus marker instead of the origin. No evaluated episode is "
+            "affected, including the unfamiliar-seed row over training layouts."
+        ),
+    )
     train_cmd.add_argument(
         "--skills",
         action="store_true",

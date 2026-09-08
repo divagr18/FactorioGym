@@ -108,6 +108,11 @@ class TrainConfig:
     #: episodes. Cheap next to training and the only way to tell a policy that
     #: did not learn from one that learned and is being read greedily.
     paired_stochastic_eval: bool = True
+    #: Exploring starts (Sutton & Barto §5.3, p. 79): the fraction of training
+    #: episodes whose character starts beside the task's focus marker instead
+    #: of at the origin. Training stream only -- no evaluated episode, not even
+    #: the unfamiliar-seed row over training layouts, is affected.
+    start_curriculum: float = 0.0
     run_prefix: str = "train"
     extra: dict = field(default_factory=dict)
 
@@ -128,6 +133,7 @@ class TrainConfig:
             "eval_episodes": self.eval_episodes,
             "workers": self.workers,
             "paired_stochastic_eval": self.paired_stochastic_eval,
+            "start_curriculum": self.start_curriculum,
         }
 
 
@@ -530,7 +536,13 @@ def train(config: TrainConfig) -> dict:
     try:
         single = _wrap(
             FactorioEnv(
-                task, session, plan, branch=Branch.TRAIN, split="train", shaping=config.shaping
+                task,
+                session,
+                plan,
+                branch=Branch.TRAIN,
+                split="train",
+                shaping=config.shaping,
+                start_curriculum=config.start_curriculum,
             ),
             config.skills,
         )
@@ -544,6 +556,7 @@ def train(config: TrainConfig) -> dict:
                 shaping=config.shaping,
                 worker_prefix=f"vec-{config.task_id}-{run_id[-8:]}",
                 skills=config.skills,
+                start_curriculum=config.start_curriculum,
             )
             env = vec_env
         else:

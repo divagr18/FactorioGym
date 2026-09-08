@@ -21,6 +21,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from dataclasses import replace
 from typing import Any
 
 import gymnasium as gym
@@ -56,6 +57,7 @@ class FactorioEnv(gym.Env):
         branch: Branch = Branch.TRAIN,
         split: str = "train",
         shaping: bool = True,
+        start_curriculum: float = 0.0,
     ) -> None:
         self.task = task
         self.spec_ = task.spec
@@ -63,6 +65,15 @@ class FactorioEnv(gym.Env):
         self.seed_plan = seed_plan
         self.branch = branch
         self.split = split
+        # Exploring starts, and a *run* setting rather than a task one. It
+        # rewrites the character's start on the training stream only, so it
+        # cannot alter a single test-split scene -- which is precisely why it
+        # does not belong in `TaskSpec.to_dict`. Putting it there bumped the
+        # task version and invalidated two frozen holdouts for a change no
+        # evaluated episode can observe. Here it is recorded in the run config
+        # instead, and curriculum-on and curriculum-off can be compared against
+        # the same frozen holdout.
+        self.start_curriculum = float(start_curriculum)
         self.catalog = catalog_module.resolve(self.spec_.catalog, self.spec_.catalog_subset)
         self.action_space = spaces.Discrete(len(self.catalog))
         self.observation_space = encoders.observation_space()
@@ -162,7 +173,42 @@ class FactorioEnv(gym.Env):
         rng = self.seed_plan.generator_rng(self.branch, episode_index)
         self._family = families[rng.randrange(len(families))]
         blueprint = self.task.generate(self._family, rng)
+        blueprint = self._apply_start_curriculum(blueprint, rng)
         return self._install(blueprint)
+
+    def _apply_start_curriculum(self, blueprint, rng):
+        """Exploring starts, training stream only (Sutton & Barto §5.3, p. 79).
+
+        Gated on `Branch.TRAIN`, not on the split. The unfamiliar-seed row is
+        measured with `Branch.EVAL` over the *training* split, so gating on
+        `split == "train"` would move the curriculum into a reported number and
+        inflate it. Both conditions are required and the branch is the one that
+        matters.
+
+        Returns the blueprint unchanged when the run declares no curriculum, so
+        the default path and every frozen holdout digest are byte-identical to
+        before.
+        """
+        fraction = self.start_curriculum
+        if not fraction:
+            return blueprint
+        if self.branch is not Branch.TRAIN or self.split != "train":
+            return blueprint
+        marker = self.spec_.focus_marker
+        target = (blueprint.markers or {}).get(marker) if marker else None
+        if target is None:
+            return blueprint
+        # Drawn from the same generator stream, so a scene is still a pure
+        # function of (branch, episode_index) and stays reproducible.
+        if rng.random() >= fraction:
+            return blueprint
+
+        occupied = {(round(e.position[0], 1), round(e.position[1], 1)) for e in blueprint.entities}
+        for dx, dy in ((0.0, 2.0), (0.0, -2.0), (2.0, 0.0), (-2.0, 0.0), (0.0, 3.0), (0.0, -3.0)):
+            candidate = (target[0] + dx, target[1] + dy)
+            if (round(candidate[0], 1), round(candidate[1], 1)) not in occupied:
+                return replace(blueprint, character_position=candidate)
+        return blueprint
 
     def begin_episode(self, digest: str) -> dict:
         """Return the world to an installed scene and start scoring."""
