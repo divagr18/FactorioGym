@@ -1,4 +1,6 @@
 {
+  "filename_note": "The 'v3' in this FILENAME is the third revision of this evidence, NOT the holdout id. This file cites holdout_v2. The live holdout is holdout_v3 with content_hash 4227eb56384aa85094950d138d143cbdf52daac2b0b6ae0cf17c15b6ab5fc02c. Identify a holdout from holdout.id and holdout.task_entry_hash, never from a filename.",
+  "cites_holdout_id": "holdout_v2",
   "plan_section": "4.5",
   "generated_at": "2026-09-08T14:30:46Z",
   "threshold": 0.8,

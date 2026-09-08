@@ -1,5 +1,7 @@
 # FactorioRL: strategy and phased implementation handoff
 
+> **Development amendment — 2026-09-08:** Read [the development redirection handoff](docs/DEVELOPMENT_REDIRECTION.md) before executing this plan. Its R0–R6 work packages and acceptance gates govern the current development sequence. The amendment separates runtime readiness, reproducible learning, and benchmark mastery; it does not retrospectively accept old experiments or demonstrations. Historical thresholds remain recorded below. Current task versions and pending experiments must be reconciled from artifacts, not inferred from phase labels.
+
 ## 1. Project goal and locked decisions
 
 Build an independent Factorio environment for training compact RL policies, developing language-model agents, and comparing hybrid systems in the same game world.
@@ -201,7 +203,7 @@ Report unfamiliar seeds and unfamiliar structures separately.
 Declared splits are a claim about content, so they must be measured as content rather than asserted by name. For every family, publish:
 
 - The count of distinct generated scenes per layout family, with a declared minimum. A holdout whose generator admits one scene is evaluated once, no matter how many episodes are run against it.
-- Difficulty parity between the training and test splits on measured descriptors (path length, reference-solution length, budget slack). A holdout that is merely harder measures added difficulty, not transfer.
+- Measured difficulty descriptors (path length, reference-solution length, budget slack) for training and test splits. Match difficulty when isolating structural transfer; explicitly label deliberately harder compositional tests rather than treating them as invalid by definition.
 - Structural separation on at least one descriptor that is not difficulty, so the split is doing the work its name claims.
 
 A gate that compares layout-family *names* does not check any of this. Two families that generate identical content, or a test family that falls through to the training layout, must fail validation rather than be reported as transfer.
@@ -233,9 +235,11 @@ State the statistical method alongside the numbers:
 
 ### First learning acceptance target
 
+**Amended role:** The following is the structural mastery milestone, not a prerequisite for developing later gameplay or distributing an environment alpha. First-release learning evidence requires a reproducible, declared experiment showing learning relative to appropriate baselines, with per-seed results and uncertainty; it does not require this entire mastery milestone. A miss remains a miss and is not retrospectively relabeled a pass.
+
 At least three introductory families must achieve 80% held-out success across 100 evaluation episodes per training seed, with three training seeds.
 
-**Held-out means unfamiliar structures.** The threshold is carried by the test layout families, not by unseen seeds of familiar ones. Evaluating on content whose shape the policy has already seen measures memorisation, and the history of game-AI benchmarks is largely the history of that mistake being made and corrected. Every run also publishes the unfamiliar-*seed* rate on the training layouts, not as an alternative bar but as the diagnostic that separates "did not learn" from "learned and did not transfer" -- a distinction the structural number alone cannot make.
+**For this mastery target, held-out means unfamiliar structures.** New instances of familiar layouts measure within-distribution generalization; they are not sufficient evidence of structural transfer and are not necessarily memorization. Every run also publishes the unfamiliar-seed rate on training layouts. Report new instances, new compositions, and new mechanisms/structures separately, with generator changes disclosed.
 
 No general result guarantees that a policy trained on one set of structures performs on a disjoint set; the training distribution puts no mass there. That is a reason to expect a flat baseline to miss this bar and to record the miss, not a reason to move it. A missed threshold is reported under section 4's rules for failed gates.
 
@@ -321,6 +325,8 @@ When a gate fails:
 3. Create a bounded corrective task.
 4. Re-run the failed gate and affected upstream checks.
 5. Record any proposed scope change separately.
+
+A valid task with an underperforming learner need not be modified. Separate runtime/task validity failures from unmet competence targets. Subsequent infrastructure and gameplay work may proceed on valid contracts while the competence result remains below target.
 
 Agents must not lower success thresholds, weaken embodiment, expose privileged state, or replace learning with scripted behavior to pass a gate.
 
@@ -688,6 +694,8 @@ Compare sparse and shaped training on at least one tractable task.
 
 #### 4.5 — Produce the release learning result
 
+**Amendment:** This subsection records the three-family mastery experiment. Its numerical acceptance criteria remain unchanged; the amended first-release learning requirement above is separate. Do not run repeated matrices solely to unblock construction or agent-interface development.
+
 Run three training seeds and frozen held-out evaluation.
 
 **Acceptance:**
@@ -705,9 +713,9 @@ Run three training seeds and frozen held-out evaluation.
 
 ### Phase 4b — Temporal abstraction ablation
 
-**Purpose:** establish, by measurement rather than argument, whether the gap between familiar and unfamiliar structures is an abstraction problem or a tuning problem. Phase 4's flat catalog is the baseline; this phase adds temporally extended actions and changes nothing else.
+**Purpose:** measure the effect of authored temporal abstraction relative to the flat catalog under explicitly declared objectives, assistance, and budgets. A comparison can establish an effect in its tested setting; it cannot generally separate abstraction from optimization or establish that more flat training could never work.
 
-The reason to run this before Phase 7 rather than inside Phase 8 is cost. Sample complexity grows steeply in the horizon, and horizon is the only term in that relationship the design controls. Phase 7's persistent factories and Phase 9's progression are long-horizon by construction, so a negative result here is worth having before either is built on the assumption that flat policies suffice. It is also unusually cheap right now: the reference solutions required by 3.2 already exist and already decompose into phases.
+Run this when the action interface and temporal accounting are stable. Existing reference controllers make a bounded comparison practical. Horizon, exploration, representation, task distributions, and optimization can all affect learning; no favorable result here is required before building valid persistent tasks.
 
 **Dependencies:** Phase 4. The flat baseline is the comparison point and must exist first.
 
@@ -737,7 +745,7 @@ Offer skills alongside the primitive catalog, with availability expressed throug
 
 #### 4b.3 — Run the ablation
 
-Train flat and skill-augmented policies under identical seeds, budgets, and evaluation.
+Train flat and skill-augmented policies on paired evaluation scenes with declared seed streams and budget conventions. Follow R1.3 in the development handoff for duration-aware objective accounting. Report primitive transitions, simulated ticks, policy decisions, optimizer updates, and wall time; equal policy-decision counts do not imply equal environment experience.
 
 **Acceptance:**
 
@@ -826,6 +834,8 @@ Capture selected frames for agent requests and replay checkpoints.
 
 #### 5.7 — Produce the agent demonstration
 
+**Evidence correction:** The existing preplaced-machine demonstration establishes commissioning, not construction. Reconcile and correct acceptance metadata without rewriting historical traces. Execute R2–R4 in the development handoff before accepting the full demonstration: stable parameterized actions, agent-built machinery, fresh post-intervention observations, demonstrated production loss, and a matched no-action continuation.
+
 Construct an automated plate line, inject a documented disruption, and restore sustained production.
 
 **Acceptance:**
@@ -900,9 +910,9 @@ Create a release checklist and compatibility statement.
 This phase is two jobs with different dependencies, and separating them keeps the benchmark from waiting on the agent:
 
 - **7a — benchmark construction (7.1, 7.2, 7.3, 7.5).** Persistent stages, the production curriculum, interventions, and structural holdouts. None of it depends on the agent being capable, and all of it is useful independently of who scores on it.
-- **7b — agent results (7.4 and the exit gate).** Recovery evaluation and the end-to-end persistent episode. These are long-horizon by construction and depend on the temporal abstraction established in Phase 4b and developed in Phase 8.
+- **7b — agent results (7.4 and the exit gate).** Recovery evaluation and the end-to-end persistent episode. Evaluate any declared flat, authored-skill, LLM, or hybrid controller. Learned skills are a research direction, not a mandatory prerequisite.
 
-**Dependencies:** Phase 6 for 7a. Phase 4b, and in practice Phase 8, for 7b.
+**Dependencies:** Validated runtime and relevant action contracts for 7a; validated tasks and intervention measurements for 7b. Publication in Phase 6 and learned skills in Phase 8 are not blockers for bounded persistent-task development.
 
 **Primary owners:** tasks, runtime, learning.
 
@@ -1204,23 +1214,26 @@ Track installation failures, custom-task friction, runtime bugs, and reproducibi
 
 ### Critical path
 
+The current execution order is R0–R6 in [the development handoff](docs/DEVELOPMENT_REDIRECTION.md). Packaging can proceed alongside gameplay development; valid hard tasks do not wait for mastery.
+
 ```text
-Phase 0: Engine feasibility
-    → Phase 1: Reliable protocol and workers
-    → Phase 2: Embodied actions and observations
-    → Phase 3: Tasks, resets, and Gymnasium
-    → Phase 4: Reproducible RL
-    → Phase 4b: Temporal abstraction ablation
-    → Phase 6: First public release
-    → Phase 7a: Persistent factories, interventions, holdouts
-    → Phase 8: Learned skills and hybrid control
-    → Phase 7b: Recovery evaluation and the persistent episode
-    → Phase 9: Rocket progression
+Existing Phases 0–3: preserve validated runtime and task contracts
+    → R0–R1: Reconcile evidence and correct experiment handling
+    → R2: Shared expressive actions for RL and LLM clients
+    → R3: Actual construction and commissioning
+    → R4: Measured disruption and recovery
+    → R5: Controlled learning comparisons on stable interfaces
+    → R6 / Phase 6: Independent reproduction and first public release
+
+Validated contracts → Phase 7a: Persistent benchmark infrastructure
+Validated recovery + declared controller → Phase 7b: Persistent agent result
+Stable tasks → Phase 8: Learned skills and hybrid-control experiments
+Verified production/progression contracts → Phase 9: Rocket progression
 ```
 
-Phase 5 starts after the necessary Phase 2–3 contracts stabilize and runs alongside Phase 4. Both must pass before Phase 6.
+Phase 5 work can run alongside Phase 4 on stable contracts. Phase 6's first public release requires the amended reproducible-learning evidence and the actual construction/recovery demonstration; it does not require completion of the three-family mastery target or a favorable Phase 4b result.
 
-Phase 4b sits on the critical path because its result decides how Phases 7b, 8 and 9 are built rather than merely informing them, and because it is cheapest immediately after Phase 4, while the reference solutions and the flat baseline are both current. Phase 7 splits: 7a builds the benchmark and depends only on Phase 6, while 7b reports agent results on it and waits for the skill layer.
+Phase 4b informs controller development without blocking valid benchmark construction. Phase 7a can proceed on validated runtime/action contracts; Phase 7b requires valid recovery measurements and an evaluated controller, but does not require that controller to use learned skills.
 
 Phase 10 begins once persistent-state checkpointing can be validated. Phase 11 begins with the first release and continues throughout development.
 

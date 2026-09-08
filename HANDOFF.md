@@ -1,5 +1,7 @@
 # FactorioRL handoff — Phase 1 closed, Phase 2 next
 
+> **Historical handoff:** The phase status below is retained as a record of 2026-09-07 and is not the current development instruction. Read [the 2026-09-08 development redirection](docs/DEVELOPMENT_REDIRECTION.md) and the amendment at the top of [PLAN.md](PLAN.md). Reconcile newer session evidence before assigning work; do not restart Phase 2 based on this title.
+
 **Date:** 2026-09-07
 **Machine:** this laptop — Ryzen 7 5800H, **RTX 3050 Laptop GPU (4.3 GB)**, Windows 11.
 The repository previously recorded an RTX 4060 throughout; that was wrong, and
