@@ -32,7 +32,14 @@ local function enabled_recipes()
   if not force then return {} end
   local names = {}
   for name, recipe in pairs(force.recipes) do
-    if recipe.enabled and not recipe.hidden then
+    -- A recipe with no products cannot make anything, and `parameter-0`
+    -- through `parameter-9` are exactly that: enabled, not hidden, zero
+    -- ingredients and zero products, placeholders for parametrised
+    -- blueprints. Measured on 2.0.60. They occupied 10 of the 22 observable
+    -- recipes, so 45% of the `recipe` argument dimension was unusable by
+    -- either client. Filtered on the property rather than the name prefix.
+    local makes_something = recipe.products and #recipe.products > 0
+    if recipe.enabled and not recipe.hidden and makes_something then
       names[#names + 1] = name
     end
   end

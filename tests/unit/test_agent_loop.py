@@ -202,11 +202,43 @@ def test_the_summary_offers_only_actions_the_environment_would_accept():
 
 
 def test_the_summary_reads_the_observation_and_nothing_else():
-    """The boundary is the signature: there is no parameter for task truth."""
+    """The boundary is the signature: there is no parameter for task truth.
+
+    `arguments` and `requires` were added for `parameterized-v1`. Neither is a
+    hole in this guarantee: `requires` is the catalog's own declaration and
+    `arguments` comes from `env.argument_domains()`, which reads the
+    observation. The next test asserts that rather than asserting it here.
+    """
     parameters = set(inspect.signature(summarise).parameters)
-    assert parameters == {"observation", "brief", "actions", "step"}
+    assert parameters == {
+        "observation",
+        "brief",
+        "actions",
+        "step",
+        "arguments",
+        "requires",
+    }
     env = StubEnv()
     assert TRUTH_SENTINEL not in summary_for(env).render()
+
+
+def test_the_argument_domains_are_a_function_of_the_observation():
+    """The new summary fields must not become a truth channel."""
+    import inspect as _inspect
+
+    from factoriorl.agent.summary import argument_domains
+
+    source = _inspect.getsource(argument_domains)
+    assert "_truth" not in source
+    assert "truth" not in source.replace("# ", "").split('"""')[2]
+
+    from factoriorl.env import FactorioEnv
+
+    domains = _inspect.getsource(FactorioEnv.argument_domains)
+    assert "_truth" not in domains, (
+        "argument_domains must read the observation, or the agent prompt "
+        "would carry evaluator state"
+    )
 
 
 def test_the_brief_carries_the_declared_description_not_the_success_predicate():

@@ -107,7 +107,13 @@ profiles.OBSERVATION = {
     -- 3: `events` added, so a settled action outcome is observable.
     -- 4: `recipes`, plus per-entity status name, working flag, fuel and
     --    output contents -- what a stopped machine's cause actually is.
-    version = 4,
+    -- 5: `recipes` drops the ten `parameter-N` placeholders, which are
+    --    enabled and not hidden but have zero products, so they were 10 of
+    --    22 values in an argument domain and craftable by nobody. The shape
+    --    is unchanged; the *content* of a declared domain is not, and a
+    --    checkpoint whose recipe dimension meant something else must not
+    --    silently cross the boundary.
+    version = 5,
     radius = 32,
     entity_cap = 48,
     entity_sweep_limit = 257,

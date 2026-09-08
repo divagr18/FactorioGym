@@ -1,0 +1,65 @@
+{
+  "gate": "R3.2 bounded LLM baseline",
+  "task": {
+    "id": "build_line",
+    "version": "1.1.0",
+    "split": "train"
+  },
+  "supplied_knowledge": {
+    "system_prompt": "You are controlling a single character in Factorio through a bounded action catalog. Each turn you receive the character's local observation and the exact list of actions the environment will currently accept, then choose one.\n\nRules:\n- Choose exactly one action, by its numeric index, from the LEGAL ACTIONS list.\n- An index that is not in that list will be rejected and you will be asked again.\n- Positions are given as offsets from the character in tiles. The x axis grows east and the y axis grows south.\n- One decision advances the world by a fixed interval, so movement, mining and crafting take several decisions to finish. Actions still in progress are listed under \"in flight\".\n- You cannot see beyond the sensor radius. Entities marked REMEMBERED are what was there when you last saw them, not what is there now.\n\nSome actions act on an entity. Those say \"the nearest entity\" in their description, and by default that is what they do. To act on a *particular* one instead, add its handle -- the [hN] shown beside it -- as \"target\".\n\nSome actions need arguments you must supply. Those are marked \"[needs: ...]\" in the LEGAL ACTIONS list, and the legal values for each argument name are listed under ARGUMENT VALUES. Supply exactly the names it asks for, no more.\n\nReply with a single JSON object and nothing else:\n{\"action\": <index>, \"reason\": \"<one short sentence>\"}\nor, to choose which entity it acts on:\n{\"action\": <index>, \"target\": \"<hN>\", \"reason\": \"<one short sentence>\"}\nor, for an action marked [needs: ...]:\n{\"action\": <index>, \"arguments\": {\"<name>\": <value>}, \"reason\": \"<why>\"}",
+    "system_prompt_digest": "90e0dfaa137c0a33",
+    "task_description": "Build a plate line from nothing: place a burner mining drill on the ore, place a stone furnace where the drill drops, fuel both, and keep the line producing.",
+    "summary_encoding_version": 2,
+    "observation_profile": "local-v2",
+    "action_profile": "primitive-v1",
+    "catalog": "parameterized-v1",
+    "reference_geometry_withheld": [
+      "(1, 3)",
+      "drop position",
+      "drop tile",
+      "drop_position",
+      "two tiles south",
+      "y + 2",
+      "y+2"
+    ],
+    "reference_geometry_present_in_prompt": [],
+    "note": "The task's declared description is supplied; the placement geometry the reference builder measured on an engine is not. No reference solver is imported by this tool."
+  },
+  "assistance": null,
+  "game_time": {
+    "ticks_per_decision": 30,
+    "max_game_ticks": 18000,
+    "episodes": [
+      {
+        "episode": 0,
+        "final_tick": null,
+        "steps": 17,
+        "success": false,
+        "stopped": "model_failure",
+        "production": null
+      }
+    ]
+  },
+  "decisions": {
+    "decisions": 0,
+    "fallback_decisions": 0,
+    "waits_repeated_without_asking": 0,
+    "placements_issued": [],
+    "placements_accepted": [],
+    "transfers_issued": [],
+    "transfers_accepted": [],
+    "decision_failures": {}
+  },
+  "inference_usage": {
+    "provider_calls": 0,
+    "prompt_tokens": 0,
+    "completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "throughput": {},
+  "success_rate": null,
+  "run_id": "r3agent-20260909T030327-483e6983",
+  "run_dir": "",
+  "verdict": "the agent did not complete construction; a failed baseline is a valid result",
+  "construction_demonstration_gate_met": false
+}

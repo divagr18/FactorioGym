@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from factoriorl import assistance as assistance_module
 from factoriorl.agent.adapters import ModelAdapter
 from factoriorl.agent.loop import AgentConfig, AgentLoop
 from factoriorl.engine_config import resolve_game_speed
@@ -88,6 +89,15 @@ def run_task(
                 "engine": handle.engine.to_dict(),
                 "workers": [handle.spec.manifest()],
                 "seeds": {**plan.to_dict(), "seeded": seeded},
+                # Every assistance this run received, composed. `wait_batch`
+                # repeats a `wait` the model just chose without asking again,
+                # which is a real help on a task whose measurement window is
+                # 200 decisions of waiting -- so it is named here rather than
+                # left to be inferred from the config.
+                "assistance": assistance_module.describe_assistance(
+                    task.spec,
+                    extra=((f"wait-batch:{config.wait_batch}",) if config.wait_batch else ()),
+                ),
             },
         )
         return loop.run()

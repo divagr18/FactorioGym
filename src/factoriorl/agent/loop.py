@@ -41,6 +41,8 @@ from factoriorl.agent.summary import (
     ObservationSummary,
     TaskBrief,
     action_vocabulary,
+    argument_domains,
+    argument_requirements,
     legal_actions,
     summarise,
     targetable_actions,
@@ -76,8 +78,11 @@ list of actions the environment will currently accept, then choose one.
 Rules:
 - Choose exactly one action, by its numeric index, from the LEGAL ACTIONS list.
 - An index that is not in that list will be rejected and you will be asked again.
-- Positions are given as offsets from the character in tiles. The x axis grows \
-east and the y axis grows south.
+- Entity and resource positions are shown as offsets from the character in \
+tiles. The x axis grows east and the y axis grows south.
+- Argument values under ARGUMENT VALUES are ABSOLUTE world coordinates, not \
+offsets. Your own absolute position is the one under CHARACTER. To act on a \
+tile you can see at offset (dx, dy), add that offset to your own position.
 - One decision advances the world by a fixed interval, so movement, mining and \
 crafting take several decisions to finish. Actions still in progress are listed \
 under "in flight".
@@ -88,11 +93,37 @@ Some actions act on an entity. Those say "the nearest entity" in their \
 description, and by default that is what they do. To act on a *particular* one \
 instead, add its handle -- the [hN] shown beside it -- as "target".
 
+Some actions need arguments you must supply. Those are marked "[needs: ...]" \
+in the LEGAL ACTIONS list, and the legal values for each argument name are \
+listed under ARGUMENT VALUES. Supply exactly the names it asks for, no more.
+
 Reply with a single JSON object and nothing else:
 {"action": <index>, "reason": "<one short sentence>"}
 or, to choose which entity it acts on:
-{"action": <index>, "target": "<hN>", "reason": "<one short sentence>"}\
+{"action": <index>, "target": "<hN>", "reason": "<one short sentence>"}
+or, for an action marked [needs: ...]:
+{"action": <index>, "arguments": {"<name>": <value>}, "reason": "<why>"}\
 """
+
+#: What the prompt above must **not** contain, asserted by a test. R3.2
+#: requires that the reference build sequence is not embedded in runtime
+#: assistance, and the honest way to keep that true is to name the phrases that
+#: would violate it and check for them.
+#:
+#: The task's own `description` is fair game -- it is the objective, declared in
+#: the spec and visible to every client. The *geometry* is not: which furnace
+#: centre catches a drill's drop is what the reference solver had to measure on
+#: an engine, and handing it over would make the baseline a test of
+#: instruction-following instead of a baseline.
+FORBIDDEN_IN_PROMPT = (
+    "drop_position",
+    "drop position",
+    "drop tile",
+    "y + 2",
+    "y+2",
+    "two tiles south",
+    "(1, 3)",
+)
 
 
 def _prompt_digest() -> str:
@@ -166,6 +197,18 @@ class AgentConfig:
     #: away stayed empty. Recorded in the manifest: a result produced with
     #: addressing is not comparable to one produced without it.
     addressed_actions: bool = True
+    #: When the model chooses to wait, repeat the wait for up to this many
+    #: extra decisions without asking again, stopping early if the world
+    #: materially changes or the episode ends. 0 disables it.
+    #:
+    #: This is an **assistance** and is recorded as one. It exists because
+    #: `build_line`'s measurement window is 3,600 game ticks and a decision is
+    #: 30, so a construction run is roughly 240 decisions of which ~200 are
+    #: waiting for a furnace -- and a paid provider asked to re-read a 2,700
+    #: character prompt 200 times to say "wait" again is measuring the price of
+    #: patience, not the agent. It cannot substitute for a decision the model
+    #: did not make: it only ever repeats `wait`, which the model just chose.
+    wait_batch: int = 0
     run_prefix: str = "agent"
     extra: dict = field(default_factory=dict)
 
@@ -182,6 +225,7 @@ class AgentConfig:
             "skills": self.skills,
             "memory": self.memory,
             "addressed_actions": self.addressed_actions,
+            "wait_batch": self.wait_batch,
         }
 
 
@@ -225,6 +269,8 @@ class Decision:
     #: Handle the model named, when it named one. None means the catalog's
     #: default binding -- the nearest entity -- was used.
     target: str | None = None
+    #: Values the model supplied for a parameterized action's arguments.
+    arguments: dict = field(default_factory=dict)
     record_summary: bool = True
     result: dict = field(default_factory=dict)
 
@@ -238,6 +284,10 @@ class Decision:
             "step": self.step,
             "action_index": self.action_index,
             "action_key": self.action_key,
+            # The whole semantic action, not just its verb: a replay of a
+            # construction run has to show *where* the agent placed a machine,
+            # and a bare catalog index cannot say.
+            "arguments": dict(self.arguments),
             # Which entity it acted on, so a replay can tell an addressed action
             # from one that took the catalog's nearest-entity default.
             "target": self.target,
@@ -287,6 +337,37 @@ class AgentLoop:
         self.decisions: list[Decision] = []
         self.memory = Memory()
 
+    def _world_signature(self) -> tuple:
+        """What must change before the model is asked again during a wait.
+
+        Deliberately coarse and deliberately **observation-only**: entity
+        identities and their working flags, plus the inventory. Reading
+        production out of evaluator truth here would make the stopping rule a
+        truth channel, which is the thing the whole observation boundary
+        exists to prevent.
+        """
+        observation = self.env._observation
+        entities = tuple(
+            sorted(
+                (str(record.get("h")), str(record.get("st")), bool(record.get("working")))
+                for record in (observation.get("entities") or [])
+                if record.get("h")
+            )
+        )
+        inventory = tuple(sorted((observation.get("inventory") or {}).items()))
+        return (entities, inventory)
+
+    def _domains(self) -> dict:
+        """The raw argument domains, for validation.
+
+        Separate from the *rendered* domains the prompt shows: the prompt is
+        allowed to summarise 121 placement candidates as a rule, and the
+        validator is not.
+        """
+        if not any(getattr(t, "parameterized", False) for t in self.env.catalog.templates):
+            return {}
+        return self.env.argument_domains()
+
     def _addressing(self, observation: dict) -> tuple[frozenset[str], frozenset[str]]:
         """What may be addressed this step, and which handles exist."""
         if not self.config.addressed_actions:
@@ -301,10 +382,19 @@ class AgentLoop:
         ones the discrete action already carried, and only `$target` changes.
         A model cannot reach an action its catalog does not contain, and the
         action profile still decides what the engine accepts.
+
+        A `parameterized-v1` action goes through `env.step_arguments`, which is
+        the *same* entry point the RL adapter uses -- so R2.2's property that
+        both clients issue equivalent semantic actions from matched states is
+        not re-implemented here, it is shared.
         """
+        catalog = self.env.catalog
+        if decision.action_index < len(catalog.templates):
+            template = catalog.templates[decision.action_index]
+            if getattr(template, "arguments", ()):
+                return self.env.step_arguments(decision.action_index, dict(decision.arguments))
         if not decision.target:
             return self.env.step(decision.action_index)
-        catalog = self.env.catalog
         if decision.action_index >= len(catalog.templates):
             # A skill, not a catalog template: skills resolve their own targets
             # and have no `$target` to rebind.
@@ -368,7 +458,13 @@ class AgentLoop:
                 meta=reply.meta,
             )
             outcome = parse_action(
-                reply.text, legal, vocabulary, targetable=targetable, handles=handles
+                reply.text,
+                legal,
+                vocabulary,
+                targetable=targetable,
+                handles=handles,
+                requires=summary.requires,
+                domains=self._domains(),
             )
             attempts.append(Attempt(number, reply, outcome))
             if isinstance(outcome, ParsedAction):
@@ -380,6 +476,7 @@ class AgentLoop:
                     action_index=outcome.index,
                     action_key=outcome.key,
                     target=outcome.target,
+                    arguments=outcome.arguments,
                     resolution="model",
                     record_summary=self.config.record_summaries,
                 )
@@ -422,6 +519,13 @@ class AgentLoop:
         consecutive_fallbacks = 0
         stopped = "budget"
         info: dict = {}
+        # The same bound the batching must respect, resolved once: an unbounded
+        # `wait_batch` could otherwise run past `max_steps` and spend an
+        # episode's budget without asking the model anything.
+        budget = min(
+            self.env.spec_.max_decision_steps,
+            self.config.max_steps if self.config.max_steps is not None else 1 << 30,
+        )
         # A fresh record per episode. Carrying one over would put the previous
         # scene's containers into this scene's prompt.
         self.memory = Memory()
@@ -432,7 +536,14 @@ class AgentLoop:
             mask = self.env.action_masks()
             vocabulary = action_vocabulary(self.env)
             legal = legal_actions(vocabulary, mask)
-            summary = summarise(observation, brief=self.brief, actions=legal, step=steps)
+            summary = summarise(
+                observation,
+                brief=self.brief,
+                actions=legal,
+                step=steps,
+                arguments=argument_domains(self.env),
+                requires=argument_requirements(self.env),
+            )
             targetable, handles = self._addressing(observation)
             decision = self.decide(
                 summary,
@@ -447,8 +558,35 @@ class AgentLoop:
             _, reward, terminated, truncated, info = self._execute(decision)
             steps += 1
             total_reward += float(reward)
+            batched = 0
+            if (
+                self.config.wait_batch
+                and decision.action_key == "wait"
+                and decision.resolution == "model"
+                and not (terminated or truncated)
+            ):
+                before = self._world_signature()
+                for _ in range(self.config.wait_batch):
+                    if steps >= budget:
+                        break
+                    _, extra_reward, terminated, truncated, info = self.env.step(
+                        self.env.catalog.wait_index
+                    )
+                    steps += 1
+                    batched += 1
+                    total_reward += float(extra_reward)
+                    if terminated or truncated:
+                        break
+                    if self._world_signature() != before:
+                        # Something changed that the model should see: a machine
+                        # appeared or stopped, or production moved. Stop
+                        # repeating and give it back the decision.
+                        break
             decision.result = {
                 "reward": round(float(reward), 4),
+                # Waits the loop repeated without asking again, so a replay can
+                # tell one decision from the game time it covered.
+                "batched_waits": batched,
                 "terminated": bool(terminated),
                 "truncated": bool(truncated),
                 # The environment's own verdict on the action, which is how an
@@ -534,6 +672,10 @@ class AgentLoop:
         finally:
             result = {
                 "run_id": self.run_id,
+                # Where the replay is. The loop streams decisions to
+                # `decisions.jsonl` and returns only aggregates, so a caller
+                # that wants the decisions has to be told where they went.
+                "run_dir": str(self.run_dir),
                 "task": self.config.task_id,
                 "episodes": episodes,
                 "wall_seconds": round(time.perf_counter() - started, 2),

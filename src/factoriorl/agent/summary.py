@@ -33,13 +33,18 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from factoriorl.catalog import ARGUMENT_PREFIX
+
 #: Bumped when what the language-model client is *shown* changes, even if the
 #: prompt text does not. `model.system_prompt_digest` pins the prompt and not
 #: this file, so how many entities are listed, which of their fields are
 #: surfaced, and whether every marker or one selected marker appears were all
 #: unpinned -- while the RL client had `goal_encoding` and `extractor_version`.
 #: Two clients whose encodings are not comparably pinned cannot be compared.
-SUMMARY_ENCODING_VERSION = 1
+#: 2 added argument domains, for `parameterized-v1`. A model shown a
+#: `place_at` it cannot supply a position for has no legal answer, so the
+#: encoding version is part of what a run's numbers mean.
+SUMMARY_ENCODING_VERSION = 2
 
 #: How many entities a summary lists before it starts counting the rest. A
 #: 32-tile sensor can return 48 records; pasting all of them into every prompt
@@ -119,6 +124,11 @@ def describe_template(template: Any) -> str:
     action = getattr(template, "action", "")
 
     def reference(value: Any) -> str:
+        if isinstance(value, str) and value.startswith(ARGUMENT_PREFIX):
+            # A `parameterized-v1` argument: the *model* supplies this, unlike
+            # a `$` reference the environment binds. Rendering it as the raw
+            # sigil told a model nothing about whose job it was.
+            return f"<{value[1:]} you choose>"
         if isinstance(value, str) and value.startswith("$"):
             name = value[1:]
             if name == "target":
@@ -140,12 +150,22 @@ def describe_template(template: Any) -> str:
     if action == "mine":
         return f"mine {reference(payload.get('handle'))} ({payload.get('count', 1)}x)"
     if action == "craft":
-        return f"craft {payload.get('count', 1)}x {payload.get('recipe', '?')}"
-    if action == "place":
-        return f"place {payload.get('item', '?')} on {reference(payload.get('position'))}"
-    if action == "transfer":
         return (
-            f"move {payload.get('count', '?')}x {payload.get('item', '?')} "
+            f"craft {reference(payload.get('count', 1))}x {reference(payload.get('recipe', '?'))}"
+        )
+    if action == "place":
+        item = reference(payload.get("item", "?"))
+        where = reference(payload.get("position"))
+        facing = payload.get("direction")
+        rendered = f"place {item} at {where}"
+        return f"{rendered} facing {reference(facing)}" if facing else rendered
+    if action == "transfer":
+        # Every field through `reference`, not just the endpoints: a
+        # parameterized transfer's count and item are `?` arguments too, and
+        # rendering them raw put "move ?countx ?item" in the prompt.
+        return (
+            f"move {reference(payload.get('count', '?'))}x "
+            f"{reference(payload.get('item', '?'))} "
             f"from {reference(payload.get('from'))} to {reference(payload.get('to'))}"
         )
     if action == "rotate":
@@ -157,6 +177,60 @@ def describe_template(template: Any) -> str:
     # every model agent until someone remembered to edit this file.
     rendered = ", ".join(f"{k}={reference(v)}" for k, v in sorted(payload.items()))
     return f"{action}({rendered})" if rendered else action
+
+
+#: How many placement candidates to show as examples. The domain is a disc of
+#: tile centres around the character -- 121 of them at `PLACEMENT_RADIUS` 5 --
+#: and enumerating it would be most of the prompt for the least information.
+#: The rule plus the entity list is what the environment itself derives the
+#: domain from, so the model is shown the same basis; a value outside it comes
+#: back as a named decision failure with the domain's size, not as a crash.
+PLACEMENT_EXAMPLES = 8
+
+#: Handles listed in full before the list is truncated.
+MAX_TARGETS_SHOWN = 20
+
+#: Domains small enough to enumerate in full. `placements` is the exception
+#: above; `recipes` is capped by the observation profile already.
+ENUMERATED_DOMAINS = ("directions", "amounts", "items", "recipes", "targets")
+
+
+def argument_domains(env: Any) -> dict:
+    """What values the model may supply, from the environment's own domains.
+
+    Read straight off `env.argument_domains()`, which is derived from the
+    observation, so this cannot widen what a policy could see -- the same
+    property `test_useful_observations.py` asserts for the RL path.
+    """
+    if not any(getattr(t, "parameterized", False) for t in env.catalog.templates):
+        return {}
+    domains = env.argument_domains()
+    placements = list(domains.get("placements") or [])
+    rendered: dict = {
+        "placements": {
+            "rule": (
+                "an ABSOLUTE world coordinate, not an offset -- any tile centre "
+                "within 5 tiles of you with nothing standing on it, written "
+                "[x.5, y.5]. Your own absolute position is under CHARACTER"
+            ),
+            "count": len(placements),
+            "examples": [list(p) for p in placements[:PLACEMENT_EXAMPLES]],
+        }
+    }
+    for name in ENUMERATED_DOMAINS:
+        values = list(domains.get(name) or [])
+        if values:
+            rendered[name] = values
+    return rendered
+
+
+def argument_requirements(env: Any) -> dict[str, tuple[str, ...]]:
+    """Which arguments each action key needs, so the prompt can say so."""
+    return {
+        template.key: tuple(template.arguments)
+        for template in env.catalog.templates
+        if getattr(template, "arguments", ())
+    }
 
 
 def action_vocabulary(env: Any) -> tuple[tuple[str, str], ...]:
@@ -322,6 +396,11 @@ class ObservationSummary:
     #: `dst` and not its two decoys, so this says which container to fill
     #: without saying which are wrong.
     goal: dict = field(default_factory=dict)
+    #: Legal values for each argument a parameterized action needs. Empty for
+    #: a discrete catalog, where the environment binds every reference itself.
+    arguments: dict = field(default_factory=dict)
+    #: Which arguments each action key requires.
+    requires: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -338,6 +417,8 @@ class ObservationSummary:
             "events": self.events,
             "counters": self.counters,
             "actions": [a.to_dict() for a in self.actions],
+            "arguments": self.arguments,
+            "requires": {k: list(v) for k, v in self.requires.items()},
         }
 
     def render(self) -> str:
@@ -441,7 +522,53 @@ class ObservationSummary:
         lines.append("")
         lines.append(f"LEGAL ACTIONS ({len(self.actions)}); anything else will be rejected")
         for action in self.actions:
-            lines.append(f"  {action.index}: {action.key} -- {action.description}")
+            needed = self.requires.get(action.key) or ()
+            suffix = f"  [needs: {', '.join(needed)}]" if needed else ""
+            lines.append(f"  {action.index}: {action.key} -- {action.description}{suffix}")
+        if self.arguments:
+            lines.append("")
+            lines.append(
+                "ARGUMENT VALUES -- an action marked [needs: ...] must be answered with "
+                'an "arguments" object supplying exactly those names'
+            )
+            placements = self.arguments.get("placements") or {}
+            if placements:
+                examples = ", ".join(
+                    f"[{p[0]:.1f}, {p[1]:.1f}]" for p in placements.get("examples") or ()
+                )
+                lines.append(
+                    f"  position: {placements.get('rule')} "
+                    f"({placements.get('count')} legal now, e.g. {examples})"
+                )
+            for name, label in (
+                ("directions", "direction"),
+                ("items", "item"),
+                ("amounts", "count"),
+                ("recipes", "recipe"),
+            ):
+                values = self.arguments.get(name)
+                if values:
+                    shown = ", ".join(str(v) for v in values[:24])
+                    more = "" if len(values) <= 24 else f" (+{len(values) - 24} more)"
+                    lines.append(f"  {label}: {shown}{more}")
+            targets = self.arguments.get("targets")
+            if targets:
+                # Enumerated, not described. "any handle in the ENTITIES list"
+                # was wrong whenever the legal set included resource tiles,
+                # which are listed under RESOURCES without handles -- so at the
+                # first decision of `build_line` the model was told to name a
+                # handle from an empty list while 31 were legal.
+                shown = ", ".join(str(t) for t in targets[:MAX_TARGETS_SHOWN])
+                more = (
+                    ""
+                    if len(targets) <= MAX_TARGETS_SHOWN
+                    else f" (+{len(targets) - MAX_TARGETS_SHOWN} more)"
+                )
+                lines.append(f"  handle / from / to: {shown}{more}")
+                lines.append(
+                    "    entities carry their handle in the ENTITIES list; the rest "
+                    "are resource tiles"
+                )
         return "\n".join(lines)
 
 
@@ -451,6 +578,8 @@ def summarise(
     brief: TaskBrief,
     actions: tuple[LegalAction, ...],
     step: int,
+    arguments: dict | None = None,
+    requires: dict | None = None,
 ) -> ObservationSummary:
     """Render one wire observation for a model.
 
@@ -480,4 +609,9 @@ def summarise(
         # The mod's own progress counters. They are part of the declared
         # observation every policy already sees, not evaluator bookkeeping.
         counters=dict(observation.get("task") or {}),
+        # Derived by the caller from `env.argument_domains()`, which is a
+        # function of the observation -- passed in rather than computed here so
+        # this function still takes no environment and cannot reach truth.
+        arguments=dict(arguments or {}),
+        requires=dict(requires or {}),
     )

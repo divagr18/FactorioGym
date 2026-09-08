@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
@@ -51,6 +51,15 @@ class DecisionFailure(StrEnum):
     #: handle that is not in the observation. Distinct from `illegal_action`
     #: because the verb was fine and only the addressee was wrong.
     UNKNOWN_TARGET = "unknown_target"
+    #: A parameterized action was chosen without every argument it needs.
+    #: Distinct from `unparseable` because the verb and the format were both
+    #: fine: `place_at` was named and `position` was not supplied.
+    MISSING_ARGUMENT = "missing_argument"
+    #: An argument was supplied whose value is not in the domain the
+    #: observation offers. Distinct from `illegal_action` for the same reason
+    #: `unknown_target` is: the verb was legal and only the value was wrong,
+    #: and the two call for different corrections.
+    BAD_ARGUMENT = "bad_argument"
     #: The call itself failed. Not produced here; recorded by the loop so that
     #: one vocabulary covers every reason a decision did not happen.
     PROVIDER_ERROR = "provider_error"
@@ -67,6 +76,9 @@ class ParsedAction:
     #: cannot carry an argument, and an agent that can see which chest it wants
     #: and can only say "the nearest one" is the defect this field removes.
     target: str | None = None
+    #: Values for a `parameterized-v1` action's declared arguments. Empty for a
+    #: discrete catalog, where the environment binds every reference itself.
+    arguments: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -74,6 +86,7 @@ class ParsedAction:
             "key": self.key,
             "reason": self.reason,
             "target": self.target,
+            "arguments": dict(self.arguments),
         }
 
 
@@ -93,30 +106,131 @@ class ParseFailure:
 #: reads the *last* object in the text: when a model restates the format example
 #: before answering, the first object is the example and taking it would execute
 #: the instructions instead of the decision.
+#: Kept for the flat case and for the tests that pin it, but extraction now
+#: scans for balanced braces -- see `_json_objects`. `\{[^{}]*\}` cannot match a
+#: nested object, so once `arguments` became an object the regex matched only
+#: the *inner* `{...}`, which has no "action" key, and 37 perfectly well-formed
+#: replies in a row were recorded as `unparseable`.
 _OBJECT = re.compile(r"\{[^{}]*\}", re.DOTALL)
 
 #: The fallback shape, for a model that answers in a line rather than JSON.
 _LINE = re.compile(r"\baction\b\s*[:=]\s*\"?([A-Za-z0-9_\-]+)\"?", re.IGNORECASE)
 
 
-def _extract(text: str) -> tuple[Any, str] | None:
+def _json_objects(text: str) -> list[str]:
+    """Every balanced `{...}` span in the text, outermost first.
+
+    A brace scan rather than a regex, because the reply may nest: an
+    `arguments` object inside the decision object is two levels, and no
+    non-recursive pattern can bracket that.
+    """
+    spans: list[str] = []
+    depth = 0
+    start = -1
+    in_string = False
+    escaped = False
+    for index, character in enumerate(text or ""):
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+            continue
+        if character == '"':
+            in_string = True
+        elif character == "{":
+            if depth == 0:
+                start = index
+            depth += 1
+        elif character == "}":
+            depth -= 1
+            if depth == 0 and start >= 0:
+                spans.append(text[start : index + 1])
+                start = -1
+            elif depth < 0:
+                depth = 0
+    return spans
+
+
+def _extract(text: str) -> tuple[Any, str, str | None, dict] | None:
     """Pull the action field out of a response, or ``None``."""
-    for match in reversed(_OBJECT.findall(text or "")):
+    for match in reversed(_json_objects(text or "")):
         try:
             payload = json.loads(match)
         except ValueError:
             continue
         if isinstance(payload, dict) and "action" in payload:
             target = payload.get("target")
+            arguments = payload.get("arguments")
             return (
                 payload["action"],
                 str(payload.get("reason") or ""),
                 str(target) if isinstance(target, (str, int)) and str(target) else None,
+                dict(arguments) if isinstance(arguments, dict) else {},
             )
     line = _LINE.search(text or "")
     if line:
-        return line.group(1), "", None
+        return line.group(1), "", None, {}
     return None
+
+
+#: Which observation-derived domain each argument name draws from. Mirrors
+#: `factoriorl.catalog.ARGUMENT_DOMAINS`, imported rather than restated so the
+#: agent and the environment cannot disagree about what a name means.
+def _domain_of(argument: str) -> str | None:
+    from factoriorl.catalog import ARGUMENT_DOMAINS
+
+    return ARGUMENT_DOMAINS.get(argument)
+
+
+def _validate_arguments(
+    key: str,
+    supplied: dict,
+    required: tuple[str, ...],
+    domains: dict,
+) -> ParseFailure | dict:
+    """Check every declared argument against the domain the observation offers.
+
+    Checked here rather than left to `env.step_arguments` so a wrong value is a
+    *named decision failure the model can be corrected on*, inside the retry
+    budget, instead of a `ValueError` that ends the episode. The environment
+    still re-checks it: this narrows, it does not decide.
+    """
+    missing = [name for name in required if name not in supplied]
+    if missing:
+        return ParseFailure(
+            DecisionFailure.MISSING_ARGUMENT,
+            f"{key} needs {', '.join(required)}; missing {', '.join(missing)}",
+            json.dumps(supplied, sort_keys=True),
+        )
+    extra = sorted(set(supplied) - set(required))
+    if extra:
+        return ParseFailure(
+            DecisionFailure.BAD_ARGUMENT,
+            f"{key} takes only {', '.join(required) or 'no arguments'}; "
+            f"got {', '.join(extra)} as well",
+            json.dumps(supplied, sort_keys=True),
+        )
+    cleaned: dict = {}
+    for name in required:
+        value = supplied[name]
+        domain_name = _domain_of(name)
+        legal_values = domains.get(domain_name) if domain_name else None
+        if isinstance(value, list):
+            # A position arrives as a JSON array and the domain holds lists.
+            value = [float(v) for v in value]
+        if legal_values is not None and value not in list(legal_values):
+            shown = list(legal_values)[:6]
+            return ParseFailure(
+                DecisionFailure.BAD_ARGUMENT,
+                f"{name}={value!r} is not one of the {len(list(legal_values))} legal "
+                f"values for {domain_name} (e.g. {shown})",
+                json.dumps({name: supplied[name]}, sort_keys=True),
+            )
+        cleaned[name] = value
+    return cleaned
 
 
 def parse_action(
@@ -126,6 +240,8 @@ def parse_action(
     *,
     targetable: frozenset[str] = frozenset(),
     handles: frozenset[str] = frozenset(),
+    requires: dict[str, tuple[str, ...]] | None = None,
+    domains: dict | None = None,
 ) -> ParsedAction | ParseFailure:
     """Validate one response against the catalog and the current mask.
 
@@ -140,7 +256,7 @@ def parse_action(
             DecisionFailure.UNPARSEABLE,
             "no JSON object with an 'action' field and no 'action:' line",
         )
-    raw, reason, target = extracted
+    raw, reason, target, supplied = extracted
     legal_by_index = {a.index: a for a in legal}
     keys = [key for key, _ in vocabulary]
 
@@ -202,4 +318,10 @@ def parse_action(
                 f"{target!r} is not a handle in the current observation",
                 target,
             )
-    return ParsedAction(index=index, key=key, reason=reason, target=target)
+    required = (requires or {}).get(key, ())
+    if required or supplied:
+        checked = _validate_arguments(key, supplied, required, domains or {})
+        if isinstance(checked, ParseFailure):
+            return checked
+        supplied = checked
+    return ParsedAction(index=index, key=key, reason=reason, target=target, arguments=supplied)
