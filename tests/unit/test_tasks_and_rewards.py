@@ -594,7 +594,9 @@ def test_no_family_pays_a_policy_for_stopping():
     import subprocess
     import sys as _sys
 
-    result = subprocess.run(
+    # Regenerates the report; the exit code covers both halves of the invariant
+    # and is asserted by the gradient test below, not here.
+    subprocess.run(
         [_sys.executable, str(ROOT / "tools" / "reward_audit.py")],
         capture_output=True,
         text=True,
@@ -605,8 +607,6 @@ def test_no_family_pays_a_policy_for_stopping():
         f"these families pay for stopping: {report['violating']}. A shaping cap "
         "reachable while success is false must stay below the step cost of the budget."
     )
-    assert result.returncode == 0
-
     by_task = {r["task"]: r for r in report["reports"]}
     for task_id, entry in by_task.items():
         assert entry["idle_return"] < 0, f"{task_id} returns {entry['idle_return']:+} for idling"
@@ -669,3 +669,38 @@ def test_begin_episode_sends_both_declared_profiles():
     source = inspect.getsource(FactorioEnv.begin_episode)
     assert "observation_profile=self.spec_.observation_profile" in source
     assert "action_profile=self.spec_.action_profile" in source
+
+
+def test_the_families_with_no_reward_gradient_are_pinned():
+    """The other half of the invariant, and the half that was missing.
+
+    `repair_belt` satisfies the plateau rule *perfectly* -- its shaping
+    predicate is its success predicate, so the cap is unreachable while the task
+    is unfinished -- and it is completely unlearnable for exactly that reason.
+    Its only shaping pays on a plate reaching the sink, which is the win, and
+    success needs one. Nothing pays before success.
+
+    Measured, not argued: 190 training episodes over 50,000 steps, zero
+    successes, mean episode reward -0.300 against a step cost of exactly
+    300 x 0.001. The policy had nothing to ascend, and no training budget fixes
+    that -- 190 episodes of zero signal and 1,900 are the same to a gradient.
+
+    Pinned rather than required empty, because emptying it means designing
+    intermediate rewards for two families and re-freezing the holdouts they
+    appear in. A new starved family fails here; so does a fix, deliberately.
+    """
+    report = json.loads((ROOT / "docs" / "evidence" / "reward-audit.json").read_text("utf-8"))
+    assert report["no_gradient"] == ["repair_belt", "restore_power"], report["no_gradient"]
+
+    by_task = {r["task"]: r for r in report["reports"]}
+    # Everything else can pay before winning, by one of the two routes.
+    for task_id, entry in by_task.items():
+        if task_id in report["no_gradient"]:
+            assert entry["informative_components"] == []
+            continue
+        assert entry["informative_components"], task_id
+
+    # And the two routes are distinguishable: a different quantity, or partial
+    # credit toward the same one.
+    assert any("does not" in c for c in by_task["deliver"]["informative_components"])
+    assert any("partial credit" in c for c in by_task["plate_line"]["informative_components"])

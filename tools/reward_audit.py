@@ -32,6 +32,34 @@ Two components are treated specially:
   the sink and succeeds on one plate in the sink, so its cap is unreachable
   without success and it is correctly exempt.
 
+The other half of the invariant
+------------------------------
+A plateau test alone is only one side, and `repair_belt` is the point that makes
+that obvious: it satisfies the plateau rule *perfectly* -- its shaping predicate
+**is** its success predicate, so the cap is unreachable while the task is
+unfinished -- and it is therefore completely unlearnable. Its only shaping pays
+on a plate reaching the sink, which is the win condition, and success needs
+exactly one. So nothing pays before success and the reward is a constant
+negative drip.
+
+Measured: 190 training episodes, **zero successes**, mean episode reward -0.300
+against a step cost of exactly 300 x 0.001. The policy had nothing to ascend,
+and more steps cannot fix that -- 190 episodes of zero signal and 1,900 episodes
+of zero signal are the same thing to a policy gradient.
+
+So a reward needs both properties, and they pull against each other:
+
+* **non-exploitable** -- the shaping reachable short of the goal must cost less
+  than exhausting the budget, or idling on it beats continuing;
+* **informative** -- something must be payable *before* success, or there is no
+  gradient at all.
+
+A component is informative when its quantity can be non-zero while success is
+still false: either it measures something success does not (deliver's `carried`),
+or it measures the success quantity with a threshold above one, so partial
+progress pays (plate_line's thirty plates). A component measuring the success
+quantity at a threshold of one can only ever pay for winning.
+
 Run: uv run python tools/reward_audit.py
 """
 
@@ -78,6 +106,35 @@ def reachable_without_success(component, successes) -> tuple[bool, str]:
     return True, "measures something success does not require"
 
 
+def informative_components(spec) -> list[str]:
+    """Shaping that can pay while the success predicate is still false."""
+    thresholds = {}
+    for predicate in spec.success:
+        key = (predicate.kind, predicate.marker, getattr(predicate, "item", None))
+        thresholds[key] = getattr(predicate, "at_least", None)
+
+    found: list[str] = []
+    for component in spec.rewards:
+        if component.kind in (RewardKind.SPARSE_SUCCESS, RewardKind.STEP_COST):
+            continue
+        if not component.shaping:
+            continue
+        if component.kind is RewardKind.POTENTIAL:
+            # A potential function is dense by construction: it is a distance,
+            # and it changes on every step that changes the state.
+            found.append(f"{component.name} (potential)")
+            continue
+        predicate = component.predicate
+        if predicate is None:
+            continue
+        key = (predicate.kind, predicate.marker, getattr(predicate, "item", None))
+        if key not in thresholds:
+            found.append(f"{component.name} (measures a quantity success does not)")
+        elif (thresholds[key] or 0) > 1:
+            found.append(f"{component.name} (partial credit up to {thresholds[key]:g})")
+    return found
+
+
 def audit(task_id: str) -> dict:
     spec = get(task_id).spec
     step_weight = 0.0
@@ -108,8 +165,13 @@ def audit(task_id: str) -> dict:
             exempt.append({"name": component.name, "why": why})
 
     plateau = round(plateau, 4)
+    informative = informative_components(spec)
     return {
         "task": task_id,
+        "informative_components": informative,
+        # No component payable before success means no gradient at all, whatever
+        # the training budget.
+        "has_gradient": bool(informative),
         "version": spec.version,
         "budget": spec.max_decision_steps,
         "step_cost_weight": step_weight,
@@ -126,6 +188,7 @@ def audit(task_id: str) -> dict:
 def main() -> int:
     reports = [audit(task_id) for task_id in sorted(all_tasks())]
     violations = [r for r in reports if r["violates"]]
+    starved = [r for r in reports if not r["has_gradient"]]
 
     for report in reports:
         flag = "TRAP" if report["violates"] else "ok  "
@@ -137,6 +200,8 @@ def main() -> int:
         )
         for entry in report["contributors"]:
             print(f"        + {entry['name']:16s} cap={entry['cap']}  {entry['why']}")
+        if not report["has_gradient"]:
+            print("        ! nothing pays before success: this reward has no gradient")
 
     out = ROOT / "docs" / "evidence" / "reward-audit.json"
     out.write_text(
@@ -149,6 +214,13 @@ def main() -> int:
                 ),
                 "reports": reports,
                 "violating": [r["task"] for r in violations],
+                "no_gradient": [r["task"] for r in starved],
+                "no_gradient_note": (
+                    "Nothing in these rewards pays before the success predicate fires, so a "
+                    "policy has nothing to ascend and the training budget is irrelevant. "
+                    "repair_belt: 190 episodes, zero successes, mean reward -0.300 against a "
+                    "step cost of exactly 300 x 0.001."
+                ),
             },
             indent=2,
         ),

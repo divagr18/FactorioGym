@@ -3,6 +3,11 @@
   "reports": [
     {
       "task": "deliver",
+      "informative_components": [
+        "at_destination (partial credit up to 20)",
+        "carried (measures a quantity success does not)"
+      ],
+      "has_gradient": true,
       "version": "1.3.0",
       "budget": 120,
       "step_cost_weight": 0.001,
@@ -27,6 +32,11 @@
     },
     {
       "task": "mine_smelt",
+      "informative_components": [
+        "plates_produced (partial credit up to 12)",
+        "ore_mined (measures a quantity success does not)"
+      ],
+      "has_gradient": true,
       "version": "1.2.0",
       "budget": 400,
       "step_cost_weight": 0.001,
@@ -51,6 +61,10 @@
     },
     {
       "task": "navigate",
+      "informative_components": [
+        "approach (potential)"
+      ],
+      "has_gradient": true,
       "version": "1.1.0",
       "budget": 150,
       "step_cost_weight": 0.001,
@@ -69,6 +83,10 @@
     },
     {
       "task": "plate_line",
+      "informative_components": [
+        "plates_produced (partial credit up to 30)"
+      ],
+      "has_gradient": true,
       "version": "1.1.0",
       "budget": 400,
       "step_cost_weight": 0.001,
@@ -87,6 +105,8 @@
     },
     {
       "task": "repair_belt",
+      "informative_components": [],
+      "has_gradient": false,
       "version": "1.2.0",
       "budget": 300,
       "step_cost_weight": 0.001,
@@ -105,6 +125,8 @@
     },
     {
       "task": "restore_power",
+      "informative_components": [],
+      "has_gradient": false,
       "version": "1.2.0",
       "budget": 250,
       "step_cost_weight": 0.001,
@@ -118,6 +140,11 @@
     },
     {
       "task": "supply_furnace",
+      "informative_components": [
+        "plates_produced (partial credit up to 20)",
+        "ore_carried (measures a quantity success does not)"
+      ],
+      "has_gradient": true,
       "version": "1.2.0",
       "budget": 300,
       "step_cost_weight": 0.001,
@@ -141,5 +168,10 @@
       ]
     }
   ],
-  "violating": []
+  "violating": [],
+  "no_gradient": [
+    "repair_belt",
+    "restore_power"
+  ],
+  "no_gradient_note": "Nothing in these rewards pays before the success predicate fires, so a policy has nothing to ascend and the training budget is irrelevant. repair_belt: 190 episodes, zero successes, mean reward -0.300 against a step cost of exactly 300 x 0.001."
 }
