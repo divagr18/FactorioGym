@@ -62,7 +62,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from factoriorl.seeding import Branch, SeedPlan  # noqa: E402
 from factoriorl.tasks import all_tasks, get  # noqa: E402
-from factoriorl.tasks.spec import Blueprint  # noqa: E402
+from factoriorl.tasks.spec import Blueprint, entity_tiles  # noqa: E402
 
 # --------------------------------------------------------------- thresholds
 
@@ -156,16 +156,6 @@ HARDER_WHEN_SMALLER = frozenset({"budget_slack"})
 #: absent is treated as 1x1, which is correct for every chest, wall, belt,
 #: inserter and small pole in use. The two multi-tile entities are named
 #: explicitly because getting them wrong silently changes reachability: the
-#: mine_smelt generator carries a comment about a 2x2 furnace landing on the
-#: spawn tile, and the restore_power generator about a 3x3 drill's near edge
-#: sitting on a pole's supply boundary. A 1x1 approximation would have made both
-#: of those scenes look walkable when they were not.
-ENTITY_TILE_SIZES: dict[str, tuple[int, int]] = {
-    "stone-furnace": (2, 2),
-    "electric-mining-drill": (3, 3),
-    "solar-panel": (3, 3),
-}
-
 #: Prototypes the character can walk over. Transport belts do not block the
 #: player in Factorio -- they carry it. Treating a belt line as a wall would
 #: report a fictitious detour around every repair_belt scene and would make the
@@ -185,17 +175,13 @@ LONG_MOVE_TILES = 4.45
 #: report an unreachable goal that the engine walks around trivially.
 BOX_PADDING = 8
 
-
-def entity_tiles(name: str, position: tuple[float, float]) -> list[tuple[int, int]]:
-    """The integer tiles an entity occupies, from its prototype footprint."""
-    width, height = ENTITY_TILE_SIZES.get(name, (1, 1))
-    # floor(p - size/2 + 0.5) rather than round(): Python's round() is
-    # banker's rounding, which sends a footprint whose left edge lands on .5 to
-    # the wrong tile half the time. The same trap is called out in env.py's
-    # placement-offset comment.
-    x0 = math.floor(position[0] - width / 2 + 0.5)
-    y0 = math.floor(position[1] - height / 2 + 0.5)
-    return [(x0 + dx, y0 + dy) for dx in range(width) for dy in range(height)]
+#: Footprints and the tile arithmetic now live in `factoriorl.tasks.spec`,
+#: imported above, because `Blueprint.footprint_conflicts` needs the same
+#: numbers -- it was comparing one rounded centre tile per entity and so could
+#: not see a 2x2. The reachability BFS below and the overlap validator are now
+#: reading one table. It matters for both: the deliver generator reasons about a
+#: 2x2 furnace beside the spawn tile, and the restore_power generator about a
+#: 3x3 drill's near edge sitting on a pole's supply boundary.
 
 
 def blocked_tiles(blueprint: Blueprint) -> set[tuple[int, int]]:

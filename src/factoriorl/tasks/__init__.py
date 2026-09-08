@@ -16,7 +16,12 @@ import pkgutil
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from factoriorl.tasks.spec import Blueprint, LayoutFamily, TaskSpec
+from factoriorl.tasks.spec import (
+    UNDECIDABLE_AT_RESET,
+    Blueprint,
+    LayoutFamily,
+    TaskSpec,
+)
 
 #: family id -> (spec, generator, reference solution)
 _REGISTRY: dict[str, RegisteredTask] = {}
@@ -75,10 +80,23 @@ class TaskConfigError(ValueError):
 def validate_all(sample_seeds: int = 16) -> dict:
     """Validate every registered task, reporting *all* problems at once.
 
-    Includes an engine-free structural pass over sampled blueprints: in-box,
-    non-overlapping footprints, a reachable goal, and -- importantly -- the
-    success predicate must be False at reset, or the task is solved by its own
-    initial conditions.
+    Includes an engine-free structural pass over sampled blueprints: in-box
+    positions, non-overlapping footprints over real prototype tile sizes, and
+    the success predicate must be False at reset, or the task is solved by its
+    own initial conditions.
+
+    The reset check has limits, and they are reported rather than papered over.
+    Five of the seven predicate kinds are fully determined by the blueprint:
+    contents, inventory, character position, and the two cumulative counters
+    that `world.clear_statistics` empties at every episode start. `working` is
+    not -- it depends on fuel and power networks -- so a task whose success
+    rests on it appears in the report under `undecidable_success`, and the
+    check is not claimed for it.
+
+    Reachability is *not* checked here; that is `tools/generator_diagnostics.py`,
+    which owns the BFS and the padded bounding box. The previous version of this
+    docstring claimed both a reachable goal and the reset check, and neither
+    existed in the code -- grep found only the sentence.
     """
     import random
     import zlib
@@ -142,6 +160,13 @@ def validate_all(sample_seeds: int = 16) -> dict:
         if "test" not in splits:
             problems.append("no held-out (test) layout family")
 
+        # A conjunction is already satisfied only if *every* clause is. Where a
+        # clause cannot be decided engine-free, satisfying the rest is not
+        # proof the scene is solved -- so those tasks are flagged as uncovered
+        # and the conjunction over the decidable clauses is what is tested.
+        decidable = [p for p in spec.success if p.kind not in UNDECIDABLE_AT_RESET]
+        undecidable = [p for p in spec.success if p.kind in UNDECIDABLE_AT_RESET]
+
         for family in spec.layout_families:
             for index in range(sample_seeds):
                 rng = random.Random(stable_seed(task_id, family.name, index))
@@ -154,11 +179,23 @@ def validate_all(sample_seeds: int = 16) -> dict:
                 problems.extend(
                     f"{family.name}[{index}] {p}" for p in blueprint.footprint_conflicts()
                 )
+                observation, truth = blueprint.initial_state()
+                if decidable and all(p.evaluate(observation, truth) for p in decidable):
+                    detail = ", ".join(p.describe() for p in decidable)
+                    problems.append(
+                        f"{family.name}[{index}] success already satisfied at reset "
+                        f"by the scene's own contents: {detail}"
+                        + ("" if not undecidable else " (plus undecidable clauses)")
+                    )
 
         report["tasks"][task_id] = {
             "version": spec.version,
             "families": [f.name for f in spec.layout_families],
             "problems": problems,
+            # Which success clauses the reset check could not decide, and so
+            # did not verify. Empty for six of the seven tasks.
+            "undecidable_success": [p.describe() for p in undecidable],
+            "reset_check_covers_success": not undecidable,
             "ok": not problems,
         }
         if problems:

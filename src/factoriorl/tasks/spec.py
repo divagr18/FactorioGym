@@ -31,6 +31,36 @@ from typing import Any
 # --------------------------------------------------------------------- scene
 
 
+#: Tile footprints, keyed by prototype. Read off a real engine's bounding
+#: boxes, not guessed: `test_entity_footprints` pins the table, and a prototype
+#: absent from it is treated as 1x1.
+#:
+#: This lived in `tools/generator_diagnostics.py`, where the reachability BFS
+#: needed it, while `footprint_conflicts` compared one rounded centre tile per
+#: entity -- so the validator that was supposed to catch overlapping machines
+#: could not see a 2x2 at all.
+ENTITY_TILE_SIZES: dict[str, tuple[int, int]] = {
+    "burner-mining-drill": (2, 2),
+    "electric-mining-drill": (3, 3),
+    "solar-panel": (3, 3),
+    "stone-furnace": (2, 2),
+}
+
+
+def entity_tiles(name: str, position: tuple[float, float]) -> list[tuple[int, int]]:
+    """The integer tiles an entity occupies, from its prototype footprint.
+
+    `floor(p - size/2 + 0.5)` rather than `round()`: Python's `round()` is
+    banker's rounding, which sends a footprint whose left edge lands on .5 to
+    the wrong tile half the time. `plate_line` documents the same trap for a
+    column of walls spaced on .5 boundaries.
+    """
+    width, height = ENTITY_TILE_SIZES.get(name, (1, 1))
+    x0 = math.floor(position[0] - width / 2 + 0.5)
+    y0 = math.floor(position[1] - height / 2 + 0.5)
+    return [(x0 + dx, y0 + dy) for dx in range(width) for dy in range(height)]
+
+
 @dataclass(frozen=True)
 class EntitySpec:
     name: str
@@ -110,15 +140,70 @@ class Blueprint:
     # ---- engine-free structural validation (PLAN.md 3.2 solvability) -------
 
     def footprint_conflicts(self) -> list[str]:
-        """Two entities declared on the same tile is a generator bug."""
+        """Two entities sharing a tile is a generator bug.
+
+        Over real footprints, not centre tiles. The previous version compared
+        `round()` of one centre per entity, so two adjacent 2x2 machines whose
+        footprints overlap passed validation -- the exact geometry
+        `plate_line`'s docstring reasons about by hand, and the geometry
+        `build_line` had to measure on an engine because nothing checked it.
+        """
         seen: dict[tuple[int, int], str] = {}
         problems = []
         for entity in self.entities:
-            key = (round(entity.position[0]), round(entity.position[1]))
-            if key in seen:
-                problems.append(f"{entity.name} overlaps {seen[key]} at {key}")
-            seen[key] = entity.name
+            for tile in entity_tiles(entity.name, entity.position):
+                if tile in seen and seen[tile] != entity.name:
+                    problems.append(f"{entity.name} overlaps {seen[tile]} at {tile}")
+                elif tile in seen:
+                    problems.append(f"two {entity.name} overlap at {tile}")
+                seen[tile] = entity.name
         return problems
+
+    def initial_state(self) -> tuple[dict, dict]:
+        """A synthetic `(observation, truth)` for the scene at reset.
+
+        Enough for `Predicate.evaluate` to decide the kinds a blueprint fully
+        determines, so "the success predicate must be False at reset" can be
+        checked without an engine. The cumulative channels are empty by
+        construction rather than by assumption: `world.clear_statistics` clears
+        production and the placement counter at every episode start, and only
+        the `place` action increments the latter.
+        """
+        markers = {name: list(position) for name, position in self.markers.items()}
+        containers: dict[str, dict] = {}
+        placed: dict[str, int] = {}
+        entities = []
+        for entity in self.entities:
+            placed[entity.name] = placed.get(entity.name, 0) + 1
+            entities.append({"name": entity.name, "p": list(entity.position), "type": entity.name})
+            if entity.marker:
+                markers[entity.marker] = list(entity.position)
+                containers[entity.marker] = dict(entity.contents)
+        observation = {
+            "tick": 0,
+            "character": {"position": list(self.character_position)},
+            "inventory": dict(self.character_inventory),
+            "entities": entities,
+            "resources": {
+                "tiles": [{"name": r.name, "p": list(r.position)} for r in self.resources]
+            },
+            "terrain": {"blocked": []},
+            "inflight": [],
+        }
+        truth = {
+            "markers": markers,
+            "containers": containers,
+            "placed_counts": placed,
+            "produced": {},
+            "built": {},
+            "window": [],
+            # Undecidable without an engine; see `UNDECIDABLE_AT_RESET`. Left
+            # empty so a predicate reading them is False, which is why a task
+            # relying on one is *reported* rather than quietly passed.
+            "working": {},
+            "working_counts": {},
+        }
+        return observation, truth
 
     def out_of_box(self) -> list[str]:
         problems = []
@@ -174,6 +259,16 @@ DEFAULT_TRACKED_ITEMS: frozenset[str] = frozenset(
         "coal",
         "stone",
     }
+)
+
+
+#: Predicate kinds a blueprint cannot decide. Whether a machine is *working*
+#: depends on fuel, power networks and heat -- engine state, not scene
+#: declaration -- so `Blueprint.initial_state` leaves those channels empty and
+#: `validate_all` reports the gap instead of reading the empty channel as a
+#: passing check.
+UNDECIDABLE_AT_RESET: frozenset = frozenset(
+    {PredicateKind.ENTITY_WORKING, PredicateKind.ANY_WORKING}
 )
 
 
