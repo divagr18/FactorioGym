@@ -13,26 +13,27 @@ state. Read this before treating any older summary as current fact.
 
 **Nothing is running.** Both machines idle.
 
-Results measured against the live holdout (`holdout_v3`, `4227eb56`):
+Results against the live holdout (`holdout_v3`, `4227eb56`), all single-seed:
 
-| task | run | held-out greedy / stochastic | floor | training successes |
-|---|---|---|---|---|
-`restore_power` v1.6.0, 25k, seed 1 | `rp16-…078a96f0` | **0.00 / 0.37** `[0.282,0.468]` | 0.02 | 101 / 227 |
-`repair_belt` v1.6.0 + curriculum, 50k, seed 1 | `cur16-…b1e2eb75` | **0.00 / 0.06** | 0.00 | 7 / 221 |
+| task | held-out greedy / stochastic | floor | training |
+|---|---|---|---|
+`restore_power` v1.6.0 + curriculum, 50k | **0.26 / 0.66** `[0.563,0.745]` | 0.00 | 668/908 |
+`restore_power` v1.6.0, 25k | 0.00 / 0.37 `[0.282,0.468]` | 0.02 | 101/227 |
+`repair_belt` v1.6.0 + curriculum, 50k | 0.00 / 0.06 | 0.00 | 7/221 |
 
-Both single-seed, both `covers_frozen_set: true`. Evidence:
-[`restore_power-v1.6.0-holdout_v3.json`](evidence/restore_power-v1.6.0-holdout_v3.json),
-[`repair_belt-curriculum-holdout_v3.json`](evidence/repair_belt-curriculum-holdout_v3.json).
+`restore_power`'s best is the strongest held-out number any repair family has
+produced, and it still misses 0.80. **Two things changed between its 0.37 and its
+0.66** -- the curriculum and 25k → 50k steps -- so per R5.2 neither gets the credit.
 
-Three caveats that belong with these numbers:
+Three caveats that travel with all of these:
 
-- **Greedy and stochastic disagree sharply on both**, with non-overlapping
-  intervals on `restore_power`. Read greedily either run says "did not learn".
-  Both arms scored identical episodes; neither was chosen after seeing the other.
+- **Greedy and stochastic disagree by a wide margin on every repair-family run**,
+  with non-overlapping intervals. Read greedily, two of the three say "did not
+  learn". Both arms score identical episodes; neither was picked after the fact.
 - **One seed each.** `restore_power` at v1.5.0 gave 0.77 / 0.00 / 0.00 across three
-  seeds, so a single cell says little about the family.
-- **`repair_belt` had two changes at once** (layout redesign + curriculum), so per
-  R5.2 the movement is not attributable to either alone.
+  seeds, so a single cell says little. Per book-synthesis §10, re-evaluating one
+  checkpoint on many scenes does not estimate training instability.
+- **All measured with the goal-focus assistance on** (`aeae6a4` names it).
 
 ## 2. Filename warning — "v3" in an evidence filename is **not** `holdout_v3`
 
@@ -206,21 +207,34 @@ Release packaging | `release/` snapshot is **stale** (predates the curve-logger 
 
 ## 7. Next work package
 
-**R0 and R1 are complete.** 376 engine-free tests, lint and format clean.
-Verified end to end on a 2,000-step engine run (`r0r1smoke-…e1a766e8`): the
-holdout citation, per-task entry hash, checkpoint hash and eval streams all
-populate, `manifests_citing` finds the citation where it previously found zero
-for every holdout, and the run reports **2048 policy decisions against 3517
-primitive transitions** — the budget confound R1.3 exposes, now measured.
+**R0, R1 and R2 are complete.** 486 engine-free tests, lint and format clean.
+R2.1's gate passes on a real engine: `docs/evidence/r2-conformance.json`, 15/15.
 
-Next is **R2** — make construction and stable interaction expressible:
+What R2 delivered:
 
-1. **R2.1** canonical parameterized actions, reusing the existing addressed LLM path.
-2. **R2.2** an RL action adapter over operation / target / placement / orientation.
-3. **R2.3** observations that make the task and its failures legible.
+| | |
+|---|---|
+R2.1 | `parameterized-v1`: arguments declared by writing `"?name"` into a payload, so the catalog digest covers them. `place_at(item, position, direction)` decouples tile from facing -- the thing `primitive-v1` could not express. Verified live: wanted facing 4, got 4. Handle addressing replaces distance rank, and 12 of 12 handles survived movement. `effects.py` separates commanded / expected / observed per synthesis §5 |
+R2.2 | `ParameterizedEnv`: a `MultiDiscrete` space, one dimension per argument, masked per dimension. Real PPO updates run; no sampled action in a whole rollout lands on a masked index; RL and LLM paths produce byte-identical payloads from matched states |
+R2.3 | A stopped machine now says *why* -- `no_fuel` and `no_power` were the same single bit. Readable status, an explicit `working` flag, fuel and output contents, and 22 observable recipes where the domain was empty |
 
-Then R3 (construction), R4 (recovery), R5 (controlled learning), R6 (release).
+Next is **R3 — construct and commission a real small factory**. R2.3 put the
+materials in the item vocabulary and the recipes in the observation, so the
+contract needed for construction now exists.
 
-**Every skill-augmented number predating `8e6bdb6` used a different objective**
-(undiscounted sum, one discount per decision) and is not comparable with runs
-after it.
+Two limitations to carry into R3, both stated in code:
+
+- **Argument masks cannot depend on the sampled operation.** Index 0 of each
+  argument dimension is an `UNUSED` sentinel and a needed-but-unused argument
+  decodes to a *counted* no-op. Removing it needs a custom autoregressive
+  distribution: stock sb3 fetches masks before the forward pass, samples all
+  sub-distributions independently from one flat head, and sums independent
+  factors in `log_prob`.
+- **`docs/research/book-synthesis-2026-09-09.md` §8** proposes scoring placement
+  candidates by their resulting local structure rather than one unrelated logit
+  per index, which may generalise across translated and rotated layouts. That is
+  a representation experiment with its own gate, not part of R2.
+
+**Every skill-augmented number predating `8e6bdb6` used a different objective**,
+and every checkpoint predating `e749e9c` a different observation encoding
+(`EXTRACTOR_VERSION` 4 → 7). Neither is comparable across those boundaries.
