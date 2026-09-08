@@ -203,10 +203,19 @@ class FactorioEnv(gym.Env):
         if rng.random() >= fraction:
             return blueprint
 
-        occupied = {(round(e.position[0], 1), round(e.position[1], 1)) for e in blueprint.entities}
+        # Compared as *tiles*, not as coordinates. Entities are declared
+        # pre-snap at (x, y) while a 1x1 entity occupies the tile centred on
+        # (x+0.5, y+0.5), and markers are declared post-snap -- so comparing
+        # the raw floats could never match and the guard silently admitted
+        # every candidate. The first version of this did exactly that, and the
+        # test that was meant to catch it built its entities at post-snap
+        # coordinates, so it validated the fixture rather than the code.
+        occupied = {
+            (math.floor(e.position[0]), math.floor(e.position[1])) for e in blueprint.entities
+        }
         for dx, dy in ((0.0, 2.0), (0.0, -2.0), (2.0, 0.0), (-2.0, 0.0), (0.0, 3.0), (0.0, -3.0)):
             candidate = (target[0] + dx, target[1] + dy)
-            if (round(candidate[0], 1), round(candidate[1], 1)) not in occupied:
+            if (math.floor(candidate[0]), math.floor(candidate[1])) not in occupied:
                 return replace(blueprint, character_position=candidate)
         return blueprint
 

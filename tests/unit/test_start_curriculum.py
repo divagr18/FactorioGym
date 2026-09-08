@@ -17,6 +17,7 @@ holdout. That also makes curriculum-on and curriculum-off comparable against
 the same holdout.
 """
 
+import math
 from dataclasses import replace
 
 import pytest
@@ -87,20 +88,36 @@ def test_a_run_declaring_no_curriculum_is_untouched():
 
 
 def test_the_start_never_lands_on_an_entity():
+    """Entities are declared PRE-snap; the guard must compare tiles.
+
+    The first version compared raw floats, so an entity declared at (13, -2)
+    never matched the candidate (13.5, -1.5) that occupies the same tile, and
+    the guard admitted every offset. The earlier version of this test built
+    its entities at post-snap coordinates and therefore tested its own
+    fixture. These are declared the way the real generator declares them.
+    """
     env = _Env(get("repair_belt"), Branch.TRAIN, "train")
+    # Pre-snap declarations covering the tiles the first four offsets land on.
     blueprint = replace(
         _blueprint(),
         entities=tuple(
-            EntitySpec(name="transport-belt", position=(13.5, -3.5 + dy))
-            for dy in (2.0, -2.0, 3.0, -3.0)
+            EntitySpec(name="transport-belt", position=(13.0, -4.0 + dy)) for dy in (2.0, -2.0)
         )
-        + (EntitySpec(name="transport-belt", position=(15.5, -3.5)),),
+        + (
+            EntitySpec(name="transport-belt", position=(15.0, -4.0)),
+            EntitySpec(name="transport-belt", position=(11.0, -4.0)),
+        ),
     )
-    occupied = {(round(e.position[0], 1), round(e.position[1], 1)) for e in blueprint.entities}
+    occupied = {(math.floor(e.position[0]), math.floor(e.position[1])) for e in blueprint.entities}
+    assert len(occupied) == 4, "fixture must actually block the first four offsets"
+    moved = 0
     for index in range(60):
         rng = env.seed_plan.generator_rng(Branch.TRAIN, index)
         position = env._apply_start_curriculum(blueprint, rng).character_position
-        assert (round(position[0], 1), round(position[1], 1)) not in occupied
+        if position != (0.0, 0.0):
+            moved += 1
+            assert (math.floor(position[0]), math.floor(position[1])) not in occupied
+    assert moved, "the curriculum never fired, so the guard was never exercised"
 
 
 def test_curriculum_is_recorded_in_the_run_config():
