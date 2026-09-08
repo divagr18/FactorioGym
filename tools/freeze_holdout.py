@@ -392,7 +392,7 @@ def diff_bodies(frozen: dict, current: dict) -> list[str]:
     return problems
 
 
-def verify(document: dict) -> list[str]:
+def verify(document: dict, pending: set[str] | None = None) -> list[str]:
     """Check a committed artefact against the current generators.
 
     Two independent checks, because they fail for different reasons and a caller
@@ -402,6 +402,13 @@ def verify(document: dict) -> list[str]:
       edited by hand, which no amount of regeneration would notice;
     * the regenerated body must match the committed body -- catches a generator,
       a task version or the seeding changing under it.
+
+    ``pending`` names tasks that are registered but deliberately not yet in this
+    file, and exists only for ``--add-task``: without it that mode could never
+    run, because the condition it fixes -- a registered task absent from the
+    holdout -- is the very thing verification refuses to proceed past. Nothing
+    else may pass it, or "registered but never frozen" would stop being an
+    error.
     """
     problems: list[str] = []
     body = document.get("holdout")
@@ -418,7 +425,7 @@ def verify(document: dict) -> list[str]:
 
     seed_plan = body.get("seed_plan", {})
     plan = SeedPlan(master=seed_plan.get("master"), run_id=seed_plan.get("run_id"))
-    registered = sorted(all_tasks())
+    registered = sorted(set(all_tasks()) - (pending or set()))
     # Regenerated with the *frozen* parameters, never with this module's current
     # defaults: verification must ask "is the committed content still what the
     # source produces", and re-parameterising from the defaults would answer a
@@ -674,6 +681,15 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--add-task",
+        default="",
+        help=(
+            "freeze one newly registered task into an existing holdout without "
+            "touching any existing entry or the candidate declaration. The added "
+            "task is deliberately NOT declared a candidate."
+        ),
+    )
+    parser.add_argument(
         "--declare",
         action="store_true",
         help=(
@@ -720,6 +736,68 @@ def main() -> int:
     task_ids = [t.strip() for t in args.tasks.split(",") if t.strip()]
     candidates = [c.strip() for c in args.candidates.split(",") if c.strip()] or None
     plan = SeedPlan(master=args.seed, run_id=args.run_id)
+
+    if args.add_task:
+        # A separate mode from --refreeze, and the reason is the declaration.
+        # --refreeze rebuilds the document from scratch, which drops
+        # `declaration.declared_at` -- and that timestamp is the entire evidence
+        # that the candidate set was chosen before any held-out result was read.
+        # Adding an eighth task must not destroy the evidence about the other
+        # seven. Existing entries are copied verbatim, so every existing
+        # `entry_hash` is unchanged and `stale_citations` correctly reports no
+        # published run as stale, which is the case it was already written for.
+        if not args.out.is_file():
+            print(f"no frozen holdout at {args.out}; run with --write first")
+            return 2
+        document = json.loads(args.out.read_text(encoding="utf-8"))
+        pending = {t.strip() for t in args.add_task.split(",") if t.strip()}
+        problems = verify(document, pending=pending)
+        if problems:
+            print("refusing to add a task to a holdout that does not verify:")
+            for problem in problems:
+                print(f"  - {problem}")
+            return 1
+        added = [t.strip() for t in args.add_task.split(",") if t.strip()]
+        present = sorted(set(added) & set(document["holdout"]["tasks"]))
+        if present:
+            print(
+                f"already frozen: {present}. Changing an existing entry is a "
+                "re-freeze, not an addition; its published results would stop "
+                "describing these scenes."
+            )
+            return 1
+        body = document["holdout"]
+        # The seed plan is the frozen file's, not the CLI's: a task added under a
+        # different plan would sit in the same file under the same holdout_id
+        # while naming scenes from a different seed stream.
+        frozen_plan = SeedPlan(
+            master=body["seed_plan"]["master"], run_id=body["seed_plan"]["run_id"]
+        )
+        for task_id in added:
+            body["tasks"][task_id] = freeze_task(
+                task_id, frozen_plan, body["start_index"], body["episodes_per_task"]
+            )
+        body["tasks"] = {k: body["tasks"][k] for k in sorted(body["tasks"])}
+        before = document["content_hash"]
+        document["content_hash"] = content_hash(body)
+        document["summary"] = summarise(body)
+        document["generated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        document["git_commit"] = git_commit()
+        if not args.write:
+            print_summary(document)
+            print(f"\ndry run; nothing written. Pass --write to add {added}")
+            return 0
+        args.out.write_text(json.dumps(document, indent=2), encoding="utf-8")
+        print_summary(document)
+        print(f"\nadded {added} to {args.out}")
+        print(f"content_hash {before} -> {document['content_hash']}")
+        print(
+            "Per-task entry_hash values for the existing tasks are unchanged, so "
+            "results published against them still describe their scenes. The added "
+            f"task is not a declared candidate: declaration is still "
+            f"{document['declaration']['candidate_families']}."
+        )
+        return 0
 
     if args.declare:
         # A separate mode from --write because the declaration is not content:
