@@ -153,3 +153,75 @@ def test_an_entity_underfoot_is_not_addressable():
     by_key = dict(zip([s.key for s in skills_module.SKILLS], mask, strict=True))
     assert by_key["approach_entity_0"]
     assert not by_key["approach_entity_1"], "the oscillating action is still legal"
+
+
+# ------------------------------------- 4b.1, checked semantically
+
+
+def rankable_counts(task_id: str, split: str, samples: int = 20) -> list[int]:
+    """How many entities `approach_entity_k` can actually address, per scene.
+
+    Mirrors `skill_context`: obstacles are dropped from the ranking. Blueprint
+    specs carry no engine `type`, and `stone-wall` is the only obstacle any
+    family places, so the name is the proxy -- asserted below so a new obstacle
+    entity cannot slip past it.
+    """
+    from factoriorl.seeding import Branch, SeedPlan
+
+    task = get(task_id)
+    families = [f for f in task.spec.layout_families if f.split == split]
+    if not families:
+        return []
+    plan = SeedPlan(master=20260908, run_id="holdout-v1")
+    counts = []
+    for index in range(1000, 1000 + samples):
+        rng = plan.generator_rng(Branch.EVAL, index)
+        family = families[rng.randrange(len(families))]
+        blueprint = task.generate(family, rng)
+        entities = list(getattr(blueprint, "entities", []) or [])
+        counts.append(sum(1 for e in entities if "wall" not in e.name))
+    return counts
+
+
+def test_wall_is_still_the_only_obstacle_the_name_proxy_has_to_cover():
+    assert set(skills_module.OBSTACLE_TYPES) == {"wall"}
+
+
+@pytest.mark.parametrize("task_id", FAMILIES)
+def test_addressable_field_is_pinned(task_id):
+    """PLAN 4b.1 forbids a skill that encodes a family's solution, and the
+    string test above cannot see the violation that matters.
+
+    `approach_entity_k` addresses the k-th *nearest* entity. When a scene
+    contains exactly one rankable entity, that skill has exactly one possible
+    referent -- and in `navigate` that referent is the goal marker itself, so a
+    single action wins the episode. The measured random floor over skills is
+    0.99 on `navigate` and 0.32 on `mine_smelt`, against 0.04 on `deliver`,
+    which is the only family that places entities the solution does not need.
+
+    None of that is visible to a test that greps skill descriptions for task
+    ids: `approach_entity_0` contains no forbidden substring and is, in five of
+    six families, the answer.
+
+    The counts are pinned rather than required to exceed a bound, because
+    raising them means changing generators, which changes every blueprint digest
+    and invalidates the frozen holdout. A generator edit that trivialises a
+    family fails here; so does the fix, deliberately.
+    """
+    expected = {
+        # task: (train, test) rankable entities per scene
+        "navigate": (1, 1),  # the goal chest, alone among walls -- floor 0.99
+        "mine_smelt": (1, 1),  # the furnace -- floor 0.32
+        "supply_furnace": (2, 3),
+        "deliver": (4, 4),  # 1 dst, 1 src, 2 decoys -- floor 0.04
+        "repair_belt": (13, 12),
+        "restore_power": (12, 12),
+    }[task_id]
+    for split, want in zip(("train", "test"), expected, strict=True):
+        counts = rankable_counts(task_id, split)
+        assert counts, f"{task_id} has no {split} family"
+        assert min(counts) <= want <= max(counts), (
+            f"{task_id}/{split} addressable field moved: saw {min(counts)}..{max(counts)}, "
+            f"pinned at {want}. A family whose rankable set is a singleton hands "
+            f"approach_entity_0 the answer."
+        )

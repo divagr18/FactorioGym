@@ -3,51 +3,51 @@
   "reports": [
     {
       "task": "deliver",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "budget": 120,
       "step_cost_weight": 0.001,
       "pressure": 0.12,
-      "plateau": 0.35,
-      "idle_return": 0.23,
-      "violates": true,
-      "margin": 2.92,
+      "plateau": 0.04,
+      "idle_return": -0.08,
+      "violates": false,
+      "margin": 0.33,
       "contributors": [
         {
-          "name": "at_destination",
-          "cap": 0.2,
-          "why": "cap reached at 4 of the 20 success requires"
-        },
-        {
           "name": "carried",
-          "cap": 0.15,
+          "cap": 0.04,
           "why": "measures something success does not require"
         }
       ],
-      "exempt": []
+      "exempt": [
+        {
+          "name": "at_destination",
+          "why": "cap needs 20, at or past the 20 for success"
+        }
+      ]
     },
     {
       "task": "mine_smelt",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "budget": 400,
       "step_cost_weight": 0.001,
       "pressure": 0.4,
-      "plateau": 0.85,
-      "idle_return": 0.45,
-      "violates": true,
-      "margin": 2.12,
+      "plateau": 0.09,
+      "idle_return": -0.31,
+      "violates": false,
+      "margin": 0.22,
       "contributors": [
         {
-          "name": "plates_produced",
-          "cap": 0.6,
-          "why": "cap reached at 3 of the 12 success requires"
-        },
-        {
           "name": "ore_mined",
-          "cap": 0.25,
+          "cap": 0.09,
           "why": "measures something success does not require"
         }
       ],
-      "exempt": []
+      "exempt": [
+        {
+          "name": "plates_produced",
+          "why": "cap needs 12.1053, at or past the 12 for success"
+        }
+      ]
     },
     {
       "task": "navigate",
@@ -100,32 +100,28 @@
     },
     {
       "task": "supply_furnace",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "budget": 300,
       "step_cost_weight": 0.001,
       "pressure": 0.3,
-      "plateau": 0.8,
-      "idle_return": 0.5,
-      "violates": true,
-      "margin": 2.67,
+      "plateau": 0.06,
+      "idle_return": -0.24,
+      "violates": false,
+      "margin": 0.2,
       "contributors": [
         {
-          "name": "plates_produced",
-          "cap": 0.6,
-          "why": "cap reached at 4 of the 20 success requires"
-        },
-        {
           "name": "ore_carried",
-          "cap": 0.2,
+          "cap": 0.06,
           "why": "measures something success does not require"
         }
       ],
-      "exempt": []
+      "exempt": [
+        {
+          "name": "plates_produced",
+          "why": "cap needs 20, at or past the 20 for success"
+        }
+      ]
     }
   ],
-  "violating": [
-    "deliver",
-    "mine_smelt",
-    "supply_furnace"
-  ]
+  "violating": []
 }

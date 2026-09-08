@@ -1,5 +1,5 @@
 {
-  "content_hash": "f77aa2c291f720f9601e8d94fa0f9b9daa4a90de37e1d4629c53aeac126135f4",
+  "content_hash": "acb820cb2041957941192b0a676af3b7bd84c15082f105ddc7d34eb07bbf42aa",
   "holdout": {
     "schema": "factoriorl.holdout/1",
     "holdout_id": "holdout_v1",
@@ -16,7 +16,7 @@
     "tasks": {
       "deliver": {
         "task_id": "deliver",
-        "task_version": "1.1.0",
+        "task_version": "1.2.0",
         "families_in_split": [
           "screened_depot"
         ],
@@ -525,7 +525,7 @@
       },
       "mine_smelt": {
         "task_id": "mine_smelt",
-        "task_version": "1.1.0",
+        "task_version": "1.2.0",
         "families_in_split": [
           "screened_patch"
         ],
@@ -2561,7 +2561,7 @@
       },
       "supply_furnace": {
         "task_id": "supply_furnace",
-        "task_version": "1.1.0",
+        "task_version": "1.2.0",
         "families_in_split": [
           "shared_input"
         ],
@@ -3070,16 +3070,16 @@
       }
     }
   },
-  "generated_at": "2026-09-07T20:15:54Z",
-  "git_commit": "1e5bf47c6d2b4dd9fd9786a7b0024a3c8df2230b",
+  "generated_at": "2026-09-08T02:59:53Z",
+  "git_commit": "3da32d5225dd8198a0ca30c3345288e920e5a0d9",
   "declaration": {
     "candidate_families": [
       "navigate",
       "deliver",
       "mine_smelt"
     ],
-    "declared_at": "2026-09-07T20:21:20Z",
-    "declared_at_commit": "89bcb6cc72205e549fdc6abefae3e0f22799d138",
+    "declared_at": "2026-09-08T02:59:54Z",
+    "declared_at_commit": "3da32d5225dd8198a0ca30c3345288e920e5a0d9",
     "note": "The candidate set must be recorded here before any result on this holdout is read. Adding it afterwards produces the same JSON and a different claim."
   },
   "notes": {
@@ -3094,7 +3094,7 @@
   },
   "summary": {
     "deliver": {
-      "task_version": "1.1.0",
+      "task_version": "1.2.0",
       "families_in_split": [
         "screened_depot"
       ],
@@ -3104,7 +3104,7 @@
       "below_min_distinct_scenes": false
     },
     "mine_smelt": {
-      "task_version": "1.1.0",
+      "task_version": "1.2.0",
       "families_in_split": [
         "screened_patch"
       ],
@@ -3144,7 +3144,7 @@
       "below_min_distinct_scenes": false
     },
     "supply_furnace": {
-      "task_version": "1.1.0",
+      "task_version": "1.2.0",
       "families_in_split": [
         "shared_input"
       ],

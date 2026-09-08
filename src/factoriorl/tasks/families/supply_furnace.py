@@ -42,7 +42,7 @@ SPEC = TaskSpec(
     # 1.1.0: plate target 5 -> 20, so the task outruns its own random floor.
     # The version is in the random-baseline cache key, which keeps a cached
     # 0.88 from ever being compared against the harder task.
-    version="1.1.0",
+    version="1.2.0",
     description="Keep a fuelled furnace supplied with ore until N plates exist.",
     layout_families=FAMILIES,
     success=(Predicate(PredicateKind.PRODUCED, item="iron-plate", at_least=TARGET_COUNT),),
@@ -51,15 +51,15 @@ SPEC = TaskSpec(
         RewardComponent(
             "plates_produced",
             RewardKind.HIGH_WATER,
-            weight=0.15,
-            cap=0.6,
+            weight=0.009,
+            cap=0.18,
             predicate=Predicate(PredicateKind.PRODUCED, item="iron-plate"),
         ),
         RewardComponent(
             "ore_carried",
             RewardKind.HIGH_WATER,
-            weight=0.02,
-            cap=0.2,
+            weight=0.003,
+            cap=0.06,
             predicate=Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-ore"),
         ),
         RewardComponent("step_cost", RewardKind.STEP_COST, weight=0.001),

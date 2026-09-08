@@ -99,7 +99,7 @@ SPEC = TaskSpec(
     # part of the random-baseline cache key, so bumping it is what stops a
     # cached 0.80 floor -- or any published score measured against it -- from
     # being served for the harder task under the same name.
-    version="1.1.0",
+    version="1.2.0",
     description="Carry items from a source container to a destination container.",
     layout_families=FAMILIES,
     success=(
@@ -117,15 +117,15 @@ SPEC = TaskSpec(
         RewardComponent(
             "at_destination",
             RewardKind.HIGH_WATER,
-            weight=0.05,
-            cap=0.2,
+            weight=0.0025,
+            cap=0.05,
             predicate=Predicate(PredicateKind.CONTAINER_HOLDS, marker="dst", item=TARGET_ITEM),
         ),
         RewardComponent(
             "carried",
             RewardKind.HIGH_WATER,
-            weight=0.02,
-            cap=0.15,
+            weight=0.002,
+            cap=0.04,
             predicate=Predicate(PredicateKind.INVENTORY_HOLDS, item=TARGET_ITEM),
         ),
         RewardComponent("step_cost", RewardKind.STEP_COST, weight=0.001),

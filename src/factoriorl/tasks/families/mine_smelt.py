@@ -49,7 +49,7 @@ SPEC = TaskSpec(
     # 1.1.0: the plate target rose from 3 to 12. The version is what keeps a
     # cached random baseline, and any published result, from being compared
     # across two different tasks wearing the same name.
-    version="1.1.0",
+    version="1.2.0",
     description="Mine iron ore, feed a furnace, and produce iron plates.",
     layout_families=FAMILIES,
     success=(Predicate(PredicateKind.PRODUCED, item="iron-plate", at_least=TARGET_COUNT),),
@@ -58,15 +58,15 @@ SPEC = TaskSpec(
         RewardComponent(
             "plates_produced",
             RewardKind.HIGH_WATER,
-            weight=0.2,
-            cap=0.6,
+            weight=0.019,
+            cap=0.23,
             predicate=Predicate(PredicateKind.PRODUCED, item="iron-plate"),
         ),
         RewardComponent(
             "ore_mined",
             RewardKind.HIGH_WATER,
-            weight=0.05,
-            cap=0.25,
+            weight=0.0075,
+            cap=0.09,
             predicate=Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-ore"),
         ),
         RewardComponent("step_cost", RewardKind.STEP_COST, weight=0.001),

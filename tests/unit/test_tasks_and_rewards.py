@@ -570,23 +570,25 @@ def test_the_baseline_cache_key_separates_action_spaces():
 # ------------------------------------------------- paying for stopping
 
 
-def test_shaping_plateaus_are_pinned_to_the_families_that_have_them():
-    """A task must not pay more for stopping than the budget charges for it.
+def test_no_family_pays_a_policy_for_stopping():
+    """Shaping earnable while success is false is a plateau: bank it and idle.
 
-    Shaping earnable while the success predicate is still false is a plateau: an
-    agent banks it and idles, and the only thing opposing that is the step cost.
-    When the plateau exceeds the step cost of exhausting the budget, the episode
-    has a positive-return absorbing strategy that is not success.
+    The only thing opposing that is the step cost, so the invariant is a
+    comparison of two numbers -- shaping still earnable short of the goal
+    against the step cost of exhausting the budget -- and neither needs an
+    engine.
 
-    `deliver` seed 3 is the worked example. It converged on `take_iron-plate_20`,
-    ran 95.9 steps of a 120 budget for +0.062 and scored 0.00 on all three
-    evaluation rows -- the reward's arithmetic working as written.
+    `deliver` seed 3 is the worked example of getting this wrong. It converged
+    on `take_iron-plate_20`, ran 95.9 steps of a 120 budget for +0.062 and
+    scored 0.00 on all three evaluation rows. At the time three of six families
+    paid for stopping: deliver +0.23, mine_smelt +0.45, supply_furnace +0.50.
 
-    This pins the set rather than asserting it is empty, because emptying it
-    means changing reward weights, which bumps every task version and invalidates
-    a frozen holdout validated against the current ones. A new violation fails
-    here; fixing one also fails here, deliberately, so the pin is updated by
-    someone who meant to.
+    The fix was not to shrink the shaping but to grade it. Each progress
+    component's weight is now cap divided by the quantity success requires, so
+    it pays smoothly all the way to the goal and tops out exactly when the task
+    is done -- the shape `repair_belt` always had, and the reason its cap was
+    never reachable short of success. Only the acquisition terms remain
+    earnable early, and they sit well under pressure.
     """
     import subprocess
     import sys as _sys
@@ -598,19 +600,19 @@ def test_shaping_plateaus_are_pinned_to_the_families_that_have_them():
         cwd=ROOT,
     )
     report = json.loads((ROOT / "docs" / "evidence" / "reward-audit.json").read_text("utf-8"))
-    assert result.returncode == 1, "the audit must exit non-zero while violations stand"
-
-    assert report["violating"] == ["deliver", "mine_smelt", "supply_furnace"], (
-        "the set of families that pay for stopping changed; if this is a fix, update "
-        "the pin, and if it is not, a new reward plateau was introduced"
+    assert report["violating"] == [], (
+        f"these families pay for stopping: {report['violating']}. A shaping cap "
+        "reachable while success is false must stay below the step cost of the budget."
     )
+    assert result.returncode == 0
 
     by_task = {r["task"]: r for r in report["reports"]}
-    # The three clean families are clean because nothing is earnable short of
-    # the goal -- repair_belt succeeds on the very quantity it pays for.
-    for task_id in ("navigate", "repair_belt", "restore_power"):
-        assert by_task[task_id]["plateau"] == 0.0
-        assert by_task[task_id]["idle_return"] < 0
+    for task_id, entry in by_task.items():
+        assert entry["idle_return"] < 0, f"{task_id} returns {entry['idle_return']:+} for idling"
 
-    # deliver's margin is the one that was measured collapsing.
-    assert by_task["deliver"]["idle_return"] > 0.2
+    # Progress components must top out at the goal, not before it: that is what
+    # makes them exempt rather than merely small.
+    for task_id in ("deliver", "mine_smelt", "supply_furnace"):
+        names = {c["name"] for c in by_task[task_id]["contributors"]}
+        assert "at_destination" not in names
+        assert "plates_produced" not in names
