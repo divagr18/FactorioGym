@@ -95,6 +95,65 @@ Engine pin: Factorio **2.0.60 (build 83512, win64)** - see
 > which a permutation-invariant pool over an entity set cannot represent.
 > Those are the two open hypotheses; neither is yet tested.
 
+> **Holdout design correction (2026-09-08). Both repair families' evaluated
+> splits were testing regimes their training never showed.** Measured
+> engine-free over 400-600 generated scenes per layout family
+> (`docs/evidence/holdout-distribution-audit.json`):
+>
+> | family | split | fault count | gap position |
+> |---|---|---|---|
+> | `repair_belt` / `gap`, `gap_far` | train | 1 hole | interior |
+> | `repair_belt` / `misrotation` | val | 1 hole **+ a twist** | interior |
+> | `repair_belt` / `double_gap` | test | **2 holes** | interior |
+> | `restore_power` / `pole_gap`, `pole_gap_far` | train | 1 pole | **600/600 flanked** |
+> | `restore_power` / `two_gaps` | val | **2 poles** | mixed |
+> | `restore_power` / `gap_near_drill` | test | 1 pole | **600/600 terminal** |
+>
+> `restore_power.py` fixed the held-out fault at `chain - 1` while training
+> sampled `randint(1, chain - 2)`, which never reaches it: the missing pole was
+> flanked by poles on both sides in every training scene and in none of the
+> held-out ones, where it is always the chain's last position with the drill
+> beyond. Two policies then fit training equally well -- "fill the hole between
+> two poles", which scores exactly 0.00 on that holdout by construction, and
+> "walk to the published gap and place", which transfers. Which one a run
+> learned was a seed lottery, and that is the bimodal 0.77 / 0.00 / 0.00, not
+> transfer variance. I had called it variance and proposed more seeds, which
+> would have measured the lottery more precisely and explained nothing.
+>
+> `repair_belt` had the same defect on the fault-*count* axis, and published
+> only `min(gaps)`, so on a two-hole holdout the second hole had no coordinate
+> anywhere the policy could read.
+>
+> The parity audit cannot see either: its four difficulty descriptors are all
+> route geometry to the goal marker, and neither sliding a gap along a chain
+> nor adding a second one moves them.
+>
+> Fixed at v1.6.0 of both families:
+>
+> * Only `focus_marker` gets geometry (3 goal slots), so publishing a second
+>   marker alone would have reached nothing. `env._focus_target` now names the
+>   nearest **unrepaired** declared fault, read from the observation's own
+>   entity list, so the vector advances as faults close and leaks no truth.
+> * Both faults are published (`gap`, `gap2`) on both families.
+> * Training spans both regimes: a third of `repair_belt`'s training scenes
+>   carry a second hole and a third a misrotation; `restore_power`'s training
+>   gap sampling now includes the terminal position (28% and 14% by family).
+>   The evaluated families keep their identities -- `double_gap` is still always
+>   two holes, `gap_near_drill` still always terminal -- so each still names a
+>   structural regime, but one training has shown instances of.
+> * `repair_belt`'s `delivered` component is removed. It was HIGH_WATER on the
+>   same predicate as `success` with the env terminating on success, so it could
+>   only pay on the terminal transition and never approach its cap; the reward
+>   audit already exempted it. Declared shaping with no shaping effect made the
+>   manifest read as two gradients where there was one.
+>
+> **`holdout_v3` is now the live holdout** (`4227eb56...`, seed plan
+> `holdout-v3`, indices 3000-3099, candidates `deliver`, `repair_belt`,
+> `restore_power`). Bumped rather than re-frozen in place, on its own seed
+> stream. `holdout_v1` and `holdout_v2` stay in the tree as the record of what
+> earlier results were measured against, and are closed. Every published number
+> for these two families predates the fix and is superseded.
+
 
 ## Phase 0 — Repository foundation and engine feasibility
 

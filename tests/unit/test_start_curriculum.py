@@ -132,5 +132,4 @@ def test_it_is_not_a_task_field_so_the_holdout_stays_valid():
     """A test-split scene cannot observe it, so it must not touch the digest."""
     resolved = get("repair_belt").spec.to_dict()
     assert "start_state_curriculum" not in resolved
-    assert resolved["version"] == "1.5.0"
     assert resolved["focus_marker"] == "gap"

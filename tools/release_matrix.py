@@ -36,7 +36,7 @@ comparison that diagnoses a miss is structural-versus-seeds.
 Run:
 
     uv run python tools/release_matrix.py --tasks navigate,deliver,mine_smelt \\
-        --seeds 1,2,3 --holdout docs/evidence/holdout_v1.json
+        --seeds 1,2,3 --holdout docs/evidence/holdout_v3.json
 """
 
 from __future__ import annotations
@@ -263,7 +263,7 @@ def main() -> int:
     parser.add_argument("--tasks", default="navigate,deliver,mine_smelt")
     parser.add_argument("--seeds", default="1,2,3")
     parser.add_argument("--eval-episodes", type=int, default=100)
-    parser.add_argument("--holdout", default="docs/evidence/holdout_v1.json")
+    parser.add_argument("--holdout", default="docs/evidence/holdout_v3.json")
     parser.add_argument(
         "--no-skills",
         action="store_true",

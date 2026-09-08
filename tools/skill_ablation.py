@@ -185,7 +185,7 @@ def main() -> int:
     parser.add_argument("--eval-episodes", type=int, default=50)
     parser.add_argument(
         "--holdout",
-        default="docs/evidence/holdout_v1.json",
+        default="docs/evidence/holdout_v3.json",
         help="frozen holdout both arms are scored on; '' to disable (unpaired)",
     )
     parser.add_argument("--out", default=None, help="report destination (default docs/evidence)")

@@ -34,7 +34,12 @@ SPEC = TaskSpec(
     # scenes and the holdout spans the pooled training difficulty. The version
     # is part of the random-baseline cache key, and none of the cached
     # baselines were measured against these scenes.
-    version="1.5.0",
+    # 1.6.0: the evaluated splits stop testing regimes training never showed.
+    # Both `gap2` and `gap` are published, so a two-fault scene has a
+    # coordinate for each fault rather than only for `min(gaps)`; training
+    # spans one and two holes and with-and-without a misrotation; and the inert
+    # `delivered` component is gone.
+    version="1.6.0",
     description="Restore a broken belt line so items reach the unloading chest.",
     layout_families=FAMILIES,
     success=(
@@ -42,20 +47,18 @@ SPEC = TaskSpec(
     ),
     rewards=(
         RewardComponent("repaired", RewardKind.SPARSE_SUCCESS, weight=1.0, shaping=False),
-        RewardComponent(
-            "delivered",
-            RewardKind.HIGH_WATER,
-            weight=0.1,
-            cap=0.5,
-            predicate=Predicate(PredicateKind.CONTAINER_HOLDS, marker="sink", item="iron-plate"),
-        ),
-        # The only thing that pays before the belt is repaired.
+        # `delivered` was removed here in 1.6.0. It was HIGH_WATER on
+        # CONTAINER_HOLDS(sink, iron-plate) with cap 0.5, while `success` is the
+        # same predicate at `at_least=1` and the env terminates on success -- so
+        # it could only ever pay on the terminal transition and could never
+        # approach its cap. `docs/evidence/reward-audit.json` already exempted
+        # it ("cap needs 5, at or past the 1 for success"). Declared shaping
+        # with provably no shaping effect is worse than none: the manifest read
+        # as though this family had two gradients when it had one, and the
+        # "190 episodes, zero successes, -0.300" note that used to stand here
+        # was itself an artifact of the vector-summing curve logger.
         #
-        # Measured without it: 190 training episodes over 50,000 steps, zero
-        # successes, mean episode reward -0.300 -- exactly the step cost, because
-        # `delivered` fires on a plate in the sink and success needs one plate,
-        # so the shaping could only ever pay for winning. The policy had nothing
-        # to ascend and no budget fixes that.
+        # The only thing that pays before the belt is repaired:
         #
         # Sutton & Barto §17.4 (p.386) warns against answering that with
         # hand-designed subgoal rewards and recommends initialising the value
@@ -81,7 +84,7 @@ SPEC = TaskSpec(
     # The gap is where the agent must act; the success predicate names only
     # where the result is counted. Without this the `toward_gap` potential
     # paid for approaching a point the observation never contained.
-    extra_public_markers=("gap",),
+    extra_public_markers=("gap", "gap2"),
     landmarks=(
         # Falls from true to false as the spare is spent, which is what tells
         # the policy a placement actually happened.
@@ -168,11 +171,34 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         length = 2 * rng.randint(3, 5)
         gap_index = rng.randint(2, length - 2)
     gaps = {gap_index}
-    if family.name == "double_gap":
+    # Fault *count* and fault *kind* both have to appear in training, or the
+    # holdout measures an extrapolation instead of a transfer.
+    #
+    # This generator used to give every training family exactly one hole and no
+    # misrotation, while `double_gap` (test) always had two holes and
+    # `misrotation` (val) always had a hole plus a crooked belt. A policy that
+    # had perfectly learned the training task therefore scored zero on both
+    # evaluated splits by construction, and 50,000 steps duly produced 0.00
+    # with 1 success in 198 episodes. The same defect on a different axis cost
+    # `restore_power` two of three seeds; see
+    # docs/evidence/holdout-distribution-audit.json.
+    #
+    # Training now spans both regimes: a third of `gap`/`gap_far` scenes carry
+    # a second hole, and a third carry a misrotation. The evaluated families
+    # keep their identities -- `double_gap` is still always two holes and
+    # `misrotation` always a hole plus a twist -- so each still names a
+    # structural regime, but it is a regime training has shown instances of.
+    second_gap = family.name == "double_gap" or (
+        family.split == "train" and rng.random() < 1 / 3
+    )
+    if second_gap:
         # Distinct, or `double_gap` silently degenerates into `gap`.
         choices = [i for i in range(2, length - 1) if i != gap_index]
         if choices:
             gaps.add(choices[rng.randrange(len(choices))])
+    twisted = family.name == "misrotation" or (
+        family.split == "train" and rng.random() < 1 / 3
+    )
 
     entities = [
         EntitySpec(
@@ -187,7 +213,7 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         if index in gaps:
             continue
         direction = "east"
-        if family.name == "misrotation" and index == gap_index + 1 and index < length:
+        if twisted and index == gap_index + 1 and index < length:
             direction = "north"
         entities.append(
             EntitySpec("transport-belt", (float(start_x + index), row), direction=direction)
@@ -239,7 +265,13 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
             # coordinate names a point half a tile off the slot the belt
             # actually occupies. Small against a 64-tile normalisation, and
             # wrong.
-            "gap": (float(start_x + min(gaps)) + 0.5, row + 0.5),
+            **{
+                ("gap" if rank == 0 else f"gap{rank + 1}"): (
+                    float(start_x + index) + 0.5,
+                    row + 0.5,
+                )
+                for rank, index in enumerate(sorted(gaps))
+            },
         },
         radius=64,
     )

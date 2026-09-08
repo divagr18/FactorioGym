@@ -643,10 +643,28 @@ def test_only_the_objective_and_its_work_site_are_published_never_the_decoys():
         assert not {m for m in public if "decoy" in m}, f"{task_id} publishes a decoy"
         # A declared extra must be a real marker the generator emits, or the
         # observation would advertise a position that does not exist.
+        #
+        # Sampled across every family rather than one blueprint, because a
+        # second fault is legitimately optional: `repair_belt` gives a third of
+        # its training scenes two holes and its holdout always two, so `gap2`
+        # exists in some scenes and not others. What must hold is that the
+        # marker is real *somewhere* -- and, more strictly than before, that the
+        # first declared extra is present in *every* scene, since it is what the
+        # goal vector falls back to and a scene missing it would point the
+        # policy at whatever name happened to sort first.
         if spec.extra_public_markers:
-            blueprint = get(task_id).generate(spec.layout_families[0], random.Random(3))
+            emitted: set[str] = set()
+            for family in spec.layout_families:
+                for seed in range(12):
+                    markers = set(get(task_id).generate(family, random.Random(seed)).markers)
+                    emitted |= markers
+                    focus = spec.extra_public_markers[0]
+                    assert focus in markers, (
+                        f"{task_id}/{family.name} seed {seed} omits {focus}, "
+                        "which the goal vector falls back to"
+                    )
             for name in spec.extra_public_markers:
-                assert name in blueprint.markers, f"{task_id} publishes absent marker {name}"
+                assert name in emitted, f"{task_id} publishes absent marker {name}"
 
     task = get("deliver")
     assert task.spec.public_markers == ("dst",)
@@ -772,10 +790,17 @@ def test_shaping_may_read_truth_but_only_declared_markers_are_published():
     for task_id in all_tasks():
         spec = get(task_id).spec
         assert not ({"containers", "produced", "working"} & set(spec.public_markers)), task_id
-        blueprint = get(task_id).generate(spec.layout_families[0], random.Random(5))
-        declared = set(blueprint.markers) | {
-            e.marker for e in blueprint.entities if getattr(e, "marker", None)
-        }
+        # Pooled over every family and several seeds: an optional second fault
+        # marker is real but absent from most scenes, so one blueprint cannot
+        # decide whether a published name exists.
+        declared: set[str] = set()
+        for family in spec.layout_families:
+            for seed in range(8):
+                blueprint = get(task_id).generate(family, random.Random(seed))
+                declared |= set(blueprint.markers)
+                declared |= {
+                    e.marker for e in blueprint.entities if getattr(e, "marker", None)
+                }
         assert set(spec.public_markers) <= declared, (
             f"{task_id} publishes a marker no generator emits"
         )

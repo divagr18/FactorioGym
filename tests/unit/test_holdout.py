@@ -421,7 +421,11 @@ def test_train_can_load_every_task_the_committed_holdout_covers():
     from factoriorl.learn.train import TrainConfig, _load_frozen_holdout
     from factoriorl.tasks import get
 
-    path = ROOT / "docs" / "evidence" / "holdout_v1.json"
+    # The *live* holdout, from the tool, not a hardcoded filename. Pinning the
+    # name meant this test kept checking `holdout_v1` after the live holdout
+    # moved to v3, so it reported a task-version mismatch against a closed
+    # artifact instead of exercising the current one.
+    path = fh.OUTPUT_PATH
     document = json.loads(path.read_text(encoding="utf-8"))
     covered = sorted(document["holdout"]["tasks"])
     assert covered, "the committed holdout covers no tasks"

@@ -37,7 +37,10 @@ SPEC = TaskSpec(
     id="restore_power",
     # 1.1.0: the line's row and starting column are sampled, so the holdout
     # admits a distribution of scenes rather than a single one.
-    version="1.5.0",
+    # 1.6.0: training samples the terminal gap position the holdout always
+    # uses, and both missing poles are published on `two_gaps` instead of only
+    # `min(gaps)`.
+    version="1.6.0",
     description="Reconnect a power pole chain so the mining drill runs again.",
     layout_families=FAMILIES,
     success=(Predicate(PredicateKind.ENTITY_WORKING, marker="drill"),),
@@ -66,7 +69,7 @@ SPEC = TaskSpec(
     # The gap is where the agent must act; the success predicate names only
     # where the result is counted. Without this the `toward_gap` potential
     # paid for approaching a point the observation never contained.
-    extra_public_markers=("gap",),
+    extra_public_markers=("gap", "gap2"),
     landmarks=(Predicate(PredicateKind.INVENTORY_HOLDS, item="small-electric-pole", at_least=1),),
     catalog_subset=(
         "move_north",
@@ -124,12 +127,30 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         chain = rng.randint(4, 9)
     else:
         chain = rng.randint(4, 6)
-    gap = rng.randint(1, chain - 2)
+    # The held-out family fixes the fault at the chain's terminal position while
+    # training used to sample `randint(1, chain - 2)`, which never reaches it.
+    # Measured over 600 scenes per family: the missing pole was flanked by poles
+    # on both sides in 600/600 training scenes and 0/600 held-out scenes, where
+    # it is instead always the last position with the drill beyond it and no
+    # pole further along. Two policies then fit training equally well -- "fill
+    # the hole between two poles", which scores exactly 0.00 on that holdout by
+    # construction, and "walk to the published gap and place", which transfers.
+    # Which one a run learned was a seed lottery, and that is the bimodal
+    # 0.77 / 0.00 / 0.00 recorded in phase4-release-v3-restore_power*.json --
+    # not transfer variance. See docs/evidence/holdout-distribution-audit.json.
+    #
+    # Training now includes the terminal position, so the holdout tests a
+    # regime training has shown instances of. `gap_near_drill` keeps its
+    # identity: it is still *always* terminal, which is what its name claims.
+    gap = rng.randint(1, chain - 1)
     if family.name == "gap_near_drill":
         gap = chain - 1
     gaps = {gap}
     if family.name == "two_gaps":
-        gaps.add(min(chain - 1, gap + 2))
+        second = min(chain - 1, gap + 2)
+        if second == gap:
+            second = max(1, gap - 2)
+        gaps.add(second)
 
     # Solar rather than a boiler: a boiler needs a water supply, and without
     # one the drill could never be powered no matter where the missing pole
@@ -182,7 +203,17 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
             # reach an observation. The first missing pole in the chain is the
             # place the agent has to get to before anything can happen.
             # Tile centre, as in repair_belt: a 1x1 pole snaps to (x+.5, y+.5).
-            "gap": (float(start_x + min(gaps) * 4) + 0.5, row + 0.5),
+            # Every missing pole, not just the first. `two_gaps` published only
+            # `min(gaps)`, so the second fault had no coordinate anywhere the
+            # policy could read and that family scored 0.00 for the same reason
+            # `repair_belt`'s two-hole holdout did.
+            **{
+                ("gap" if rank == 0 else f"gap{rank + 1}"): (
+                    float(start_x + index * 4) + 0.5,
+                    row + 0.5,
+                )
+                for rank, index in enumerate(sorted(gaps))
+            },
         },
         radius=64,
     )

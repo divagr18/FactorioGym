@@ -297,16 +297,54 @@ class FactorioEnv(gym.Env):
         published = self._observation.get("goal") or {}
         if published:
             position = (self._observation.get("character") or {}).get("position") or [0.0, 0.0]
-            # The declared focus, not whichever name sorts first.
-            name = self.spec_.focus_marker
-            if name not in published:
-                name = next(iter(sorted(published)))
-            target = published[name]
+            target = self._focus_target(published, position)
             scale = float(max(encoders.LOCAL_V1.radius, 1))
             goal[-3] = float(np.clip((target[0] - position[0]) / scale, -1.0, 1.0))
             goal[-2] = float(np.clip((target[1] - position[1]) / scale, -1.0, 1.0))
             goal[-1] = 1.0
         return goal
+
+    def _focus_target(self, published: dict, position) -> list:
+        """The next fault to fix, not merely the first one declared.
+
+        Only three slots carry geometry, so exactly one marker can be pointed
+        at. A task with two faults used to publish both and aim at whichever
+        the spec listed first -- `min(gaps)` for `repair_belt` -- so the second
+        fault had no coordinate anywhere the policy could read, and a run that
+        had perfectly learned the task scored zero on a two-fault holdout by
+        construction.
+
+        The nearest *unrepaired* declared fault is chosen instead, which also
+        makes the vector advance as faults are fixed rather than continuing to
+        name a tile that is already done. Occupancy is read from the
+        observation's own entity list, never from truth, so this leaks nothing:
+        a marker is "repaired" exactly when the policy can see something
+        standing on it.
+        """
+        faults = [n for n in self.spec_.extra_public_markers if n in published]
+        if faults:
+            occupied = {
+                (math.floor(e["p"][0]), math.floor(e["p"][1]))
+                for e in (self._observation.get("entities") or [])
+                if e.get("p")
+            }
+            open_faults = [
+                published[n]
+                for n in faults
+                if (math.floor(published[n][0]), math.floor(published[n][1])) not in occupied
+            ]
+            if open_faults:
+                return min(
+                    open_faults,
+                    key=lambda t: (t[0] - position[0]) ** 2 + (t[1] - position[1]) ** 2,
+                )
+            # Every declared fault is filled; keep naming the last one rather
+            # than dropping to an unrelated landmark mid-episode.
+            return published[faults[-1]]
+        name = self.spec_.focus_marker
+        if name not in published:
+            name = next(iter(sorted(published)))
+        return published[name]
 
     def _succeeded(self) -> bool:
         return all(p.evaluate(self._observation, self._truth) for p in self.spec_.success)

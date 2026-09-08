@@ -10,7 +10,7 @@ every one of them was published under the same words, "held-out success rate".
 
 This tool turns that phrase into a checkable object. It enumerates the exact
 scenes the environment would install for a fixed evaluation seed stream, writes
-them to ``docs/evidence/holdout_v1.json`` with a content hash over the whole
+them to ``docs/evidence/holdout_v3.json`` with a content hash over the whole
 structure, and -- the load-bearing half -- regenerates from current source and
 reports which episodes differ.
 
@@ -118,7 +118,18 @@ from factoriorl.tasks import all_tasks, get  # noqa: E402
 #: Bumped, never edited in place. A holdout whose contents changed under a name
 #: someone already published a number against is worse than no holdout: every
 #: earlier result silently starts referring to scenes it never saw.
-HOLDOUT_ID = "holdout_v1"
+# The live holdout. Bumped rather than re-frozen in place: a holdout is
+# supposed to be an immutable artifact, and `holdout_v2` was re-frozen five
+# times, each edit silently invalidating the whole-file hash cited by every
+# earlier run. `holdout_v1` and `holdout_v2` stay in the tree as the record of
+# what earlier results were measured against; `--out` still targets any of them
+# for --verify.
+#
+# v3 exists because `repair_belt` and `restore_power` reached v1.6.0: their
+# evaluated splits used to test regimes training never showed (a two-hole
+# holdout against one-hole training, and a terminal-gap holdout against
+# interior-gap training), which is a task change and not a re-labelling.
+HOLDOUT_ID = "holdout_v3"
 
 #: Schema of the hashed body. Inside the hash on purpose -- a format change is a
 #: content change from the point of view of anything comparing hashes.
@@ -140,7 +151,7 @@ HOLDOUT_MASTER_SEED = 20260908
 #: The other half of the seed plan, and the half that does the work. Fixed, and
 #: unlike any `manifest.new_run_id()` output (those carry a timestamp and a
 #: random salt), so this stream cannot collide with a run's by accident.
-HOLDOUT_RUN_ID = "holdout-v1"
+HOLDOUT_RUN_ID = "holdout-v3"
 
 #: Evaluation draws from the EVAL branch, disjoint from TRAIN by construction
 #: (see `factoriorl.seeding`), so no frozen episode can be one the policy trained
@@ -160,7 +171,7 @@ HOLDOUT_SPLIT = "test"
 #: workers it starts more episodes than it counts, so the burned prefix extends
 #: an unknown handful past `eval_episodes` and a tight offset would leave that
 #: uncertainty inside the holdout.
-HOLDOUT_START_INDEX = 1000
+HOLDOUT_START_INDEX = 3000
 
 #: PLAN 4.5: "Evaluate 100 held-out episodes per family per training seed."
 HOLDOUT_EPISODES = 100
