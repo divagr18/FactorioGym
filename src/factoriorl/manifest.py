@@ -276,4 +276,28 @@ def verify(run_id: str) -> dict:
         problems.append(
             f"protocol changed: recorded {recorded_protocol}, current {PROTOCOL_VERSION}"
         )
+
+    # The action space a checkpoint was trained against. Nothing compared this,
+    # so a catalog edit that kept the template count produced a checkpoint that
+    # loaded clean, ran, and meant something different -- the same silent
+    # failure the extractor version exists to catch on the observation side.
+    problems.extend(_catalog_problems(data))
     return {"run_id": run_id, "ok": not problems, "problems": problems}
+
+
+def _catalog_problems(data: dict) -> list[str]:
+    recorded = (data.get("profiles") or {}).get("catalog_digest")
+    task_id = (data.get("task") or {}).get("id")
+    if not recorded or not task_id:
+        return []
+    try:
+        from factoriorl import catalog as catalog_module
+        from factoriorl.tasks import get as get_task
+
+        spec = get_task(task_id).spec
+        current = catalog_module.resolve(spec.catalog, spec.catalog_subset).digest()
+    except Exception as exc:  # noqa: BLE001 - a renamed task must not crash verify
+        return [f"catalog digest could not be re-derived for {task_id}: {exc}"]
+    if recorded != current:
+        return [f"action catalog changed for {task_id}: recorded {recorded}, current {current}"]
+    return []

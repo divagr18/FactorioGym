@@ -170,8 +170,13 @@ class ResolvedCatalog:
         return tuple(t.key for t in self.templates)
 
     def digest(self) -> str:
+        # `requires` is in here because it is what the mask builder consults,
+        # and a template whose availability rule changed is a different action
+        # even when its wire payload is identical. Without it, editing mask
+        # semantics left the digest -- and therefore every manifest citing it --
+        # unchanged.
         payload = json.dumps(
-            [[t.key, t.action, t.payload] for t in self.templates],
+            [[t.key, t.action, t.payload, t.requires] for t in self.templates],
             sort_keys=True,
             separators=(",", ":"),
         )
