@@ -29,3 +29,6 @@ artifacts/
 .omo/
 .codegraph/
 opencode.json
+
+# Release bundles are generated from runs; never committed.
+release/
