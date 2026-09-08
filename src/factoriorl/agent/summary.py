@@ -169,6 +169,29 @@ def action_vocabulary(env: Any) -> tuple[tuple[str, str], ...]:
     return tuple(entries)
 
 
+def targetable_actions(env: Any) -> frozenset[str]:
+    """Catalog keys whose action binds to an entity.
+
+    These are the templates carrying `$target`, which the catalog resolves to
+    the *nearest* entity because a discrete index cannot carry an argument. They
+    are exactly the actions worth letting a model address by name.
+    """
+    keys = set()
+    for template in env.catalog.templates:
+        if any(value == "$target" for value in template.payload.values()):
+            keys.add(template.key)
+    return frozenset(keys)
+
+
+def visible_handles(observation: dict) -> frozenset[str]:
+    """Handles the agent can currently see, and may therefore name."""
+    return frozenset(
+        str(entity.get("h") or entity.get("handle"))
+        for entity in (observation.get("entities") or [])
+        if entity.get("h") or entity.get("handle")
+    )
+
+
 def legal_actions(vocabulary: tuple[tuple[str, str], ...], mask: Any) -> tuple[LegalAction, ...]:
     """Filter the vocabulary by the environment's published mask.
 

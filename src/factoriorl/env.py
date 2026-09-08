@@ -252,8 +252,32 @@ class FactorioEnv(gym.Env):
         return any(p.evaluate(self._observation, self._truth) for p in self.spec_.failure)
 
     def step(self, action: int):
+        """Take one action by catalog index -- the policy's interface."""
         template = self.catalog.templates[int(action)]
-        payload = template.bind(self._context())
+        return self.step_payload(template.bind(self._context()), action_key=template.key)
+
+    def step_payload(self, payload: dict, *, action_key: str | None = None):
+        """Take one action by typed payload, with identical accounting.
+
+        The discrete catalog binds `$target` to the *nearest* entity, because a
+        discrete index cannot carry an argument. That is the whole of a defect
+        seen three ways: a policy alternating `approach_entity_k` between two
+        chests, `navigate` solved 99 times in 100 by one skill because its scene
+        holds a single addressable entity, and an agent fuelling a mining drill
+        four times over while the furnace two tiles away stayed empty. In every
+        case the agent could see which thing it wanted and had no way to say so.
+
+        The mod has always accepted addressed actions -- `transfer` takes
+        `from` and `to` handles, `navigate` takes a handle -- so this exposes
+        an existing capability rather than adding one, and the action profile
+        still decides what is permitted: the payload goes through the same
+        dispatcher, and a request outside the profile is refused there.
+
+        Not reachable from a policy. `step` is the discrete interface and is
+        unchanged; this is for the language-model deliberation profile, which
+        the manifest records, so a result produced with addressed actions can
+        never be mistaken for one produced without them.
+        """
         self._steps += 1
         try:
             timed = self.session.step(payload, ticks=self.spec_.decision_ticks)
@@ -302,7 +326,7 @@ class FactorioEnv(gym.Env):
         info: dict[str, Any] = {
             "reward_components": components,
             "success": succeeded,
-            "action_key": template.key,
+            "action_key": action_key or payload.get("action"),
             "action_status": action_result.get("status"),
             "action_error": (action_result.get("error") or {}).get("code"),
             "layout_family": self._family.name if self._family else None,

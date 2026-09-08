@@ -146,6 +146,12 @@ def play(loop: AgentLoop, *, episode: int, first_step: int, budget: int, until) 
         vocabulary = action_vocabulary(env)
         legal = legal_actions(vocabulary, mask)
         summary = summarise(observation, brief=loop.brief, actions=legal, step=first_step + steps)
+        # Through the loop's own helpers, not around them. The first version of
+        # this function reimplemented the stepping and immediately drifted: it
+        # never offered the model an addressee, so fifty replies naming one were
+        # refused as `unknown_target` and the demonstration measured a feature
+        # it had switched off.
+        targetable, handles = loop._addressing(observation)
         decision = loop.decide(
             summary,
             legal,
@@ -153,8 +159,10 @@ def play(loop: AgentLoop, *, episode: int, first_step: int, budget: int, until) 
             episode=episode,
             step=first_step + steps,
             fallback_index=loop._fallback_index(legal),
+            targetable=targetable,
+            handles=handles,
         )
-        _, reward, terminated, truncated, info = env.step(decision.action_index)
+        _, reward, terminated, truncated, info = loop._execute(decision)
         decision.result = {
             "reward": round(float(reward), 4),
             "terminated": bool(terminated),

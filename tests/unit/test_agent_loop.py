@@ -786,3 +786,107 @@ def test_a_local_endpoint_and_an_api_endpoint_send_the_same_prompt(tmp_path):
     assert prompts["local"][0]["content"] == prompts["api"][0]["content"]
     assert prompts["local"][1]["content"] == prompts["api"][1]["content"]
     assert AnthropicMessagesAdapter is not None  # the third transport exists, unused here
+
+
+# --------------------------------- 5.2: naming the entity an action acts on
+
+
+def _addressing(env):
+    from factoriorl.agent.summary import targetable_actions, visible_handles
+
+    return targetable_actions(env), visible_handles(env._observation)
+
+
+def test_only_actions_that_act_on_an_entity_are_targetable():
+    """`$target` in a template is exactly what "acts on the nearest entity"
+    means, so it is what decides whether naming one is meaningful."""
+    from factoriorl.agent.summary import targetable_actions
+
+    env = StubEnv()
+    targetable = targetable_actions(env)
+    assert targetable, "no catalog action binds a target"
+    for key in targetable:
+        assert key.startswith(("take", "give"))
+    assert "move_north" not in targetable
+    assert "wait" not in targetable
+
+
+def test_a_named_target_is_carried_through_parsing():
+    from factoriorl.agent.parsing import ParsedAction, parse_action
+
+    env = StubEnv()
+    vocabulary = _vocabulary_and_legal(env)[0]
+    legal = _vocabulary_and_legal(env)[1]
+    targetable, handles = _addressing(env)
+    key = sorted(targetable)[0]
+    index = [k for k, _ in vocabulary].index(key)
+    handle = sorted(handles)[0]
+
+    parsed = parse_action(
+        f'{{"action": {index}, "target": "{handle}", "reason": "that one"}}',
+        legal,
+        vocabulary,
+        targetable=targetable,
+        handles=handles,
+    )
+    assert isinstance(parsed, ParsedAction), parsed
+    assert parsed.target == handle
+    assert parsed.to_dict()["target"] == handle
+
+
+def test_a_target_on_an_action_that_acts_on_nothing_is_refused():
+    """Dropping it silently would send the action to the nearest entity --
+    exactly the behaviour the model was trying to override."""
+    from factoriorl.agent.parsing import DecisionFailure, ParseFailure, parse_action
+
+    env = StubEnv()
+    vocabulary, legal = _vocabulary_and_legal(env)
+    targetable, handles = _addressing(env)
+    index = [k for k, _ in vocabulary].index("wait")
+
+    outcome = parse_action(
+        f'{{"action": {index}, "target": "{sorted(handles)[0]}"}}',
+        legal,
+        vocabulary,
+        targetable=targetable,
+        handles=handles,
+    )
+    assert isinstance(outcome, ParseFailure)
+    assert outcome.failure is DecisionFailure.UNKNOWN_TARGET
+
+
+def test_a_target_the_agent_cannot_see_is_refused():
+    from factoriorl.agent.parsing import DecisionFailure, ParseFailure, parse_action
+
+    env = StubEnv()
+    vocabulary, legal = _vocabulary_and_legal(env)
+    targetable, handles = _addressing(env)
+    key = sorted(targetable)[0]
+    index = [k for k, _ in vocabulary].index(key)
+
+    outcome = parse_action(
+        f'{{"action": {index}, "target": "h999"}}',
+        legal,
+        vocabulary,
+        targetable=targetable,
+        handles=handles,
+    )
+    assert isinstance(outcome, ParseFailure)
+    assert outcome.failure is DecisionFailure.UNKNOWN_TARGET
+    assert "h999" in outcome.detail
+
+
+def test_addressing_adds_no_verb_the_catalog_did_not_already_have():
+    """Rebinding the catalog's own template is what keeps this from becoming a
+    new capability: the verb, item and count are the discrete action's, and only
+    `$target` changes."""
+    env = StubEnv()
+    template = env.catalog.templates[
+        [t.key for t in env.catalog.templates].index(sorted(_addressing(env)[0])[0])
+    ]
+    default = template.bind({"target": "h1"})
+    addressed = template.bind({"target": "h2"})
+    assert default["action"] == addressed["action"]
+    assert set(default) == set(addressed)
+    differing = {k for k in default if default[k] != addressed[k]}
+    assert differing <= {"from", "to"}, differing

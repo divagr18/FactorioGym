@@ -41,6 +41,8 @@ from factoriorl.agent.summary import (
     action_vocabulary,
     legal_actions,
     summarise,
+    targetable_actions,
+    visible_handles,
 )
 
 #: How many times one decision may be asked for before the loop stops asking.
@@ -80,8 +82,14 @@ under "in flight".
 - You cannot see beyond the sensor radius. Entities marked REMEMBERED are what \
 was there when you last saw them, not what is there now.
 
+Some actions act on an entity. Those say "the nearest entity" in their \
+description, and by default that is what they do. To act on a *particular* one \
+instead, add its handle -- the [hN] shown beside it -- as "target".
+
 Reply with a single JSON object and nothing else:
-{"action": <index>, "reason": "<one short sentence>"}\
+{"action": <index>, "reason": "<one short sentence>"}
+or, to choose which entity it acts on:
+{"action": <index>, "target": "<hN>", "reason": "<one short sentence>"}\
 """
 
 
@@ -148,6 +156,14 @@ class AgentConfig:
     #: an episode boundary would carry one evaluation scene's contents into the
     #: next, which is contamination rather than competence.
     memory: bool = True
+    #: Let the model name the entity an action acts on (PLAN 5.2's typed
+    #: interactions). The catalog binds `$target` to the *nearest* entity
+    #: because a discrete index cannot carry an argument, which is why a policy
+    #: oscillated between two chests, one skill solved `navigate` 99 times in
+    #: 100, and an agent fuelled a drill four times while the furnace two tiles
+    #: away stayed empty. Recorded in the manifest: a result produced with
+    #: addressing is not comparable to one produced without it.
+    addressed_actions: bool = True
     run_prefix: str = "agent"
     extra: dict = field(default_factory=dict)
 
@@ -163,6 +179,7 @@ class AgentConfig:
             "shaping": self.shaping,
             "skills": self.skills,
             "memory": self.memory,
+            "addressed_actions": self.addressed_actions,
         }
 
 
@@ -203,6 +220,9 @@ class Decision:
     action_index: int
     action_key: str
     resolution: str
+    #: Handle the model named, when it named one. None means the catalog's
+    #: default binding -- the nearest entity -- was used.
+    target: str | None = None
     record_summary: bool = True
     result: dict = field(default_factory=dict)
 
@@ -216,6 +236,9 @@ class Decision:
             "step": self.step,
             "action_index": self.action_index,
             "action_key": self.action_key,
+            # Which entity it acted on, so a replay can tell an addressed action
+            # from one that took the catalog's nearest-entity default.
+            "target": self.target,
             "resolution": self.resolution,
             "inference_ms": round(self.inference_ms, 3),
             "attempts": [a.to_dict() for a in self.attempts],
@@ -262,6 +285,32 @@ class AgentLoop:
         self.decisions: list[Decision] = []
         self.memory = Memory()
 
+    def _addressing(self, observation: dict) -> tuple[frozenset[str], frozenset[str]]:
+        """What may be addressed this step, and which handles exist."""
+        if not self.config.addressed_actions:
+            return frozenset(), frozenset()
+        return targetable_actions(self.env), visible_handles(observation)
+
+    def _execute(self, decision: Decision):
+        """Run the decision, addressed if the model named a target.
+
+        Rebinding the catalog's own template is what keeps addressing from
+        becoming a new capability: the verb, its item and its count are the
+        ones the discrete action already carried, and only `$target` changes.
+        A model cannot reach an action its catalog does not contain, and the
+        action profile still decides what the engine accepts.
+        """
+        if not decision.target:
+            return self.env.step(decision.action_index)
+        catalog = self.env.catalog
+        if decision.action_index >= len(catalog.templates):
+            # A skill, not a catalog template: skills resolve their own targets
+            # and have no `$target` to rebind.
+            return self.env.step(decision.action_index)
+        template = catalog.templates[decision.action_index]
+        context = {**self.env.unwrapped._context(), "target": decision.target}
+        return self.env.step_payload(template.bind(context), action_key=template.key)
+
     # ------------------------------------------------------------- deciding
 
     def _ask(self, summary: ObservationSummary, correction: str) -> ModelReply:
@@ -290,6 +339,8 @@ class AgentLoop:
         episode: int,
         step: int,
         fallback_index: int,
+        targetable: frozenset[str] = frozenset(),
+        handles: frozenset[str] = frozenset(),
     ) -> Decision:
         """Ask until the answer validates or the bound is reached."""
         attempts: list[Attempt] = []
@@ -314,7 +365,9 @@ class AgentLoop:
                 usage=reply.usage,
                 meta=reply.meta,
             )
-            outcome = parse_action(reply.text, legal, vocabulary)
+            outcome = parse_action(
+                reply.text, legal, vocabulary, targetable=targetable, handles=handles
+            )
             attempts.append(Attempt(number, reply, outcome))
             if isinstance(outcome, ParsedAction):
                 return Decision(
@@ -324,6 +377,7 @@ class AgentLoop:
                     attempts=attempts,
                     action_index=outcome.index,
                     action_key=outcome.key,
+                    target=outcome.target,
                     resolution="model",
                     record_summary=self.config.record_summaries,
                 )
@@ -377,6 +431,7 @@ class AgentLoop:
             vocabulary = action_vocabulary(self.env)
             legal = legal_actions(vocabulary, mask)
             summary = summarise(observation, brief=self.brief, actions=legal, step=steps)
+            targetable, handles = self._addressing(observation)
             decision = self.decide(
                 summary,
                 legal,
@@ -384,8 +439,10 @@ class AgentLoop:
                 episode=episode,
                 step=steps,
                 fallback_index=self._fallback_index(legal),
+                targetable=targetable,
+                handles=handles,
             )
-            _, reward, terminated, truncated, info = self.env.step(decision.action_index)
+            _, reward, terminated, truncated, info = self._execute(decision)
             steps += 1
             total_reward += float(reward)
             decision.result = {

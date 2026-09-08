@@ -47,6 +47,10 @@ class DecisionFailure(StrEnum):
     UNKNOWN_ACTION = "unknown_action"
     OUT_OF_RANGE = "out_of_range"
     ILLEGAL_ACTION = "illegal_action"
+    #: A `target` was given for an action that acts on nothing, or naming a
+    #: handle that is not in the observation. Distinct from `illegal_action`
+    #: because the verb was fine and only the addressee was wrong.
+    UNKNOWN_TARGET = "unknown_target"
     #: The call itself failed. Not produced here; recorded by the loop so that
     #: one vocabulary covers every reason a decision did not happen.
     PROVIDER_ERROR = "provider_error"
@@ -58,9 +62,19 @@ class ParsedAction:
     key: str
     #: Whatever the model said about why, kept verbatim for the replay record.
     reason: str = ""
+    #: Handle of the entity the model chose to act on, when it named one. The
+    #: catalog binds `$target` to the *nearest* entity because a discrete index
+    #: cannot carry an argument, and an agent that can see which chest it wants
+    #: and can only say "the nearest one" is the defect this field removes.
+    target: str | None = None
 
     def to_dict(self) -> dict:
-        return {"index": self.index, "key": self.key, "reason": self.reason}
+        return {
+            "index": self.index,
+            "key": self.key,
+            "reason": self.reason,
+            "target": self.target,
+        }
 
 
 @dataclass(frozen=True)
@@ -93,10 +107,15 @@ def _extract(text: str) -> tuple[Any, str] | None:
         except ValueError:
             continue
         if isinstance(payload, dict) and "action" in payload:
-            return payload["action"], str(payload.get("reason") or "")
+            target = payload.get("target")
+            return (
+                payload["action"],
+                str(payload.get("reason") or ""),
+                str(target) if isinstance(target, (str, int)) and str(target) else None,
+            )
     line = _LINE.search(text or "")
     if line:
-        return line.group(1), ""
+        return line.group(1), "", None
     return None
 
 
@@ -104,6 +123,9 @@ def parse_action(
     text: str,
     legal: tuple[LegalAction, ...],
     vocabulary: tuple[tuple[str, str], ...],
+    *,
+    targetable: frozenset[str] = frozenset(),
+    handles: frozenset[str] = frozenset(),
 ) -> ParsedAction | ParseFailure:
     """Validate one response against the catalog and the current mask.
 
@@ -118,7 +140,7 @@ def parse_action(
             DecisionFailure.UNPARSEABLE,
             "no JSON object with an 'action' field and no 'action:' line",
         )
-    raw, reason = extracted
+    raw, reason, target = extracted
     legal_by_index = {a.index: a for a in legal}
     keys = [key for key, _ in vocabulary]
 
@@ -161,4 +183,23 @@ def parse_action(
             f"action {index} ({keys[index]}) is masked out in this state",
             keys[index],
         )
-    return ParsedAction(index=index, key=keys[index], reason=reason)
+    key = keys[index]
+    if target is not None:
+        # An addressee is only meaningful for an action that acts on something,
+        # and only if the thing is one the agent can currently see. Both are
+        # refused rather than ignored: silently dropping the target would send
+        # the action to the nearest entity instead, which is the behaviour the
+        # model was trying to override.
+        if key not in targetable:
+            return ParseFailure(
+                DecisionFailure.UNKNOWN_TARGET,
+                f"{key} does not act on an entity, so it takes no target",
+                target,
+            )
+        if target not in handles:
+            return ParseFailure(
+                DecisionFailure.UNKNOWN_TARGET,
+                f"{target!r} is not a handle in the current observation",
+                target,
+            )
+    return ParsedAction(index=index, key=key, reason=reason, target=target)

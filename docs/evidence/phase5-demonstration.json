@@ -1,86 +1,112 @@
 {
+  "run_id": "demo-20260908T113031-fb3ba349",
   "plan_section": "5.7",
-  "what_this_is": "The Phase 5 agent demonstration, run five times with gpt-5.6-luna. The harness works and the scenario is sound; the agent is the part that does not finish.",
-  "scenario": {
-    "task": "plate_line v1.1.0",
-    "line": "burner mining drill on iron ore, stone furnace on its drop tile, both unfuelled",
-    "agent_job": "reach each machine and fuel it, then keep it running",
-    "disruption": "the driver empties both fuel inventories and writes nothing else",
-    "windows": "3600 ticks each, agent stopped, nothing replenished"
+  "model": "gpt-5.6-luna",
+  "phase_1_commission": {
+    "decisions": 15,
+    "stopped_at": 15
   },
-  "task_is_sound": {
-    "reference_solution": "1.00 on train and test",
-    "random_floor_primitives": 0.0,
-    "random_floor_skills": 0.0,
-    "note": "The only family measured discriminative in both action spaces on both splits, and a production family. Two well-placed transfers commission it: north of the drill, south of the furnace. Scripted, that yields 14 plates in 3600 ticks with both machines at status 1."
+  "phase_2_window": {
+    "ticks": 3600,
+    "wall_seconds": 0.82,
+    "plates_before": 1,
+    "plates_after": 16,
+    "plates_produced": 15,
+    "drill_status_after": 1,
+    "furnace_status_after": 18,
+    "drill_fuel_after": 48,
+    "furnace_fuel_after": 18,
+    "sustained": true
   },
-  "runs": [
-    {
-      "n": 1,
-      "fuelled": [
-        "drill"
-      ],
-      "window_1_plates": 0,
-      "outcome": "commission incomplete"
-    },
-    {
-      "n": 2,
-      "fuelled": [
-        "drill"
-      ],
-      "window_1_plates": 0,
-      "outcome": "commission incomplete"
-    },
-    {
-      "n": 3,
-      "fuelled": [
-        "drill",
-        "furnace"
-      ],
-      "window_1_plates": 15,
-      "outcome": "line operated unattended for a full window; recovery not completed"
-    },
-    {
-      "n": 4,
-      "fuelled": [
-        "drill"
-      ],
-      "window_1_plates": 0,
-      "outcome": "commission incomplete"
-    },
-    {
-      "n": 5,
-      "fuelled": [
-        "furnace"
-      ],
-      "window_1_plates": 0,
-      "outcome": "commission incomplete"
+  "phase_3_disruption": {
+    "kind": "fuel_outage",
+    "declared": "the driver emptied both fuel inventories and wrote nothing else",
+    "tick": 4050,
+    "removed": [
+      {
+        "entity": "burner-mining-drill",
+        "item": "coal",
+        "count": 48
+      },
+      {
+        "entity": "stone-furnace",
+        "item": "coal",
+        "count": 18
+      }
+    ],
+    "state_after": {
+      "tick": 4050,
+      "plates": 16,
+      "drill_status": 1,
+      "furnace_status": 18,
+      "drill_fuel": 0,
+      "furnace_fuel": 0
     }
-  ],
+  },
+  "phase_4_recovery": {
+    "decisions": 3,
+    "stopped_at": 18,
+    "refuelled": true
+  },
+  "phase_5_window": {
+    "ticks": 3600,
+    "wall_seconds": 0.82,
+    "plates_before": 16,
+    "plates_after": 31,
+    "plates_produced": 15,
+    "drill_status_after": 1,
+    "furnace_status_after": 1,
+    "drill_fuel_after": 38,
+    "furnace_fuel_after": 4,
+    "sustained": true
+  },
+  "totals": {
+    "game_ticks": 7740,
+    "game_seconds": 129.0,
+    "wall_seconds": 63.3,
+    "plates_total": 31,
+    "decisions": 18,
+    "assistance_profile": "primitive-v1",
+    "deliberation_profile": "language-model-v1"
+  },
+  "model_usage": {
+    "prompt_tokens": 14284,
+    "completion_tokens": 3073,
+    "total_tokens": 17357
+  },
+  "latency_ms": {
+    "calls": 18,
+    "mean": 3393.7
+  },
+  "restored": true,
+  "operated_before_disruption": true,
+  "addressed_actions": {
+    "what_changed": "The model may add a `target` naming a visible handle to any action whose catalog template binds `$target`. The verb, item and count stay the discrete action's; only the addressee changes, so this grants addressing rather than a new capability.",
+    "before": {
+      "runs": 5,
+      "commission_succeeded": 1,
+      "recovery_succeeded": 0,
+      "failure": "the agent fuelled whichever machine it was nearest, repeatedly: 47-48 coal into the drill and none into the furnace in three runs, 50 into the furnace and none into the drill in another"
+    },
+    "after": {
+      "decisions_total": 18,
+      "addressed_decisions": 13,
+      "commission_decisions": 15,
+      "recovery_decisions": 3,
+      "window_1_plates": 15,
+      "window_2_plates": 15,
+      "restored": true,
+      "tokens": 17357,
+      "note": "Commission reached both machines in four decisions -- give_coal_20 at h1, then at h2 -- and recovery took three. Token cost fell from 117,085 to 17,357 because the agent stopped walking back and forth trying to make 'nearest' mean the machine it wanted."
+    },
+    "a_bug_this_found": "The first run with addressing enabled still failed, and the trace said why: 50 replies naming a target were refused as `unknown_target`. The demonstration driver had reimplemented the loop's stepping and never passed the addressable set, so it measured a feature it had switched off. It calls the loop's own helpers now."
+  },
   "acceptance": {
     "no_undeclared_repair_script": true,
-    "no_undeclared_repair_script_note": "The driver's only write to the world is the disruption, recorded with the item counts it removed. Everything else is a model decision in decisions.jsonl.",
     "line_operated_without_replenishment": true,
-    "line_operated_without_replenishment_note": "Run 3: 15 plates over 3600 ticks with the agent stopped and the drill still at status 1 at the end. That clause is met.",
     "replay_shows_construction_disruption_recovery": true,
-    "replay_note": "tools/replay.py renders every run; phases are contiguous decisions.",
     "reported_time_and_usage": true,
-    "sustained_production_restored": false,
-    "sustained_production_restored_note": "Not once in five runs. Recovery is where every run ends."
-  },
-  "the_failure": {
-    "summary": "The agent fuels whichever machine it reaches first, repeatedly.",
-    "evidence": "Runs 1, 2 and 4 put 47-48 coal into the drill and none into the furnace; run 5 put 50 into the furnace and none into the drill. `give_coal_20` moves coal to the *nearest* entity, and the drill and furnace sit two tiles apart, so which machine is fuelled is decided by where the character is standing -- and the agent has no action that names a machine.",
-    "same_defect_as": "deliver's approach_entity_k oscillation. An agent that can see exactly where a target is and has only 'act on the nearest thing' cannot address it. Publishing the objective fixed knowing *which*; it did not give the agent a way to say so."
-  },
-  "two_measurement_defects_found_and_fixed": [
-    {
-      "what": "Recovery ended on residual production.",
-      "detail": "The recovery phase stopped when the plate counter rose, but a stone furnace keeps producing on heat it already has. One run 'recovered' in eight decisions, one of which was a no_space refusal, having refuelled nothing. The condition is now 'both machines hold fuel again'."
-    },
-    {
-      "what": "`sustained` meant 'any production at all'.",
-      "detail": "That run then passed its second window on 2 plates while the drill sat at status 53, out of fuel. A healthy line makes about 15 plates per window, so the test is now 6 plates AND the drill still working at the end. Applying it retroactively turns that run's `restored: true` into false, which is the correct answer."
-    }
-  ]
+    "sustained_production_restored": true,
+    "all_clauses_met": true
+  }
 }
