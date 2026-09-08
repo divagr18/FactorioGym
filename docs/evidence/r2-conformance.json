@@ -1,0 +1,842 @@
+{
+  "gate": "R2.1 conformance",
+  "catalog": "parameterized-v1",
+  "note": "Every action goes through env.step_arguments, which validates each argument against an observation-derived domain and then calls the same step_payload the discrete policy path uses. No reference solver, no direct session.step, no RCON, no evaluator truth.",
+  "checks": [
+    {
+      "check": "scene publishes a work site",
+      "ok": true,
+      "gap": [
+        9.5,
+        -7.5
+      ]
+    },
+    {
+      "check": "target identity survives movement",
+      "ok": true,
+      "before": 12,
+      "after": 12,
+      "stable": 12
+    },
+    {
+      "check": "placed at a chosen tile with a chosen facing",
+      "ok": true,
+      "wanted_facing": 4,
+      "got": 4,
+      "outcome": {
+        "status": "completed",
+        "error": null
+      }
+    },
+    {
+      "check": "occupied tile -> refused by the domain, with a name",
+      "ok": true,
+      "outcome": {
+        "status": "client_refused",
+        "error": "place_at: position=[9.5, -7.5] is not in domain 'placements' (111 values)"
+      }
+    },
+    {
+      "check": "occupied tile -> engine reports collision",
+      "ok": true,
+      "error": "collision"
+    },
+    {
+      "check": "stale handle -> refused with a name",
+      "ok": true,
+      "outcome": {
+        "status": "client_refused",
+        "error": "rotate_at: handle='h999999' is not in domain 'targets' (13 values)"
+      }
+    },
+    {
+      "check": "empty inventory -> refused by the domain, with a name",
+      "ok": true,
+      "outcome": {
+        "status": "client_refused",
+        "error": "place_at: item='transport-belt' is not in domain 'items' (0 values)"
+      }
+    },
+    {
+      "check": "empty inventory -> engine reports no_items",
+      "ok": true,
+      "error": "no_items"
+    },
+    {
+      "check": "chain scene exposes a machine",
+      "ok": true,
+      "name": "burner-mining-drill"
+    },
+    {
+      "check": "transfer to a named handle with an explicit count",
+      "ok": true,
+      "outcome": {
+        "status": "completed",
+        "error": null
+      }
+    },
+    {
+      "check": "the transfer's declared effect was observed",
+      "ok": true,
+      "states": [
+        "confirmed"
+      ]
+    },
+    {
+      "check": "machine reports working after fuelling",
+      "ok": true,
+      "note": "status absent means working in the sensor contract"
+    }
+  ],
+  "placement_trace": [
+    {
+      "action_key": "move_east",
+      "commanded": {
+        "action": "move"
+      },
+      "expected_effect": "character_moved",
+      "deadline_ticks": 60,
+      "expected_detail": {},
+      "issued_tick": 0,
+      "status": "completed",
+      "error": null,
+      "observed": "pending",
+      "observed_tick": null,
+      "refused_by": null
+    },
+    {
+      "action_key": "move_north",
+      "commanded": {
+        "action": "move"
+      },
+      "expected_effect": "character_moved",
+      "deadline_ticks": 60,
+      "expected_detail": {},
+      "issued_tick": 30,
+      "status": "completed",
+      "error": null,
+      "observed": "pending",
+      "observed_tick": null,
+      "refused_by": null
+    },
+    {
+      "action_key": "move_east",
+      "commanded": {
+        "action": "move"
+      },
+      "expected_effect": "character_moved",
+      "deadline_ticks": 60,
+      "expected_detail": {},
+      "issued_tick": 60,
+      "status": "completed",
+      "error": null,
+      "observed": "pending",
+      "observed_tick": null,
+      "refused_by": null
+    },
+    {
+      "action_key": "step_north",
+      "commanded": {
+        "action": "move"
+      },
+      "expected_effect": "character_moved",
+      "deadline_ticks": 60,
+      "expected_detail": {},
+      "issued_tick": 90,
+      "status": "completed",
+      "error": null,
+      "observed": "pending",
+      "observed_tick": null,
+      "refused_by": null
+    },
+    {
+      "action_key": "step_north",
+      "commanded": {
+        "action": "move"
+      },
+      "expected_effect": "character_moved",
+      "deadline_ticks": 60,
+      "expected_detail": {},
+      "issued_tick": 120,
+      "status": "completed",
+      "error": null,
+      "observed": "pending",
+      "observed_tick": null,
+      "refused_by": null
+    },
+    {
+      "action_key": "place_at",
+      "commanded": {
+        "action": "place",
+        "item": "transport-belt",
+        "position": [
+          9.5,
+          -7.5
+        ],
+        "direction": "east"
+      },
+      "expected_effect": "entity_facing",
+      "deadline_ticks": 0,
+      "expected_detail": {
+        "position": [
+          9.5,
+          -7.5
+        ],
+        "direction": 4
+      },
+      "issued_tick": 150,
+      "status": "completed",
+      "error": null,
+      "observed": "confirmed",
+      "observed_tick": 180,
+      "refused_by": null
+    },
+    {
+      "action_key": "place_at",
+      "commanded": {
+        "action": "place",
+        "item": "transport-belt",
+        "position": [
+          9.5,
+          -7.5
+        ],
+        "direction": "east"
+      },
+      "expected_effect": "entity_present",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 180,
+      "status": "rejected",
+      "error": "client:place_at: position=[9.5, -7.5] is not in domain 'placements' (111 values)",
+      "observed": "refused",
+      "observed_tick": 180,
+      "refused_by": "client"
+    },
+    {
+      "action_key": "rotate_at",
+      "commanded": {
+        "action": "rotate",
+        "handle": "h999999"
+      },
+      "expected_effect": "entity_facing",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 210,
+      "status": "rejected",
+      "error": "client:rotate_at: handle='h999999' is not in domain 'targets' (13 values)",
+      "observed": "refused",
+      "observed_tick": 210,
+      "refused_by": "client"
+    },
+    {
+      "action_key": "place_at",
+      "commanded": {
+        "action": "place",
+        "item": "transport-belt",
+        "position": [
+          10.5,
+          -9.5
+        ],
+        "direction": "east"
+      },
+      "expected_effect": "entity_present",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 210,
+      "status": "completed",
+      "error": null,
+      "observed": "timed_out",
+      "observed_tick": 240,
+      "refused_by": null
+    },
+    {
+      "action_key": "place_at",
+      "commanded": {
+        "action": "place",
+        "item": "transport-belt",
+        "position": [
+          11.5,
+          -9.5
+        ],
+        "direction": "east"
+      },
+      "expected_effect": "entity_present",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 240,
+      "status": "completed",
+      "error": null,
+      "observed": "timed_out",
+      "observed_tick": 270,
+      "refused_by": null
+    },
+    {
+      "action_key": "place_at",
+      "commanded": {
+        "action": "place",
+        "item": "transport-belt",
+        "position": [
+          12.5,
+          -9.5
+        ],
+        "direction": "east"
+      },
+      "expected_effect": "entity_present",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 270,
+      "status": "completed",
+      "error": null,
+      "observed": "timed_out",
+      "observed_tick": 300,
+      "refused_by": null
+    },
+    {
+      "action_key": "place_at",
+      "commanded": {
+        "action": "place",
+        "item": "transport-belt",
+        "position": [
+          13.5,
+          -9.5
+        ],
+        "direction": "east"
+      },
+      "expected_effect": "entity_present",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 300,
+      "status": "completed",
+      "error": null,
+      "observed": "timed_out",
+      "observed_tick": 330,
+      "refused_by": null
+    },
+    {
+      "action_key": "place_at",
+      "commanded": {
+        "action": "place",
+        "item": "transport-belt",
+        "position": [
+          9.5,
+          -10.5
+        ],
+        "direction": "east"
+      },
+      "expected_effect": "entity_present",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 330,
+      "status": "rejected",
+      "error": "client:place_at: item='transport-belt' is not in domain 'items' (0 values)",
+      "observed": "refused",
+      "observed_tick": 330,
+      "refused_by": "client"
+    }
+  ],
+  "operation_trace": [
+    {
+      "action_key": "move_south",
+      "commanded": {
+        "action": "move"
+      },
+      "expected_effect": "character_moved",
+      "deadline_ticks": 60,
+      "expected_detail": {},
+      "issued_tick": 0,
+      "status": "completed",
+      "error": null,
+      "observed": "pending",
+      "observed_tick": null,
+      "refused_by": null
+    },
+    {
+      "action_key": "step_east",
+      "commanded": {
+        "action": "move"
+      },
+      "expected_effect": "character_moved",
+      "deadline_ticks": 60,
+      "expected_detail": {},
+      "issued_tick": 30,
+      "status": "completed",
+      "error": null,
+      "observed": "pending",
+      "observed_tick": null,
+      "refused_by": null
+    },
+    {
+      "action_key": "give_to",
+      "commanded": {
+        "action": "transfer",
+        "to": "h1",
+        "item": "coal",
+        "count": 20
+      },
+      "expected_effect": "items_moved",
+      "deadline_ticks": 0,
+      "expected_detail": {
+        "item": "coal",
+        "before": 120
+      },
+      "issued_tick": 60,
+      "status": "completed",
+      "error": null,
+      "observed": "confirmed",
+      "observed_tick": 90,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 90,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 120,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 120,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 150,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 150,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 180,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 180,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 210,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 210,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 240,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 240,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 270,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 270,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 300,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 300,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 330,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 330,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 360,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 360,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 390,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 390,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 420,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 420,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 450,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 450,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 480,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 480,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 510,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 510,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 540,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 540,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 570,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 570,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 600,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 600,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 630,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 630,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 660,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 660,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 690,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 690,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 720,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 720,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 750,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 750,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 780,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 780,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 810,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 810,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 840,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 840,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 870,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 870,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 900,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 900,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 930,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 930,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 960,
+      "refused_by": null
+    },
+    {
+      "action_key": "wait",
+      "commanded": {
+        "action": "wait"
+      },
+      "expected_effect": "none",
+      "deadline_ticks": 0,
+      "expected_detail": {},
+      "issued_tick": 960,
+      "status": "completed",
+      "error": null,
+      "observed": "unknown",
+      "observed_tick": 990,
+      "refused_by": null
+    }
+  ],
+  "passed": true,
+  "failed": []
+}
