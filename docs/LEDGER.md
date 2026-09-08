@@ -71,12 +71,29 @@ Engine pin: Factorio **2.0.60 (build 83512, win64)** - see
 >    an unexplored one*. It is not evidence a task cannot be learned.
 >
 > The figures that prompted the re-check (`-0.3378`, and a `gapfix-...` run
-> directory) do not exist in this repository and were not read off disk. The
-> fix that was claimed to have been tested -- publishing the gap marker into
-> the observation -- had never been trained: `extra_public_markers` is absent
-> from the resolved spec of all twelve earlier repair/restore runs, so the goal
-> vector pointed at where success is *measured* rather than where the agent
-> must *act*. That, not the horizon, is the leading account of the 0.00.
+> directory) do not exist in this repository and were not read off disk.
+>
+> **Correction to this correction (same day).** The paragraph here first said
+> the observability fix "had never been trained", citing
+> `extra_public_markers` being absent from the resolved spec of all twelve
+> earlier repair/restore runs. `TaskSpec.to_dict` never recorded that field,
+> so its absence was evidence of nothing; the claim happened to hold for
+> pre-v1.5.0 runs by version number alone. Both fields are now in the resolved
+> spec and therefore in the config digest.
+>
+> With both families run at v1.5.0 under identical budget and instrumentation,
+> the marker is published in both and the outcomes diverge completely:
+> `restore_power` 0.77 held-out, 1.00 on training layouts, 2394 successes in
+> 2549 episodes; `repair_belt` 0.00 held-out, 0.00 on training layouts,
+> **1 success in 198 episodes**, mean episode length 247.8 of a 300-step
+> budget. So publishing the marker is decisive for one repair family and does
+> nothing for the other, and the horizon does not separate them (250 vs 300).
+> What does differ: `repair_belt` declares no resources and no water, so all
+> six CNN planes are identically zero, whereas `restore_power` has iron ore
+> under the drill and two planes carry signal. And `repair_belt`'s target is
+> the *absence* of an entity -- the tile where a belt should be and is not --
+> which a permutation-invariant pool over an entity set cannot represent.
+> Those are the two open hypotheses; neither is yet tested.
 
 
 ## Phase 0 — Repository foundation and engine feasibility

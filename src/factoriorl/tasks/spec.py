@@ -388,6 +388,16 @@ class TaskSpec:
                 "max_decision_steps": self.max_decision_steps,
                 "max_game_ticks": self.max_game_ticks,
             },
+            # What the policy can *see* of the objective, and the marker the
+            # goal vector's geometry points at. Both were absent from this
+            # dict, so a run's manifest could not distinguish a task whose
+            # target was published from one whose target was evaluator-only --
+            # and "the fix was never trained" was argued from their absence,
+            # off a field that was simply never recorded. They belong in the
+            # digest: publishing a marker changes the observation, so two runs
+            # differing in it are runs of different tasks.
+            "extra_public_markers": list(self.extra_public_markers),
+            "focus_marker": self.focus_marker,
             "observation_profile": self.observation_profile,
             "action_profile": self.action_profile,
             "deliberation_profile": self.deliberation_profile,
