@@ -121,3 +121,43 @@ def test_worker_id_validation():
         worker_dir("../escape")
     with pytest.raises(ValueError):
         worker_dir("a/b")
+
+
+# ------------------------------------------- machine-local engine speed
+
+
+def test_game_speed_resolves_from_env_then_config_then_default(tmp_path, monkeypatch):
+    """The best speed is a property of the machine, not of the system.
+
+    74% of a step is the predicted wait for the decision interval, so speed sets
+    throughput directly -- and the optimum differs by CPU. Measured: a laptop is
+    fastest at 90 (8.82 ms/step, and 120 is *worse* at 9.73), a Ryzen 5 5600T is
+    fastest at 120 (6.85 against 8.20). Hardcoding either would slow the other,
+    so it resolves the same way the executable does.
+    """
+    from factoriorl import engine_config
+
+    monkeypatch.delenv(engine_config.SPEED_ENV_VAR, raising=False)
+    monkeypatch.setattr(engine_config, "workspace_root", lambda: tmp_path)
+    assert engine_config.resolve_game_speed() == engine_config.DEFAULT_GAME_SPEED
+
+    (tmp_path / engine_config.USER_CONFIG_NAME).write_text(
+        json.dumps({"engine": {"game_speed": 120}}), encoding="utf-8"
+    )
+    assert engine_config.resolve_game_speed() == 120.0
+
+    # The environment wins, so a one-off run can override a machine's default.
+    monkeypatch.setenv(engine_config.SPEED_ENV_VAR, "150")
+    assert engine_config.resolve_game_speed() == 150.0
+
+
+def test_an_unparseable_speed_is_refused_rather_than_ignored(tmp_path, monkeypatch):
+    """Silently falling back would run at 90 while the operator believed 240,
+    and every throughput number in that run would be attributed wrongly."""
+    from factoriorl import engine_config
+    from factoriorl.errors import StartupFailure
+
+    monkeypatch.setattr(engine_config, "workspace_root", lambda: tmp_path)
+    monkeypatch.setenv(engine_config.SPEED_ENV_VAR, "fast")
+    with pytest.raises(StartupFailure, match="not a number"):
+        engine_config.resolve_game_speed()

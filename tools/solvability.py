@@ -48,6 +48,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from factoriorl import skills as skills_module  # noqa: E402
+from factoriorl.engine_config import resolve_game_speed  # noqa: E402
 from factoriorl.env import FactorioEnv  # noqa: E402
 from factoriorl.rcon import RCONClient  # noqa: E402
 from factoriorl.seeding import Branch, SeedPlan  # noqa: E402
@@ -98,7 +99,12 @@ def main() -> int:
     started = time.perf_counter()
     try:
         with RCONClient(handle.spec.rcon_endpoint, timeout=30.0) as client:
-            client.lua("game.speed = 30 return game.speed")
+            # Was a hardcoded 30, which made every solvability run roughly
+            # four times slower than it needed to be for no stated reason:
+            # at speed 30 a 30-tick interval waits 16.7 ms, at 90 it waits
+            # 5.6 ms, and the settle prediction adapts either way -- the
+            # session reads the engine's speed back in `status()`.
+            client.lua(f"game.speed = {resolve_game_speed()} return game.speed")
         session = WorkerSession(handle, timeout=30.0)
         session.status()
         plan = SeedPlan(master=777, run_id="solvability")

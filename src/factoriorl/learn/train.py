@@ -25,6 +25,7 @@ from factoriorl import encoders
 from factoriorl import manifest as manifest_module
 from factoriorl import rewards as rewards_module
 from factoriorl.baselines import cached_random_baseline
+from factoriorl.engine_config import resolve_game_speed
 from factoriorl.env import FactorioEnv
 from factoriorl.learn.policy import EXTRACTOR_VERSION, describe, policy_kwargs
 from factoriorl.rcon import RCONClient
@@ -44,7 +45,7 @@ from factoriorl.worker import WorkerManager
 #: before the world has settled, and the extra polls give back exactly what the
 #: faster ticks bought. Measured end to end on `navigate`: 11.16 ms/step at 60,
 #: 8.82 ms at 90, 9.73 ms at 120, 10.34 ms at 200.
-TRAIN_SPEED = 90.0
+TRAIN_SPEED = resolve_game_speed()
 #: Floor for the per-env rollout length, so a large worker count cannot
 #: shrink it to something PPO cannot learn from.
 MIN_STEPS_PER_ENV = 32

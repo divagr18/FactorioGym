@@ -19,12 +19,13 @@ from typing import Any
 
 from factoriorl.agent.adapters import ModelAdapter
 from factoriorl.agent.loop import AgentConfig, AgentLoop
+from factoriorl.engine_config import resolve_game_speed
 
 #: The paused server loop rate. Same value ``learn/train.py`` uses, for the same
 #: reason: RCON round-trip latency is bounded by the server tick, so a run at
 #: the default speed pays 16.6 ms per round trip instead of 1.5 ms. Set here so
 #: an agent run and a training run measure game time on the same footing.
-RUN_SPEED = 90.0
+RUN_SPEED = resolve_game_speed()
 
 
 def run_task(

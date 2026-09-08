@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from factoriorl.engine_config import resolve_game_speed
 from factoriorl.env import FactorioEnv
 from factoriorl.paths import evidence_dir, runtime_dir
 from factoriorl.pool import WorkerPool
@@ -44,7 +45,7 @@ from factoriorl.tasks import get
 #: before the world has settled, and the extra polls give back exactly what the
 #: faster ticks bought. Measured end to end on `navigate`: 11.16 ms/step at 60,
 #: 8.82 ms at 90, 9.73 ms at 120, 10.34 ms at 200.
-PROFILE_SPEED = 90.0
+PROFILE_SPEED = resolve_game_speed()
 
 #: `PROFILE_SPEED` is a *measured* default, not a constant of the system, and it
 #: was measured on one laptop. On a Ryzen 5 5600T the same sweep says 120:

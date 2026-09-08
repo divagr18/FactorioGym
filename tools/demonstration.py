@@ -54,6 +54,7 @@ from factoriorl.agent.summary import (  # noqa: E402
     legal_actions,
     summarise,
 )
+from factoriorl.engine_config import resolve_game_speed  # noqa: E402
 from factoriorl.rcon import RCONClient  # noqa: E402
 
 #: Ticks each measurement window runs with the agent stopped. Long enough for a
@@ -280,7 +281,7 @@ def main() -> int:
     session = None
     try:
         with RCONClient(endpoint, timeout=30.0) as client:
-            client.lua("game.speed = 90 return game.speed")
+            client.lua(f"game.speed = {resolve_game_speed()} return game.speed")
         session = WorkerSession(handle, timeout=30.0)
         session.status()
         branch = Branch.TRAIN if args.split == "train" else Branch.EVAL
