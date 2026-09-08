@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 
@@ -227,6 +228,106 @@ def cmd_doctor_train(_args) -> int:
     return 0
 
 
+def cmd_doctor_agent(args) -> int:
+    """The fourth diagnostic PLAN 6.1 asks for, and the one that was missing.
+
+    6.1 requires diagnostics that distinguish game setup, connection, dependency
+    and *model-provider* problems. The first three had `doctor` and
+    `doctor-train`; a provider failure had nothing, so a missing key, an
+    unreachable endpoint and a wrong model name all surfaced as the same stalled
+    agent run.
+
+    Each check names which of the four it is testing, and the credential is
+    never printed -- only whether the variable is set and how long its value is,
+    which is enough to tell "unset" from "set to an empty string" from "set to
+    something that looks truncated".
+    """
+    from factoriorl.agent.adapters import ModelRequest, OpenAICompatibleAdapter
+    from factoriorl.agent.loop import SYSTEM_PROMPT
+
+    report: dict = {"class": "model_provider", "base_url": args.base_url, "model": args.model}
+    raw = os.environ.get(args.api_key_env) if args.api_key_env else None
+    report["credential"] = {
+        "variable": args.api_key_env,
+        "set": raw is not None,
+        "empty": raw == "" if raw is not None else None,
+        "length": len(raw) if raw else 0,
+    }
+    if args.api_key_env and not raw:
+        print(json.dumps(report, indent=2))
+        print(
+            f"{args.api_key_env} is not set in this process. A local endpoint usually "
+            "needs no key -- pass --api-key-env '' for one.",
+            file=sys.stderr,
+        )
+        return 1
+
+    adapter = OpenAICompatibleAdapter(
+        base_url=args.base_url,
+        model=args.model,
+        api_key_env=args.api_key_env or None,
+        timeout=args.timeout,
+        token_parameter=args.token_parameter,
+        temperature=None if args.no_temperature else 0.0,
+    )
+    reply = adapter.complete(
+        ModelRequest(system=SYSTEM_PROMPT, user='Reply with {"action": 0}.', max_tokens=64)
+    )
+    report["reachable"] = reply.ok
+    report["latency_ms"] = round(reply.latency_ms, 1)
+    report["usage"] = reply.usage
+    if not reply.ok:
+        # Through the adapter's redactor: an endpoint that echoes its own auth
+        # header into a 401 body would otherwise print the key to a terminal.
+        report["error_kind"] = reply.error_kind
+        report["error"] = adapter.redact(str(reply.error))[:400]
+        print(json.dumps(report, indent=2))
+        print(
+            "the provider did not answer; this is a model-provider fault, not an "
+            "engine or dependency one",
+            file=sys.stderr,
+        )
+        return 1
+    report["reply"] = adapter.redact(reply.text)[:200]
+    print(json.dumps(report, indent=2))
+    return 0
+
+
+def cmd_demo(args) -> int:
+    """One-command agent demonstration (PLAN 6.1)."""
+    return _run_tool("demonstration", args.rest)
+
+
+def cmd_replay(args) -> int:
+    """Render a run's replay (PLAN 6.1, 5.5)."""
+    return _run_tool("replay", [args.run, *args.rest])
+
+
+def _run_tool(name: str, argv: list[str]) -> int:
+    """Run a repository tool as a subcommand.
+
+    PLAN 6.1 asks for one-command entrypoints, and a user should not have to
+    know that some capabilities live under `tools/` while others are
+    subcommands. The tools stay where they are -- they are also run directly in
+    development -- and this is the published surface.
+    """
+    import runpy
+
+    script = workspace_root() / "tools" / f"{name}.py"
+    if not script.exists():
+        print(f"missing tool: {script}", file=sys.stderr)
+        return 1
+    saved = sys.argv
+    sys.argv = [str(script), *argv]
+    try:
+        runpy.run_path(str(script), run_name="__main__")
+    except SystemExit as exit_code:
+        return int(exit_code.code or 0)
+    finally:
+        sys.argv = saved
+    return 0
+
+
 def cmd_action_matrix(args) -> int:
     from factoriorl.action_matrix import to_markdown
     from factoriorl.paths import workspace_root
@@ -341,6 +442,27 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     sub.add_parser("doctor-train", help="check the training stack and CUDA")
+    agent_doctor = sub.add_parser(
+        "doctor-agent", help="check the model provider (PLAN 6.1's fourth failure class)"
+    )
+    agent_doctor.add_argument("--base-url", default="http://127.0.0.1:8080/v1")
+    agent_doctor.add_argument("--model", default="local-model")
+    agent_doctor.add_argument(
+        "--api-key-env",
+        default="",
+        help="environment variable holding the key; empty for a local endpoint",
+    )
+    agent_doctor.add_argument("--timeout", type=float, default=30.0)
+    agent_doctor.add_argument("--token-parameter", default="max_tokens")
+    agent_doctor.add_argument("--no-temperature", action="store_true")
+
+    demo_cmd = sub.add_parser("demo", help="run the agent demonstration (PLAN 5.7)")
+    demo_cmd.add_argument("rest", nargs=argparse.REMAINDER)
+
+    replay_cmd = sub.add_parser("replay", help="render a run's replay viewer (PLAN 5.5)")
+    replay_cmd.add_argument("run")
+    replay_cmd.add_argument("rest", nargs=argparse.REMAINDER)
+
     prof = sub.add_parser("profile", help="worker-count throughput profiling (PLAN 4.3)")
     prof.add_argument("--workers", default="1,2,4,8")
     prof.add_argument("--task", default="navigate")
@@ -399,6 +521,12 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_train(args)
     if args.command == "doctor-train":
         return cmd_doctor_train(args)
+    if args.command == "doctor-agent":
+        return cmd_doctor_agent(args)
+    if args.command == "demo":
+        return cmd_demo(args)
+    if args.command == "replay":
+        return cmd_replay(args)
     if args.command == "profile":
         return cmd_profile(args)
     if args.command == "phase4-gate":
@@ -409,7 +537,14 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_runs(args)
     if args.command == "action-matrix":
         return cmd_action_matrix(args)
-    return cmd_phase0_gate(args)
+    if args.command == "phase0-gate":
+        return cmd_phase0_gate(args)
+    # Named explicitly rather than fallen through to. This chain used to end
+    # `return cmd_phase0_gate(args)`, so a subcommand with a parser but no
+    # dispatch entry silently launched a worker and ran the Phase 0 gate --
+    # which is what `doctor-agent` did the first time it was invoked, and the
+    # output looks enough like a successful diagnostic to be believed.
+    raise SystemExit(f"no handler for command {args.command!r}")
 
 
 if __name__ == "__main__":

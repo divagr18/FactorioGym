@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -263,3 +264,72 @@ def test_the_readme_does_not_claim_an_accepted_learning_result():
     readme = (ROOT / "README.md").read_text(encoding="utf-8").lower()
     for phrase in ("phase 4 accepted", "phases 0-4 accepted", "phases 0–4 accepted"):
         assert phrase not in readme, f"README claims {phrase!r}"
+
+
+# ------------------------------------------- 6.1: entrypoints and diagnostics
+
+
+def test_every_subcommand_has_a_handler():
+    """The dispatch chain used to end `return cmd_phase0_gate(args)`.
+
+    A subcommand with a parser but no dispatch entry therefore launched a worker
+    and ran the Phase 0 gate, printing a long successful-looking report. That is
+    exactly what `doctor-agent` did the first time it was invoked, and the
+    output is plausible enough to be believed -- a silent wrong answer rather
+    than an error.
+    """
+    import ast
+
+    source = (ROOT / "src" / "factoriorl" / "cli.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # Top-level only. `runs list`, `worker start` and `bench speed` are
+    # nested subparsers dispatched inside their parent's handler; the
+    # lookbehind is what stops `runs_sub.add_parser` matching as one.
+    pattern = r'(?<![A-Za-z_])sub\.add_parser\(\s*"([a-z0-9-]+)"'
+    declared = set(re.findall(pattern, source, re.S))
+    dispatched = set(re.findall(r'args\.command == "([a-z0-9-]+)"', source))
+    assert declared, "no subcommands found; the parse is wrong, not the CLI"
+    missing = sorted(declared - dispatched)
+    assert not missing, f"subcommands with a parser but no handler: {missing}"
+
+    # And the chain must not end by running something; it must refuse.
+    assert "no handler for command" in source
+    assert ast.parse(source) is not None or tree is not None
+
+
+def test_the_provider_diagnostic_names_the_variable_and_never_the_value(monkeypatch):
+    """PLAN 6.1 wants four distinguishable failure classes and the
+    model-provider one had no diagnostic at all -- a missing key, an unreachable
+    endpoint and a wrong model name all surfaced as the same stalled agent run.
+
+    Whatever it reports, it must not report the credential.
+    """
+    import subprocess
+    import sys as _sys
+
+    secret = "sk-doctor-agent-should-never-print-this"
+    monkeypatch.setenv("FACTORIORL_TEST_KEY", secret)
+    result = subprocess.run(
+        [
+            _sys.executable,
+            "-m",
+            "factoriorl.cli",
+            "doctor-agent",
+            "--base-url",
+            "http://127.0.0.1:9/v1",
+            "--api-key-env",
+            "FACTORIORL_TEST_KEY",
+            "--timeout",
+            "2",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+        env={**os.environ, "FACTORIORL_TEST_KEY": secret},
+    )
+    combined = result.stdout + result.stderr
+    assert secret not in combined, "the diagnostic printed the credential"
+    assert "FACTORIORL_TEST_KEY" in combined, "it should name the variable"
+    assert '"class": "model_provider"' in combined
+    assert result.returncode == 1, "an unreachable provider must fail, not pass"
