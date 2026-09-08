@@ -210,6 +210,11 @@ def summarise(row: dict) -> dict:
         "steps": row.get("total_steps"),
         "wall_seconds": row.get("wall_seconds"),
         "train_success_rate": row.get("final_train_success_rate"),
+        # Both, because the tail rate reported 24 successes as 0.0 whenever the
+        # last of them landed more than twenty episodes before the end.
+        "train_successes": row.get("train_successes"),
+        "train_success_rate_all_episodes": row.get("train_success_rate"),
+        "episodes_scored": row.get("episodes_scored"),
         "structural_success_rate": structures.get("success_rate"),
         "structural_wilson_95": structures.get("wilson_95"),
         "structural_random_floor": (structures.get("random_baseline") or {}).get("success_rate"),
@@ -218,6 +223,11 @@ def summarise(row: dict) -> dict:
         "holdout_within_frozen_range": holdout.get("within_frozen_range"),
         "holdout_episodes_touched": holdout.get("episodes_touched"),
         "holdout_content_hash": holdout.get("content_hash"),
+        # The per-task digest, which is the value that actually identifies the
+        # scenes a rate was measured on. The whole-file hash moves whenever any
+        # family is re-frozen, so a cell citing only that cannot say whether
+        # *its* episodes changed -- and holdout_v2 was re-frozen five times.
+        "holdout_task_entry_hash": holdout.get("task_entry_hash"),
     }
 
 
