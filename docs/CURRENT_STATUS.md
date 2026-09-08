@@ -5,38 +5,34 @@ and carries its own staleness banner. Direction comes from
 [`docs/DEVELOPMENT_REDIRECTION.md`](DEVELOPMENT_REDIRECTION.md); this file is day-to-day
 state. Read this before treating any older summary as current fact.
 
-**Last reconciled:** 2026-09-08, at commit `fe51792`.
+**Last reconciled:** 2026-09-08, after R0 and R1 (`1a780ab`).
 
 ---
 
 ## 1. Live now
 
-| what | machine | state | cites |
-|---|---|---|---|
-`rp16-20260908T205825-078a96f0` — `restore_power` v1.6.0, 1 seed, 25k steps | laptop | **running** (training finished at timestep 25088; in held-out evaluation) | `holdout_v3` |
+**Nothing is running.** Both machines idle.
 
-**No score is attached to that run.** It has no `result.json` yet.
+Results measured against the live holdout (`holdout_v3`, `4227eb56`):
 
-Completed minutes earlier, and the only result measured against the live holdout:
-
-| run | task | held-out (greedy / stochastic) | floor | training successes |
+| task | run | held-out greedy / stochastic | floor | training successes |
 |---|---|---|---|---|
-`cur16-20260908T204530-b1e2eb75` | `repair_belt` v1.6.0 + exploring starts 1/3 | **0.00 / 0.06** | 0.00 | 7 of 221 episodes |
+`restore_power` v1.6.0, 25k, seed 1 | `rp16-…078a96f0` | **0.00 / 0.37** `[0.282,0.468]` | 0.02 | 101 / 227 |
+`repair_belt` v1.6.0 + curriculum, 50k, seed 1 | `cur16-…b1e2eb75` | **0.00 / 0.06** | 0.00 | 7 / 221 |
 
-Evidence: [`repair_belt-curriculum-holdout_v3.json`](evidence/repair_belt-curriculum-holdout_v3.json),
-citing `holdout_v3` `4227eb56…`, task entry hash `32f8a13a2b4772b1`, `covers_frozen_set: true`.
+Both single-seed, both `covers_frozen_set: true`. Evidence:
+[`restore_power-v1.6.0-holdout_v3.json`](evidence/restore_power-v1.6.0-holdout_v3.json),
+[`repair_belt-curriculum-holdout_v3.json`](evidence/repair_belt-curriculum-holdout_v3.json).
 
-Two caveats that belong with that number, not after it:
+Three caveats that belong with these numbers:
 
-- **Greedy and stochastic disagree on this family** (0.00 vs 0.06 held out, 0.00 vs 0.12 on
-  training layouts). On `restore_power` they agreed exactly. Neither arm is the "real" number;
-  both are reported, and neither was chosen after seeing the other.
-- **Two changes landed together** — the v1.6.0 layout/marker redesign and the exploring-starts
-  curriculum. Per redirection R5.2, the gain cannot be attributed to either individually
-  without a separate controlled experiment. It is 7 training successes against a prior 1 in
-  198, and 0.06 held out against a prior 0.00; that is movement, not a result.
-
----
+- **Greedy and stochastic disagree sharply on both**, with non-overlapping
+  intervals on `restore_power`. Read greedily either run says "did not learn".
+  Both arms scored identical episodes; neither was chosen after seeing the other.
+- **One seed each.** `restore_power` at v1.5.0 gave 0.77 / 0.00 / 0.00 across three
+  seeds, so a single cell says little about the family.
+- **`repair_belt` had two changes at once** (layout redesign + curriculum), so per
+  R5.2 the movement is not attributable to either alone.
 
 ## 2. Filename warning — "v3" in an evidence filename is **not** `holdout_v3`
 
@@ -84,7 +80,7 @@ Action catalog | `primitive-v1`, 46 templates |
 Skills | `approach_entity_0..3`, `approach_resource`, `mine_batch` (`SKILL_BUDGET` 60) |
 Policy extractor | `EXTRACTOR_VERSION` 4 |
 `assisted-v1` action profile | declared in the mod, **not implemented** on the Python side |
-Tests | 395 total: 331 engine-free (`tests/unit` 279, `tests/contract` 52), 64 engine-marked |
+Tests | 440 total: 376 engine-free, 64 engine-marked |
 
 ### 3.3 Holdouts
 
@@ -123,12 +119,12 @@ and v2 predate the field.
   files reports numbers measured against at least three different scene sets.
 - Only the two `-v2-repair_belt`/`-v2-restore_power` files carry a `superseded` marker. The
   four v1-era files do not, despite citing a vanished hash.
-- **`freeze_holdout.manifests_citing()` returns zero citations for every holdout**, because
-  manifests record `config.holdout` as a *path string* while the tool looks for a dict with
-  `id`/`content_hash`/`task_entry_hash`. `stale_citations()` therefore checks nothing. This is
-  an open R0.2 item.
-- `docs/evidence/reward-audit.json` still contains the **withdrawn** note "repair_belt: 190
-  episodes, zero successes, mean reward −0.300". Open item.
+- **Fixed** `a69aacb`: `freeze_holdout.manifests_citing()` used to return zero citations for
+  every holdout, because manifests recorded `config.holdout` as a *path string* while the tool
+  looked for a dict. Runs now write a top-level citation and the tool finds it. Runs predating
+  that commit remain uncitable.
+- **Fixed** `9a24cba`: `reward-audit.json`'s withdrawn "190 episodes, zero successes, −0.300"
+  note is now labelled as withdrawn in the file itself.
 - The four run directories cited by the `-v3-` files are **not on this laptop** because those
   cells ran on the desktop; they exist at `D:\FactorioRL\runtime\runs\` there. `runtime/` is
   gitignored on both machines.
@@ -210,15 +206,21 @@ Release packaging | `release/` snapshot is **stale** (predates the curve-logger 
 
 ## 7. Next work package
 
-Per redirection §7: **R0 and R1.1–R1.2 first; do not launch another release matrix.**
+**R0 and R1 are complete.** 376 engine-free tests, lint and format clean.
+Verified end to end on a 2,000-step engine run (`r0r1smoke-…e1a766e8`): the
+holdout citation, per-task entry hash, checkpoint hash and eval streams all
+populate, `manifests_citing` finds the citation where it previously found zero
+for every holdout, and the run reports **2048 policy decisions against 3517
+primitive transitions** — the budget confound R1.3 exposes, now measured.
 
-1. **R0.1** — this file. Done.
-2. **R1.1** — stop infrastructure failures reaching an optimizer update; failure-injection test
-   through the real collector.
-3. **R1.2** — bounded retry of the same scene identity or explicit incomplete coverage; guard
-   the reset path; validate `eval_episodes <= episodes_per_task`.
-4. **R0.2** — manifest identity fields and the baseline cache key.
-5. **R1.3** — primitive-time objective with duration-aware discounting (chosen convention).
+Next is **R2** — make construction and stable interaction expressible:
 
-Then R2 (parameterized actions shared by RL and LLM clients), R3 (construction), R4
-(recovery), R5 (controlled learning), R6 (release).
+1. **R2.1** canonical parameterized actions, reusing the existing addressed LLM path.
+2. **R2.2** an RL action adapter over operation / target / placement / orientation.
+3. **R2.3** observations that make the task and its failures legible.
+
+Then R3 (construction), R4 (recovery), R5 (controlled learning), R6 (release).
+
+**Every skill-augmented number predating `8e6bdb6` used a different objective**
+(undiscounted sum, one discount per decision) and is not comparable with runs
+after it.
