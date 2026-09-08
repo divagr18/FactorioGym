@@ -151,6 +151,20 @@ Phase 4 acceptance (4.5) requires at least three families at 80% on the
 structural split with at least one production or repair family, evaluated over
 100 frozen held-out episodes per family per training seed.
 
+**Two families have no reward gradient, and their 0.00 scores must not be read
+as a property of the tasks.** `repair_belt` and `restore_power` pay a sparse
+success plus a step cost and nothing that can fire before success -- measured on
+`repair_belt`: 190 training episodes, zero successes, mean episode reward
+-0.300 against a step cost of exactly 300 x 0.001. More steps cannot help a
+policy with nothing to ascend.
+
+Separately, the budget those runs used could not license a negative claim even
+with a gradient. The exploration lower bound for an `H = 300` family is roughly
+15-27 M steps (`docs/research/rl-theory.md`, Anchor 1); the matrix ran 50,000,
+about 0.3% of it. See `docs/research/sparse-reward-decision.md` for what the
+books recommend instead, and why hand-designed subgoal rewards are the one
+option Sutton & Barto §17.4 explicitly warns against.
+
 **Status: see `docs/LEDGER.md` and `docs/evidence/phase4-release-v2-*.json`.**
 The first declaration (`holdout_v1`: navigate, deliver, mine_smelt) produced no
 qualifying family -- `navigate` is disqualified on its 0.99 skill floor,
