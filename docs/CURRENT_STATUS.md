@@ -282,12 +282,34 @@ Both are recorded because a gate that only confirms is not doing its job.
 needs the intervention-freshness fix first) and **R5** (interpretable learning
 experiments).
 
-Deferred deliberately, with its own gate, nothing depending on it:
-**synthesis §8 candidate scoring** — score placement candidates by their resulting
-local structure instead of one unrelated logit per index, using the per-entity
-embeddings before pooling. It bumps `EXTRACTOR_VERSION` and its gate is §8's own:
-compare representations on translated and rotated valid layouts with candidate set,
-information and budget held fixed, treating symmetry as a *tested* property.
+### 7.4 Synthesis §8: the symmetry is C4, not D4
+
+§8 proposes scoring placement candidates by their resulting local structure
+instead of one unrelated logit per index. Its gate leads with *"treat symmetry as
+a tested property: not every Factorio mechanic is rotation/reflection
+invariant"*, and *"defer a new value-learning algorithm until the simpler
+representation test is informative"*. So the symmetry was measured first, on a
+real engine, with the candidate set (every integer offset within 4 tiles), the
+information (`can_place_entity` plus measured production, no evaluator truth) and
+the budget (3600 ticks per candidate) held fixed:
+`docs/evidence/section8-symmetry.json`.
+
+**Rotation is invariant. Reflection is not.** Each drill facing admits exactly two
+productive furnace centres, and all three rotations of south's set match exactly.
+Reflecting south's `{(0,2), (1,2)}` in y gives `{(0,-2), (1,-2)}`, while north's
+measured set is `{(-1,-2), (0,-2)}` — off by exactly one tile in x.
+
+The cause is a parity: a 2×2 entity at integer centre `(cx, cy)` occupies tiles
+`{cx-1, cx} × {cy-1, cy}`, extending one tile in the negative direction and none
+in the positive. That bias survives a 90° rotation and does not survive a flip.
+
+**Design consequence, and the reason this test came first.** A candidate scorer
+may share parameters across **rotations** of a local structure and must **not**
+share them across reflections: a scorer assuming the full dihedral group would be
+wrong on half its orbit, scoring `(1,-2)` valid for a north-facing drill where the
+engine starves it. The representation test is therefore informative, and the
+scorer itself remains deferred — it bumps `EXTRACTOR_VERSION`, and §8 asks for the
+value-learning step only after this.
 
 Two interface limitations carried forward, both stated in code:
 

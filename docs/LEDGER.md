@@ -1225,3 +1225,51 @@ to catch. Recorded, not patched.
 - The engine ships a machine-readable API at
   `D:/Factorio/doc-html/runtime-api.json` (`api_version 6`), which is the
   authority for what exists on this build.
+
+### Placement and production, measured during R3 (2026-09-09)
+
+- A 2x2 entity snaps to an **integer** centre. `place_at` offers tile centres
+  (`x.5`), so a requested `t + 0.5` lands at `t + 1`: a drill requested at
+  (0.5, 0.5) is created at (1, 1). A 2x2 at centre `(cx, cy)` then occupies
+  tiles `{cx-1, cx} x {cy-1, cy}` -- **not symmetric about its own centre**,
+  which is why rotating a valid layout is not obviously still valid.
+- A burner mining drill's `can_place_entity` is **false with no ore beneath
+  it**. So a drill's position is chosen from the ore patch rather than free,
+  and a placement probe run on bare ground reports every candidate refused.
+- `surface.create_entity` **does not feed**
+  `force.get_entity_build_count_statistics`. The `place` handler builds that
+  way, so a `BUILT` predicate reading those statistics saw `{}` beside a
+  running line and 49 plates produced. The handler counts its own successful
+  placements instead, which is also the better channel: it counts what the
+  agent placed through the action interface, and the scene install path does
+  not go through that handler.
+- `create_entity` **ignores collision**; `can_place_entity` is the only guard.
+  A furnace at (1, 2) beside a drill at (1, 1) catches the drop and produces
+  100 plates, and is unreachable through the legal action path because
+  `can_place_entity` refuses it.
+- A south-facing burner drill at (1, 1) drops at (1.5, 2.2969), i.e. into tile
+  (1, 2). Drop offsets per facing are a clean rotation:
+  north (-0.5, -1.2969), east (1.2969, -0.5), south (0.5, 1.2969),
+  west (-1.2969, 0.5). The **valid furnace centres** are the two whose 2x2 tile
+  footprint covers the drop tile without overlapping the drill: for that drill,
+  (1, 3) and (2, 3). (0, 3) produces nothing and the drill stalls.
+- A correct drill+furnace pair makes **14 plates in its first 3600 ticks and 15
+  per 3600 thereafter**, and stalls at **100** when nothing empties the
+  furnace's output slot -- about 24,000 ticks.
+- A **healthy** line reads status `working` on only **7.5%** of sampled ticks
+  (102,451 samples): one burner drill outpaces one stone furnace, so the drill
+  sits in `waiting_for_space_in_destination` 87% of the time and the furnace in
+  `full_output` once its output backs up. `working` is therefore useless as an
+  acceptance criterion, though `working_counts > 0` over a window is fine.
+- Entity aliases are markers at runtime: `world.truth()` merges
+  `scene.aliases` positions into `markers`, so anything reading only
+  `Blueprint.markers` sees a smaller set than the environment does.
+- **Placement geometry is rotation invariant; it is not reflection
+  invariant.** Measured over every integer furnace offset within 4 tiles of a drill,
+  for all four facings: each facing admits exactly two productive centres, all
+  three rotations match exactly, and reflecting south's `{(0,2), (1,2)}` in y
+  gives `{(0,-2), (1,-2)}` where north's measured set is `{(-1,-2), (0,-2)}`.
+  The cause is the 2x2 footprint's parity -- it extends one tile in the negative
+  direction and none in the positive, which survives a 90-degree rotation and
+  not a flip. So the symmetry group is C4, not D4, and any shared placement
+  scorer may tie parameters across rotations but not across reflections.
