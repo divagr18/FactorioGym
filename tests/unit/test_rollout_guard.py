@@ -17,6 +17,9 @@ that has drifted from the thing it stands in for.
 
 from __future__ import annotations
 
+import collections
+import threading
+
 import numpy as np
 import pytest
 from stable_baselines3.common.vec_env import VecEnv
@@ -116,6 +119,22 @@ class StubVecEnv(VecEnv):
     def action_masks(self) -> np.ndarray:
         return np.ones((self.num_envs, ACTIONS), dtype=bool)
 
+    # ---- the frozen-evaluation surface ---------------------------------
+    def issued_episodes(self) -> list[int]:
+        return []
+
+    def release_episode(self, index: int, retry_limit: int = 3) -> bool:
+        return False
+
+    def pending_episodes(self) -> int:
+        return -1
+
+    def episode_attempts(self) -> dict[int, int]:
+        return {}
+
+    def in_flight_episodes(self) -> list[int | None]:
+        return [None] * self.num_envs
+
 
 def _space():
     from gymnasium import spaces
@@ -208,6 +227,9 @@ def _real_step_wait(payloads):
     vec._cursor = None
     vec._stop = None
     vec._issued = []
+    vec._pending_indices = None
+    vec._attempts = collections.Counter()
+    vec._cursor_lock = threading.Lock()
     _, _, dones, infos = FactorioVecEnv.step_wait(vec)
     return dones, infos, vec
 
@@ -287,9 +309,9 @@ def test_the_stub_matches_the_real_vec_env_surface():
         for name in vars(FactorioVecEnv)
         if callable(getattr(FactorioVecEnv, name)) and not name.startswith("_")
     }
-    # `retarget` and `issued_episodes` are evaluation-only helpers the collector
-    # never calls; everything else the collector may reach must be present.
-    collector_surface = real - {"retarget", "issued_episodes"}
+    # `retarget` is the only evaluation-only helper the collector never calls;
+    # everything else the collector or the evaluator may reach must be present.
+    collector_surface = real - {"retarget"}
     missing = sorted(name for name in collector_surface if not hasattr(StubVecEnv, name))
     assert not missing, f"StubVecEnv is missing {missing} from FactorioVecEnv's surface"
 

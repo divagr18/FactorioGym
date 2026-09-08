@@ -221,6 +221,13 @@ def summarise(row: dict) -> dict:
         "unfamiliar_seed_success_rate": seeds_row.get("success_rate"),
         "unfamiliar_seed_wilson_95": seeds_row.get("wilson_95"),
         "holdout_within_frozen_range": holdout.get("within_frozen_range"),
+        # Was computed and written but read by nothing, so a partially covered
+        # frozen row aggregated silently. A cell that scored 99 of its 100
+        # frozen episodes is not a result against that holdout.
+        "holdout_covers_frozen_set": holdout.get("covers_frozen_set"),
+        "holdout_episodes_scored": holdout.get("episodes_scored"),
+        "incomplete_coverage": row.get("incomplete_coverage"),
+        "unrecovered_episodes": row.get("unrecovered_episodes"),
         "holdout_episodes_touched": holdout.get("episodes_touched"),
         "holdout_content_hash": holdout.get("content_hash"),
         # The per-task digest, which is the value that actually identifies the
@@ -339,7 +346,13 @@ def main() -> int:
                 continue
             cell = summarise(row)
             cells.append(cell)
-            covered = cell["holdout_within_frozen_range"]
+            # Both conditions. "Within the frozen range" says every scored
+            # episode was inside the range; it does not say the whole frozen
+            # set was scored. A cell that covered 99 of 100 satisfies the first
+            # and fails the second, and used to aggregate silently.
+            covered = bool(
+                cell["holdout_within_frozen_range"] and cell["holdout_covers_frozen_set"]
+            )
             print(
                 f"{task:14s} seed={seed} "
                 f"structural={cell['structural_success_rate']:.2f} "
@@ -354,9 +367,12 @@ def main() -> int:
 
     families: dict[str, dict] = {}
     for task, cells in matrix.items():
-        # A cell that missed the frozen range has not evaluated this holdout,
-        # whatever its manifest says, so it must not enter the mean.
-        covered = [c for c in cells if c["holdout_within_frozen_range"]]
+        # A cell that missed the frozen range, or covered only part of the
+        # frozen set, has not evaluated this holdout whatever its manifest
+        # says, so it must not enter the mean.
+        covered = [
+            c for c in cells if c["holdout_within_frozen_range"] and c["holdout_covers_frozen_set"]
+        ]
         excluded = len(cells) - len(covered)
         rates = [
             c["structural_success_rate"]

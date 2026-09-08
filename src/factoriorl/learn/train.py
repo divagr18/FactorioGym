@@ -34,6 +34,7 @@ from factoriorl.seeding import Branch, SeedPlan, seed_everything
 from factoriorl.session import WorkerSession
 from factoriorl.skills import SKILLS, SkillEnv
 from factoriorl.tasks import get
+from factoriorl.vecenv import EpisodeResetFailed
 from factoriorl.worker import WorkerManager
 
 #: Also sets the *paused* server loop rate, which is what RCON latency
@@ -375,10 +376,45 @@ def evaluate_parallel(
     # one score different subsets of the same window and the comparison PLAN
     # section 3 calls paired quietly stops being paired.
     scored: set[int] = set()
+    unrecovered: list[int] = []
+    incomplete: str | None = None
+    reset_failures: list[dict] = []
     while counted < episodes:
+        # Termination, which this loop previously had no way to reach. Past the
+        # frozen bound `_reset_one` handed out real episodes tagged None, which
+        # never became eligible, so the loop spun on genuine engine episodes
+        # with no timeout at any level. Now the queue is finite: when nothing
+        # is owed and the count is short, say so instead of spinning.
+        owed = vec.pending_episodes()
+        in_flight = {
+            episode
+            for episode in vec.in_flight_episodes()
+            if episode is not None
+            and (only_indices is None or episode in only_indices)
+            and episode not in scored
+        }
+        if owed == 0 and not in_flight and counted < episodes:
+            attempts = vec.episode_attempts()
+            unrecovered = sorted(set(only_indices or ()) - scored)
+            incomplete = (
+                f"{len(unrecovered)} of {episodes} frozen episodes could not be scored "
+                f"after bounded retries (attempts: "
+                f"{ {i: attempts.get(i, 0) for i in unrecovered} }); no substitute scene was "
+                "evaluated in their place"
+            )
+            break
         masks = vec.action_masks()
         actions, _ = model.predict(observations, action_masks=masks, deterministic=deterministic)
-        observations, step_rewards, dones, infos = vec.step(actions)
+        try:
+            observations, step_rewards, dones, infos = vec.step(actions)
+        except EpisodeResetFailed as exc:
+            # `_reset_one` already handed the identity back, so the same scene
+            # is retried. Persistent failure exhausts the retry limit, empties
+            # the queue and lands on the incomplete-coverage branch above --
+            # never on a substituted scene, and never scored as an agent loss.
+            reset_failures.append({"episode": exc.index, "cause": exc.cause})
+            observations = vec.reset()
+            continue
         totals += step_rewards
         steps += 1
         for index, done in enumerate(dones):
@@ -392,7 +428,11 @@ def evaluate_parallel(
             episode = info.get("episode_index")
             eligible = only_indices is None or (episode in only_indices and episode not in scored)
             # An infrastructure failure is not a task outcome, so it is dropped
-            # rather than counted as a loss.
+            # rather than counted as a loss -- and the scene identity is handed
+            # back so the *same* scene is retried. Consuming its index and
+            # moving on silently shortened a frozen evaluation, or hung it.
+            if info.get("excluded_from_metrics") and episode is not None and eligible:
+                vec.release_episode(episode)
             if not info.get("excluded_from_metrics") and eligible and counted < episodes:
                 if episode is not None:
                     scored.add(episode)
@@ -412,6 +452,10 @@ def evaluate_parallel(
         "mean_episode_steps": round(float(np.mean(lengths)), 1) if lengths else 0.0,
         "deterministic": deterministic,
         "scored_episodes": sorted(scored) if only_indices is not None else None,
+        "incomplete_coverage": incomplete,
+        "reset_failures": reset_failures or None,
+        "unrecovered_episodes": unrecovered or None,
+        "episode_attempts": ({k: v for k, v in vec.episode_attempts().items() if v > 1} or None),
     }
 
 
@@ -493,6 +537,19 @@ def _load_frozen_holdout(config: TrainConfig, task) -> dict | None:
         )
     # The file must hash to what it says it hashes to. Without this the
     # `content_hash` a run records is a copied string rather than a checksum.
+    # Cheap, engine-free, and it prevents a guaranteed hang: the evaluation
+    # scores exactly the frozen indices, so asking for more episodes than the
+    # holdout contains can never be satisfied. `--eval-episodes` defaults to
+    # 100 and `episodes_per_task` is 100, so this also documents that there is
+    # zero slack -- every excluded episode must be recovered by retry or
+    # reported as incomplete coverage.
+    per_task = spec.get("episodes_per_task")
+    if per_task is not None and config.eval_episodes > per_task:
+        raise ValueError(
+            f"eval_episodes={config.eval_episodes} exceeds the {per_task} episodes "
+            f"holdout {spec.get('holdout_id')} freezes per task; the evaluation could "
+            "never reach that count without evaluating scenes outside the frozen set"
+        )
     computed = holdout_content_hash(spec)
     if computed != frozen.get("content_hash"):
         raise ValueError(

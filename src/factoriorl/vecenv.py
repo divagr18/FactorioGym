@@ -19,6 +19,7 @@ Measured: 41.8 steps/s at one worker, 202 steps/s at eight.
 
 from __future__ import annotations
 
+import collections
 import itertools
 import threading
 import time
@@ -29,6 +30,7 @@ import numpy as np
 from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 
 from factoriorl.env import FactorioEnv
+from factoriorl.errors import InfrastructureFailure, ProtocolError
 from factoriorl.pool import WorkerPool
 from factoriorl.rcon import RCONClient
 from factoriorl.seeding import Branch, SeedPlan
@@ -48,6 +50,20 @@ from factoriorl.tasks import RegisteredTask
 #: faster ticks bought. Measured end to end on `navigate`: 11.16 ms/step at 60,
 #: 8.82 ms at 90, 9.73 ms at 120, 10.34 ms at 200.
 DEFAULT_SPEED = 90.0
+
+
+class EpisodeResetFailed(RuntimeError):
+    """A scene could not be installed. Carries the identity so it can be retried.
+
+    Previously `_reset_one` called `env.reset()` unguarded, so a transport
+    failure there propagated out of `step_wait` and killed the run. That frame
+    appears in eight recorded `WinError 10054` failures.
+    """
+
+    def __init__(self, index: int | None, cause: str) -> None:
+        super().__init__(f"episode {index} failed to reset: {cause}")
+        self.index = index
+        self.cause = cause
 
 
 class FactorioVecEnv(VecEnv):
@@ -77,6 +93,10 @@ class FactorioVecEnv(VecEnv):
         # different scenes and could not be compared as paired measurements.
         self._cursor: itertools.count | None = None
         self._cursor_lock = threading.Lock()
+        #: Frozen indices still owed, when a bounded stream is installed. A
+        #: deque rather than a counter so a failed scene can be handed back.
+        self._pending_indices: collections.deque[int] | None = None
+        self._attempts: collections.Counter = collections.Counter()
         #: Exclusive upper bound on issued episode indices, or None for an
         #: unbounded stream. Set only by a frozen-holdout evaluation.
         self._stop: int | None = None
@@ -145,9 +165,24 @@ class FactorioVecEnv(VecEnv):
                 # right *families* from the wrong episodes, which is the
                 # failure mode a frozen holdout exists to prevent.
                 inner.seed_plan = plan
-        self._cursor = itertools.count(start_index)
+        # An explicit queue rather than `itertools.count` + a bound.
+        #
+        # The counter could not express "give this index back". Past the bound
+        # `_reset_one` returned `index = None` while still playing a real
+        # episode, which was never eligible, so `evaluate_parallel`'s
+        # `while counted < episodes` spun on genuine engine episodes forever --
+        # with no timeout at any level, and `--eval-episodes 100` against
+        # `episodes_per_task 100` leaving exactly zero slack. One excluded
+        # episode was enough to hang a run.
+        if stop_index is None:
+            self._cursor = itertools.count(start_index)
+            self._pending_indices = None
+        else:
+            self._cursor = None
+            self._pending_indices = collections.deque(range(start_index, stop_index))
         self._stop = stop_index
         self._issued = []
+        self._attempts = collections.Counter()
 
     def _reset_one(self, env):
         """Assign the next episode index, and tag the env with what it got.
@@ -164,18 +199,32 @@ class FactorioVecEnv(VecEnv):
         the evaluator not to count it. That is what keeps a bounded holdout from
         being scored on episodes outside itself.
         """
-        if self._cursor is not None:
+        index = None
+        if self._pending_indices is not None:
+            with self._cursor_lock:
+                index = self._pending_indices.popleft() if self._pending_indices else None
+                if index is not None:
+                    self._issued.append(index)
+                    self._attempts[index] += 1
+        elif self._cursor is not None:
             with self._cursor_lock:
                 index = next(self._cursor)
-                if self._stop is not None and index >= self._stop:
-                    index = None
-                else:
-                    self._issued.append(index)
+                self._issued.append(index)
+        if index is not None:
+            # reset() increments before use, so seed it one below the target.
+            env.unwrapped._episode_index = index - 1
+        env.unwrapped._assigned_index = index
+        try:
+            return env.reset()
+        except (InfrastructureFailure, ProtocolError) as exc:
+            # A reset failure used to propagate out of `step_wait` and kill the
+            # run. That frame -- `_reset_one` -> `env.reset()` -- is in eight
+            # recorded `WinError 10054` failures, and is why the crash fired
+            # before the hang. The scene is handed back so it can be retried
+            # rather than silently lost.
             if index is not None:
-                # reset() increments before use, so seed it one below the target.
-                env.unwrapped._episode_index = index - 1
-            env.unwrapped._assigned_index = index
-        return env.reset()
+                self.release_episode(index)
+            raise EpisodeResetFailed(index, str(exc)) from exc
 
     def reset(self):
         results = list(self._executor.map(self._reset_one, self.envs))
@@ -274,6 +323,43 @@ class FactorioVecEnv(VecEnv):
         a frozen holdout against.
         """
         return list(self._issued)
+
+    def release_episode(self, index: int, retry_limit: int = 3) -> bool:
+        """Hand a scene identity back so the same scene can be retried.
+
+        Returns True if it was requeued. Beyond `retry_limit` attempts it is
+        not, and the caller must report incomplete coverage rather than
+        substitute a different scene: a frozen holdout that quietly evaluates
+        99 of its 100 episodes, or swaps one for another, is no longer the
+        artifact its hash names.
+        """
+        if self._pending_indices is None:
+            return False
+        with self._cursor_lock:
+            if self._attempts[index] >= retry_limit:
+                return False
+            self._pending_indices.append(index)
+            return True
+
+    def pending_episodes(self) -> int:
+        """How many frozen indices are still owed. None-bounded streams: -1."""
+        if self._pending_indices is None:
+            return -1
+        with self._cursor_lock:
+            return len(self._pending_indices)
+
+    def episode_attempts(self) -> dict[int, int]:
+        return dict(self._attempts)
+
+    def in_flight_episodes(self) -> list[int | None]:
+        """Scene identities the workers are currently playing.
+
+        An empty pending queue does not mean nothing more can be scored: with
+        N workers, N episodes are already loaded and will report on the next
+        step. Terminating on the queue alone dropped those, which showed up as
+        a clean 6-scene evaluation reporting two episodes unrecoverable.
+        """
+        return [getattr(env.unwrapped, "_assigned_index", None) for env in self.envs]
 
     def action_masks(self) -> np.ndarray:
         return np.stack([env.action_masks() for env in self.envs])
