@@ -321,7 +321,11 @@ class FactorioEnv(gym.Env):
         a marker is "repaired" exactly when the policy can see something
         standing on it.
         """
-        faults = [n for n in self.spec_.extra_public_markers if n in published]
+        faults = (
+            [n for n in self.spec_.extra_public_markers if n in published]
+            if self.spec_.focus_policy == "nearest_unrepaired"
+            else []
+        )
         if faults:
             occupied = {
                 (math.floor(e["p"][0]), math.floor(e["p"][1]))

@@ -33,6 +33,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+#: Bumped when what the language-model client is *shown* changes, even if the
+#: prompt text does not. `model.system_prompt_digest` pins the prompt and not
+#: this file, so how many entities are listed, which of their fields are
+#: surfaced, and whether every marker or one selected marker appears were all
+#: unpinned -- while the RL client had `goal_encoding` and `extractor_version`.
+#: Two clients whose encodings are not comparably pinned cannot be compared.
+SUMMARY_ENCODING_VERSION = 1
+
 #: How many entities a summary lists before it starts counting the rest. A
 #: 32-tile sensor can return 48 records; pasting all of them into every prompt
 #: buys little and costs tokens on every decision of a 600-step episode. The

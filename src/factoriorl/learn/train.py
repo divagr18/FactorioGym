@@ -25,6 +25,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 from factoriorl import encoders
 from factoriorl import manifest as manifest_module
 from factoriorl import rewards as rewards_module
+from factoriorl.assistance import describe_assistance
 from factoriorl.baselines import cached_random_baseline
 from factoriorl.engine_config import resolve_game_speed
 from factoriorl.env import FactorioEnv
@@ -730,7 +731,10 @@ def train(config: TrainConfig) -> dict:
             profiles={
                 "observation": task.spec.observation_profile,
                 "action": task.spec.action_profile,
-                "assistance": "none",
+                # Not a constant. A task whose goal geometry is chosen for it by
+                # the environment received an assistance, and a result carrying
+                # "none" is indistinguishable from one produced without it.
+                "assistance": describe_assistance(task.spec),
                 # Which deliberation layer chose the actions. A policy over
                 # primitives and a policy over skills produce results that are
                 # not comparable, and a published result that does not say

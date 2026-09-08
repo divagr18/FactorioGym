@@ -68,7 +68,14 @@ GOAL_FEATURES = 12
 #: it the vector said only whether the goal had been reached, never where it
 #: was, so `deliver`'s destination was unlearnable except as a placement habit
 #: of the generator.
-GOAL_ENCODING_VERSION = 3
+#: Version 4: on a task declaring several faults, those slots hold the nearest
+#: *unrepaired* one, chosen by the environment and retargeted as faults close --
+#: not simply the nearest published marker. That is an assistance, so the task
+#: declares a `focus_policy` and the manifest records it; see
+#: `env.FactorioEnv._focus_target`. Version 3 was left in place after the
+#: behaviour changed, so a v3 checkpoint and a v3 run could mean different
+#: things in the same three slots.
+GOAL_ENCODING_VERSION = 4
 
 #: Tail slots of the goal vector holding (dx, dy, present) for the objective.
 #: Predicates fill from the front and stop short of these.

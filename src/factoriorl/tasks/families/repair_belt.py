@@ -85,6 +85,10 @@ SPEC = TaskSpec(
     # where the result is counted. Without this the `toward_gap` potential
     # paid for approaching a point the observation never contained.
     extra_public_markers=("gap", "gap2"),
+    # Two faults, three goal-geometry slots: the environment points at the
+    # nearest unrepaired one. Declared because it decides which fault to
+    # attack on the policy's behalf, which the manifest must show.
+    focus_policy="nearest_unrepaired",
     landmarks=(
         # Falls from true to false as the spare is spent, which is what tells
         # the policy a placement actually happened.

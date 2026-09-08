@@ -247,6 +247,14 @@ class TaskSpec:
     #: This cannot inflate a benchmark: a random policy does not read
     #: observations, so every measured floor is unchanged.
     extra_public_markers: tuple[str, ...] = ()
+    #: How the goal vector's three geometry slots choose among several declared
+    #: faults. `"static"` always points at `focus_marker`. `"nearest_unrepaired"`
+    #: lets the environment pick the closest fault with nothing standing on it
+    #: and retarget as faults close -- which resolves the fault-selection
+    #: sub-problem on the agent's behalf, so it is an assistance and is recorded
+    #: as one in the manifest. It reads occupancy from the observation's own
+    #: entity list, never from truth.
+    focus_policy: str = "static"
     decision_ticks: int = 30
     #: local-v2 by default: it omits the blocks nothing reads and caps the
     #: entity list at 48 after a distance sort, which is 2.6-5.6x less JSON per
@@ -349,7 +357,12 @@ class TaskSpec:
 
     @property
     def focus_marker(self) -> str | None:
-        """The one marker the goal vector's geometry points at.
+        """The marker the goal vector's geometry points at by default.
+
+        Under `focus_policy = "nearest_unrepaired"` this is only the fallback:
+        the environment selects among `extra_public_markers` at runtime. A
+        manifest reporting this field alone therefore understates what the
+        policy received, which is why `focus_policy` is recorded beside it.
 
         Where the agent must *act*, which is not always what it is scored on.
         A declared `extra_public_markers` entry exists precisely because those
@@ -398,6 +411,7 @@ class TaskSpec:
             # differing in it are runs of different tasks.
             "extra_public_markers": list(self.extra_public_markers),
             "focus_marker": self.focus_marker,
+            "focus_policy": self.focus_policy,
             "observation_profile": self.observation_profile,
             "action_profile": self.action_profile,
             "deliberation_profile": self.deliberation_profile,

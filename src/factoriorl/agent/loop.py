@@ -30,11 +30,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from factoriorl import assistance as assistance_module
 from factoriorl import manifest as manifest_module
 from factoriorl.agent.adapters import DEFAULT_MAX_TOKENS, ModelAdapter, ModelReply, ModelRequest
 from factoriorl.agent.memory import Memory
 from factoriorl.agent.parsing import DecisionFailure, ParsedAction, ParseFailure, parse_action
 from factoriorl.agent.summary import (
+    SUMMARY_ENCODING_VERSION,
     LegalAction,
     ObservationSummary,
     TaskBrief,
@@ -625,7 +627,13 @@ class AgentLoop:
                 # `assisted-v1` is being implemented separately; until it exists
                 # an agent run is honest about running the primitive profile
                 # rather than claiming assistance it does not have.
-                "assistance": self.provenance.get("assistance", "none"),
+                # The LLM client sees *every* published marker and selects for
+                # itself, so it gets no goal-focus assistance even on a task
+                # whose RL encoding does. Recorded distinctly, because both
+                # clients previously wrote the same "none".
+                "assistance": self.provenance.get("assistance", assistance_module.STATIC),
+                "goal_encoding": None,
+                "summary_encoding": SUMMARY_ENCODING_VERSION,
                 "deliberation": DELIBERATION_PROFILE,
                 "catalog": catalog.name,
                 "catalog_digest": catalog.digest(),
