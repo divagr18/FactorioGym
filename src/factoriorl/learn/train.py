@@ -28,6 +28,7 @@ from factoriorl import rewards as rewards_module
 from factoriorl.baselines import cached_random_baseline
 from factoriorl.engine_config import resolve_game_speed
 from factoriorl.env import FactorioEnv
+from factoriorl.learn.buffers import DurationAwareMaskableDictRolloutBuffer
 from factoriorl.learn.policy import EXTRACTOR_VERSION, describe, policy_kwargs
 from factoriorl.rcon import RCONClient
 from factoriorl.seeding import Branch, SeedPlan, seed_everything
@@ -180,6 +181,32 @@ class RolloutGuard(BaseCallback):
             if cause:
                 self.aborted = RolloutAborted(str(cause), int(self.num_timesteps))
                 return False
+        return True
+
+
+class DurationRecorder(BaseCallback):
+    """Write each transition's primitive duration into the rollout buffer.
+
+    `_on_step` runs after `buffer.add`, so the row just written is at
+    `pos - 1`. Using this seam avoids overriding `collect_rollouts`.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.total_primitive_steps = 0
+        self.total_decisions = 0
+
+    def _on_step(self) -> bool:
+        infos = self.locals.get("infos") or []
+        durations = np.array(
+            [float(info.get("primitive_steps", 1) or 1) for info in infos], dtype=np.float32
+        )
+        self.total_primitive_steps += int(durations.sum())
+        self.total_decisions += len(durations)
+        buffer = getattr(self.model, "rollout_buffer", None)
+        setter = getattr(buffer, "set_duration", None)
+        if setter is not None and buffer.pos > 0:
+            setter(buffer.pos - 1, durations)
         return True
 
 
@@ -684,6 +711,9 @@ def train(config: TrainConfig) -> dict:
             ent_coef=config.ent_coef,
             seed=config.master_seed,
             device=config.device,
+            # Durations only differ from 1 under skills, and the buffer is
+            # exactly stock GAE when they are all 1.
+            rollout_buffer_class=DurationAwareMaskableDictRolloutBuffer,
             verbose=0,
         )
 
@@ -752,6 +782,16 @@ def train(config: TrainConfig) -> dict:
                     if frozen is not None
                     else {}
                 ),
+                "time_units": {
+                    "note": (
+                        "policy_decisions is what total_steps and n_steps count. "
+                        "A skill spans many primitive steps, so flat and "
+                        "skill-augmented arms matched on total_steps are matched "
+                        "on decisions and not on environment experience."
+                    ),
+                    "objective_time_unit": "primitive_step",
+                    "trace_decay_per": "primitive_step",
+                },
                 "rollout": {
                     "steps_per_env": steps_per_env,
                     "buffer": steps_per_env * max(config.workers, 1),
@@ -762,9 +802,10 @@ def train(config: TrainConfig) -> dict:
 
         curve = CurveLogger(run_dir / "curve.csv", started, num_envs=config.workers)
         guard = RolloutGuard()
+        durations = DurationRecorder()
         model.learn(
             total_timesteps=config.total_steps,
-            callback=[guard, curve],
+            callback=[guard, durations, curve],
             progress_bar=False,
         )
         # Order matters: the curve and the checkpoint are written before the
@@ -999,6 +1040,13 @@ def train(config: TrainConfig) -> dict:
             "random_baseline": baseline,
             "evaluation": rows,
             **curve.summary(),
+            # The four units the redirection asks to be reported separately.
+            "policy_decisions": durations.total_decisions,
+            "primitive_transitions": durations.total_primitive_steps,
+            "simulated_ticks": durations.total_primitive_steps * task.spec.decision_ticks,
+            "optimizer_updates": model.num_timesteps
+            // max(steps_per_env * max(config.workers, 1), 1),
+            "objective_time_unit": "primitive_step",
         }
         manifest_module.amend(run_id, {"seeds": {"eval_streams": eval_streams}})
         (run_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")

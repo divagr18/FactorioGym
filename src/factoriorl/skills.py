@@ -20,28 +20,29 @@ policy-visible observation.
 Two consequences worth stating plainly, because they shape how 4b.3 must be
 read:
 
-* **A skill's reward is the undiscounted sum of the primitive rewards it
-  collects.** Step cost is charged per underlying primitive step, so a skill
-  that walks twenty tiles pays twenty steps of cost. Without that, skills would
-  be cheaper than primitives by construction and the ablation would measure the
-  discount rather than the abstraction.
-* **The learner still discounts per decision, not per tick.** Proper treatment
-  of variable-duration actions discounts by elapsed time, which the stock
-  learner does not express, and PLAN 4b.2 forbids introducing a new algorithm
-  here. Elapsed decisions are recorded on every transition so the size of that
-  approximation is measurable rather than hidden.
+* **The objective is at primitive-step time** (R1.3). A skill of duration k
+  contributes ``sum(gamma**i * r_i)`` and the learner continues at ``gamma**k``,
+  via `learn.buffers.DurationAwareRolloutBuffer`. Step cost is still charged per
+  primitive, so a skill that walks twenty tiles pays twenty steps of cost.
+* **This replaces an undiscounted sum discounted once per decision**, which was
+  not the primitive objective. Potential-based shaping is computed per primitive
+  step, so over a skill of duration k the telescoping left a residual
+  ``-w(1-gamma) * sum(phi_1..phi_{k-1})`` -- charged to exactly the skills that
+  made progress, and invisible to the gamma-agreement guard, which compared two
+  scalars and could not see a unit mismatch.
+* **Duration is on every transition** as ``primitive_steps``, so flat and
+  skill-augmented arms can state which budget they matched.
 """
 
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 import numpy as np
 
-if TYPE_CHECKING:  # pragma: no cover - typing only
-    from factoriorl.env import FactorioEnv
+from factoriorl import rewards as rewards_module
+from factoriorl.env import FactorioEnv
 
 #: How many of the nearest entities the policy may address by rank. Four covers
 #: a source, a destination, a machine and a distractor without turning the
@@ -204,6 +205,13 @@ class SkillRunner:
 
     def run(self, skill: Skill) -> dict:
         self.trace: list[dict] = []
+        # R1.3: the objective is at primitive-step time, so a skill of duration
+        # k contributes sum(gamma**i * r_i) and continues at gamma**k. Summing
+        # undiscounted while PPO discounted once per decision left a residual
+        # -w(1-gamma)*sum(phi) on potential-based shaping, charged to exactly
+        # the skills that made progress.
+        self._elapsed = 0
+        self._gamma = float(self.env.spec_.gamma or rewards_module.GAMMA)
         """Run `skill` to termination.
 
         Returns the accumulated transition. `steps` is the number of primitive
@@ -227,10 +235,14 @@ class SkillRunner:
     # ------------------------------------------------------------ internals
 
     def _blank(self, outcome: str) -> dict:
-        observation, _, terminated, truncated, info = self.env.step(self.env.catalog.wait_index)
+        # This executed a real primitive and reported 0.0, discarding its step
+        # cost and the shaping delta the accountant had already applied.
+        observation, reward, terminated, truncated, info = self.env.step(
+            self.env.catalog.wait_index
+        )
         return {
             "observation": observation,
-            "reward": 0.0,
+            "reward": float(reward),
             "terminated": terminated,
             "truncated": truncated,
             "info": info,
@@ -256,7 +268,7 @@ class SkillRunner:
             if key is None:
                 return self._finish(result, total, steps, "no_movement_action")
             result = self._primitive(key)
-            total += result["reward"]
+            total += result["discounted"]
             steps += 1
             if result["terminated"] or result["truncated"]:
                 return self._finish(result, total, steps, "episode_ended")
@@ -282,7 +294,7 @@ class SkillRunner:
                     if key is None:
                         return self._finish(result, total, steps, "blocked")
                     result = self._primitive(key)
-                    total += result["reward"]
+                    total += result["discounted"]
                     steps += 1
                     if result["terminated"] or result["truncated"]:
                         return self._finish(result, total, steps, "episode_ended")
@@ -303,7 +315,7 @@ class SkillRunner:
             return self._blank("no_mine_action")
         total, steps = 0.0, 0
         result = self._primitive(mine_key)
-        total += result["reward"]
+        total += result["discounted"]
         steps += 1
         if result["terminated"] or result["truncated"]:
             return self._finish(result, total, steps, "episode_ended")
@@ -311,7 +323,7 @@ class SkillRunner:
         idle = 0
         for _ in range(SKILL_BUDGET - 1):
             result = self._primitive(self.env.catalog.wait_index)
-            total += result["reward"]
+            total += result["discounted"]
             steps += 1
             if result["terminated"] or result["truncated"]:
                 return self._finish(result, total, steps, "episode_ended")
@@ -354,9 +366,12 @@ class SkillRunner:
                 "error": info.get("action_error"),
             }
         )
+        discounted = (self._gamma**self._elapsed) * float(reward)
+        self._elapsed += 1
         return {
             "observation": observation,
             "reward": float(reward),
+            "discounted": discounted,
             "terminated": terminated,
             "truncated": truncated,
             "info": info,
@@ -418,7 +433,7 @@ class SkillEnv:
         index = int(action)
         if index < self.primitive_count:
             observation, reward, terminated, truncated, info = self.env.step(index)
-            info = {**info, "skill": None, "skill_steps": 1}
+            info = {**info, "skill": None, "skill_steps": 1, "primitive_steps": 1}
             return observation, reward, terminated, truncated, info
 
         skill = self.skills[index - self.primitive_count]
@@ -427,6 +442,7 @@ class SkillEnv:
             **result["info"],
             "skill": skill.key,
             "skill_steps": result["steps"],
+            "primitive_steps": result["steps"],
             "skill_outcome": result["outcome"],
             "skill_trace": list(self.runner.trace),
         }

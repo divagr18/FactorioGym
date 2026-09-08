@@ -444,6 +444,8 @@ class FactorioEnv(gym.Env):
             "layout_family": self._family.name if self._family else None,
             "action_mask": self.action_masks(),
             "steps": self._steps,
+            # Duration of this transition in primitive steps (R1.3).
+            "primitive_steps": 1,
         }
         return (
             encoders.encode(self._observation, self._goal_vector()),
