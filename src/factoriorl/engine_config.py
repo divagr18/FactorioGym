@@ -115,8 +115,8 @@ def resolve_game_speed() -> float:
             value = float(raw)
         except ValueError:
             raise StartupFailure(
+                StartupFailureKind.UNKNOWN,
                 f"{SPEED_ENV_VAR}={raw!r} is not a number",
-                kind=StartupFailureKind.UNKNOWN,
             ) from None
         if value > 0:
             return value
