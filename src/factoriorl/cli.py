@@ -147,6 +147,7 @@ def cmd_profile(args) -> int:
         task_id=args.task,
         steps_per_worker=args.steps,
         speed=args.speed or PROFILE_SPEED,
+        repeats=args.repeats,
     )
     print(json.dumps(report, indent=2))
     return 0
@@ -344,6 +345,12 @@ def main(argv: list[str] | None = None) -> int:
     prof.add_argument("--workers", default="1,2,4,8")
     prof.add_argument("--task", default="navigate")
     prof.add_argument("--steps", type=int, default=120)
+    prof.add_argument(
+        "--repeats",
+        type=int,
+        default=1,
+        help="samples per worker count; one is not enough to order two configurations",
+    )
     prof.add_argument(
         "--speed",
         type=float,

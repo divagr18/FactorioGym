@@ -305,6 +305,7 @@ def run_profile(
     task_id: str = "navigate",
     steps_per_worker: int = 120,
     speed: float = PROFILE_SPEED,
+    repeats: int = 1,
 ) -> dict:
     report: dict = {
         "task": task_id,
@@ -323,8 +324,30 @@ def run_profile(
     per_worker_commit: float | None = None
 
     for workers in worker_counts:
-        result = _profile_one(workers, task_id, steps_per_worker, per_worker_commit)
+        # Repeated, because one sample cannot order two configurations. A single
+        # 150-step sample per count measured 4 workers at 196 steps/s where the
+        # same configuration had measured 400 minutes earlier, and put 2 workers
+        # above 4 -- an ordering that is not physically possible and was pure
+        # variance. The median is reported and used for the default; the spread
+        # travels with it so a reader can see when a number is not to be trusted.
+        samples = [
+            _profile_one(workers, task_id, steps_per_worker, per_worker_commit, speed)
+            for _ in range(max(repeats, 1))
+        ]
+        usable_samples = [r for r in samples if not r.skipped]
+        result = (
+            sorted(usable_samples, key=lambda r: r.steps_per_second)[len(usable_samples) // 2]
+            if usable_samples
+            else samples[0]
+        )
         payload = result.to_dict()
+        if len(samples) > 1:
+            rates = sorted(round(r.steps_per_second, 1) for r in usable_samples)
+            payload["repeats"] = len(samples)
+            payload["steps_per_second_samples"] = rates
+            payload["steps_per_second_spread"] = (
+                round((rates[-1] - rates[0]) / rates[len(rates) // 2], 3) if rates else None
+            )
         report["configurations"].append(payload)
         if workers == 1 and not result.skipped:
             # Measure the per-worker cost once, then project from it.
