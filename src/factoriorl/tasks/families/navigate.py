@@ -33,7 +33,7 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="navigate",
-    version="1.1.0",
+    version="1.2.0",
     description="Walk to a marked work site within the step budget.",
     layout_families=FAMILIES,
     success=(Predicate(PredicateKind.CHARACTER_WITHIN, marker="goal", within=2.0),),
@@ -47,6 +47,14 @@ SPEC = TaskSpec(
         ),
         RewardComponent("step_cost", RewardKind.STEP_COST, weight=0.001),
     ),
+    # 1/(1-gamma) = 333, past this family's 150-step budget. At the 0.99
+    # default the horizon is 100 and the potential's per-step drag outweighs
+    # its approach gain by 1.5x. navigate got away with it because its
+    # episodes end in a handful of decisions, so the drag never accumulates
+    # -- but that is a property of the task being easy, not of the shaping
+    # being right, and the same setting on a 300-step family measured a
+    # reward of -2.5.
+    gamma=0.997,
     max_decision_steps=150,
     max_game_ticks=9000,
     catalog="primitive-v1",

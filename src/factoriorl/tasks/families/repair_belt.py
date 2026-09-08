@@ -34,7 +34,7 @@ SPEC = TaskSpec(
     # scenes and the holdout spans the pooled training difficulty. The version
     # is part of the random-baseline cache key, and none of the cached
     # baselines were measured against these scenes.
-    version="1.2.0",
+    version="1.4.0",
     description="Restore a broken belt line so items reach the unloading chest.",
     layout_families=FAMILIES,
     success=(
@@ -49,8 +49,33 @@ SPEC = TaskSpec(
             cap=0.5,
             predicate=Predicate(PredicateKind.CONTAINER_HOLDS, marker="sink", item="iron-plate"),
         ),
+        # The only thing that pays before the belt is repaired.
+        #
+        # Measured without it: 190 training episodes over 50,000 steps, zero
+        # successes, mean episode reward -0.300 -- exactly the step cost, because
+        # `delivered` fires on a plate in the sink and success needs one plate,
+        # so the shaping could only ever pay for winning. The policy had nothing
+        # to ascend and no budget fixes that.
+        #
+        # Sutton & Barto §17.4 (p.386) warns against answering that with
+        # hand-designed subgoal rewards and recommends initialising the value
+        # function instead; Wiewiora (2003) shows the two are equivalent, and
+        # potential-based shaping is the form this codebase already implements
+        # and tests. Being potential-based it cannot change which policy is
+        # optimal, so pointing it at the gap rather than at the true subgoal
+        # costs learning speed and not correctness.
+        RewardComponent(
+            "toward_gap",
+            RewardKind.POTENTIAL,
+            weight=0.5,
+            predicate=Predicate(PredicateKind.CHARACTER_WITHIN, marker="gap"),
+        ),
         RewardComponent("step_cost", RewardKind.STEP_COST, weight=0.001),
     ),
+    # 1/(1-gamma) = 1000, comfortably past this family's episode, so the
+    # potential's one-time approach gain exceeds its per-step drag instead
+    # of being swamped by it. At the 0.99 default the horizon is 100 steps.
+    gamma=0.999,
     max_decision_steps=300,
     max_game_ticks=18000,
     landmarks=(
@@ -199,7 +224,14 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         character_position=(0.0, 0.0),
         character_inventory={"transport-belt": 5},
         unlock_recipes=("transport-belt",),
-        markers={"sink": (float(start_x + length + 1), row)},
+        markers={
+            "sink": (float(start_x + length + 1), row),
+            # Evaluator-only: `gap` is named by no success or failure predicate,
+            # so `TaskSpec.public_markers` does not publish it and it never
+            # reaches an observation. Shaping may read truth -- the evaluator
+            # computes the reward -- but the policy input may not.
+            "gap": (float(start_x + min(gaps)), row),
+        },
         radius=64,
     )
 

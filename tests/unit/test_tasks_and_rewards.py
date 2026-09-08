@@ -671,36 +671,91 @@ def test_begin_episode_sends_both_declared_profiles():
     assert "action_profile=self.spec_.action_profile" in source
 
 
-def test_the_families_with_no_reward_gradient_are_pinned():
-    """The other half of the invariant, and the half that was missing.
+def test_every_family_has_something_that_pays_before_success():
+    """The other half of the reward invariant, and the half that was missing.
 
-    `repair_belt` satisfies the plateau rule *perfectly* -- its shaping
-    predicate is its success predicate, so the cap is unreachable while the task
-    is unfinished -- and it is completely unlearnable for exactly that reason.
-    Its only shaping pays on a plate reaching the sink, which is the win, and
-    success needs one. Nothing pays before success.
+    `repair_belt` used to satisfy the plateau rule *perfectly* -- its shaping
+    predicate was its success predicate, so the cap was unreachable while the
+    task was unfinished -- and it was completely unlearnable for exactly that
+    reason. Measured: 190 training episodes over 50,000 steps, zero successes,
+    mean episode reward -0.300 against a step cost of exactly 300 x 0.001. The
+    policy had nothing to ascend, and no training budget fixes that.
+    `restore_power` was worse: no shaping component at all.
 
-    Measured, not argued: 190 training episodes over 50,000 steps, zero
-    successes, mean episode reward -0.300 against a step cost of exactly
-    300 x 0.001. The policy had nothing to ascend, and no training budget fixes
-    that -- 190 episodes of zero signal and 1,900 are the same to a gradient.
-
-    Pinned rather than required empty, because emptying it means designing
-    intermediate rewards for two families and re-freezing the holdouts they
-    appear in. A new starved family fails here; so does a fix, deliberately.
+    Both now carry a potential on the distance to the gap they have to close.
+    Sutton & Barto §17.4 (p.386) recommends initialising the value function
+    rather than inventing subgoal rewards; Wiewiora (2003) proves that
+    equivalent to potential-based shaping, which is what this is -- so it cannot
+    change which policy is optimal.
     """
     report = json.loads((ROOT / "docs" / "evidence" / "reward-audit.json").read_text("utf-8"))
-    assert report["no_gradient"] == ["repair_belt", "restore_power"], report["no_gradient"]
+    assert report["no_gradient"] == [], (
+        f"nothing pays before success in {report['no_gradient']}; a policy has nothing "
+        "to ascend and no training budget helps"
+    )
 
     by_task = {r["task"]: r for r in report["reports"]}
-    # Everything else can pay before winning, by one of the two routes.
     for task_id, entry in by_task.items():
-        if task_id in report["no_gradient"]:
-            assert entry["informative_components"] == []
-            continue
         assert entry["informative_components"], task_id
 
-    # And the two routes are distinguishable: a different quantity, or partial
-    # credit toward the same one.
+    # The three routes are distinguishable: a different quantity, partial credit
+    # toward the same one, or a potential.
     assert any("does not" in c for c in by_task["deliver"]["informative_components"])
     assert any("partial credit" in c for c in by_task["plate_line"]["informative_components"])
+    assert any("potential" in c for c in by_task["repair_belt"]["informative_components"])
+
+
+def test_the_gap_marker_guides_the_reward_without_entering_the_observation():
+    """Shaping may read evaluator truth -- the evaluator computes the reward --
+    but the policy's input may not. `gap` is named by no success or failure
+    predicate, so `public_markers` cannot publish it."""
+    import random
+
+    for task_id in ("repair_belt", "restore_power"):
+        task = get(task_id)
+        assert "gap" not in task.spec.public_markers
+        blueprint = task.generate(task.spec.layout_families[0], random.Random(3))
+        assert "gap" in blueprint.markers, f"{task_id} stopped emitting the gap marker"
+        shaping = [r for r in task.spec.rewards if r.predicate and r.predicate.marker == "gap"]
+        assert shaping, f"{task_id} has a gap marker nothing reads"
+        assert all(r.kind is RewardKind.POTENTIAL for r in shaping)
+
+
+def test_a_familys_discount_horizon_covers_its_episode():
+    """The weight was never the thing to fix.
+
+    Potential shaping telescopes to `-w*Phi(s0) + (gamma-1)*w*sum Phi(s_t)`, so a
+    policy sitting at high potential pays `(1-gamma)*w*Phi` every step. For a
+    policy that never succeeds, approaching gains a one-time `w*dPhi` and costs
+    an ongoing `(1-gamma)*w*dPhi*T_remaining` -- and **`w` cancels**. What is
+    left is `(1-gamma)*T` against 1, so the only question is whether the episode
+    fits inside the discount horizon `1/(1-gamma)`.
+
+    At the 0.99 default that horizon is 100 steps. `repair_belt` runs 300, so
+    the drag beat the gain threefold and the first probe measured a reward of
+    -2.5 -- worse than the -0.30 flat line it replaced.
+
+    None of this contradicts Ng, Harada and Russell: the *optimal* policy is
+    unchanged either way. What shaping cannot do at too small a gamma is
+    bootstrap, because among the failing policies that are all a learner sees
+    early on, the shaped ordering prefers the one that does not linger near a
+    goal it cannot reach.
+    """
+    for task_id in all_tasks():
+        spec = get(task_id).spec
+        potentials = [r for r in spec.rewards if r.kind is RewardKind.POTENTIAL and r.shaping]
+        if not potentials:
+            continue
+        gamma = spec.gamma or GAMMA
+        drag_ratio = (1.0 - gamma) * spec.max_decision_steps
+        assert drag_ratio < 1.0, (
+            f"{task_id}: (1-gamma)*T = {drag_ratio:.2f}; its potential shaping costs more "
+            f"drag than the approach is worth, at any weight. Raise gamma above "
+            f"{1 - 1 / spec.max_decision_steps:.4f}."
+        )
+        # Deliberately nothing about the *weight*. A first version of this test
+        # also required the potential to be smaller than the sparse reward, and
+        # that is not a real constraint: potential shaping is policy-invariant,
+        # so its magnitude cannot make the guidance outrank the goal. Magnitude
+        # matters for high-water shaping, which can, and `tools/reward_audit.py`
+        # is where that is checked.

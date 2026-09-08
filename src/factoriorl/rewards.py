@@ -28,6 +28,10 @@ from factoriorl.tasks.spec import Predicate, PredicateKind, RewardComponent, Rew
 
 GAMMA = 0.99
 
+#: A task may declare its own discount, and the accountant must use the same one
+#: the learner does or the shaping stops being policy-invariant. The guard in
+#: `learn/train.py` compares the two and refuses to run if they disagree.
+
 
 def _measure(predicate: Predicate | None, observation: dict, truth: dict) -> float:
     """The scalar a shaping component tracks."""
@@ -60,6 +64,8 @@ class RewardAccountant:
 
     components: tuple[RewardComponent, ...]
     shaping_enabled: bool = True
+    #: Overrides the module default for a family that declares one.
+    gamma: float = GAMMA
     _high_water: dict[str, float] = field(default_factory=dict)
     _potential: dict[str, float] = field(default_factory=dict)
     #: Cumulative payout per capped component, reset with the episode.
@@ -136,7 +142,7 @@ class RewardAccountant:
                 # weight of 1.0), and would pay for failing *near* the goal
                 # once failure predicates exist.
                 phi_next = 0.0 if terminated else value
-                out[component.name] = component.weight * (GAMMA * phi_next - previous)
+                out[component.name] = component.weight * (self.gamma * phi_next - previous)
             else:
                 out[component.name] = 0.0
         return out

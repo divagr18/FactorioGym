@@ -29,6 +29,7 @@ from gymnasium import spaces
 
 from factoriorl import catalog as catalog_module
 from factoriorl import encoders
+from factoriorl import rewards as rewards_module
 from factoriorl.errors import FactorioRLError, InfrastructureFailure, ProtocolError
 from factoriorl.rewards import RewardAccountant
 from factoriorl.seeding import Branch, SeedPlan
@@ -65,7 +66,11 @@ class FactorioEnv(gym.Env):
         self.catalog = catalog_module.resolve(self.spec_.catalog, self.spec_.catalog_subset)
         self.action_space = spaces.Discrete(len(self.catalog))
         self.observation_space = encoders.observation_space()
-        self.accountant = RewardAccountant(self.spec_.rewards, shaping_enabled=shaping)
+        self.accountant = RewardAccountant(
+            self.spec_.rewards,
+            shaping_enabled=shaping,
+            gamma=self.spec_.gamma or rewards_module.GAMMA,
+        )
 
         self._episode_index = -1
         self._steps = 0

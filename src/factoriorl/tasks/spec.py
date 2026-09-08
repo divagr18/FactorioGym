@@ -223,6 +223,12 @@ class TaskSpec:
     rewards: tuple[RewardComponent, ...]
     max_decision_steps: int = 600
     max_game_ticks: int = 36000
+    #: Discount for this family, for both the learner and the shaping. Declared
+    #: per task because the useful horizon is `1/(1-gamma)` and it has to cover
+    #: the episode: at 0.99 that is 100 steps, and a 300-step family shaping
+    #: toward a goal pays more drag for approaching than the approach is worth,
+    #: whatever weight the component carries. `None` takes the trainer default.
+    gamma: float | None = None
     decision_ticks: int = 30
     #: local-v2 by default: it omits the blocks nothing reads and caps the
     #: entity list at 48 after a distance sort, which is 2.6-5.6x less JSON per
@@ -329,6 +335,7 @@ class TaskSpec:
             "version": self.version,
             "description": self.description,
             "decision_ticks": self.decision_ticks,
+            "gamma": self.gamma,
             "budgets": {
                 "max_decision_steps": self.max_decision_steps,
                 "max_game_ticks": self.max_game_ticks,

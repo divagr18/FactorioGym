@@ -381,16 +381,27 @@ def train(config: TrainConfig) -> dict:
     # shaping is policy-invariant only when the two agree, and nothing tied
     # them together -- a changed gamma would have silently voided the
     # invariance rather than failed.
-    if abs(rewards_module.GAMMA - config.gamma) > 1e-9:
-        raise ValueError(
-            f"reward shaping discounts at gamma={rewards_module.GAMMA} while the "
-            f"learner uses gamma={config.gamma}; potential-based shaping is only "
-            "policy-invariant when they match"
-        )
-
     seeded = seed_everything(config.master_seed)
     plan = SeedPlan(master=config.master_seed, run_id=run_id)
     task = get(config.task_id)
+
+    # A family may declare its own discount, because the useful horizon is
+    # 1/(1-gamma) and it has to cover the episode. At 0.99 that horizon is 100
+    # steps: a 300-step family shaping toward a goal pays more drag for
+    # approaching than the approach is worth, whatever weight the component
+    # carries, and the `w` cancels out of the comparison entirely.
+    #
+    # Whichever value is used, the learner and the accountant must use the *same*
+    # one or the shaping stops being policy-invariant -- which is what this guard
+    # has always been for, now checked against the value actually in play.
+    gamma = task.spec.gamma or config.gamma
+    accountant_gamma = task.spec.gamma or rewards_module.GAMMA
+    if abs(accountant_gamma - gamma) > 1e-9:
+        raise ValueError(
+            f"reward shaping discounts at gamma={accountant_gamma} while the "
+            f"learner uses gamma={gamma}; potential-based shaping is only "
+            "policy-invariant when they match"
+        )
 
     # Checked here, beside the gamma guard, because everything it can reject is
     # knowable before a single step is taken. It used to be validated after
@@ -447,7 +458,7 @@ def train(config: TrainConfig) -> dict:
             learning_rate=config.learning_rate,
             n_steps=steps_per_env,
             batch_size=min(config.batch_size, steps_per_env * max(config.workers, 1)),
-            gamma=config.gamma,
+            gamma=gamma,
             ent_coef=config.ent_coef,
             seed=config.master_seed,
             device=config.device,

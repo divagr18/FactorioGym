@@ -139,10 +139,15 @@ def cmd_runs(args) -> int:
 
 
 def cmd_profile(args) -> int:
-    from factoriorl.profiling import run_profile
+    from factoriorl.profiling import PROFILE_SPEED, run_profile
 
     counts = tuple(int(x) for x in args.workers.split(","))
-    report = run_profile(worker_counts=counts, task_id=args.task, steps_per_worker=args.steps)
+    report = run_profile(
+        worker_counts=counts,
+        task_id=args.task,
+        steps_per_worker=args.steps,
+        speed=args.speed or PROFILE_SPEED,
+    )
     print(json.dumps(report, indent=2))
     return 0
 
@@ -339,6 +344,12 @@ def main(argv: list[str] | None = None) -> int:
     prof.add_argument("--workers", default="1,2,4,8")
     prof.add_argument("--task", default="navigate")
     prof.add_argument("--steps", type=int, default=120)
+    prof.add_argument(
+        "--speed",
+        type=float,
+        default=None,
+        help="game speed; the best value is machine-specific, see profiling.PROFILE_SPEED",
+    )
     gate4 = sub.add_parser("phase4-gate", help="run the Phase 4 exit gate")
     gate4.add_argument("--mode", choices=("reproduce", "full"), default="reproduce")
 

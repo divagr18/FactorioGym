@@ -37,14 +37,30 @@ SPEC = TaskSpec(
     id="restore_power",
     # 1.1.0: the line's row and starting column are sampled, so the holdout
     # admits a distribution of scenes rather than a single one.
-    version="1.2.0",
+    version="1.4.0",
     description="Reconnect a power pole chain so the mining drill runs again.",
     layout_families=FAMILIES,
     success=(Predicate(PredicateKind.ENTITY_WORKING, marker="drill"),),
     rewards=(
         RewardComponent("restored", RewardKind.SPARSE_SUCCESS, weight=1.0, shaping=False),
+        # This family had *no* shaping component whatsoever: a sparse success
+        # and a step cost, so the reward was a constant negative drip for the
+        # whole of training and undirected exploration could never find the
+        # goal. See repair_belt for the measurement and the reasoning; the same
+        # citation applies (S&B §17.4 p.386, Wiewiora 2003), and potential-based
+        # shaping cannot change which policy is optimal.
+        RewardComponent(
+            "toward_gap",
+            RewardKind.POTENTIAL,
+            weight=0.5,
+            predicate=Predicate(PredicateKind.CHARACTER_WITHIN, marker="gap"),
+        ),
         RewardComponent("step_cost", RewardKind.STEP_COST, weight=0.001),
     ),
+    # 1/(1-gamma) = 1000, comfortably past this family's episode, so the
+    # potential's one-time approach gain exceeds its per-step drag instead
+    # of being swamped by it. At the 0.99 default the horizon is 100 steps.
+    gamma=0.999,
     max_decision_steps=250,
     max_game_ticks=15000,
     landmarks=(Predicate(PredicateKind.INVENTORY_HOLDS, item="small-electric-pole", at_least=1),),
@@ -155,7 +171,14 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         character_position=(0.0, 0.0),
         character_inventory={"small-electric-pole": 4},
         unlock_recipes=("small-electric-pole",),
-        markers={"drill": (drill_x, row)},
+        markers={
+            "drill": (drill_x, row),
+            # Evaluator-only, like repair_belt's: named by no success or failure
+            # predicate, so `public_markers` never publishes it and it cannot
+            # reach an observation. The first missing pole in the chain is the
+            # place the agent has to get to before anything can happen.
+            "gap": (float(start_x + min(gaps) * 4), row),
+        },
         radius=64,
     )
 

@@ -45,6 +45,24 @@ from factoriorl.tasks import get
 #: faster ticks bought. Measured end to end on `navigate`: 11.16 ms/step at 60,
 #: 8.82 ms at 90, 9.73 ms at 120, 10.34 ms at 200.
 PROFILE_SPEED = 90.0
+
+#: `PROFILE_SPEED` is a *measured* default, not a constant of the system, and it
+#: was measured on one laptop. On a Ryzen 5 5600T the same sweep says 120:
+#:
+#:     speed  sleep_ms  after_send_ms  total_ms  polls  steps/s
+#:        60      8.33          10.45     11.18    1.0     89.5
+#:        90      5.56           7.53      8.20    1.0    122.0
+#:       120      4.17           6.21      6.85    1.0    146.0
+#:       180      2.78           6.18      6.83    1.8    146.5
+#:       240      2.08           5.87      6.51    2.1    153.7
+#:
+#: 74% of a step is the predicted wait for the interval to elapse, so raising
+#: the speed shortens the step directly -- until the engine's own tick ceiling
+#: (~4400 UPS on that CPU) stops `after_send` falling. Past that the prediction
+#: turns optimistic, the collect poll count rises above 1, and the extra RCON
+#: traffic costs more than the shorter sleep saves once workers share a machine.
+#: The right speed is therefore the highest one that still settles in one poll,
+#: and that is a property of the machine.
 #: Refuse a configuration projected to use more than this share of the commit
 #: limit. Leaves room for the learner, the OS, and the spike during launch.
 COMMIT_HEADROOM = 0.80
@@ -146,7 +164,11 @@ class ProfileResult:
 
 
 def _profile_one(
-    workers: int, task_id: str, steps_per_worker: int, per_worker_commit_gb: float | None
+    workers: int,
+    task_id: str,
+    steps_per_worker: int,
+    per_worker_commit_gb: float | None,
+    speed: float = PROFILE_SPEED,
 ) -> ProfileResult:
     # Resolve the task before the memory check, not after: a skipped
     # configuration still reports which decision interval it would have run at,
@@ -174,7 +196,7 @@ def _profile_one(
         for index in range(workers):
             worker = pool.start(f"profile-w{workers}-{index}")
             with RCONClient(worker.spec.rcon_endpoint, timeout=30.0) as client:
-                client.lua(f"game.speed = {PROFILE_SPEED} return game.speed")
+                client.lua(f"game.speed = {speed} return game.speed")
             session = WorkerSession(worker.handle, timeout=30.0)
             session.status()
             envs.append(FactorioEnv(task, session, plan, branch=Branch.TRAIN, split="train"))
@@ -282,9 +304,13 @@ def run_profile(
     worker_counts: tuple[int, ...] = (1, 2, 4, 8),
     task_id: str = "navigate",
     steps_per_worker: int = 120,
+    speed: float = PROFILE_SPEED,
 ) -> dict:
     report: dict = {
         "task": task_id,
+        # A profile taken at a different speed is a different measurement, so it
+        # travels with the numbers rather than being assumed.
+        "speed": speed,
         # Recorded at the top level as well so a published profile states the
         # interval its simulated-tick figures were computed at. Two profiles of
         # the same task taken across a change of interval are otherwise
