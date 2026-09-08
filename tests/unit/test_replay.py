@@ -219,3 +219,47 @@ def test_the_map_draws_where_the_character_has_been(tmp_path):
     assert "trail" in page
     # Built from earlier decisions in the same episode, never across episodes.
     assert "DECISIONS[i].episode === DECISIONS[index].episode" in page
+
+
+# ------------------------------------------- 6.4: honesty about what ships
+
+
+def test_limitations_document_covers_every_deferred_or_broken_thing():
+    """PLAN 6.4: 'deferred functionality is not advertised as available'.
+
+    A limitations file that drifts is worse than none, because a reader cannot
+    tell which entries are still true. This pins the ones that are load-bearing
+    for a release: each is a measured failure recorded elsewhere in the repo,
+    and if one is fixed this test should fail and the entry be removed.
+    """
+    text = (ROOT / "docs" / "LIMITATIONS.md").read_text(encoding="utf-8")
+    required = [
+        # engine
+        "2.0.60",
+        "CaptureUnsupported",
+        "absolute paths",
+        # action catalog
+        "cannot name what it acts on",
+        "not reliably expressible in this catalog",
+        # skills
+        "approach_entity_0",
+        "1.00",
+        # rewards
+        "pay a policy for stopping",
+        "withdrawn",
+        # methodology
+        "does not reproduce a run's scenes",
+        "does not decontaminate the generators",
+        "property of the action space",
+        # results
+        "no accepted learning result",
+    ]
+    missing = [phrase for phrase in required if phrase not in text]
+    assert not missing, f"limitations document no longer states: {missing}"
+
+
+def test_the_readme_does_not_claim_an_accepted_learning_result():
+    """The one claim a research preview must not make."""
+    readme = (ROOT / "README.md").read_text(encoding="utf-8").lower()
+    for phrase in ("phase 4 accepted", "phases 0-4 accepted", "phases 0–4 accepted"):
+        assert phrase not in readme, f"README claims {phrase!r}"
