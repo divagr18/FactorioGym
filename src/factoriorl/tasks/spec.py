@@ -132,6 +132,18 @@ class PredicateKind(StrEnum):
     INVENTORY_HOLDS = "inventory_holds"
     PRODUCED = "produced"
     ENTITY_WORKING = "entity_working"
+    #: Counts entities of a prototype the *agent* built, from the force's build
+    #: statistics. `ENTITY_WORKING` keys on a scene alias bound at install, so
+    #: it cannot name a machine the agent placed; this can.
+    BUILT = "built"
+    #: At least `at_least` entities of a prototype currently working, whoever
+    #: placed them. Prototype-keyed for the same reason.
+    ANY_WORKING = "any_working"
+    #: Production *within a window*, not since reset. `PRODUCED` is a monotone
+    #: counter with no timestamp, so it cannot tell "30 plates, the last 15 in
+    #: the final window" from "30 plates, line dead since tick 4000" -- which is
+    #: exactly the distinction a sustained-operation objective is made of.
+    SUSTAINED_OUTPUT = "sustained_output"
 
 
 @dataclass(frozen=True)
@@ -142,6 +154,9 @@ class Predicate:
     item: str | None = None
     at_least: float = 1.0
     within: float = 1.5
+    #: Window for `SUSTAINED_OUTPUT`, in game ticks. 3600 is one minute at 60
+    #: UPS, and the measured commissioning baseline is 15 plates per 3600.
+    over_ticks: int = 3600
 
     def describe(self) -> str:
         return f"{self.kind.value}({self.marker or ''} {self.item or ''} >= {self.at_least})"
@@ -164,7 +179,42 @@ class Predicate:
             return (truth.get("produced") or {}).get(self.item, 0) >= self.at_least
         if self.kind is PredicateKind.ENTITY_WORKING:
             return bool((truth.get("working") or {}).get(self.marker))
+        if self.kind is PredicateKind.BUILT:
+            return (truth.get("built") or {}).get(self.item, 0) >= self.at_least
+        if self.kind is PredicateKind.ANY_WORKING:
+            return (truth.get("working_counts") or {}).get(self.item, 0) >= self.at_least
+        if self.kind is PredicateKind.SUSTAINED_OUTPUT:
+            return self.window_output(truth) >= self.at_least
         return False
+
+    def window_output(self, truth: dict) -> float:
+        """Production of `item` inside the last `over_ticks`.
+
+        Reads `truth["window"]`, an ordered `[(tick, {item: cumulative})]`
+        history the environment maintains. Kept as an argument rather than
+        state on the predicate so `evaluate` stays a pure function of its
+        inputs and is testable without an engine.
+
+        The oldest sample at or before the window's start is the baseline. With
+        no such sample the episode is younger than the window, and the earliest
+        sample is used -- so a task cannot pass by being measured before its
+        window has elapsed.
+        """
+        history = truth.get("window") or []
+        if not history:
+            return 0.0
+        latest_tick, latest = history[-1]
+        cutoff = latest_tick - self.over_ticks
+        baseline = history[0][1]
+        for tick, counts in history:
+            if tick <= cutoff:
+                baseline = counts
+            else:
+                break
+        return max(
+            0.0,
+            float(latest.get(self.item, 0)) - float(baseline.get(self.item, 0)),
+        )
 
 
 # -------------------------------------------------------------------- rewards

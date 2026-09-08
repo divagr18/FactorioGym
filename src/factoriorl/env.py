@@ -54,6 +54,11 @@ PLACEMENT_RADIUS = 5
 #: argument domain unbounded; the runtime accepts 1..10000.
 TRANSFER_AMOUNTS = (1, 5, 20)
 
+#: Production samples kept per episode. One per decision, and the longest
+#: budget is 400 decisions, so this holds a whole episode with room over --
+#: a predicate's window must never fall off the front of the buffer.
+WINDOW_SAMPLES = 512
+
 
 class FactorioEnv(gym.Env):
     """One task on one worker."""
@@ -96,6 +101,9 @@ class FactorioEnv(gym.Env):
 
         self._episode_index = -1
         self._steps = 0
+        #: (tick, produced) samples for the episode. Cleared with it, or a
+        #: sustained objective would be satisfied by the previous episode.
+        self._window: list[tuple[int, dict]] = []
         self._installed: set[str] = set()
         self._observation: dict = {}
         self._truth: dict = {}
@@ -123,6 +131,30 @@ class FactorioEnv(gym.Env):
 
     def _refresh_truth(self) -> None:
         self._truth = self.session.truth().response.result or {}
+        self._record_window()
+
+    def _record_window(self) -> None:
+        """Keep a bounded production history, and expose it as `truth["window"]`.
+
+        `PRODUCED` is a monotone counter with no timestamp, so nothing could
+        distinguish sustained output from a burst that stopped. Sampling
+        `(tick, produced)` per step and handing the history to the predicate
+        keeps `Predicate.evaluate` a pure function of its inputs -- so a
+        sustained objective is testable with no engine.
+
+        Bounded by count rather than by window length: a predicate declares its
+        own `over_ticks`, and the buffer must outlive the longest one a task
+        might ask for.
+        """
+        tick = int(self._observation.get("tick") or 0)
+        produced = dict(self._truth.get("produced") or {})
+        if self._window and self._window[-1][0] == tick:
+            self._window[-1] = (tick, produced)
+        else:
+            self._window.append((tick, produced))
+            if len(self._window) > WINDOW_SAMPLES:
+                del self._window[0]
+        self._truth = {**self._truth, "window": list(self._window)}
 
     def _context(self) -> dict:
         """Runtime bindings for catalog templates, from the observation only."""
@@ -370,6 +402,9 @@ class FactorioEnv(gym.Env):
         super().reset(seed=seed)
         self._episode_index += 1
         self._steps = 0
+        #: (tick, produced) samples for the episode. Cleared with it, or a
+        #: sustained objective would be satisfied by the previous episode.
+        self._window: list[tuple[int, dict]] = []
 
         digest = self.prepare_scene(self._episode_index)
         self.begin_episode(digest)
@@ -544,6 +579,7 @@ class FactorioEnv(gym.Env):
             self._refresh_truth()
         else:
             self._truth = truth
+            self._record_window()
 
         succeeded = self._succeeded()
         # Termination is decided *before* the transition is scored: the

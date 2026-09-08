@@ -421,11 +421,47 @@ function world.truth()
     end
   end
 
+  -- Prototype-keyed, because `containers` and `working` above are keyed on
+  -- `scene.aliases` -- bound when the scene is *installed*. An entity the agent
+  -- builds has no alias, so no predicate could name it, which made "the chain
+  -- must be placed by the agent" unmeasurable. These aggregate by prototype
+  -- name instead, so a machine counts whoever placed it.
+  local working_counts = {}
+  local placed_counts = {}
+  local srf = surface()
+  if srf then
+    for _, entity in ipairs(srf.find_entities_filtered({ force = force })) do
+      if entity.valid and entity.name then
+        placed_counts[entity.name] = (placed_counts[entity.name] or 0) + 1
+        local ok, status = pcall(function() return entity.status end)
+        if ok and status == defines.entity_status.working then
+          working_counts[entity.name] = (working_counts[entity.name] or 0) + 1
+        end
+      end
+    end
+  end
+
+  -- What the *agent* built, as distinct from what the scene installed.
+  -- `get_entity_build_count_statistics` was already cleared at reset and never
+  -- published, so "counts newly constructed required components" had no channel.
+  local built = {}
+  local ok_build, build_stats =
+    pcall(function() return force.get_entity_build_count_statistics(surface()) end)
+  if ok_build and build_stats then
+    for name, count in pairs(build_stats.input_counts or {}) do
+      if count and count > 0 then built[name] = count end
+    end
+  end
+
   return {
     markers = markers,
     containers = containers,
     working = working,
     produced = produced,
+    -- Additive: every existing predicate reads only the four above.
+    working_counts = working_counts,
+    placed_counts = placed_counts,
+    built = built,
     scenario = scene.name,
   }
 end
