@@ -229,6 +229,24 @@ class TaskSpec:
     #: toward a goal pays more drag for approaching than the approach is worth,
     #: whatever weight the component carries. `None` takes the trainer default.
     gamma: float | None = None
+    #: Markers published beyond those a success predicate names.
+    #:
+    #: The default rule -- publish what the objective names -- covers a task
+    #: whose goal *is* a place, like `deliver`'s destination. It does not cover
+    #: one whose goal is a state and whose *work* happens somewhere else:
+    #: `repair_belt` succeeds on a plate in the sink and the plate only moves if
+    #: a belt is placed in the gap, so the gap is where the agent must act and
+    #: the sink is merely where the result is counted.
+    #:
+    #: Measured consequence of leaving it out: the `toward_gap` potential paid
+    #: for approaching (9, -4) while the only position in the observation was
+    #: the sink at (12.5, -3.5), and the gap existed solely as a *missing*
+    #: element of an unordered 32-entity list. `deliver` scored 0.35 in exactly
+    #: that condition and 0.92 once its target was published as a coordinate.
+    #:
+    #: This cannot inflate a benchmark: a random policy does not read
+    #: observations, so every measured floor is unchanged.
+    extra_public_markers: tuple[str, ...] = ()
     decision_ticks: int = 30
     #: local-v2 by default: it omits the blocks nothing reads and caps the
     #: entity list at 48 after a distance sort, which is 2.6-5.6x less JSON per
@@ -305,10 +323,15 @@ class TaskSpec:
         goal was unpublished too -- it was merely the one non-wall entity in
         the scene, which is why a single skill solved it 5/5.
 
-        Only markers a success or failure predicate references are published.
-        Decoys stay hidden: `deliver`'s `decoy_0` and `decoy_1` are absent
-        here, so the task still asks the agent to reach the right container
-        rather than handing it the scene.
+        Two sources, and no others. A marker a success or failure predicate
+        references, because that is what the agent is scored on; and a marker
+        the task declares in `extra_public_markers`, because a goal that *is* a
+        state has its work somewhere else -- `repair_belt` succeeds on a plate
+        in the sink, and the plate only moves if a belt goes in the gap.
+
+        Decoys stay hidden either way: `deliver`'s `decoy_0` and `decoy_1` are
+        in neither source, so the task still asks the agent to reach the right
+        container rather than handing it the scene.
 
         This raises no random floor -- a uniform policy cannot read an
         observation -- so every floor measured against the old contract stays
@@ -319,7 +342,32 @@ class TaskSpec:
             name = getattr(predicate, "marker", None)
             if name and name not in names:
                 names.append(name)
+        for name in self.extra_public_markers:
+            if name not in names:
+                names.append(name)
         return tuple(names)
+
+    @property
+    def focus_marker(self) -> str | None:
+        """The one marker the goal vector's geometry points at.
+
+        Where the agent must *act*, which is not always what it is scored on.
+        A declared `extra_public_markers` entry exists precisely because those
+        two came apart, so it wins; otherwise the objective's own marker.
+
+        Chosen explicitly because the alternative was alphabetical: the goal
+        vector used to take the first published marker by sort order, which gave
+        `repair_belt` the gap by luck and `restore_power` the drill -- the place
+        its success is *measured*, four poles away from the place it has to put
+        one.
+        """
+        if self.extra_public_markers:
+            return self.extra_public_markers[0]
+        for predicate in (*self.success, *self.failure):
+            name = getattr(predicate, "marker", None)
+            if name:
+                return name
+        return None
 
     def to_dict(self) -> dict:
         # `difficulty_marker` is deliberately not published here. This dict is

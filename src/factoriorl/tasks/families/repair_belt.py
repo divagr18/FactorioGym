@@ -34,7 +34,7 @@ SPEC = TaskSpec(
     # scenes and the holdout spans the pooled training difficulty. The version
     # is part of the random-baseline cache key, and none of the cached
     # baselines were measured against these scenes.
-    version="1.4.0",
+    version="1.5.0",
     description="Restore a broken belt line so items reach the unloading chest.",
     layout_families=FAMILIES,
     success=(
@@ -78,6 +78,10 @@ SPEC = TaskSpec(
     gamma=0.999,
     max_decision_steps=300,
     max_game_ticks=18000,
+    # The gap is where the agent must act; the success predicate names only
+    # where the result is counted. Without this the `toward_gap` potential
+    # paid for approaching a point the observation never contained.
+    extra_public_markers=("gap",),
     landmarks=(
         # Falls from true to false as the spare is spent, which is what tells
         # the policy a placement actually happened.
@@ -230,7 +234,12 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
             # so `TaskSpec.public_markers` does not publish it and it never
             # reaches an observation. Shaping may read truth -- the evaluator
             # computes the reward -- but the policy input may not.
-            "gap": (float(start_x + min(gaps)), row),
+            # +0.5 on both axes: a 1x1 belt created at (x, y) is snapped by
+            # the engine to the tile centre (x+0.5, y+0.5), so the pre-snap
+            # coordinate names a point half a tile off the slot the belt
+            # actually occupies. Small against a 64-tile normalisation, and
+            # wrong.
+            "gap": (float(start_x + min(gaps)) + 0.5, row + 0.5),
         },
         radius=64,
     )

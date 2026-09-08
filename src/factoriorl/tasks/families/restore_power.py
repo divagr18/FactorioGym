@@ -37,7 +37,7 @@ SPEC = TaskSpec(
     id="restore_power",
     # 1.1.0: the line's row and starting column are sampled, so the holdout
     # admits a distribution of scenes rather than a single one.
-    version="1.4.0",
+    version="1.5.0",
     description="Reconnect a power pole chain so the mining drill runs again.",
     layout_families=FAMILIES,
     success=(Predicate(PredicateKind.ENTITY_WORKING, marker="drill"),),
@@ -63,6 +63,10 @@ SPEC = TaskSpec(
     gamma=0.999,
     max_decision_steps=250,
     max_game_ticks=15000,
+    # The gap is where the agent must act; the success predicate names only
+    # where the result is counted. Without this the `toward_gap` potential
+    # paid for approaching a point the observation never contained.
+    extra_public_markers=("gap",),
     landmarks=(Predicate(PredicateKind.INVENTORY_HOLDS, item="small-electric-pole", at_least=1),),
     catalog_subset=(
         "move_north",
@@ -177,7 +181,8 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
             # predicate, so `public_markers` never publishes it and it cannot
             # reach an observation. The first missing pole in the chain is the
             # place the agent has to get to before anything can happen.
-            "gap": (float(start_x + min(gaps) * 4), row),
+            # Tile centre, as in repair_belt: a 1x1 pole snaps to (x+.5, y+.5).
+            "gap": (float(start_x + min(gaps) * 4) + 0.5, row + 0.5),
         },
         radius=64,
     )

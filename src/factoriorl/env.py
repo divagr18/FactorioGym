@@ -242,7 +242,10 @@ class FactorioEnv(gym.Env):
         published = self._observation.get("goal") or {}
         if published:
             position = (self._observation.get("character") or {}).get("position") or [0.0, 0.0]
-            name = next(iter(sorted(published)))
+            # The declared focus, not whichever name sorts first.
+            name = self.spec_.focus_marker
+            if name not in published:
+                name = next(iter(sorted(published)))
             target = published[name]
             scale = float(max(encoders.LOCAL_V1.radius, 1))
             goal[-3] = float(np.clip((target[0] - position[0]) / scale, -1.0, 1.0))

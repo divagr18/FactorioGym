@@ -619,28 +619,35 @@ def test_no_family_pays_a_policy_for_stopping():
         assert "plates_produced" not in names
 
 
-def test_only_the_objective_is_published_never_the_decoys():
+def test_only_the_objective_and_its_work_site_are_published_never_the_decoys():
     """Publishing the goal must not publish the scene.
 
-    `deliver` scores `dst` and also plants `decoy_0` and `decoy_1`, which exist
-    precisely to make the destination ambiguous -- that ambiguity is what took
-    its skill-space random floor from 0.80 down to 0.04. Publishing them would
-    undo the hardening and hand the agent the answer.
+    Two sources are allowed and no others: a marker a success or failure
+    predicate names, and a marker the task declares in `extra_public_markers`.
+    The second exists because a goal that *is* a state has its work somewhere
+    else -- `repair_belt` succeeds on a plate in the sink and the plate only
+    moves if a belt goes in the gap, and the measured consequence of leaving the
+    gap unpublished was a potential that paid for approaching a point the
+    observation never contained.
 
-    So the allowlist is derived from the objective rather than written by hand:
-    a marker is public only if a success or failure predicate names it.
+    `deliver`'s decoys are in neither source. They are what took its skill-space
+    random floor from 0.80 to 0.04, and publishing them would undo the
+    hardening.
     """
     for task_id in all_tasks():
         spec = get(task_id).spec
         named = {p.marker for p in (*spec.success, *spec.failure) if getattr(p, "marker", None)}
+        allowed = named | set(spec.extra_public_markers)
         public = set(spec.public_markers)
-        assert public == named, f"{task_id}: public {public} is not the objective's {named}"
+        assert public == allowed, f"{task_id}: public {public} is not {allowed}"
         assert not {m for m in public if "decoy" in m}, f"{task_id} publishes a decoy"
+        # A declared extra must be a real marker the generator emits, or the
+        # observation would advertise a position that does not exist.
+        if spec.extra_public_markers:
+            blueprint = get(task_id).generate(spec.layout_families[0], random.Random(3))
+            for name in spec.extra_public_markers:
+                assert name in blueprint.markers, f"{task_id} publishes absent marker {name}"
 
-    # A scene names markers from two places and `world.public_markers` reads
-    # both: `blueprint.markers` holds bare positions, while entity markers
-    # become scene aliases. deliver's decoys live in the second, so a test that
-    # checked only the first would have passed while the decoys leaked.
     task = get("deliver")
     assert task.spec.public_markers == ("dst",)
     every_marker: set[str] = set()
@@ -648,10 +655,39 @@ def test_only_the_objective_is_published_never_the_decoys():
         blueprint = task.generate(family, random.Random(11))
         every_marker |= set(blueprint.markers)
         every_marker |= {e.marker for e in blueprint.entities if getattr(e, "marker", None)}
-    assert {"decoy_0", "decoy_1", "src", "dst"} <= every_marker, (
-        f"deliver stopped generating its decoys; markers seen: {sorted(every_marker)}"
-    )
+    assert {"decoy_0", "decoy_1", "src", "dst"} <= every_marker
     assert every_marker & set(task.spec.public_markers) == {"dst"}
+
+
+def test_the_goal_vector_points_at_where_the_agent_must_act():
+    """Not at where success is measured, and not at whatever sorts first.
+
+    `repair_belt` is scored on the sink and has to place a belt in the gap 3.5
+    tiles short of it; `restore_power` is scored on the drill and has to place a
+    pole four tiles short. The goal vector used to take the first published
+    marker in sort order, which handed `repair_belt` the gap by luck and
+    `restore_power` the drill.
+    """
+    for task_id, expected in (
+        ("repair_belt", "gap"),
+        ("restore_power", "gap"),
+        ("deliver", "dst"),
+        ("navigate", "goal"),
+    ):
+        spec = get(task_id).spec
+        assert spec.focus_marker == expected, task_id
+        assert spec.focus_marker in spec.public_markers, (
+            f"{task_id} focuses a marker it does not publish, so the goal vector "
+            "would carry a position the agent cannot otherwise see"
+        )
+
+    # And the reward's potential must point at the same place the observation
+    # does, or the agent is paid for approaching something it cannot locate.
+    for task_id in ("repair_belt", "restore_power"):
+        spec = get(task_id).spec
+        potentials = [r for r in spec.rewards if r.kind is RewardKind.POTENTIAL and r.predicate]
+        assert potentials, task_id
+        assert all(r.predicate.marker == spec.focus_marker for r in potentials), task_id
 
 
 def test_begin_episode_sends_both_declared_profiles():
@@ -705,20 +741,44 @@ def test_every_family_has_something_that_pays_before_success():
     assert any("potential" in c for c in by_task["repair_belt"]["informative_components"])
 
 
-def test_the_gap_marker_guides_the_reward_without_entering_the_observation():
-    """Shaping may read evaluator truth -- the evaluator computes the reward --
-    but the policy's input may not. `gap` is named by no success or failure
-    predicate, so `public_markers` cannot publish it."""
+def test_shaping_may_read_truth_but_only_declared_markers_are_published():
+    """The observation/evaluator boundary, stated at the level that is true.
+
+    An earlier version of this test asserted that `gap` must *never* reach an
+    observation, on the principle that shaping reads evaluator truth and the
+    policy's input may not. The principle is right and the conclusion was wrong:
+    the boundary is not "markers are secret", it is "only what a task declares
+    is published". `repair_belt` was paid for approaching a gap that appeared
+    nowhere in its observation, and `deliver` scored 0.35 in exactly that
+    condition and 0.92 once its target was published.
+
+    What must stay true is the rest of truth. `containers`, `produced` and
+    `working` drive success predicates and shaping, and none of them is a
+    marker, so none can be published by this mechanism at all.
+    """
     import random
 
     for task_id in ("repair_belt", "restore_power"):
         task = get(task_id)
-        assert "gap" not in task.spec.public_markers
-        blueprint = task.generate(task.spec.layout_families[0], random.Random(3))
+        spec = task.spec
+        assert "gap" in spec.public_markers, "the gap is meant to be visible now"
+        blueprint = task.generate(spec.layout_families[0], random.Random(3))
         assert "gap" in blueprint.markers, f"{task_id} stopped emitting the gap marker"
-        shaping = [r for r in task.spec.rewards if r.predicate and r.predicate.marker == "gap"]
+        shaping = [r for r in spec.rewards if r.predicate and r.predicate.marker == "gap"]
         assert shaping, f"{task_id} has a gap marker nothing reads"
         assert all(r.kind is RewardKind.POTENTIAL for r in shaping)
+
+    # Publication is a marker mechanism, so no other truth channel can ride it.
+    for task_id in all_tasks():
+        spec = get(task_id).spec
+        assert not ({"containers", "produced", "working"} & set(spec.public_markers)), task_id
+        blueprint = get(task_id).generate(spec.layout_families[0], random.Random(5))
+        declared = set(blueprint.markers) | {
+            e.marker for e in blueprint.entities if getattr(e, "marker", None)
+        }
+        assert set(spec.public_markers) <= declared, (
+            f"{task_id} publishes a marker no generator emits"
+        )
 
 
 def test_a_familys_discount_horizon_covers_its_episode():
