@@ -31,7 +31,7 @@ from factoriorl.paths import evidence_dir, runtime_dir
 from factoriorl.rewards import RewardAccountant
 from factoriorl.seeding import Branch, SeedPlan
 from factoriorl.session import WorkerSession
-from factoriorl.tasks import all_tasks, validate_all
+from factoriorl.tasks import all_tasks, coverage, validate_all
 from factoriorl.tasks.spec import RewardKind
 from factoriorl.worker import WorkerManager
 
@@ -50,6 +50,12 @@ RANDOM_EPISODE_STEPS = 40
 REFERENCE_EPISODES = 3
 #: A reference solution that cannot finish reliably indicates a task defect.
 REFERENCE_THRESHOLD = 0.99
+
+#: Scenes per layout family for the coverage containment check. Enough that a
+#: regime occupying a fifth of a training split is seen: `restore_power` trains
+#: on the terminal cell in 77 of 400 scenes, so 60 per family leaves a wide
+#: margin while keeping a gate run short. The published audit uses 200.
+COVERAGE_SAMPLES = 60
 
 
 @dataclass
@@ -222,6 +228,22 @@ def run_phase3_gate(worker_id: str = "phase3-gate") -> dict:
                 f"{task_id}: held-out family differs from training families",
                 test_info["layout_family"] not in {f.name for f in task.spec.families("train")},
                 held_out=test_info.get("layout_family"),
+            )
+            # A different *name* is what the check above tests, and both
+            # documented distribution surprises had different names. Synthesis
+            # section 9 asks for the held-out combination's marginals to be
+            # covered in training, which is set containment over categorical
+            # descriptors -- so it is checked here too, from the same rule
+            # `tools/generator_diagnostics.py` publishes.
+            cov = coverage.analyse(task, COVERAGE_SAMPLES, plan)
+            report.check(
+                "splits",
+                f"{task_id}: every descriptor cell the holdout occupies is trained on",
+                cov["contained"],
+                vacuous=cov["vacuous"],
+                held_out_cells=[c["cell"] for c in cov["held_out_cells"]],
+                test_cells=[c["cell"] for c in cov["test_cells"]],
+                examples=[c["example"] for c in cov["held_out_cells"]][:2],
             )
 
         # ---- 2b. reference solutions (PLAN.md 3.2) ---------------------

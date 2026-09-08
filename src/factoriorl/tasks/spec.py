@@ -159,6 +159,24 @@ class Blueprint:
                 seen[tile] = entity.name
         return problems
 
+    def all_markers(self) -> dict[str, list[float]]:
+        """Every name that resolves to a position at runtime.
+
+        `world.truth()` merges `scene.markers` with the positions of the
+        entities `scene.aliases` names, so a marker carried by an `EntitySpec`
+        is a marker as far as any predicate is concerned. Anything reading only
+        `self.markers` therefore sees a smaller set than the environment does:
+        `plate_line` declares `difficulty_marker = "furnace"`, which is an
+        entity alias, and the split audit reported all 600 of its scenes as
+        declaring no such marker -- difficulty measured against nothing, in a
+        task where the marker exists.
+        """
+        markers = {name: list(position) for name, position in self.markers.items()}
+        for entity in self.entities:
+            if entity.marker:
+                markers[entity.marker] = list(entity.position)
+        return markers
+
     def initial_state(self) -> tuple[dict, dict]:
         """A synthetic `(observation, truth)` for the scene at reset.
 
@@ -169,7 +187,7 @@ class Blueprint:
         production and the placement counter at every episode start, and only
         the `place` action increments the latter.
         """
-        markers = {name: list(position) for name, position in self.markers.items()}
+        markers = self.all_markers()
         containers: dict[str, dict] = {}
         placed: dict[str, int] = {}
         entities = []
@@ -177,7 +195,6 @@ class Blueprint:
             placed[entity.name] = placed.get(entity.name, 0) + 1
             entities.append({"name": entity.name, "p": list(entity.position), "type": entity.name})
             if entity.marker:
-                markers[entity.marker] = list(entity.position)
                 containers[entity.marker] = dict(entity.contents)
         observation = {
             "tick": 0,
@@ -549,6 +566,17 @@ class TaskSpec:
     #: not warrant a `version` bump. For the same reason it is deliberately
     #: absent from `to_dict()` -- see the note there.
     difficulty_marker: str | None = None
+    #: Markers naming where this task's fault is, for coverage analysis.
+    #:
+    #: Declared rather than inferred from a `gap` naming convention, for the
+    #: same reason `difficulty_marker` is declared: a convention that silently
+    #: matches nothing reads as "this task has no faults" rather than as a typo.
+    #:
+    #: This is metadata about how the task is *measured*, so like
+    #: `difficulty_marker` it is deliberately absent from `to_dict()`: it
+    #: changes no scene, no predicate and no budget, and adding it must not
+    #: bump a version or move a frozen holdout digest.
+    fault_markers: tuple[str, ...] = ()
 
     def families(self, split: str) -> tuple[LayoutFamily, ...]:
         return tuple(f for f in self.layout_families if f.split == split)

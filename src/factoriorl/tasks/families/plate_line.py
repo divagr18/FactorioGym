@@ -45,6 +45,24 @@ construction are different measurements and this one's evidence and frozen
 holdout entry describe commissioning. `restore_power`'s solvability run still
 shows the milder version of the quantisation problem:
 `place_small_electric_pole_south: collision`.
+
+Known defect, not fixed here
+----------------------------
+The split audit was never run on this task until R3 ran it over all eight, and
+it reports a real finding: **10 of 200 `commissioning_walled` scenes start the
+character on a wall tile.** The screen sits at x = 6 and the start is drawn at
+radius 5..9 from the drill at a random angle, so 5% of scenes place the
+character inside the neutral wall. `build_blueprint` teleports without a
+collision check, so the character begins the episode inside the screen.
+
+Left unfixed deliberately. The generator's bytes are what this task's
+commissioning evidence and its `holdout_v3` entry describe, and the reference
+solution still commissions the line at 1.00 -- a Factorio character inside a
+collision box can walk out. Changing the draw would bump the version and
+invalidate both records to remove a defect that has not been shown to change
+any measurement. It is recorded here, and in
+`docs/evidence/phase3-generator-diagnostics.json`, so the next person to touch
+this generator meets it rather than rediscovering it.
 """
 
 from __future__ import annotations

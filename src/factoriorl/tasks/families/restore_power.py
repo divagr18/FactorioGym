@@ -70,6 +70,9 @@ SPEC = TaskSpec(
     # where the result is counted. Without this the `toward_gap` potential
     # paid for approaching a point the observation never contained.
     extra_public_markers=("gap", "gap2"),
+    # Where the fault is, for the coverage check. Not in `to_dict()`:
+    # measurement metadata, so it moves no digest.
+    fault_markers=("gap", "gap2"),
     # Two faults, three goal-geometry slots: the environment points at the
     # nearest unrepaired one. Declared because it decides which fault to
     # attack on the policy's behalf, which the manifest must show.

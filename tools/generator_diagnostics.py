@@ -62,6 +62,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from factoriorl.seeding import Branch, SeedPlan  # noqa: E402
 from factoriorl.tasks import all_tasks, get  # noqa: E402
+from factoriorl.tasks import coverage as coverage_module  # noqa: E402
 from factoriorl.tasks.spec import Blueprint, entity_tiles  # noqa: E402
 
 # --------------------------------------------------------------- thresholds
@@ -307,7 +308,7 @@ def goal_target_tiles(
     or a 3x3 mining drill whose centre tile is the declared marker. Targeting the
     marker tile alone would report every such goal as unreachable.
     """
-    position = blueprint.markers[marker]
+    position = blueprint.all_markers()[marker]
     footprint = {(math.floor(position[0]), math.floor(position[1]))}
     for entity in blueprint.entities:
         if entity.marker == marker:
@@ -385,7 +386,13 @@ def describe(task, blueprint: Blueprint) -> dict[str, float | None]:
     # predicate. Walls, decoy chests, spare furnaces and belt segments all count;
     # the goal and the source do not. This is the descriptor that catches a
     # holdout differing only in scenery.
-    named = set(blueprint.markers) | {p.marker for p in (*spec.success, *spec.failure) if p.marker}
+    # The merged marker view for the same reason as above: an entity carrying a
+    # marker *is* something the task declaration points at, so counting it as a
+    # distractor contradicts the definition in the comment. `plate_line`'s drill
+    # and furnace both carry markers and both scored as distractors.
+    named = set(blueprint.all_markers()) | {
+        p.marker for p in (*spec.success, *spec.failure) if p.marker
+    }
     distractors = sum(1 for e in blueprint.entities if e.marker not in named)
 
     # Tiles covered by anything the scene declares, walkable or not. This is the
@@ -413,10 +420,14 @@ def describe(task, blueprint: Blueprint) -> dict[str, float | None]:
     }
 
     marker = goal_marker(spec)
-    if marker is None or marker not in blueprint.markers:
+    # The merged view, not `blueprint.markers`: an entity alias is a marker at
+    # runtime, and reading only the blueprint's own dict reported every
+    # `plate_line` scene as declaring no `furnace`.
+    declared = blueprint.all_markers()
+    if marker is None or marker not in declared:
         return values
 
-    goal = blueprint.markers[marker]
+    goal = declared[marker]
     straight = blueprint.distance_from_character(goal)
     values["goal_distance"] = round(straight, 4)
 
@@ -507,13 +518,23 @@ def sample_family(task, family, samples: int, plan: SeedPlan) -> dict:
     marker = goal_marker(task.spec)
     digests: list[str] = []
     records: list[dict[str, float | None]] = []
+    cells: dict[tuple, dict] = {}
     unreachable = 0
     missing_marker = 0
     for index in range(samples):
         rng = plan.generator_rng(Branch.TRAIN, index)
         rng.randrange(split_size)
         blueprint = task.generate(family, rng)
-        digests.append(scene_digest(blueprint))
+        digest = scene_digest(blueprint)
+        digests.append(digest)
+        cell = coverage_module.coverage_cell(task, blueprint)
+        # One example per cell, kept rather than discarded: "the test split
+        # occupies a cell training never does" is only actionable with a scene
+        # to look at, and the digests were already computed and thrown away.
+        cells.setdefault(cell, {"count": 0, "example": None})
+        cells[cell]["count"] += 1
+        if cells[cell]["example"] is None:
+            cells[cell]["example"] = {"episode_index": index, "blueprint_digest": digest}
         values = describe(task, blueprint)
         if marker:
             # A marker the task declares but the generator never places would
@@ -521,7 +542,7 @@ def sample_family(task, family, samples: int, plan: SeedPlan) -> dict:
             # back None and the verdict is `incomplete` with a message saying no
             # marker was declared, which is the opposite of what happened. A
             # typo in `difficulty_marker` must read as a typo.
-            missing_marker += int(marker not in blueprint.markers)
+            missing_marker += int(marker not in blueprint.all_markers())
             if values["goal_distance"] is not None:
                 unreachable += int(values["path_length"] is None)
         records.append(values)
@@ -532,6 +553,7 @@ def sample_family(task, family, samples: int, plan: SeedPlan) -> dict:
         "records": records,
         "unreachable_goals": unreachable,
         "missing_marker": missing_marker,
+        "coverage_cells": cells,
     }
 
 
@@ -614,6 +636,14 @@ def analyse_task_object(task, samples: int, plan: SeedPlan) -> dict:
                 key: _summarise(sampled["records"], key)
                 for key in (*DIFFICULTY_DESCRIPTORS, *STRUCTURAL_DESCRIPTORS)
             },
+            "coverage_cells": [
+                {
+                    "cell": dict(zip(coverage_module.COVERAGE_DESCRIPTORS, cell, strict=True)),
+                    "count": body["count"],
+                    "example": body["example"],
+                }
+                for cell, body in sorted(sampled["coverage_cells"].items())
+            ],
         }
         if distinct < MIN_DISTINCT_SCENES:
             entry["failures"].append(
@@ -633,6 +663,16 @@ def analyse_task_object(task, samples: int, plan: SeedPlan) -> dict:
                 "was measured against nothing there"
             )
     entry["distinct_scenes_total"] = len(total_digests)
+
+    # ---- section 9 coverage containment -------------------------------
+    # The rule lives in `factoriorl.tasks.coverage` so `gate_phase3` can read
+    # the same one; this tool samples and reports it.
+    coverage = coverage_module.containment(
+        task, {name: sampled["coverage_cells"] for name, sampled in families.items()}
+    )
+    coverage["samples_per_family"] = samples
+    entry["coverage"] = coverage
+    entry["failures"].extend(coverage_module.failures(spec.id, coverage))
 
     # ---- duplicate layout families ------------------------------------
     names = sorted(probes)
@@ -781,6 +821,21 @@ def print_report(report: dict) -> None:
         structural = "  ".join(f"{k}={_fmt(v)}" for k, v in entry["structural_overlap"].items())
         print(f"  difficulty overlap (want >= {PARITY_MIN_OVERLAP:.2f}): {difficulty}")
         print(f"  structural overlap (want one <= {SEPARATION_MAX_OVERLAP:.2f}): {structural}")
+        cov = entry.get("coverage") or {}
+        if cov:
+            if cov["vacuous"]:
+                verdict = "n/a (task declares no fault_markers)"
+            elif cov["contained"]:
+                verdict = "every test cell is trained on"
+            else:
+                verdict = f"{len(cov['held_out_cells'])} uncovered cell(s)"
+            cells = " ".join(
+                "/".join(str(v) for v in row["cell"].values()) + f"x{row['count']}"
+                for row in cov["test_cells"]
+            )
+            print(
+                f"  coverage containment: {verdict}" + (f"   test cells: {cells}" if cells else "")
+            )
         print(f"  VERDICT: {entry['verdict'].upper()}")
         for failure in entry["failures"]:
             print(f"    - {failure}")

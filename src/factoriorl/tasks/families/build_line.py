@@ -155,6 +155,11 @@ SPEC = TaskSpec(
     #: The patch is where all the work happens and it is not an entity, so
     #: nothing in the observation names it as a place.
     extra_public_markers=("patch",),
+    # The patch is the only declared position, so it is what a route can be
+    # measured to. Without it the split audit reports difficulty parity as
+    # unmeasurable, which is true but fixable: measurement metadata, absent
+    # from `to_dict()`, so declaring it moves no digest.
+    difficulty_marker="patch",
 )
 
 
