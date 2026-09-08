@@ -1,0 +1,62 @@
+{
+  "plan_section": "3.3 / 4.5",
+  "generated_at": "2026-09-08",
+  "question": "restore_power scored 0.77 / 0.00 / 0.00 on the frozen holdout across three seeds while every seed reached 0.95-1.00 on training layouts. Is the held-out split drawn from the training distribution?",
+  "method": "Generate 600 scenes per layout family engine-free and classify the missing pole's position in the chain. Poles are spaced 4 tiles; 'flanked' means a pole exists on each side of the gap in the chain row, 'terminal' means the gap is the chain's last position with the drill beyond it and no pole further along.",
+  "families": {
+    "pole_gap": {
+      "split": "train",
+      "scenes": 600,
+      "gap_flanked_both_sides": 600,
+      "gap_terminal_at_chain_end": 0,
+      "gap_position_from_chain_end": {
+        "chain-2": 226,
+        "chain-3": 218,
+        "chain-4": 114,
+        "chain-5": 42
+      }
+    },
+    "pole_gap_far": {
+      "split": "train",
+      "scenes": 600,
+      "gap_flanked_both_sides": 600,
+      "gap_terminal_at_chain_end": 0,
+      "gap_position_from_chain_end": {
+        "chain-2": 114,
+        "chain-3": 116,
+        "chain-4": 99,
+        "chain-5": 97,
+        "chain-6": 95,
+        "chain-7": 58,
+        "chain-8": 21
+      }
+    },
+    "two_gaps": {
+      "split": "val",
+      "scenes": 600,
+      "gap_flanked_both_sides": 371,
+      "gap_terminal_at_chain_end": 229,
+      "gap_position_from_chain_end": {
+        "chain-2": 226,
+        "chain-3": 218,
+        "chain-4": 114,
+        "chain-5": 42
+      }
+    },
+    "gap_near_drill": {
+      "split": "test",
+      "scenes": 600,
+      "gap_flanked_both_sides": 0,
+      "gap_terminal_at_chain_end": 600,
+      "gap_position_from_chain_end": {
+        "chain-1": 600
+      }
+    }
+  },
+  "finding": "The held-out split is disjoint from training on the decisive local feature. restore_power.py sets `gap = chain - 1` for gap_near_drill while training samples `rng.randint(1, chain - 2)`, so the missing pole is flanked by poles on both sides in 600/600 training scenes and in 0/600 held-out scenes, where it is instead always the chain's terminal position with the drill beyond it. Two policies therefore fit the training data equally well -- 'fill the hole between two poles', which scores exactly 0.00 on the holdout by construction, and 'walk to the published gap marker and place', which transfers. Which one a run learns is a seed lottery, and that is the bimodal 0.77 / 0.00 / 0.00 rather than transfer variance. The generator comment shows the chain *length* was deliberately matched to the pooled training range for difficulty parity; the gap *position* was made disjoint at the same time and was not noticed.",
+  "why_the_parity_audit_missed_it": "tools/generator_diagnostics.py DIFFICULTY_DESCRIPTORS are goal_distance, path_length, detour_factor and budget_slack -- all route geometry to the goal marker. Moving a gap along a chain barely changes any of them, so the audit reports parity for a holdout that is out of distribution on the feature that decides the task.",
+  "also_affects": {
+    "two_gaps (val)": "229/600 terminal, so val is a mixture of both regimes and additionally carries a second fault with no published marker. Its 0.00 has the same two causes.",
+    "repair_belt": "Same class of defect, different axis: double_gap (test) needs two repairs while training teaches one, and only min(gaps) is published."
+  }
+}
