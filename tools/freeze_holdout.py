@@ -256,11 +256,12 @@ def build_body(
     plan: SeedPlan,
     start_index: int = HOLDOUT_START_INDEX,
     episodes: int = HOLDOUT_EPISODES,
+    holdout_id: str = HOLDOUT_ID,
 ) -> dict:
     """The part of the artefact the content hash covers."""
     return {
         "schema": SCHEMA,
-        "holdout_id": HOLDOUT_ID,
+        "holdout_id": holdout_id,
         "seed_plan": {
             "master": plan.master,
             "run_id": plan.run_id,
@@ -519,8 +520,9 @@ def build_document(
     start_index: int,
     episodes: int,
     candidates: list[str] | None,
+    holdout_id: str = HOLDOUT_ID,
 ) -> dict:
-    body = build_body(task_ids, plan, start_index, episodes)
+    body = build_body(task_ids, plan, start_index, episodes, holdout_id)
     return {
         "content_hash": content_hash(body),
         "holdout": body,
@@ -712,7 +714,17 @@ def main() -> int:
         print(f"\ndeclared {candidates} at {stamp}; content_hash unchanged")
         return 0
 
-    document = build_document(task_ids, plan, args.start_index, args.episodes, candidates)
+    # Derived from the output path: a second holdout written to another file
+    # but still announcing `holdout_v1` would leave two content hashes sharing
+    # one citation, which is precisely the ambiguity this file exists to remove.
+    document = build_document(
+        task_ids,
+        plan,
+        args.start_index,
+        args.episodes,
+        candidates,
+        holdout_id=Path(args.out).stem if args.out else HOLDOUT_ID,
+    )
     print_summary(document)
 
     if not args.write:
