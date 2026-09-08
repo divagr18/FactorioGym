@@ -459,16 +459,34 @@ def manifests_citing(holdout_id: str = HOLDOUT_ID, runs_root: Path | None = None
 def stale_citations(document: dict, runs_root: Path | None = None) -> list[str]:
     """Manifests citing this holdout under a hash it does not have."""
     expected = document.get("content_hash")
+    summary = document.get("summary") or {}
     problems = []
     for entry in manifests_citing(
         document.get("holdout", {}).get("holdout_id", HOLDOUT_ID), runs_root
     ):
-        cited = entry["citation"].get("content_hash")
+        citation = entry["citation"]
+        cited_entry = citation.get("task_entry_hash")
+        task_id = citation.get("task") or entry.get("task")
+        expected_entry = (summary.get(task_id) or {}).get("entry_hash")
+        # Judge on the per-task digest when the run recorded one: a re-freeze of
+        # another family leaves this run's scenes untouched and must not be
+        # reported as stale. Runs from before the digest existed can only be
+        # checked against the whole-file hash, and for those the coarse verdict
+        # is the honest one -- they cannot prove which scenes they used.
+        if cited_entry is not None and expected_entry is not None:
+            if cited_entry != expected_entry:
+                problems.append(
+                    f"{entry['path']} cites {task_id} entry_hash {cited_entry}, but the "
+                    f"committed holdout has {expected_entry}; that run's held-out numbers "
+                    "were measured against different scenes"
+                )
+            continue
+        cited = citation.get("content_hash")
         if cited != expected:
             problems.append(
                 f"{entry['path']} cites holdout content_hash {cited}, but the committed "
-                f"holdout is {expected}; that run's held-out numbers were measured against "
-                "different scenes"
+                f"holdout is {expected}; that run predates per-task digests, so which "
+                "scenes produced its numbers cannot be established"
             )
     return problems
 
@@ -492,6 +510,17 @@ def git_commit() -> str | None:
         return None
 
 
+def entry_hash(entry: dict) -> str:
+    """Digest of one task's frozen episode set.
+
+    Must agree with `factoriorl.learn.train.holdout_entry_hash`; a run cites
+    what this produces, so the two are pinned together by
+    ``tests/unit/test_holdout.py``.
+    """
+    canonical = json.dumps(entry, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(canonical).hexdigest()[:16]
+
+
 def summarise(body: dict) -> dict:
     """Per-task facts a reader checks before trusting a rate computed on this.
 
@@ -507,6 +536,14 @@ def summarise(body: dict) -> dict:
         digests = [e["blueprint_digest"] for e in entry["episodes"]]
         distinct = len(set(digests))
         summary[task_id] = {
+            # Scoped to one task, so it moves exactly when *these* scenes move.
+            # The whole-file `content_hash` changes whenever any family is
+            # re-frozen, which made `stale_citations` flag every task whenever
+            # one was bumped -- and a warning that fires on untouched families
+            # is one a reader learns to click through. `holdout_v2` was
+            # re-frozen five times; `deliver`'s episodes were identical across
+            # the last four, and only this digest can say so.
+            "entry_hash": entry_hash(entry),
             "task_version": entry["task_version"],
             "families_in_split": entry["families_in_split"],
             "episodes": len(digests),

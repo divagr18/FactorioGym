@@ -12,6 +12,7 @@ tell whether a checkpoint still means what it claimed to.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import time
 from dataclasses import dataclass, field
@@ -103,6 +104,10 @@ class TrainConfig:
     #: setting can remove, so overlapping workers is the only way to step
     #: faster: 41.8 steps/s at one, 202 at eight.
     workers: int = 1
+    #: Also score the structural row with the stochastic policy, on the same
+    #: episodes. Cheap next to training and the only way to tell a policy that
+    #: did not learn from one that learned and is being read greedily.
+    paired_stochastic_eval: bool = True
     run_prefix: str = "train"
     extra: dict = field(default_factory=dict)
 
@@ -122,43 +127,110 @@ class TrainConfig:
             "shaping": self.shaping,
             "eval_episodes": self.eval_episodes,
             "workers": self.workers,
+            "paired_stochastic_eval": self.paired_stochastic_eval,
         }
 
 
 class CurveLogger(BaseCallback):
-    """Append one row per episode. CSV, because curves must be diffable."""
+    """Append one row per episode. CSV, because curves must be diffable.
 
-    def __init__(self, path: Path, started: float) -> None:
+    Accumulators are **per environment**. The first version of this kept one
+    running reward and one step count for the whole vector, summed `rewards`
+    across all workers, incremented the step count once per *vector* step, and
+    flushed a row whenever `dones.any()` fired -- reading `infos[0]` for the
+    success flag. Every column was wrong in a way that looked plausible:
+
+    * `episode_reward` was the N-worker sum of reward since the last any-done,
+      which for eight workers over a long family lands near the step cost of a
+      single full episode. It reads exactly like "the policy never earned
+      anything" and is really "eight workers each paid a third of an episode".
+    * `episode_steps` counted vector steps, so a 300-step family reported ~30.
+    * `success` was **worker 0's flag alone**. A success in workers 1..N-1 was
+      recorded as a zero, shrinking the evidentiary weight of a "no successes"
+      curve by a factor of N -- and `repair_belt` and `restore_power` were both
+      declared unlearnable off curves that had successes in them.
+
+    One row per real episode, attributed to the worker that finished it.
+    """
+
+    def __init__(self, path: Path, started: float, num_envs: int = 1) -> None:
         super().__init__()
         self.path = path
         self.started = started
         self.rows: list[dict] = []
-        self._episode_reward = 0.0
-        self._episode_steps = 0
+        self._num_envs = max(int(num_envs), 1)
+        self._episode_reward = [0.0] * self._num_envs
+        self._episode_steps = [0] * self._num_envs
 
     def _on_step(self) -> bool:
-        rewards = self.locals.get("rewards")
+        rewards = np.asarray(self.locals.get("rewards", [])).reshape(-1)
         infos = self.locals.get("infos") or []
-        dones = self.locals.get("dones")
-        if rewards is not None:
-            self._episode_reward += float(np.asarray(rewards).sum())
-        self._episode_steps += 1
-        if dones is not None and bool(np.asarray(dones).any()):
-            info = infos[0] if infos else {}
+        dones = np.asarray(self.locals.get("dones", [])).reshape(-1)
+
+        # A vec env may be wider than the count we were built with (SB3 wraps
+        # single envs in a DummyVecEnv of one); grow rather than mis-attribute.
+        width = max(rewards.size, dones.size, len(infos))
+        if width > self._num_envs:
+            self._episode_reward.extend([0.0] * (width - self._num_envs))
+            self._episode_steps.extend([0] * (width - self._num_envs))
+            self._num_envs = width
+
+        for index in range(rewards.size):
+            self._episode_reward[index] += float(rewards[index])
+        for index in range(max(rewards.size, dones.size)):
+            self._episode_steps[index] += 1
+
+        for index in range(dones.size):
+            if not bool(dones[index]):
+                continue
+            info = infos[index] if index < len(infos) else {}
             self.rows.append(
                 {
                     "timestep": int(self.num_timesteps),
                     "wall_s": round(time.perf_counter() - self.started, 2),
-                    "episode_reward": round(self._episode_reward, 4),
-                    "episode_steps": self._episode_steps,
+                    "worker": index,
+                    "episode_reward": round(self._episode_reward[index], 4),
+                    "episode_steps": self._episode_steps[index],
                     "success": int(bool(info.get("success"))),
                     "layout_family": info.get("layout_family"),
                     "excluded": int(bool(info.get("excluded_from_metrics"))),
                 }
             )
-            self._episode_reward = 0.0
-            self._episode_steps = 0
+            self._episode_reward[index] = 0.0
+            self._episode_steps[index] = 0
         return True
+
+    def summary(self) -> dict:
+        """Aggregate the curve honestly.
+
+        `final_train_success_rate` used to be the mean over the last twenty
+        rows, which reported 24 real successes as 0.0 whenever the last of them
+        landed more than twenty episodes before the end. Both figures are kept
+        -- the tail rate is what a learning curve is read off -- but the total
+        is what decides whether a family ever succeeded at all.
+        """
+        scored = [row for row in self.rows if not row["excluded"]]
+        successes = sum(row["success"] for row in scored)
+        tail = scored[-20:]
+        return {
+            "episodes_logged": len(self.rows),
+            "episodes_scored": len(scored),
+            "train_successes": successes,
+            "train_success_rate": round(successes / len(scored), 4) if scored else 0.0,
+            "final_train_success_rate": (
+                round(float(np.mean([row["success"] for row in tail])), 4) if tail else 0.0
+            ),
+            "mean_episode_reward": (
+                round(float(np.mean([row["episode_reward"] for row in scored])), 4)
+                if scored
+                else 0.0
+            ),
+            "mean_episode_steps": (
+                round(float(np.mean([row["episode_steps"] for row in scored])), 2)
+                if scored
+                else 0.0
+            ),
+        }
 
     def write(self) -> None:
         if not self.rows:
@@ -368,7 +440,41 @@ def _load_frozen_holdout(config: TrainConfig, task) -> dict | None:
             f"v{recorded.get('task_version')} but this run is v{task.spec.version}; "
             "a holdout is only meaningful for the task it was frozen against"
         )
+    # The file must hash to what it says it hashes to. Without this the
+    # `content_hash` a run records is a copied string rather than a checksum.
+    computed = holdout_content_hash(spec)
+    if computed != frozen.get("content_hash"):
+        raise ValueError(
+            f"holdout {config.holdout} records content_hash "
+            f"{frozen.get('content_hash')!r} but its content hashes to {computed!r}; "
+            "the file has been edited since it was frozen"
+        )
+    # A whole-file hash covers every task at once, so re-freezing one family
+    # changes the hash cited by all of them -- and `holdout_v2` was in fact
+    # rewritten five times, each bump silently invalidating the hash recorded
+    # by every earlier run while leaving the untouched families' episodes
+    # identical. The per-task digest is what a cell should cite: it changes
+    # exactly when the episodes that produced the number change.
+    frozen = dict(frozen)
+    frozen["task_entry_hash"] = holdout_entry_hash(recorded)
     return frozen
+
+
+def holdout_content_hash(spec: dict) -> str:
+    """The hash a frozen holdout file records for itself."""
+    canonical = json.dumps(spec, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def holdout_entry_hash(entry: dict) -> str:
+    """The digest of one task's frozen episode set.
+
+    Scoped to a single task on purpose: this is the value that identifies the
+    scenes a number was measured on, and it must not move when an unrelated
+    family is re-frozen.
+    """
+    canonical = json.dumps(entry, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(canonical).hexdigest()[:16]
 
 
 def train(config: TrainConfig) -> dict:
@@ -519,7 +625,7 @@ def train(config: TrainConfig) -> dict:
             },
         ).write()
 
-        curve = CurveLogger(run_dir / "curve.csv", started)
+        curve = CurveLogger(run_dir / "curve.csv", started, num_envs=config.workers)
         model.learn(total_timesteps=config.total_steps, callback=curve, progress_bar=False)
         curve.write()
         model.save(run_dir / "model")
@@ -576,6 +682,24 @@ def train(config: TrainConfig) -> dict:
                     vec_env, model, config.eval_episodes, only_indices=frozen_indices
                 )
                 rows[label]["episodes_touched"] = vec_env.issued_episodes()
+                # The greedy policy is not guaranteed to be at least as good as
+                # the one that was trained. On a partially observed task the
+                # deterministic memoryless policies are a strictly weaker
+                # class, so argmax can score below the stochastic policy that
+                # earned the training successes -- and a checkpoint with real
+                # successes reading 0.00 under argmax is the textbook symptom.
+                # Scored on the *same* episodes, so the pair is a pair.
+                if config.paired_stochastic_eval:
+                    vec_env.retarget(
+                        split, Branch.EVAL, row_start, plan=row_plan, stop_index=row_stop
+                    )
+                    rows[label]["stochastic"] = evaluate_parallel(
+                        vec_env,
+                        model,
+                        config.eval_episodes,
+                        deterministic=False,
+                        only_indices=frozen_indices,
+                    )
             else:
                 # The single-worker path needs the frozen plan and start index
                 # as much as the vectorised one. Left on the run's own plan it
@@ -652,6 +776,7 @@ def train(config: TrainConfig) -> dict:
             rows["structures"]["holdout"] = {
                 "id": spec.get("holdout_id"),
                 "content_hash": frozen["content_hash"],
+                "task_entry_hash": frozen.get("task_entry_hash"),
                 "frozen_range": [low, high],
                 "episodes_touched": len(touched),
                 "episodes_scored": len(scored),
@@ -676,12 +801,7 @@ def train(config: TrainConfig) -> dict:
             "held_out": held_out,
             "random_baseline": baseline,
             "evaluation": rows,
-            "episodes_logged": len(curve.rows),
-            "final_train_success_rate": round(
-                float(np.mean([r["success"] for r in curve.rows[-20:]])), 4
-            )
-            if curve.rows
-            else 0.0,
+            **curve.summary(),
         }
         (run_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
         status = {"run_id": run_id, "state": "completed"}
