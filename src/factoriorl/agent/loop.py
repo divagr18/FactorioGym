@@ -359,6 +359,14 @@ class AgentLoop:
                 "action_error": info.get("action_error"),
                 "success": bool(info.get("success", False)),
                 "infrastructure_failure": info.get("infrastructure_failure"),
+                # An assisted action is one decision to the model and many to
+                # the engine. PLAN 5.5 requires the replay to expand it, so the
+                # primitives it actually issued travel with the decision rather
+                # than being summarised into a count.
+                "skill": info.get("skill"),
+                "skill_outcome": info.get("skill_outcome"),
+                "skill_steps": info.get("skill_steps"),
+                "skill_trace": info.get("skill_trace"),
             }
             self.decisions.append(decision)
             self._append_decision(decision)

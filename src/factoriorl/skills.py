@@ -196,10 +196,14 @@ def _character(env: FactorioEnv) -> tuple[float, float]:
 class SkillRunner:
     """Executes a skill as a loop of primitive steps on a live environment."""
 
+    trace: list[dict]
+
     def __init__(self, env: FactorioEnv) -> None:
+        self.trace = []
         self.env = env
 
     def run(self, skill: Skill) -> dict:
+        self.trace: list[dict] = []
         """Run `skill` to termination.
 
         Returns the accumulated transition. `steps` is the number of primitive
@@ -336,6 +340,20 @@ class SkillRunner:
     def _primitive(self, action) -> dict:
         index = action if isinstance(action, int) else self.env.catalog.keys().index(action)
         observation, reward, terminated, truncated, info = self.env.step(index)
+        # PLAN 4b.2 requires a skill's underlying ticks and actions to survive
+        # in the trace, and 5.5 requires an assisted action to be expandable in
+        # the replay. A step count satisfies neither: it says a skill took nine
+        # decisions without saying it spent them walking back and forth. The
+        # oscillation that cost an entire episode was invisible at this level
+        # until it was reconstructed by hand from a policy's action stream.
+        self.trace.append(
+            {
+                "key": self.env.catalog.keys()[index],
+                "reward": round(float(reward), 4),
+                "status": info.get("action_status"),
+                "error": info.get("action_error"),
+            }
+        )
         return {
             "observation": observation,
             "reward": float(reward),
@@ -410,6 +428,7 @@ class SkillEnv:
             "skill": skill.key,
             "skill_steps": result["steps"],
             "skill_outcome": result["outcome"],
+            "skill_trace": list(self.runner.trace),
         }
         return (
             result["observation"],
