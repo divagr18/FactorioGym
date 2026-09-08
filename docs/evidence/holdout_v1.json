@@ -1,5 +1,5 @@
 {
-  "content_hash": "8ef3df51b951b20c6d81525dcbe0081a621b556c0442c614d8b53cfba9e1433f",
+  "content_hash": "1fb265eb85486c528d39b884ed3575c71234d3c68442cc0c6af1eff8166f5268",
   "holdout": {
     "schema": "factoriorl.holdout/1",
     "holdout_id": "holdout_v1",
@@ -1541,6 +1541,515 @@
           }
         ]
       },
+      "plate_line": {
+        "task_id": "plate_line",
+        "task_version": "1.1.0",
+        "families_in_split": [
+          "commissioning_walled"
+        ],
+        "episodes": [
+          {
+            "episode_index": 1000,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "eb8718daa15ae827"
+          },
+          {
+            "episode_index": 1001,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "2b7587bcd70a6188"
+          },
+          {
+            "episode_index": 1002,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "7889e64783607882"
+          },
+          {
+            "episode_index": 1003,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "fb846747cb96801f"
+          },
+          {
+            "episode_index": 1004,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "f368b87f82d7196e"
+          },
+          {
+            "episode_index": 1005,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "a0ffa527ec634568"
+          },
+          {
+            "episode_index": 1006,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "2a0da9698a116274"
+          },
+          {
+            "episode_index": 1007,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "ae26f7d3f3f185a6"
+          },
+          {
+            "episode_index": 1008,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "2d821226d96bca72"
+          },
+          {
+            "episode_index": 1009,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "f785865a68bc6d7f"
+          },
+          {
+            "episode_index": 1010,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "9c0741dd884a18a4"
+          },
+          {
+            "episode_index": 1011,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "a48cf6068024419c"
+          },
+          {
+            "episode_index": 1012,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "a27c850761887fbb"
+          },
+          {
+            "episode_index": 1013,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "5c04b89a0b5e38fc"
+          },
+          {
+            "episode_index": 1014,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "0461920e488ddca2"
+          },
+          {
+            "episode_index": 1015,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "c28e6f06358a72a1"
+          },
+          {
+            "episode_index": 1016,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "bc638ec6b3f03f88"
+          },
+          {
+            "episode_index": 1017,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "f8f80976cd3bb155"
+          },
+          {
+            "episode_index": 1018,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "7971022e16693ccb"
+          },
+          {
+            "episode_index": 1019,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "24b99738a51c707b"
+          },
+          {
+            "episode_index": 1020,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "c3dc6a11ff132ef6"
+          },
+          {
+            "episode_index": 1021,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "049697cd8b1ea294"
+          },
+          {
+            "episode_index": 1022,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "0e53666d4296a129"
+          },
+          {
+            "episode_index": 1023,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "5eb432ac8b44c4d3"
+          },
+          {
+            "episode_index": 1024,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "28172729942565e2"
+          },
+          {
+            "episode_index": 1025,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "5f3f0e36b06723c2"
+          },
+          {
+            "episode_index": 1026,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "a32cccfda17546a3"
+          },
+          {
+            "episode_index": 1027,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "4bae83c6cf67024a"
+          },
+          {
+            "episode_index": 1028,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "3f755ccb3b28172a"
+          },
+          {
+            "episode_index": 1029,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "d8c17e9efbcb75ca"
+          },
+          {
+            "episode_index": 1030,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "3c3cc29f450b71f9"
+          },
+          {
+            "episode_index": 1031,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "1c29dee23d6f9ce2"
+          },
+          {
+            "episode_index": 1032,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "8f53d82a49cf6234"
+          },
+          {
+            "episode_index": 1033,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "c81a3d8baa87fede"
+          },
+          {
+            "episode_index": 1034,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "63e3c9b6e7636a9b"
+          },
+          {
+            "episode_index": 1035,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "65eb71351f413d9c"
+          },
+          {
+            "episode_index": 1036,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "f0d28659c0955ba4"
+          },
+          {
+            "episode_index": 1037,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "6e296c50f49ad252"
+          },
+          {
+            "episode_index": 1038,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "0646f0c77d4cf9c3"
+          },
+          {
+            "episode_index": 1039,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "0d659e858f4fcc32"
+          },
+          {
+            "episode_index": 1040,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "8ae947f857937b8d"
+          },
+          {
+            "episode_index": 1041,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "7f689c825121b8bb"
+          },
+          {
+            "episode_index": 1042,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "6237e8adebb7e1af"
+          },
+          {
+            "episode_index": 1043,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "21991df279e6f674"
+          },
+          {
+            "episode_index": 1044,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "8443b7f7e87d0716"
+          },
+          {
+            "episode_index": 1045,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "b9186480ebc61187"
+          },
+          {
+            "episode_index": 1046,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "7d92150e094e9b9f"
+          },
+          {
+            "episode_index": 1047,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "0bdcfcb54ea65fba"
+          },
+          {
+            "episode_index": 1048,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "ce921da8a76d0ac5"
+          },
+          {
+            "episode_index": 1049,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "8c47923eb8af1700"
+          },
+          {
+            "episode_index": 1050,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "9eaaf1773d7b3633"
+          },
+          {
+            "episode_index": 1051,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "4795cb618b8c6c14"
+          },
+          {
+            "episode_index": 1052,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "d273107ec1260fcb"
+          },
+          {
+            "episode_index": 1053,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "c08c4e0789800486"
+          },
+          {
+            "episode_index": 1054,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "91aa48a79bbc081e"
+          },
+          {
+            "episode_index": 1055,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "d87a8053f3c92dd8"
+          },
+          {
+            "episode_index": 1056,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "2eea0cd8b59d5e7b"
+          },
+          {
+            "episode_index": 1057,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "eb9fa2c6b6b6fad0"
+          },
+          {
+            "episode_index": 1058,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "2469752745aecb5a"
+          },
+          {
+            "episode_index": 1059,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "ff6f7a743358cd0b"
+          },
+          {
+            "episode_index": 1060,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "90ca5f1bebd1be86"
+          },
+          {
+            "episode_index": 1061,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "cf559f24dea29c9f"
+          },
+          {
+            "episode_index": 1062,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "5485896204854c9d"
+          },
+          {
+            "episode_index": 1063,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "97f490fde19584be"
+          },
+          {
+            "episode_index": 1064,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "baa611edd762cc7b"
+          },
+          {
+            "episode_index": 1065,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "b1c88cb0d3e49a60"
+          },
+          {
+            "episode_index": 1066,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "ce98f8808d6a233d"
+          },
+          {
+            "episode_index": 1067,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "7b3df2d5a55640b0"
+          },
+          {
+            "episode_index": 1068,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "e51e57c3003b04aa"
+          },
+          {
+            "episode_index": 1069,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "562530a7b0cf6279"
+          },
+          {
+            "episode_index": 1070,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "f810565adddd9044"
+          },
+          {
+            "episode_index": 1071,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "5a0f4a670489589c"
+          },
+          {
+            "episode_index": 1072,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "7fc01e539cae7228"
+          },
+          {
+            "episode_index": 1073,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "63716a615c74a8f5"
+          },
+          {
+            "episode_index": 1074,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "c02df7873b78af65"
+          },
+          {
+            "episode_index": 1075,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "62f1a3c32d445847"
+          },
+          {
+            "episode_index": 1076,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "ad82b1d994597933"
+          },
+          {
+            "episode_index": 1077,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "9b6544919d1b01d5"
+          },
+          {
+            "episode_index": 1078,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "a44d5ed78764d60d"
+          },
+          {
+            "episode_index": 1079,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "a86eb9f750a314ff"
+          },
+          {
+            "episode_index": 1080,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "51db9f9257989e0d"
+          },
+          {
+            "episode_index": 1081,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "87e9e01988ab5c71"
+          },
+          {
+            "episode_index": 1082,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "1d932a403e61e4d1"
+          },
+          {
+            "episode_index": 1083,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "e8bf551fec2b938c"
+          },
+          {
+            "episode_index": 1084,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "0e41db95e8c6e2b9"
+          },
+          {
+            "episode_index": 1085,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "44efe7b7b1cb6c33"
+          },
+          {
+            "episode_index": 1086,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "c9c39d407fbde6f5"
+          },
+          {
+            "episode_index": 1087,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "74c835ee9ac433fd"
+          },
+          {
+            "episode_index": 1088,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "90b3d7607a2851a8"
+          },
+          {
+            "episode_index": 1089,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "c0853d6da5f8ef23"
+          },
+          {
+            "episode_index": 1090,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "8afe20fd12a684ef"
+          },
+          {
+            "episode_index": 1091,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "a0e1b9c0ec317579"
+          },
+          {
+            "episode_index": 1092,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "40440fc5dbc005c6"
+          },
+          {
+            "episode_index": 1093,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "9608b8171fbf23ce"
+          },
+          {
+            "episode_index": 1094,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "3a373d953f2c932a"
+          },
+          {
+            "episode_index": 1095,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "c44d15ae70fc6f98"
+          },
+          {
+            "episode_index": 1096,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "3473f4ece06e0515"
+          },
+          {
+            "episode_index": 1097,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "8eab5ed832433c2b"
+          },
+          {
+            "episode_index": 1098,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "e6da9ccbfc4d66b1"
+          },
+          {
+            "episode_index": 1099,
+            "layout_family": "commissioning_walled",
+            "blueprint_digest": "c49d69141f7f259d"
+          }
+        ]
+      },
       "repair_belt": {
         "task_id": "repair_belt",
         "task_version": "1.2.0",
@@ -3070,16 +3579,16 @@
       }
     }
   },
-  "generated_at": "2026-09-08T03:53:59Z",
-  "git_commit": "443b198c874de49fec3e71b9ed619f7ece7af955",
+  "generated_at": "2026-09-08T05:02:25Z",
+  "git_commit": "33219667eb3ecec9e69c31c84e8f702b17994a85",
   "declaration": {
     "candidate_families": [
       "navigate",
       "deliver",
       "mine_smelt"
     ],
-    "declared_at": "2026-09-08T03:53:59Z",
-    "declared_at_commit": "443b198c874de49fec3e71b9ed619f7ece7af955",
+    "declared_at": "2026-09-08T05:02:25Z",
+    "declared_at_commit": "33219667eb3ecec9e69c31c84e8f702b17994a85",
     "note": "The candidate set must be recorded here before any result on this holdout is read. Adding it afterwards produces the same JSON and a different claim."
   },
   "notes": {
@@ -3117,6 +3626,16 @@
       "task_version": "1.1.0",
       "families_in_split": [
         "wall_arc"
+      ],
+      "episodes": 100,
+      "distinct_scenes": 100,
+      "distinct_fraction": 1.0,
+      "below_min_distinct_scenes": false
+    },
+    "plate_line": {
+      "task_version": "1.1.0",
+      "families_in_split": [
+        "commissioning_walled"
       ],
       "episodes": 100,
       "distinct_scenes": 100,

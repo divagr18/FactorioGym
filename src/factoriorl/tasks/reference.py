@@ -466,10 +466,54 @@ def _pole_gap(driver: Driver, drill) -> tuple[float, float] | None:
     return None
 
 
+def solve_plate_line(driver: Driver) -> None:
+    """Commission the line: fuel the drill, fuel the furnace, then wait.
+
+    Two well-placed transfers is the whole task, and where the character stands
+    is the whole difficulty. `give_coal_20` moves coal to the *nearest* entity
+    and the drill and furnace are two tiles apart, so the walk has to end on the
+    far side of the machine being fuelled -- north of the drill, south of the
+    furnace. Standing between them fuels whichever happens to be nearer, and an
+    agent that fuels the drill twice never lights the furnace.
+
+    Measured against the engine: the drill takes 19 coal and the furnace 20, and
+    3,600 ticks later the pair has produced 14 plates with both at status 1.
+    """
+    drill, furnace = driver.marker("drill"), driver.marker("furnace")
+    if drill is None or furnace is None:
+        driver.trace.stuck_reason = "missing drill/furnace markers"
+        return
+
+    # Approach each machine from the side away from the other, so "nearest" is
+    # unambiguous when the transfer lands.
+    drill_side = (drill[0], drill[1] - 2.0)
+    furnace_side = (furnace[0], furnace[1] + 2.0)
+
+    if not driver.walk_to(drill_side, tolerance=1.2):
+        driver.trace.stuck_reason = "could not reach the drill's approach"
+        return
+    if not driver.do("give_coal_20"):
+        return
+    if not driver.walk_to(furnace_side, tolerance=1.2):
+        driver.trace.stuck_reason = "could not reach the furnace's approach"
+        return
+    if not driver.do("give_coal_20"):
+        return
+
+    # Smelting is the slow part: about one plate per 240 ticks, so thirty plates
+    # is roughly 7,200 ticks, and the solver has to stand still for them.
+    for _ in range(320):
+        if driver.success or driver.terminated:
+            return
+        if not driver.do("wait"):
+            return
+
+
 SOLVERS = {
     "navigate": solve_navigate,
     "deliver": solve_deliver,
     "supply_furnace": solve_supply_furnace,
+    "plate_line": solve_plate_line,
     "mine_smelt": solve_mine_smelt,
     "repair_belt": solve_repair_belt,
     "restore_power": solve_restore_power,

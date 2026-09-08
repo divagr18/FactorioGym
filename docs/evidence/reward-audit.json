@@ -68,6 +68,24 @@
       ]
     },
     {
+      "task": "plate_line",
+      "version": "1.1.0",
+      "budget": 400,
+      "step_cost_weight": 0.001,
+      "pressure": 0.4,
+      "plateau": 0.0,
+      "idle_return": -0.4,
+      "violates": false,
+      "margin": 0.0,
+      "contributors": [],
+      "exempt": [
+        {
+          "name": "plates_produced",
+          "why": "cap needs 30, at or past the 30 for success"
+        }
+      ]
+    },
+    {
       "task": "repair_belt",
       "version": "1.2.0",
       "budget": 300,
