@@ -37,7 +37,8 @@ GRID_FEATURES = 128
 #: (last action refused, last action completed, refusal rate), fed by the
 #: `events` block that `local-v2` now publishes. Same shape, different meaning,
 #: which is exactly the case this version exists to catch.
-EXTRACTOR_VERSION = 5
+#: 6: the inventory vector gained four item slots, so its width changed.
+EXTRACTOR_VERSION = 6
 
 
 class FactorioExtractor(BaseFeaturesExtractor):

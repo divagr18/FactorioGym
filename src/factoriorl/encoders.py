@@ -47,6 +47,15 @@ ITEMS: tuple[str, ...] = (
     "iron-gear-wheel",
     "transport-belt",
     "wood",
+    # Added because `restore_power` hands the agent poles and the policy could
+    # not see them: the item was outside this vocabulary, so its inventory slot
+    # was absent and the parameterized action space had no index for it. The
+    # rest are what the seven families actually place or hold, so a
+    # construction task's materials are visible before R3 needs them.
+    "small-electric-pole",
+    "wooden-chest",
+    "burner-mining-drill",
+    "burner-inserter",
 )
 
 RESOURCES: tuple[str, ...] = ("iron-ore", "copper-ore", "coal", "stone")
@@ -168,12 +177,15 @@ def encode(
 
     # Resource planes, plus an amount plane and an obstacle plane.
     for tile in (observation.get("resources") or {}).get("tiles", []):
-        cell = to_cell(tile["p"])
+        cell = to_cell(tile.get("p") or [0.0, 0.0])
         if cell is None:
             continue
         row, col = cell
-        if tile["name"] in RESOURCES:
-            grid[RESOURCES.index(tile["name"]), row, col] = 1.0
+        # `.get`, like every other field here. An unnamed or position-less tile
+        # is a decoder input to tolerate, not a crash; the mod always sends both.
+        name = tile.get("name")
+        if name in RESOURCES:
+            grid[RESOURCES.index(name), row, col] = 1.0
         # Max, not last-write-wins: at `cell_size > 1` several tiles share a
         # cell, and assignment would make the amount plane depend on the order
         # the mod happened to serialise the tile list -- the same scene would
