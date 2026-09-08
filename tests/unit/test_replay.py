@@ -333,3 +333,113 @@ def test_the_provider_diagnostic_names_the_variable_and_never_the_value(monkeypa
     assert "FACTORIORL_TEST_KEY" in combined, "it should name the variable"
     assert '"class": "model_provider"' in combined
     assert result.returncode == 1, "an unreachable provider must fail, not pass"
+
+
+def write_construction_run(tmp_path: Path) -> Path:
+    """An agent run over `parameterized-v1`, with placements and their arguments."""
+    run = tmp_path / "build-test"
+    run.mkdir()
+    (run / "manifest.json").write_text(
+        json.dumps(
+            {
+                "run_id": "build-test",
+                "task": {"id": "build_line", "version": "1.1.0"},
+                "model": {"model": "m", "api_key_env": "K", "credential_present": True},
+                "profiles": {"assistance": "wait-batch:12", "catalog": "parameterized-v1"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    rows = [
+        {
+            "episode": 0,
+            "step": 0,
+            "action_index": 12,
+            "action_key": "place_at",
+            "target": None,
+            "arguments": {
+                "item": "burner-mining-drill",
+                "position": [3.5, -1.5],
+                "direction": "south",
+            },
+            "resolution": "model",
+            "inference_ms": 900,
+            "prompt": "TASK build_line",
+            "observation": {"character": {"position": [3.0, -1.0]}, "tick": 30},
+            "legal_actions": [{"index": 12, "key": "place_at", "description": "place"}],
+            "attempts": [{"attempt": 1, "text": "{}", "latency_ms": 900, "usage": {}}],
+            "result": {"action_status": "completed", "action_error": None, "success": False},
+        },
+        {
+            "episode": 0,
+            "step": 1,
+            "action_index": 12,
+            "action_key": "place_at",
+            "target": None,
+            "arguments": {
+                "item": "stone-furnace",
+                "position": [3.5, -1.5],
+                "direction": "north",
+            },
+            "resolution": "model",
+            "inference_ms": 800,
+            "prompt": "TASK build_line",
+            "observation": {"character": {"position": [3.0, -1.0]}, "tick": 60},
+            "legal_actions": [{"index": 12, "key": "place_at", "description": "place"}],
+            "attempts": [{"attempt": 1, "text": "{}", "latency_ms": 800, "usage": {}}],
+            "result": {"action_status": "rejected", "action_error": "collision", "success": False},
+        },
+    ]
+    (run / "decisions.jsonl").write_text(
+        "\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8"
+    )
+    (run / "result.json").write_text(
+        json.dumps({"run_id": "build-test", "episodes": [{"episode": 0, "steps": 2}]}),
+        encoding="utf-8",
+    )
+    return run
+
+
+class TestTheReplayShowsAgentIssuedConstruction:
+    """R3.2's first gate clause, and it is about the *replay*.
+
+    A bare action key cannot show construction: `place_at` appeared 31 times in
+    one real run, at 31 different tiles, and the page rendered them
+    identically. What the model chose is the argument, not the verb.
+    """
+
+    def _page(self, tmp_path):
+        out = replay.build(write_construction_run(tmp_path), None)
+        return out.read_text(encoding="utf-8")
+
+    def test_the_supplied_arguments_reach_the_page(self, tmp_path):
+        page = self._page(tmp_path)
+        assert "burner-mining-drill" in page
+        assert "stone-furnace" in page
+
+    def test_each_placement_carries_its_own_position(self, tmp_path):
+        page = self._page(tmp_path)
+        rows = json.loads(re.search(r"const DECISIONS = (\[.*?\]);", page, re.S).group(1))
+        placements = [r for r in rows if r["action_key"] == "place_at"]
+        assert len(placements) == 2
+        assert placements[0]["arguments"]["position"] == [3.5, -1.5]
+        assert placements[0]["arguments"]["direction"] == "south"
+        assert placements[1]["arguments"]["item"] == "stone-furnace"
+
+    def test_the_page_renders_them_rather_than_only_storing_them(self, tmp_path):
+        page = self._page(tmp_path)
+        assert "function argsText" in page
+        assert "supplied by the model" in page
+
+    def test_a_refused_placement_is_distinguishable_from_an_accepted_one(self, tmp_path):
+        page = self._page(tmp_path)
+        assert "collision" in page
+
+    def test_placements_can_be_filtered(self, tmp_path):
+        page = self._page(tmp_path)
+        assert "'placements'" in page
+
+    def test_it_still_reaches_no_network(self, tmp_path):
+        page = self._page(tmp_path)
+        for pattern in ("fetch(", "XMLHttpRequest", 'src="http', "import(", "cdn."):
+            assert pattern not in page, pattern

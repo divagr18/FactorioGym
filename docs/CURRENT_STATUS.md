@@ -65,7 +65,7 @@ Do not infer a holdout from a filename. Read `holdout.id` and `holdout.task_entr
 `deliver` | 1.3.0 | unset | 120 | `two_chest`,`decoy_chest` / `stacked_depot` / **`screened_depot`** | `dst` |
 `mine_smelt` | 1.2.0 | unset | 400 | `near_patch`,`fuelled_furnace` / `split_patch` / **`screened_patch`** | — |
 `navigate` | 1.2.0 | 0.997 | 150 | `open`,`wall_corridor` / `pillar_field` / **`wall_arc`** | `goal` |
-`plate_line` | 1.1.0 | unset | 400 | `commissioning` / `commissioning_far` / **`commissioning_walled`** | — |
+`plate_line` | **1.2.0** | unset | 400 | `commissioning` / `commissioning_far` / **`commissioning_walled`** | — |
 `repair_belt` | **1.6.0** | 0.999 | 300 | `gap`,`gap_far` / `misrotation` / **`double_gap`** | `sink`,`gap`,`gap2` |
 `restore_power` | **1.6.0** | 0.999 | 250 | `pole_gap`,`pole_gap_far` / `two_gaps` / **`gap_near_drill`** | `drill`,`gap`,`gap2` |
 `supply_furnace` | 1.2.0 | unset | 300 | `linear_row`,`two_furnaces` / `far_ore` / **`shared_input`** | — |
@@ -82,18 +82,18 @@ the only task whose success is a conjunction (both machines `BUILT` **and**
 Engine | Factorio 2.0.60 build 83512 win64 |
 Mod | 0.1.0, source digest `8fb6913497f291c9` (readable only from run manifests) |
 Protocol | 2 |
-Observation profiles | `local-v1`, **`local-v2`** (radius 32, entity_cap 48, grid 65×65) |
+Observation profiles | `local-v1`, **`local-v2` v5** (radius 32, entity_cap 48, grid 65×65; v5 drops the ten `parameter-N` recipe placeholders, which were 10 of 22 values in the `recipe` argument domain and craftable by nobody) |
 Action catalog | `primitive-v1`, 46 templates; **`parameterized-v1`**, 22 templates |
 Skills | `approach_entity_0..3`, `approach_resource`, `mine_batch` (`SKILL_BUDGET` 60) |
 Policy extractor | `EXTRACTOR_VERSION` **7** (was 4; checkpoints do not cross that boundary) |
 `assisted-v1` action profile | declared in the mod, **not implemented** on the Python side |
-Tests | **642 engine-free** (`tests/unit` + `tests/contract`), plus engine-marked |
+Tests | **694 engine-free** (`tests/unit` + `tests/contract`), plus engine-marked |
 
 ### 3.3 Holdouts
 
 | | `holdout_v1` | `holdout_v2` | **`holdout_v3`** (live) |
 |---|---|---|---|
-content hash | `4d8b9507…` | `df72fe29…` | `ff22dedd…` (was `4227eb56…`, then `97a190f3…`) |
+content hash | `4d8b9507…` | `df72fe29…` | `5a00330b…` (was `4227eb56…`, `97a190f3…`, `ff22dedd…`) |
 seed run_id / start | `holdout-v1` / 1000 | `holdout-v2` / 2000 | `holdout-v3` / 3000 |
 declared candidates | navigate, deliver, mine_smelt | deliver, repair_belt, restore_power | deliver, repair_belt, restore_power |
 tasks frozen | 3 | 6 | **8** (`build_line` added 2026-09-09, deliberately **not** a candidate) |
@@ -218,7 +218,7 @@ Held-out *combination* coverage (§9) | checked by set containment; both v1.6.0 
 Regression suite, separate from any rate (§10) | 10 cases, all open findings | `regression_scenes.json` |
 LLM agent loop, addressed actions | works on `deliver` and `plate_line` commissioning | `phase5-agent-runs.json`, `phase5-demonstration.json` |
 Construction (**reference** builder builds machinery) | **R3.1 gate passes**, 15/15 on a real engine | `r3-construction.json` |
-Construction (**agent** builds machinery) | **not demonstrated** — R3.2 needs a bounded LLM baseline; the gate stays unmet until an agent passes | redirection R3.2 |
+Construction (**agent** builds machinery) | **not demonstrated** — the R3.2 baseline is measured and reported; the gate stays unmet until an agent passes | `r3-agent-baseline.json` |
 Recovery (validated disruption + no-action control) | **not demonstrated** | redirection R4 |
 `assisted-v1` action profile | **not implemented** | §3.2 |
 Release packaging | `release/` snapshot is **stale** (predates the curve-logger and holdout_v3 corrections) | — |
@@ -259,30 +259,70 @@ Both are recorded because a gate that only confirms is not doing its job.
 
 ### 7.2 Open findings
 
-- **`plate_line` fails the split audit**: 10 of 200 `commissioning_walled` scenes
-  start the character **on a wall tile**. The screen is at x = 6 and the start is
-  drawn at radius 5..9, so 5% of scenes land inside the neutral wall, and
-  `build_blueprint` teleports without a collision check. Recorded as ten regression
-  cases, all `expected_present`. **Deliberately unfixed**: the generator's bytes are
-  what this task's commissioning evidence and its `holdout_v3` entry describe, the
-  reference still commissions at 1.00, and the defect has not been shown to change
-  any measurement.
+- ~~`plate_line` fails the split audit~~ **fixed in v1.2.0.** 10 of 200
+  `commissioning_walled` scenes started the character on a wall tile.
+  `Blueprint.character_obstructed` now checks the general form of the defect --
+  draw a start, then place obstacles -- for **every** family, so the next
+  generator to do it fails `tasks validate` rather than needing an audit;
+  `plate_line` was the only one affected. `_clear_of` pushes a colliding start
+  outward, consumes no randomness and is a no-op when the start is clear, so
+  **1 of the 100 frozen holdout episodes changed** and the other 99 are
+  byte-identical. The ten regression cases are now guards: they assert the
+  character is *not* on a blocked tile. **All eight tasks pass the split
+  audit.**
 - **`restore_power`'s test split admits only 101 distinct scenes over 200 seeds**
   (`gap_near_drill`), and `two_gaps` 117. Below `deliver`'s 200 but above
   `MIN_DISTINCT_SCENES`; it means a Wilson interval over 200 episodes there is
   narrower than the content justifies.
-- **`build_line` has no agent result.** R3.2 asks for a bounded LLM baseline
-  reporting supplied knowledge, assistance, game time, decisions and inference
-  usage. **A failed agent is a valid baseline result; the construction
-  demonstration gate stays unmet until an agent actually passes.**
+- **`build_line`'s agent baseline is measured and it fails.** See §7.3. A
+  failed baseline is a valid result; the construction demonstration gate stays
+  unmet until an agent actually passes.
 
-### 7.3 Next
+### 7.3 R3.2: the LLM baseline, measured
 
-**R3.2** — the bounded LLM baseline on `build_line`, then **R4** (recovery, which
-needs the intervention-freshness fix first) and **R5** (interpretable learning
-experiments).
+`gpt-4.1-mini` over `parameterized-v1`, 2 episodes on `build_line`'s train
+split, `max_steps` 300, assistance `wait-batch:12`:
+`docs/evidence/r3-agent-baseline.json`, replay in the run directory.
 
-### 7.4 Synthesis §8: the symmetry is C4, not D4
+| | episode 0 | episode 1 |
+|---|---|---|
+decisions | 300 (`step_ceiling`) | 300 (`step_ceiling`) |
+game ticks | 9,000 | 9,000 |
+plates in the final 3,600-tick window | **0.0** | **5.0** |
+cumulative plates | 0 | 5 |
+time to first sustained output | never | never |
+
+Across both: **539 decisions, 681 provider calls, 1,308,177 tokens**, 30
+fallbacks, 61 batched waits, **16 of 71 placements accepted**, 110
+`bad_argument` and 62 `unknown_target` decision failures. Model latency p50
+1,099 ms, p95 1,600 ms.
+
+**Why it failed, from the replay.** The agent places drills successfully, then
+repeatedly tries to put the furnace *adjacent* to a 2x2 drill and is refused
+`collision` — the geometry the reference builder had to measure on an engine and
+which is deliberately withheld from the prompt (`FORBIDDEN_IN_PROMPT`, and the
+tool refuses to run if it leaks). It then spreads its 60 coal across dozens of
+one-item transfers and starves the line. Episode 1's 5 plates per 3,600 ticks
+against the required 10, and against 15 for a correct line, is the useful
+number: the criterion discriminates on a real agent and not only on a fixture.
+
+Both episodes reached tick 9,000, past `build_line`'s 7,200-tick settling
+point, so the agent had its full measurement window and failed on **production**
+rather than on time.
+
+**Assistance, stated.** `wait-batch:12` repeats a wait the model just chose,
+stopping as soon as the observation changes, and is recorded in the manifest.
+It exists because the window is 3,600 ticks against a 30-tick decision, so most
+of a construction run is waiting for a furnace; its stopping rule reads the
+observation only, never truth.
+
+### 7.4 Next
+
+**R4** (recovery, which needs the intervention-freshness fix first) and **R5**
+(interpretable learning experiments). `build_line` is frozen in `holdout_v3` but
+**deliberately not a declared release candidate**.
+
+### 7.5 Synthesis §8: the symmetry is C4, not D4
 
 §8 proposes scoring placement candidates by their resulting local structure
 instead of one unrelated logit per index. Its gate leads with *"treat symmetry as

@@ -152,31 +152,30 @@ def _construction_evidence(result: dict) -> dict:
     fallbacks = 0
     failures: dict[str, int] = {}
     for decision in _decisions(result):
-        if True:
-            decisions += 1
-            outcome = decision.get("result") or {}
-            waits_batched += int(outcome.get("batched_waits") or 0)
-            if decision.get("resolution") != "model":
-                fallbacks += 1
-            for attempt in decision.get("attempts") or []:
-                # `failure` is a top-level field on the recorded attempt, not
-                # nested under an `outcome`. Reading the wrong key reported no
-                # decision failures for a run whose aggregate counted 79.
-                failure = attempt.get("failure") or attempt.get("error_kind")
-                if failure:
-                    failures[failure] = failures.get(failure, 0) + 1
-            row = {
-                "episode": decision.get("episode"),
-                "step": decision.get("step"),
-                "arguments": decision.get("arguments") or {},
-                "status": outcome.get("action_status"),
-                "error": outcome.get("action_error"),
-                "reason": decision.get("reason"),
-            }
-            if decision.get("action_key") == "place_at":
-                placements.append(row)
-            elif decision.get("action_key") in ("give_to", "take_from"):
-                transfers.append(row)
+        decisions += 1
+        outcome = decision.get("result") or {}
+        waits_batched += int(outcome.get("batched_waits") or 0)
+        if decision.get("resolution") != "model":
+            fallbacks += 1
+        for attempt in decision.get("attempts") or []:
+            # `failure` is a top-level field on the recorded attempt, not
+            # nested under an `outcome`. Reading the wrong key reported no
+            # decision failures for a run whose aggregate counted 79.
+            failure = attempt.get("failure") or attempt.get("error_kind")
+            if failure:
+                failures[failure] = failures.get(failure, 0) + 1
+        row = {
+            "episode": decision.get("episode"),
+            "step": decision.get("step"),
+            "arguments": decision.get("arguments") or {},
+            "status": outcome.get("action_status"),
+            "error": outcome.get("action_error"),
+            "reason": decision.get("reason"),
+        }
+        if decision.get("action_key") == "place_at":
+            placements.append(row)
+        elif decision.get("action_key") in ("give_to", "take_from"):
+            transfers.append(row)
     return {
         "decisions": decisions,
         "fallback_decisions": fallbacks,
@@ -311,9 +310,44 @@ def main() -> int:
         },
         "decisions": _construction_evidence(result),
         "inference_usage": _usage_totals(result),
-        "throughput": result.get("aggregate") or {},
+        # Two different throughputs, kept apart. "how fast did the provider
+        # answer" and "how much iron did the line make per 3600 ticks" are both
+        # real and neither substitutes for the other -- and a report that said
+        # only the first would describe the model's speed as the task's.
+        "throughput": {
+            "model": {
+                "provider_calls": result.get("model_calls"),
+                "latency_ms": result.get("latency_ms") or {},
+                "decisions_per_provider_call": (
+                    round(result["decisions"] / result["model_calls"], 3)
+                    if result.get("model_calls")
+                    else None
+                ),
+            },
+            "production_per_3600_ticks": [
+                {
+                    "episode": e.get("episode"),
+                    "final_output_rate": (e.get("production") or {}).get("final_output_rate"),
+                    "cumulative_produced": (e.get("production") or {}).get("cumulative_produced"),
+                    "ticks_to_first_sustained_output": (e.get("production") or {}).get(
+                        "ticks_to_first_sustained_output"
+                    ),
+                }
+                for e in result.get("episodes") or []
+            ],
+        },
         # ---- the verdict, stated the way the gate states it --------------
-        "success_rate": (result.get("aggregate") or {}).get("success_rate"),
+        # Computed from the episodes: the loop's aggregate carries latency and
+        # usage, not a success rate, so reading one from it reported None.
+        "success_rate": (
+            round(
+                sum(1 for e in result.get("episodes") or [] if e.get("success"))
+                / len(result["episodes"]),
+                4,
+            )
+            if result.get("episodes")
+            else None
+        ),
         "run_id": result.get("run_id"),
         "run_dir": str(result.get("run_dir") or ""),
     }
@@ -332,7 +366,10 @@ def main() -> int:
     usage = report["inference_usage"]
     evidence = report["decisions"]
     print(
-        f"\nsuccess {successes}/{args.episodes}; "
+        # `episodes_played`, not `args.episodes`: in `--from-run` the episode
+        # count comes from the run being read, and printing the flag's default
+        # reported a two-episode run as "0/1".
+        f"\nsuccess {successes}/{report['episodes_played']}; "
         f"{evidence['decisions']} decisions, "
         f"{evidence['waits_repeated_without_asking']} batched waits, "
         f"{len(evidence['placements_accepted'])}/{len(evidence['placements_issued'])} "

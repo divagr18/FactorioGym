@@ -54,6 +54,8 @@ PAGE = """<!doctype html>
     --bg:#12141a; --panel:#1a1d26; --line:#2b3040; --ink:#e6e9f0; --dim:#98a0b3;
     --ok:#5ad19a; --bad:#ff7b72; --warn:#e3b341; --accent:#79b8ff; --evaluator:#c792ea;
     --addr:#f0a35e;
+    /* Arguments the model supplied, distinct from a target it addressed. */
+    --arg:#7fb2f0;
   }}
   * {{ box-sizing:border-box; }}
   body {{ margin:0; background:var(--bg); color:var(--ink);
@@ -82,6 +84,7 @@ PAGE = """<!doctype html>
   .tag {{ font-size:11px; padding:0 5px; border-radius:3px; }}
   .t-ok {{ color:var(--ok); }} .t-bad {{ color:var(--bad); }} .t-warn {{ color:var(--warn); }}
   .t-addr {{ color:var(--addr); }}
+  .t-arg {{ color:var(--arg); }}
   h3 {{ margin:14px 0 6px; font-size:12px; color:var(--dim);
         text-transform:uppercase; letter-spacing:.08em; }}
   h3:first-child {{ margin-top:0; }}
@@ -128,6 +131,7 @@ let query = '';
 const FILTERS = [
   ['all', 'all'],
   ['addressed', 'addressed'],
+  ['built', 'placements'],
   ['assisted', 'assisted'],
   ['errors', 'refused'],
   ['interventions', 'interventions'],
@@ -137,22 +141,43 @@ const FILTERS = [
 function matches(d) {{
   const r = d.result || {{}};
   if (filter === 'addressed' && !d.target) return false;
+  if (filter === 'built' && d.action_key !== 'place_at') return false;
   if (filter === 'assisted' && !r.skill) return false;
   if (filter === 'errors' && !r.action_error) return false;
   if (filter === 'interventions' && (!d.resolution || d.resolution === 'model')) return false;
   if (filter === 'solved' && !r.success) return false;
   if (query) {{
-    const hay = [d.action_key, d.target, (d.attempts || []).map(a => a.text).join(' ')]
+    const hay = [d.action_key, d.target, argsText(d),
+                 (d.attempts || []).map(a => a.text).join(' ')]
       .join(' ').toLowerCase();
     if (!hay.includes(query)) return false;
   }}
   return true;
 }}
 
+function argsText(d) {{
+  // R3.2's gate is worded about what the *replay* shows, and for a
+  // construction run the substance is *where* a machine went. A bare action
+  // key cannot say: `place_at` appears 31 times in one run at 31 different
+  // tiles. Rendered compactly so the timeline stays readable.
+  const a = d.arguments || {{}};
+  const keys = Object.keys(a);
+  if (!keys.length) return '';
+  return keys.sort().map(function (k) {{
+    const v = a[k];
+    const shown = Array.isArray(v)
+      ? '(' + v.map(function (n) {{ return (+n).toFixed(1); }}).join(', ') + ')'
+      : String(v);
+    return k + '=' + shown;
+  }}).join(' ');
+}}
+
 function badge(d) {{
   const r = d.result || {{}};
   let out = '';
   if (d.target) out += `<span class="tag t-addr">&rarr;${{esc(d.target)}}</span>`;
+  const args = argsText(d);
+  if (args) out += `<span class="tag t-arg">${{esc(args)}}</span>`;
   if (r.success) out += '<span class="tag t-ok">solved</span>';
   else if (r.infrastructure_failure) out += '<span class="tag t-warn">infra</span>';
   else if (r.action_error) out += `<span class="tag t-bad">${{esc(r.action_error)}}</span>`;
@@ -165,7 +190,10 @@ function episodeSummary(rows) {{
   const solved = rows.some(d => (d.result || {{}}).success);
   const refused = rows.filter(d => (d.result || {{}}).action_error).length;
   const addressed = rows.filter(d => d.target).length;
+  const built = rows.filter(d => d.action_key === 'place_at'
+                              && !(d.result || {{}}).action_error).length;
   return `${{rows.length}} decisions &middot; ${{addressed}} addressed &middot; `
+       + `${{built}} placed &middot; `
        + `${{refused}} refused &middot; ${{solved ? 'solved' : 'unsolved'}}`;
 }}
 
@@ -303,6 +331,9 @@ function select(i) {{
 
   let right = '<h3>action</h3>' + kv([
     ['chosen', esc(d.action_key) + ' <span class="n">#' + esc(d.action_index) + '</span>'],
+    ['arguments', argsText(d)
+      ? '<span class="t-arg">' + esc(argsText(d)) + '</span> (supplied by the model)'
+      : '<span class="empty">none (this action takes no arguments)</span>'],
     ['target', d.target
       ? '<span class="t-addr">' + esc(d.target) + '</span> (addressed)'
       : '<span class="empty">nearest entity (catalog default)</span>'],
