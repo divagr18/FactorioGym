@@ -120,9 +120,22 @@ CATEGORY = {
 QUALIFYING_CATEGORIES = {"production", "repair"}
 
 # Longer horizons need more samples; a single budget across families would
-# either waste hours on navigate or starve mine_smelt.
-DEFAULT_STEPS = {"mine_smelt": 50_000, "supply_furnace": 50_000, "restore_power": 50_000}
+# either waste hours on navigate or starve mine_smelt. Keyed on the family's own
+# decision budget rather than a hand-written list, because the list had
+# `restore_power` at 50,000 and `repair_belt` -- a *longer* episode, 300
+# decisions against 250 -- at 25,000, which is 83 episodes minimum against
+# deliver's 208. Whatever the release result turns out to be, it should not be
+# an artefact of which names someone remembered to type.
+LONG_HORIZON_DECISIONS = 250
+LONG_HORIZON_STEPS = 50_000
 FALLBACK_STEPS = 25_000
+
+
+def steps_for(task_id: str) -> int:
+    from factoriorl.tasks import get
+
+    budget = get(task_id).spec.max_decision_steps
+    return LONG_HORIZON_STEPS if budget >= LONG_HORIZON_DECISIONS else FALLBACK_STEPS
 
 
 def _shown(path: Path) -> str:
@@ -285,7 +298,7 @@ def main() -> int:
     matrix: dict[str, list[dict]] = {}
     raw: list[dict] = []
     for task in tasks:
-        steps = args.steps or DEFAULT_STEPS.get(task, FALLBACK_STEPS)
+        steps = args.steps or steps_for(task)
         cells: list[dict] = []
         for seed in seeds:
             headroom = await_headroom()
