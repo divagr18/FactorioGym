@@ -798,9 +798,7 @@ def test_shaping_may_read_truth_but_only_declared_markers_are_published():
             for seed in range(8):
                 blueprint = get(task_id).generate(family, random.Random(seed))
                 declared |= set(blueprint.markers)
-                declared |= {
-                    e.marker for e in blueprint.entities if getattr(e, "marker", None)
-                }
+                declared |= {e.marker for e in blueprint.entities if getattr(e, "marker", None)}
         assert set(spec.public_markers) <= declared, (
             f"{task_id} publishes a marker no generator emits"
         )

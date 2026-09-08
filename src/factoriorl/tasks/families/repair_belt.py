@@ -188,17 +188,13 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
     # keep their identities -- `double_gap` is still always two holes and
     # `misrotation` always a hole plus a twist -- so each still names a
     # structural regime, but it is a regime training has shown instances of.
-    second_gap = family.name == "double_gap" or (
-        family.split == "train" and rng.random() < 1 / 3
-    )
+    second_gap = family.name == "double_gap" or (family.split == "train" and rng.random() < 1 / 3)
     if second_gap:
         # Distinct, or `double_gap` silently degenerates into `gap`.
         choices = [i for i in range(2, length - 1) if i != gap_index]
         if choices:
             gaps.add(choices[rng.randrange(len(choices))])
-    twisted = family.name == "misrotation" or (
-        family.split == "train" and rng.random() < 1 / 3
-    )
+    twisted = family.name == "misrotation" or (family.split == "train" and rng.random() < 1 / 3)
 
     entities = [
         EntitySpec(
