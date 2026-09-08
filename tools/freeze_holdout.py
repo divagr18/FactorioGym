@@ -690,6 +690,15 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--replace-task",
+        default="",
+        help=(
+            "re-freeze one task's entry in place. Refused if any manifest cites "
+            "that task's entry_hash, because replacing it would silently change "
+            "what a published number refers to."
+        ),
+    )
+    parser.add_argument(
         "--declare",
         action="store_true",
         help=(
@@ -736,6 +745,84 @@ def main() -> int:
     task_ids = [t.strip() for t in args.tasks.split(",") if t.strip()]
     candidates = [c.strip() for c in args.candidates.split(",") if c.strip()] or None
     plan = SeedPlan(master=args.seed, run_id=args.run_id)
+
+    if args.replace_task:
+        # Distinct from both --add-task and --refreeze. A task's spec can change
+        # legitimately before anyone has evaluated against it -- `build_line`
+        # gained a settling period the day it was frozen, after the gate showed
+        # the window alone accepted a line that had stopped. Re-freezing the
+        # whole file would drop the declaration timestamp that protects the
+        # other seven; leaving the entry stale would fail every verification.
+        #
+        # The condition that makes this safe is not "recently frozen", it is
+        # "no result refers to it", so that is what is checked.
+        if not args.out.is_file():
+            print(f"no frozen holdout at {args.out}; run with --write first")
+            return 2
+        document = json.loads(args.out.read_text(encoding="utf-8"))
+        body = document["holdout"]
+        summary = document.get("summary") or {}
+        targets = [t.strip() for t in args.replace_task.split(",") if t.strip()]
+        missing = sorted(set(targets) - set(body["tasks"]))
+        if missing:
+            print(f"not in this holdout: {missing}. Use --add-task to add a new task.")
+            return 2
+        cited = []
+        for entry in manifests_citing(body.get("holdout_id", HOLDOUT_ID)):
+            citation = entry["citation"]
+            task_id = citation.get("task")
+            if task_id not in targets:
+                continue
+            digest = (summary.get(task_id) or {}).get("entry_hash")
+            if citation.get("task_entry_hash") == digest or citation.get(
+                "content_hash"
+            ) == document.get("content_hash"):
+                cited.append(f"{entry['path']} cites {task_id}")
+        if cited:
+            print(
+                "refusing to replace an entry a published run refers to; its numbers "
+                "would silently start describing different scenes:"
+            )
+            for line in cited:
+                print(f"  - {line}")
+            print("Bump the holdout id and freeze a new one instead.")
+            return 1
+        frozen_plan = SeedPlan(
+            master=body["seed_plan"]["master"], run_id=body["seed_plan"]["run_id"]
+        )
+        before_hashes = {t: (summary.get(t) or {}).get("entry_hash") for t in body["tasks"]}
+        for task_id in targets:
+            body["tasks"][task_id] = freeze_task(
+                task_id, frozen_plan, body["start_index"], body["episodes_per_task"]
+            )
+        before = document["content_hash"]
+        document["content_hash"] = content_hash(body)
+        document["summary"] = summarise(body)
+        document["generated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        document["git_commit"] = git_commit()
+        untouched = [
+            t
+            for t in body["tasks"]
+            if t not in targets and before_hashes[t] != document["summary"][t]["entry_hash"]
+        ]
+        if untouched:
+            print(f"aborting: replacing {targets} moved other entries: {untouched}")
+            return 1
+        if not args.write:
+            print_summary(document)
+            print(f"\ndry run; nothing written. Pass --write to replace {targets}")
+            return 0
+        args.out.write_text(json.dumps(document, indent=2), encoding="utf-8")
+        print_summary(document)
+        print(f"\nreplaced {targets} in {args.out}")
+        print(f"content_hash {before} -> {document['content_hash']}")
+        for task_id in targets:
+            print(
+                f"  {task_id} entry_hash {before_hashes[task_id]} -> "
+                f"{document['summary'][task_id]['entry_hash']}"
+            )
+        print("Every other entry_hash is unchanged, and no run cited the replaced ones.")
+        return 0
 
     if args.add_task:
         # A separate mode from --refreeze, and the reason is the declaration.

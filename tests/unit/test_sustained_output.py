@@ -180,3 +180,86 @@ def test_over_ticks_is_part_of_the_predicate_description():
     # `describe` is used in reports; at minimum the predicates must not be equal.
     assert _sustained(over_ticks=1800) != _sustained(over_ticks=7200)
     assert isinstance(narrow, str) and isinstance(wide, str)
+
+
+class TestASettlingPeriod:
+    """Why the window alone was not enough, measured by the R3 gate.
+
+    A trailing window that begins at tick 0 spans the construction phase, so at
+    tick 3600 the window still holds every plate the line ever made. The gate
+    observed `build_line` accepted at tick 3600 with a drill that had been mined
+    out 90 ticks earlier -- so at those parameters the criterion was doing
+    almost nothing `PRODUCED` does not.
+    """
+
+    def _settled(self, at_least=10, over_ticks=WINDOW, not_before=2 * WINDOW):
+        return Predicate(
+            PredicateKind.SUSTAINED_OUTPUT,
+            item="iron-plate",
+            at_least=at_least,
+            over_ticks=over_ticks,
+            not_before_tick=not_before,
+        )
+
+    def _built_then_died(self, build_tick=600, death_tick=3510, end_tick=10710):
+        """The exact shape the gate produced: built, ran, mined out, waited."""
+        history, total = [], 0
+        for tick in range(0, end_tick + 1, 30):
+            if build_tick <= tick <= death_tick:
+                total = int(15 * (tick - build_tick) / WINDOW)
+            history.append((tick, {"iron-plate": total}))
+        return history
+
+    def test_the_unsettled_predicate_accepts_a_line_that_has_stopped(self):
+        """The defect, stated as a test so the fix is not mistaken for taste."""
+        history = self._built_then_died(end_tick=3600)
+        loose = _sustained(at_least=10)
+        assert loose.evaluate({}, {"window": history}), (
+            "fixture must reproduce the accepted-while-dead case"
+        )
+
+    def test_the_settled_predicate_rejects_it(self):
+        history = self._built_then_died(end_tick=3600)
+        assert not self._settled().evaluate({}, {"window": history})
+
+    def test_it_still_rejects_it_once_the_settling_period_has_passed(self):
+        history = self._built_then_died()
+        predicate = self._settled()
+        assert predicate.settled({"window": history})
+        assert predicate.window_output({"window": history}) == 0.0
+        assert not predicate.evaluate({}, {"window": history})
+
+    def test_a_line_that_keeps_running_is_accepted_after_settling(self):
+        history, total = [], 0
+        for tick in range(0, 10711, 30):
+            total = int(15 * max(0, tick - 600) / WINDOW)
+            history.append((tick, {"iron-plate": total}))
+        assert self._settled().evaluate({}, {"window": history})
+
+    def test_a_running_line_is_not_accepted_before_settling(self):
+        history, total = [], 0
+        for tick in range(0, 5001, 30):
+            total = int(15 * max(0, tick - 600) / WINDOW)
+            history.append((tick, {"iron-plate": total}))
+        predicate = self._settled()
+        assert not predicate.settled({"window": history})
+        assert predicate.window_output({"window": history}) >= 10
+        assert not predicate.evaluate({}, {"window": history})
+
+    def test_no_history_is_never_settled(self):
+        assert not self._settled().settled({})
+        assert not self._settled().settled({"window": []})
+
+    def test_a_predicate_declaring_no_settling_period_is_unaffected(self):
+        """Every existing family leaves this at its default."""
+        history = _history(15 / WINDOW)
+        assert _sustained(at_least=10).not_before_tick == 0
+        assert _sustained(at_least=10).evaluate({}, {"window": history})
+
+    def test_build_line_declares_two_windows(self):
+        from factoriorl.tasks import get
+
+        predicate = next(
+            p for p in get("build_line").spec.success if p.kind is PredicateKind.SUSTAINED_OUTPUT
+        )
+        assert predicate.not_before_tick == 2 * predicate.over_ticks

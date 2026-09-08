@@ -24,6 +24,7 @@ import numpy as np
 from gymnasium import spaces
 
 from factoriorl.env import FactorioEnv
+from factoriorl.seeding import Branch
 
 
 @dataclass
@@ -712,8 +713,31 @@ SOLVERS = {
 }
 
 
+class ReferenceOnEvaluatedEpisode(RuntimeError):
+    """A scripted solution was pointed at an evaluated episode.
+
+    R3.1 requires that the reference builder "must not complete the evaluated
+    agent's run". Import hygiene already keeps this module out of `train.py`
+    -- `tests/unit/test_manifest_and_isolation.py` asserts the import direction -- but
+    import hygiene cannot stop a *gate* or an analysis script, both of which
+    legitimately import both halves, from handing a solver an eval env. So the
+    obligation is enforced where it can actually be violated, in the same
+    spirit as `gate_phase2.py`'s guarded RCON client: the attempt raises.
+
+    `Branch.EVAL` is the discriminator because it is already set at every
+    evaluation construction site in `train.py`, which means this cannot be
+    bypassed by forgetting a new flag.
+    """
+
+
 def solve(env: FactorioEnv) -> SolveTrace:
     """Run the reference solution for `env`'s task on its current episode."""
+    if getattr(env, "branch", None) is Branch.EVAL:
+        raise ReferenceOnEvaluatedEpisode(
+            f"refusing to run the {env.spec_.id} reference solution on an episode "
+            "drawn from the eval branch: a scripted solution must never complete "
+            "an evaluated run (R3.1)"
+        )
     task_id = env.spec_.id
     trace = SolveTrace(task=task_id, budget=env.spec_.max_decision_steps)
     solver = SOLVERS.get(task_id)

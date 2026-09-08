@@ -290,6 +290,26 @@ class Predicate:
     #: Window for `SUSTAINED_OUTPUT`, in game ticks. 3600 is one minute at 60
     #: UPS, and the measured commissioning baseline is 15 plates per 3600.
     over_ticks: int = 3600
+    #: Earliest tick at which this predicate may be satisfied.
+    #:
+    #: A trailing window that begins at tick 0 spans the period before anything
+    #: was built, so its output is construction plus a partial run rather than a
+    #: rate. Measured on a real engine: `build_line` was accepted at tick 3600
+    #: with a drill that had been mined out 90 ticks earlier, because the window
+    #: [0, 3600] still held every plate the line had ever made. At these
+    #: parameters the criterion was therefore doing almost nothing that
+    #: `PRODUCED` does not.
+    #:
+    #: Setting this to twice `over_ticks` means the first window that can be
+    #: accepted is [over_ticks, 2*over_ticks] -- entirely after construction --
+    #: so a line that stopped cannot pass, whatever its cumulative total.
+    #:
+    #: The alternative was conjoining `ANY_WORKING`, and it was measured and
+    #: rejected: a *healthy* line reads status `working` on 7.5% of sampled
+    #: ticks, because one burner drill outpaces one stone furnace and sits in
+    #: `waiting_for_space_in_destination` 87% of the time. That conjunct would
+    #: have failed correct builds nine times in ten.
+    not_before_tick: int = 0
 
     def describe(self) -> str:
         return f"{self.kind.value}({self.marker or ''} {self.item or ''} >= {self.at_least})"
@@ -326,6 +346,8 @@ class Predicate:
             # to reject.
             if not self.window_elapsed(truth):
                 return False
+            if self.not_before_tick and not self.settled(truth):
+                return False
             return self.window_output(truth) >= self.at_least
         return False
 
@@ -335,6 +357,18 @@ class Predicate:
         if len(history) < 2:
             return False
         return (history[-1][0] - history[0][0]) >= self.over_ticks
+
+    def settled(self, truth: dict) -> bool:
+        """Whether enough game time has passed for the window to mean a rate.
+
+        See `not_before_tick`. False with no history at all, so a predicate that
+        declares a settling period can never be satisfied before the
+        environment has recorded anything.
+        """
+        history = truth.get("window") or []
+        if not history:
+            return False
+        return history[-1][0] >= self.not_before_tick
 
     def window_output(self, truth: dict) -> float:
         """Production of `item` inside the last `over_ticks`.

@@ -1,5 +1,5 @@
 {
-  "content_hash": "97a190f3fec3ff10715676ce3070a069114238c02ab9028cacec6619a946a01b",
+  "content_hash": "ff22dedddf24280e293d2345e64cbf1373a44d30bf7bd27dc7bd905186bab631",
   "holdout": {
     "schema": "factoriorl.holdout/1",
     "holdout_id": "holdout_v3",
@@ -16,7 +16,7 @@
     "tasks": {
       "build_line": {
         "task_id": "build_line",
-        "task_version": "1.0.0",
+        "task_version": "1.1.0",
         "families_in_split": [
           "narrow_patch"
         ],
@@ -4088,8 +4088,8 @@
       }
     }
   },
-  "generated_at": "2026-09-08T20:17:19Z",
-  "git_commit": "a13d0393af5ee1877cfdc5b0d2a5742fea78e6ad",
+  "generated_at": "2026-09-08T20:34:00Z",
+  "git_commit": "2fdc49a62de227aa68de5a370c3e3f9cdd45e0ae",
   "declaration": {
     "candidate_families": [
       "deliver",
@@ -4112,8 +4112,8 @@
   },
   "summary": {
     "build_line": {
-      "entry_hash": "52244ce308e21b87",
-      "task_version": "1.0.0",
+      "entry_hash": "c3000ef80d52db26",
+      "task_version": "1.1.0",
       "families_in_split": [
         "narrow_patch"
       ],

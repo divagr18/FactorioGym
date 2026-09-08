@@ -37,6 +37,17 @@ it is a monotone counter with no timestamp. `SUSTAINED_OUTPUT` reads a windowed
 history instead, so a line that ran once and died fails however large its
 total. R3.1 asks for exactly this: "newly constructed required components and
 sustained output, not just final inventory or one transient plate".
+
+The window alone was not enough, and the gate caught it. A trailing window that
+begins at tick 0 spans the construction phase, so acceptance at tick 3600 was
+observed with a drill mined out 90 ticks earlier -- the window still held every
+plate the line had ever made. `SETTLE_TICKS` moves the earliest acceptable
+window to [3600, 7200], which is entirely post-construction.
+
+Requiring the machines to be *currently* working would have been the obvious
+alternative and it was measured and rejected: a healthy line reads status
+`working` on 7.5% of sampled ticks, because one burner drill outpaces one stone
+furnace and spends 87% of its time in `waiting_for_space_in_destination`.
 """
 
 from __future__ import annotations
@@ -65,6 +76,15 @@ from factoriorl.tasks.spec import (
 WINDOW_PLATES = 10
 WINDOW_TICKS = 3600
 
+#: The criterion may not be satisfied before this tick, and the reason is
+#: measured rather than stylistic. A trailing window that starts at tick 0
+#: spans the construction phase, so at `WINDOW_TICKS` the window still holds
+#: every plate the line ever made: the gate observed acceptance at tick 3600
+#: with a drill that had been mined out 90 ticks earlier. Two windows means the
+#: earliest acceptable window is [3600, 7200], entirely after construction, so
+#: a line that stopped cannot pass however large its total.
+SETTLE_TICKS = 2 * WINDOW_TICKS
+
 #: Two of each machine, not one. A single misplacement is recoverable by
 #: `mine_at`, but a family whose reference solver can wedge itself on one bad
 #: guess measures the precision of that guess rather than construction. Coal is
@@ -84,7 +104,7 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="build_line",
-    version="1.0.0",
+    version="1.1.0",
     description=(
         "Build a plate line from nothing: place a burner mining drill on the ore, "
         "place a stone furnace where the drill drops, fuel both, and keep the line "
@@ -102,6 +122,7 @@ SPEC = TaskSpec(
             item="iron-plate",
             at_least=WINDOW_PLATES,
             over_ticks=WINDOW_TICKS,
+            not_before_tick=SETTLE_TICKS,
         ),
     ),
     rewards=(
@@ -121,11 +142,12 @@ SPEC = TaskSpec(
         RewardComponent("step_cost", RewardKind.STEP_COST, weight=0.001),
     ),
     # Construction is fast and production is slow. At the default 30 ticks per
-    # decision, 600 decisions is 18,000 ticks: roughly 2,000 to walk and build,
-    # 600 of warm-up, and four full windows of running. Deliberately short of
-    # the 24,000 ticks it takes to fill the furnace's 100-plate output slot, so
-    # the line cannot stall on a full output and make the final window read
-    # zero for a reason the agent did not cause.
+    # decision, 600 decisions is 18,000 ticks: roughly 600 to walk and build,
+    # then the settling period, and the earliest acceptance is tick 7,200 or 240
+    # decisions. Deliberately short of the 24,000 ticks it takes to fill the
+    # furnace's 100-plate output slot, so the line cannot stall on a full output
+    # and make the measured window read zero for a reason the agent did not
+    # cause.
     max_decision_steps=600,
     max_game_ticks=18000,
     catalog="parameterized-v1",

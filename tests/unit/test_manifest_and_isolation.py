@@ -156,3 +156,65 @@ def test_training_entrypoint_does_not_import_reference_solutions():
     )
     assert result.returncode == 0, result.stderr
     assert not result.stdout.strip()
+
+
+class TestTheReferenceCannotCompleteAnEvaluatedEpisode:
+    """R3.1: "it must not complete the evaluated agent's run".
+
+    `test_training_entrypoint_does_not_import_reference_solutions` above keeps
+    `reference` out of `train.py`, but import hygiene cannot stop a
+    gate or an analysis script -- both of which legitimately import each half
+    -- from handing a solver an eval env. So the attempt raises.
+    """
+
+    def _env(self, branch):
+        from factoriorl.seeding import SeedPlan
+        from factoriorl.tasks import get
+
+        class _Env:
+            spec_ = get("build_line").spec
+
+        env = _Env()
+        env.branch = branch
+        env.seed_plan = SeedPlan(master=1, run_id="t")
+        return env
+
+    def test_the_eval_branch_is_refused(self):
+        import pytest as _pytest
+
+        from factoriorl.seeding import Branch
+        from factoriorl.tasks.reference import ReferenceOnEvaluatedEpisode, solve
+
+        with _pytest.raises(ReferenceOnEvaluatedEpisode):
+            solve(self._env(Branch.EVAL))
+
+    def test_the_train_branch_is_allowed(self):
+        """The guard must not break the solvability suite, which uses TRAIN
+        for every split."""
+        from factoriorl.seeding import Branch
+        from factoriorl.tasks.reference import ReferenceOnEvaluatedEpisode, solve
+
+        try:
+            solve(self._env(Branch.TRAIN))
+        except ReferenceOnEvaluatedEpisode:  # pragma: no cover
+            raise AssertionError("the train branch must not be refused") from None
+        except Exception:
+            # It will fail for lack of a real env; only the guard is under test.
+            pass
+
+    def test_every_eval_env_in_the_trainer_declares_the_eval_branch(self):
+        """The guard reads `branch`, so it is only as good as that being set."""
+        import ast
+        import pathlib
+
+        source = pathlib.Path("src/factoriorl/learn/train.py").read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        eval_envs = 0
+        for node in ast.walk(tree):
+            if not (isinstance(node, ast.Call) and getattr(node.func, "id", None) == "FactorioEnv"):
+                continue
+            branches = [ast.unparse(kw.value) for kw in node.keywords if kw.arg == "branch"]
+            assert branches, "a FactorioEnv was constructed without naming a branch"
+            if "Branch.EVAL" in branches[0]:
+                eval_envs += 1
+        assert eval_envs >= 2, "expected the trainer to build eval envs on the EVAL branch"

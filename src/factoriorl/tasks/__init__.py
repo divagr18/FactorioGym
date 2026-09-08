@@ -160,12 +160,18 @@ def validate_all(sample_seeds: int = 16) -> dict:
         if "test" not in splits:
             problems.append("no held-out (test) layout family")
 
-        # A conjunction is already satisfied only if *every* clause is. Where a
-        # clause cannot be decided engine-free, satisfying the rest is not
-        # proof the scene is solved -- so those tasks are flagged as uncovered
-        # and the conjunction over the decidable clauses is what is tested.
+        # A conjunction is already satisfied only if *every* clause is, which
+        # cuts both ways: one decidable clause that is False at reset proves the
+        # whole conjunction False no matter what the undecidable clauses do. So
+        # the conclusion is sound whenever every clause is decidable *or* some
+        # decidable clause is False -- and only a task where every decidable
+        # clause is True and something undecidable remains is genuinely
+        # unverified. Reporting those as uncovered too would have called
+        # `build_line` unverified the moment it gained a `working` clause, while
+        # its `BUILT` clause is provably False at reset.
         decidable = [p for p in spec.success if p.kind not in UNDECIDABLE_AT_RESET]
         undecidable = [p for p in spec.success if p.kind in UNDECIDABLE_AT_RESET]
+        conclusive = True
 
         for family in spec.layout_families:
             for index in range(sample_seeds):
@@ -180,22 +186,31 @@ def validate_all(sample_seeds: int = 16) -> dict:
                     f"{family.name}[{index}] {p}" for p in blueprint.footprint_conflicts()
                 )
                 observation, truth = blueprint.initial_state()
-                if decidable and all(p.evaluate(observation, truth) for p in decidable):
-                    detail = ", ".join(p.describe() for p in decidable)
-                    problems.append(
-                        f"{family.name}[{index}] success already satisfied at reset "
-                        f"by the scene's own contents: {detail}"
-                        + ("" if not undecidable else " (plus undecidable clauses)")
-                    )
+                satisfied = [p for p in decidable if p.evaluate(observation, truth)]
+                if decidable and len(satisfied) == len(decidable):
+                    if undecidable:
+                        # Every clause this can decide is already true, and the
+                        # rest cannot be decided here: the scene may or may not
+                        # be solved and the check must not claim either.
+                        conclusive = False
+                    else:
+                        detail = ", ".join(p.describe() for p in decidable)
+                        problems.append(
+                            f"{family.name}[{index}] success already satisfied at reset "
+                            f"by the scene's own contents: {detail}"
+                        )
 
         report["tasks"][task_id] = {
             "version": spec.version,
             "families": [f.name for f in spec.layout_families],
             "problems": problems,
-            # Which success clauses the reset check could not decide, and so
-            # did not verify. Empty for six of the seven tasks.
+            # Which success clauses the reset check could not decide. Present
+            # for `restore_power`, whose only clause is `entity_working`.
             "undecidable_success": [p.describe() for p in undecidable],
-            "reset_check_covers_success": not undecidable,
+            # Whether "not already solved at reset" is *proven*, which is a
+            # weaker requirement than every clause being decidable: one
+            # decidable clause that is False settles the conjunction.
+            "reset_check_covers_success": bool(decidable) and conclusive,
             "ok": not problems,
         }
         if problems:

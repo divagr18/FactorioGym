@@ -283,3 +283,80 @@ class TestTheCheckDeclaresWhatItCannotDecide:
         entry = report["tasks"]["only_working"]
         assert entry["reset_check_covers_success"] is False
         assert entry["undecidable_success"]
+
+
+class TestAMixedConjunctionIsJudgedSoundly:
+    """One decidable clause that is False settles the whole conjunction.
+
+    Reporting a mixed task as unverified would have called `build_line`
+    unverified the moment it gained a `working` clause, while its `BUILT`
+    clause is provably False at reset.
+    """
+
+    def _spec(self, *success):
+        return TaskSpec(
+            id="mixed",
+            version="1.0.0",
+            description="d",
+            layout_families=(LayoutFamily("f", "train"), LayoutFamily("g", "test")),
+            success=success,
+            rewards=(RewardComponent("s", RewardKind.SPARSE_SUCCESS),),
+        )
+
+    def _report(self, monkeypatch, spec, generate):
+        import factoriorl.tasks as tasks_module
+
+        monkeypatch.setattr(
+            tasks_module,
+            "all_tasks",
+            lambda: {"mixed": tasks_module.RegisteredTask(spec, generate)},
+        )
+        return validate_all(sample_seeds=2)["tasks"]["mixed"]
+
+    def test_a_false_decidable_clause_makes_the_verdict_conclusive(self, monkeypatch):
+        spec = self._spec(
+            Predicate(PredicateKind.BUILT, item="stone-furnace", at_least=1),
+            Predicate(PredicateKind.ANY_WORKING, item="stone-furnace", at_least=1),
+        )
+        entry = self._report(monkeypatch, spec, lambda f, r: Blueprint())
+        assert entry["reset_check_covers_success"] is True
+        assert entry["undecidable_success"]
+        assert entry["problems"] == []
+
+    def test_all_decidable_clauses_true_plus_an_undecidable_one_is_not_claimed(self, monkeypatch):
+        """The scene may or may not be solved, and the check must say so."""
+        spec = self._spec(
+            Predicate(PredicateKind.CONTAINER_HOLDS, marker="dst", item="iron-plate", at_least=1),
+            Predicate(PredicateKind.ANY_WORKING, item="stone-furnace", at_least=1),
+        )
+
+        def generate(family, rng):
+            return Blueprint(
+                entities=(
+                    EntitySpec(
+                        "wooden-chest", (2.5, 0.5), marker="dst", contents={"iron-plate": 5}
+                    ),
+                )
+            )
+
+        entry = self._report(monkeypatch, spec, generate)
+        assert entry["reset_check_covers_success"] is False
+        # Not a problem: unproven is not the same as proven-bad.
+        assert entry["problems"] == []
+
+    def test_all_clauses_decidable_and_true_is_still_a_problem(self, monkeypatch):
+        spec = self._spec(
+            Predicate(PredicateKind.CONTAINER_HOLDS, marker="dst", item="iron-plate", at_least=1),
+        )
+
+        def generate(family, rng):
+            return Blueprint(
+                entities=(
+                    EntitySpec(
+                        "wooden-chest", (2.5, 0.5), marker="dst", contents={"iron-plate": 5}
+                    ),
+                )
+            )
+
+        entry = self._report(monkeypatch, spec, generate)
+        assert any("already satisfied at reset" in p for p in entry["problems"])

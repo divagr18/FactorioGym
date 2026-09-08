@@ -7,7 +7,7 @@
         "plates_produced (measures a quantity success does not)"
       ],
       "has_gradient": true,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "budget": 600,
       "step_cost_weight": 0.001,
       "pressure": 0.6,

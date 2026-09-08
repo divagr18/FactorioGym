@@ -31,9 +31,20 @@ property of the action catalog rather than a shortcut:
   placement that would build the line collides with the builder.
 
 Aligning a furnace to a drill's drop tile is therefore not reliably expressible
-in this catalog, which is worth knowing before Phase 7 asks for persistent
-factories built the same way. `restore_power`'s solvability run already shows
-the milder version of it: `place_small_electric_pole_south: collision`.
+**in this catalog**, which is `primitive-v1` and its position-quantised
+`place_<item>_<direction>`. That was once a statement about the environment;
+since R2 added `place_at(item, position, direction)` it is only a statement
+about the actions *this task* offers, and `catalog_subset` above contains no
+placement action at all. `build_line` is the same geometry built through the
+parameterized contract, and it works: the drill goes on the ore, the furnace
+goes at `(drill.x, drill.y + 2)`, and the reference builder completes it on all
+three splits.
+
+The two tasks are kept separate rather than merged, because commissioning and
+construction are different measurements and this one's evidence and frozen
+holdout entry describe commissioning. `restore_power`'s solvability run still
+shows the milder version of the quantisation problem:
+`place_small_electric_pole_south: collision`.
 """
 
 from __future__ import annotations
