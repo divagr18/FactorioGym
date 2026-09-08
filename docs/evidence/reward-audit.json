@@ -2,6 +2,29 @@
   "what": "Shaping earnable while the success predicate is false, against the step cost of exhausting the budget. A task where the first exceeds the second has a positive-return strategy that is not success.",
   "reports": [
     {
+      "task": "build_line",
+      "informative_components": [
+        "plates_produced (measures a quantity success does not)"
+      ],
+      "has_gradient": true,
+      "version": "1.0.0",
+      "budget": 600,
+      "step_cost_weight": 0.001,
+      "pressure": 0.6,
+      "plateau": 0.15,
+      "idle_return": -0.45,
+      "violates": false,
+      "margin": 0.25,
+      "contributors": [
+        {
+          "name": "plates_produced",
+          "cap": 0.15,
+          "why": "measures something success does not require"
+        }
+      ],
+      "exempt": []
+    },
+    {
       "task": "deliver",
       "informative_components": [
         "at_destination (partial credit up to 20)",

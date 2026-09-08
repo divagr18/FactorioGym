@@ -77,11 +77,28 @@ class TestWindowEdges:
         assert _sustained().window_output({}) == 0.0
         assert _sustained().window_output({"window": []}) == 0.0
 
-    def test_an_episode_younger_than_its_window_uses_the_earliest_sample(self):
-        """It must not pass by being measured before the window has elapsed."""
+    def test_an_episode_younger_than_its_window_cannot_pass_at_all(self):
+        """Measured on a real engine: `build_line` passed at tick 2850 with 10
+        plates in total, because the baseline falls back to the earliest sample
+        before a window has elapsed. A line that then died would have produced
+        the same 10 -- which is the case this predicate exists to reject."""
         young = [(0, {"iron-plate": 0}), (600, {"iron-plate": 4})]
+        # The measurement is still a lower bound on the rate...
         assert _sustained(at_least=4).window_output({"window": young}) == 4.0
+        # ...but the predicate refuses to answer on it.
+        assert not _sustained(at_least=4).evaluate({}, {"window": young})
         assert not _sustained(at_least=10).evaluate({}, {"window": young})
+        assert not _sustained().window_elapsed({"window": young})
+
+    def test_it_passes_once_the_window_has_elapsed(self):
+        history = _history(15 / WINDOW)
+        assert _sustained().window_elapsed({"window": history})
+        assert _sustained(at_least=10).evaluate({}, {"window": history})
+
+    def test_a_single_sample_is_never_a_window(self):
+        one = [(9999, {"iron-plate": 500})]
+        assert not _sustained().window_elapsed({"window": one})
+        assert not _sustained(at_least=1).evaluate({}, {"window": one})
 
     def test_a_counter_that_went_backwards_cannot_produce_negative_output(self):
         odd = [(0, {"iron-plate": 20}), (4000, {"iron-plate": 5})]

@@ -138,3 +138,29 @@ class TestDigestsDoNotMove:
         assert blueprint_digest(blueprint.to_dict()) != blueprint_digest(
             blueprint.to_dict(extra_tracked_items=("steel-plate",))
         )
+
+
+class TestOnlyProductionKindsCount:
+    """`BUILT` reads `truth["built"]`; asking the mod to count production of a
+    machine nobody smelts would move that task's digest for no reason."""
+
+    def test_a_built_predicate_does_not_request_tracking(self):
+        spec = _spec(Predicate(PredicateKind.BUILT, item="burner-mining-drill", at_least=1))
+        assert spec.extra_tracked_items == ()
+
+    def test_a_container_predicate_does_not_request_tracking(self):
+        spec = _spec(
+            Predicate(PredicateKind.CONTAINER_HOLDS, marker="sink", item="electronic-circuit")
+        )
+        assert spec.extra_tracked_items == ()
+
+    def test_an_any_working_predicate_does_not_request_tracking(self):
+        spec = _spec(Predicate(PredicateKind.ANY_WORKING, item="stone-furnace", at_least=1))
+        assert spec.extra_tracked_items == ()
+
+    def test_build_line_asks_for_nothing_despite_naming_two_machines(self):
+        """The concrete case that caught this."""
+        spec = get("build_line").spec
+        named = {p.item for p in spec.success if p.item}
+        assert "burner-mining-drill" in named and "stone-furnace" in named
+        assert spec.extra_tracked_items == ()

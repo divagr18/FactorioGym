@@ -21,6 +21,7 @@ import math
 from dataclasses import dataclass, field
 
 import numpy as np
+from gymnasium import spaces
 
 from factoriorl.env import FactorioEnv
 
@@ -50,6 +51,18 @@ class SolveTrace:
         }
 
 
+def _brief(arguments: dict) -> str:
+    """Arguments as they appear in a trace: short, ordered, no numpy repr."""
+    parts = []
+    for name in sorted(arguments):
+        value = arguments[name]
+        if isinstance(value, (list, tuple)) and len(value) == 2:
+            parts.append(f"{name}=({value[0]:g},{value[1]:g})")
+        else:
+            parts.append(f"{name}={value}")
+    return " ".join(parts)
+
+
 class Driver:
     """Thin helper: address catalog actions by key, and observe as we go."""
 
@@ -64,8 +77,19 @@ class Driver:
     def available(self, key: str) -> bool:
         return key in self.index
 
-    def do(self, key: str) -> bool:
-        """Take one catalog action. False once the episode is over."""
+    def do(self, key: str, **arguments) -> bool:
+        """Take one catalog action. False once the episode is over.
+
+        With arguments, this goes through `step_arguments`, which re-checks
+        every value against the domain the *policy* could see. The two checks
+        are not redundant and the order matters: `action_masks` already refuses
+        an action one of whose argument domains is empty, so reaching the
+        per-argument check means the domain had values and this particular
+        value was not among them. That is a solver bug worth naming, and a
+        `ValueError` here is recorded as one rather than crashing the run --
+        the whole point of a scripted solution is to distinguish "the task is
+        unreachable through the catalog" from "the script is wrong".
+        """
         if self.terminated or self.truncated:
             return False
         if key not in self.index:
@@ -76,9 +100,17 @@ class Driver:
             # Masked out: the action exists but its precondition is unmet.
             self.trace.stuck_reason = f"'{key}' is masked out"
             return False
-        _, _, self.terminated, self.truncated, info = self.env.step(action)
+        try:
+            step = (
+                self.env.step_arguments(action, arguments) if arguments else self.env.step(action)
+            )
+        except ValueError as exc:
+            self.trace.stuck_reason = f"'{key}' argument refused: {exc}"
+            self.trace.last_error = str(exc)
+            return False
+        _, _, self.terminated, self.truncated, info = step
         self.trace.steps += 1
-        self.trace.action_log.append(key)
+        self.trace.action_log.append(key if not arguments else f"{key}({_brief(arguments)})")
         if info.get("action_error"):
             self.trace.last_error = f"{key}: {info['action_error']}"
         self.success = bool(info.get("success"))
@@ -99,6 +131,34 @@ class Driver:
 
     def inventory(self) -> dict:
         return self.env._observation.get("inventory") or {}
+
+    def entities_of_type(self, type_name: str) -> list[dict]:
+        return [
+            record
+            for record in (self.env._observation.get("entities") or [])
+            if record.get("type") == type_name
+        ]
+
+    def resource_tiles(self) -> set[tuple[int, int]]:
+        """Ore tiles, floored. A drill needs ore beneath it, so this is what
+        decides where a drill can go."""
+        return {
+            (math.floor(tile["p"][0]), math.floor(tile["p"][1]))
+            for tile in ((self.env._observation.get("resources") or {}).get("tiles") or [])
+            if tile.get("p")
+        }
+
+    def placement_for(self, tile: tuple[int, int]) -> list[float] | None:
+        """The domain value naming `tile`, or None if it is not offered.
+
+        `step_arguments` compares the argument against the domain by equality,
+        so the solver has to hand back the value the domain actually holds
+        rather than an equal-looking one it computed itself.
+        """
+        for candidate in self.env.argument_domains()["placements"]:
+            if (math.floor(candidate[0]), math.floor(candidate[1])) == tile:
+                return candidate
+        return None
 
     def nearest_resource(self) -> tuple[float, float] | None:
         tiles = (self.env._observation.get("resources") or {}).get("tiles", [])
@@ -355,6 +415,11 @@ def _misrotated_belt(driver: Driver):
 
 #: How many times a walk may slide along a blocking face before it is
 #: declared stuck, and how far each slide goes.
+#: Drill centres to try before giving up. The first is nearest the patch
+#: centre; a collision or a range refusal falls through to the next rather than
+#: ending the episode, because one refused placement is not an unsolvable task.
+BUILD_ATTEMPTS = 4
+
 MAX_SIDESTEPS = 6
 SIDESTEP_STRIDES = 3
 
@@ -509,6 +574,132 @@ def solve_plate_line(driver: Driver) -> None:
             return
 
 
+def solve_build_line(driver: Driver) -> None:
+    """Build a drill and a furnace, fuel both, and let the line run.
+
+    The geometry is measured, not guessed -- see `families/build_line.py`. In
+    short: a requested tile centre `t + 0.5` snaps to the integer centre
+    `t + 1`; a south-facing drill at `D` drops into tile `(D.x, D.y + 1)`; and
+    a 2x2 furnace covers tiles `x in {cx-1, cx}`, `y in {cy-1, cy}`, so the two
+    centres that catch the drop without overlapping the drill are
+    `(D.x, D.y + 2)` and `(D.x + 1, D.y + 2)`.
+
+    The drill's position is read back from the observation rather than assumed
+    after placing, so a snap the solver got wrong shows up as a stuck reason
+    here instead of as a silently misaligned furnace.
+    """
+    patch = driver.marker("patch")
+    if patch is None:
+        driver.trace.stuck_reason = "no 'patch' marker in task truth"
+        return
+
+    ore = driver.resource_tiles()
+    if not ore:
+        # The character starts off the patch and ore is in the observation, so
+        # walking is what makes the patch visible.
+        if not driver.walk_to(patch, tolerance=2.0, interact_range=8.0):
+            return
+        ore = driver.resource_tiles()
+    if not ore:
+        driver.trace.stuck_reason = "no ore tiles visible after walking to the patch"
+        return
+
+    # A drill snapped to centre D occupies tiles x in {D.x-1, D.x},
+    # y in {D.y-1, D.y}. Require ore under all four: `can_place_entity` refuses
+    # a drill with nothing to mine, and requiring the whole footprint keeps the
+    # choice valid on the narrow strip as well as the square.
+    def buildable(centre: tuple[int, int]) -> bool:
+        return all((centre[0] + dx, centre[1] + dy) in ore for dx in (-1, 0) for dy in (-1, 0))
+
+    goal = (math.floor(patch[0]), math.floor(patch[1]))
+    centres = sorted(
+        (c for c in {(x + 1, y + 1) for x, y in ore} if buildable(c)),
+        key=lambda c: (abs(c[0] - goal[0]) + abs(c[1] - goal[1]), c),
+    )
+    if not centres:
+        driver.trace.stuck_reason = (
+            f"no drill centre has ore under all four tiles ({len(ore)} ore tiles visible)"
+        )
+        return
+
+    for drill_centre in centres[:BUILD_ATTEMPTS]:
+        if _build_at(driver, drill_centre):
+            break
+        if driver.terminated or driver.truncated:
+            return
+    else:
+        return
+
+    # Nothing left to do but let it run. Each wait is `decision_ticks`, and the
+    # window is 3600 ticks, so this is the bulk of the episode by design: the
+    # task is not finished when the line is built, it is finished when the line
+    # has been running.
+    while not driver.success and not (driver.terminated or driver.truncated):
+        if not driver.do("wait"):
+            return
+
+
+def _build_at(driver: Driver, drill_centre: tuple[int, int]) -> bool:
+    """Place and fuel a drill/furnace pair for one candidate drill centre."""
+    # Stand clear of both footprints and within `PLACEMENT_RADIUS` of each. The
+    # pair spans y in {D.y-1 .. D.y+2}, so a spot three tiles to the east is
+    # off the structure and inside build distance for all of it.
+    standing = (drill_centre[0] + 3.5, drill_centre[1] + 0.5)
+    if not driver.walk_to(standing, tolerance=1.2, interact_range=2.0):
+        return False
+
+    drill_tile = (drill_centre[0] - 1, drill_centre[1] - 1)
+    position = driver.placement_for(drill_tile)
+    if position is None:
+        driver.trace.stuck_reason = f"tile {drill_tile} is not an offered placement"
+        return False
+    if not driver.do("place_at", item="burner-mining-drill", position=position, direction="south"):
+        return False
+    if driver.trace.last_error:
+        # A collision or a range refusal is worth trying the next centre for,
+        # not worth ending the episode over.
+        driver.trace.last_error = None
+        return False
+
+    drills = driver.entities_of_type("mining-drill")
+    if not drills:
+        driver.trace.stuck_reason = "placed a drill but no mining-drill is observable"
+        return False
+    # Read the snap back rather than assuming it.
+    built = min(drills, key=lambda r: math.dist(r["p"], [drill_centre[0], drill_centre[1]]))
+    drill_x, drill_y = math.floor(built["p"][0]), math.floor(built["p"][1])
+
+    furnace_tile = (drill_x - 1, drill_y + 1)
+    furnace_position = driver.placement_for(furnace_tile)
+    if furnace_position is None:
+        driver.trace.stuck_reason = f"tile {furnace_tile} is not an offered placement"
+        return False
+    if not driver.do(
+        "place_at", item="stone-furnace", position=furnace_position, direction="north"
+    ):
+        return False
+    if driver.trace.last_error:
+        driver.trace.stuck_reason = f"furnace placement refused: {driver.trace.last_error}"
+        return False
+
+    furnaces = driver.entities_of_type("furnace")
+    if not furnaces:
+        driver.trace.stuck_reason = "placed a furnace but no furnace is observable"
+        return False
+    furnace = min(furnaces, key=lambda r: math.dist(r["p"], [drill_x, drill_y + 2]))
+
+    # Fuel by handle, so neither machine can absorb the whole supply -- the trap
+    # `plate_line` documents, where `give_coal_20` targeted whatever was nearest
+    # and the furnace never lit.
+    for target in (built, furnace):
+        if not driver.do("give_to", to=str(target["h"]), item="coal", count=20):
+            return False
+        if driver.trace.last_error:
+            driver.trace.stuck_reason = f"fuelling refused: {driver.trace.last_error}"
+            return False
+    return True
+
+
 SOLVERS = {
     "navigate": solve_navigate,
     "deliver": solve_deliver,
@@ -517,6 +708,7 @@ SOLVERS = {
     "mine_smelt": solve_mine_smelt,
     "repair_belt": solve_repair_belt,
     "restore_power": solve_restore_power,
+    "build_line": solve_build_line,
 }
 
 
@@ -536,11 +728,34 @@ def solve(env: FactorioEnv) -> SolveTrace:
     return trace
 
 
-def random_rollout(env: FactorioEnv, rng: np.random.Generator, budget: int) -> bool:
-    """The floor a reference solution is read against."""
+def random_rollout(env, rng: np.random.Generator, budget: int) -> bool:
+    """The floor a reference solution is read against.
+
+    The floor has to be measured in the space the policy will actually train
+    on, which is the point `tools/solvability.py` makes at length. A
+    parameterized catalog therefore has to be sampled per dimension: sampling
+    a flat index would either crash on the missing arguments or, worse, keep
+    picking the argument-free actions and report a floor for a space nobody
+    trains in.
+    """
+    factorized = isinstance(getattr(env, "action_space", None), spaces.MultiDiscrete)
     for _ in range(budget):
-        legal = np.flatnonzero(env.action_masks())
-        _, _, terminated, truncated, info = env.step(int(rng.choice(legal)))
+        mask = np.asarray(env.action_masks(), dtype=bool)
+        if factorized:
+            action, offset = [], 0
+            for size in (int(n) for n in env.action_space.nvec):
+                legal = np.flatnonzero(mask[offset : offset + size])
+                # `UNUSED` is always legal, so this cannot be empty; assert it
+                # rather than silently drawing from an all-false sub-mask,
+                # which sb3 turns into a uniform draw over illegal values.
+                if legal.size == 0:
+                    raise ValueError("a dimension had no legal value")
+                action.append(int(rng.choice(legal)))
+                offset += size
+            step = env.step(np.asarray(action))
+        else:
+            step = env.step(int(rng.choice(np.flatnonzero(mask))))
+        _, _, terminated, truncated, info = step
         if terminated or truncated:
             return bool(info.get("success"))
     return False

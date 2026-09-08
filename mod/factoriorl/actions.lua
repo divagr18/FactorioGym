@@ -450,6 +450,14 @@ H.place = function(_, request, payload, respond, err)
     return respond(request, CODE.REJECTED, nil,
       err(ERR.NO_ITEMS, "item vanished before it could be debited"))
   end
+  -- Count what the agent constructed. The engine's own build statistics are
+  -- not fed by `create_entity`, so this is the only channel a `BUILT`
+  -- predicate can read -- and it is the right one: it counts placements made
+  -- through this action, so a scene's install path can never contribute.
+  -- Counted only after the item is debited, so a rolled-back placement does
+  -- not count as construction.
+  storage.frrl_built = storage.frrl_built or {}
+  storage.frrl_built[created.name] = (storage.frrl_built[created.name] or 0) + 1
   return respond(request, CODE.OK, {
     status = STATUS.COMPLETED,
     action = "place",

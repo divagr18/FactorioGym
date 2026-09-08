@@ -67,24 +67,6 @@ class ResourceSpec:
         return {"name": self.name, "position": list(self.position), "amount": self.amount}
 
 
-#: Items the mod counts in `truth["produced"]` unconditionally. Mirrors the
-#: literal in `mod/factoriorl/world.lua`; `test_tracked_items` asserts they
-#: agree, because a silent drift here means a task's output is invisible to its
-#: own success predicate.
-DEFAULT_TRACKED_ITEMS: frozenset[str] = frozenset(
-    {
-        "iron-plate",
-        "copper-plate",
-        "stone-furnace",
-        "iron-gear-wheel",
-        "iron-ore",
-        "copper-ore",
-        "coal",
-        "stone",
-    }
-)
-
-
 @dataclass(frozen=True)
 class Blueprint:
     """A complete, deterministic description of a scene."""
@@ -161,9 +143,11 @@ class PredicateKind(StrEnum):
     INVENTORY_HOLDS = "inventory_holds"
     PRODUCED = "produced"
     ENTITY_WORKING = "entity_working"
-    #: Counts entities of a prototype the *agent* built, from the force's build
-    #: statistics. `ENTITY_WORKING` keys on a scene alias bound at install, so
-    #: it cannot name a machine the agent placed; this can.
+    #: Counts entities of a prototype the *agent* built, from placements the
+    #: `place` handler recorded. `ENTITY_WORKING` keys on a scene alias bound at
+    #: install, so it cannot name a machine the agent placed; this can. Not the
+    #: engine's build statistics: `create_entity` does not feed those, measured
+    #: as `built = {}` beside a running line and 49 plates.
     BUILT = "built"
     #: At least `at_least` entities of a prototype currently working, whoever
     #: placed them. Prototype-keyed for the same reason.
@@ -173,6 +157,31 @@ class PredicateKind(StrEnum):
     #: the final window" from "30 plates, line dead since tick 4000" -- which is
     #: exactly the distinction a sustained-operation objective is made of.
     SUSTAINED_OUTPUT = "sustained_output"
+
+
+#: Items the mod counts in `truth["produced"]` unconditionally. Mirrors the
+#: literal in `mod/factoriorl/world.lua`; `test_tracked_items` asserts they
+#: agree, because a silent drift here means a task's output is invisible to its
+#: own success predicate.
+DEFAULT_TRACKED_ITEMS: frozenset[str] = frozenset(
+    {
+        "iron-plate",
+        "copper-plate",
+        "stone-furnace",
+        "iron-gear-wheel",
+        "iron-ore",
+        "copper-ore",
+        "coal",
+        "stone",
+    }
+)
+
+
+#: The predicate kinds whose measurement comes from `truth["produced"]`. Kept
+#: beside the enum so a new production-shaped kind is added in one place.
+PRODUCTION_KINDS: frozenset[PredicateKind] = frozenset(
+    {PredicateKind.PRODUCED, PredicateKind.SUSTAINED_OUTPUT}
+)
 
 
 @dataclass(frozen=True)
@@ -213,8 +222,24 @@ class Predicate:
         if self.kind is PredicateKind.ANY_WORKING:
             return (truth.get("working_counts") or {}).get(self.item, 0) >= self.at_least
         if self.kind is PredicateKind.SUSTAINED_OUTPUT:
+            # A full window must have elapsed. Without this the predicate
+            # degenerates into `PRODUCED` for the first `over_ticks` of every
+            # episode, because the baseline falls back to the earliest sample:
+            # measured on a real engine, `build_line` passed at tick 2850 with
+            # 10 plates *in total*, which a line that then died would also have
+            # produced. That is exactly the case a sustained objective exists
+            # to reject.
+            if not self.window_elapsed(truth):
+                return False
             return self.window_output(truth) >= self.at_least
         return False
+
+    def window_elapsed(self, truth: dict) -> bool:
+        """Whether the history spans at least `over_ticks`."""
+        history = truth.get("window") or []
+        if len(history) < 2:
+            return False
+        return (history[-1][0] - history[0][0]) >= self.over_ticks
 
     def window_output(self, truth: dict) -> float:
         """Production of `item` inside the last `over_ticks`.
@@ -225,9 +250,11 @@ class Predicate:
         inputs and is testable without an engine.
 
         The oldest sample at or before the window's start is the baseline. With
-        no such sample the episode is younger than the window, and the earliest
-        sample is used -- so a task cannot pass by being measured before its
-        window has elapsed.
+        no such sample the episode is younger than the window and the earliest
+        sample is used, which makes this a *lower bound* on the rate rather
+        than the rate -- so `evaluate` additionally refuses to answer at all
+        until `window_elapsed`, or the predicate would mean "produced this
+        much" for the first `over_ticks` of every episode.
         """
         history = truth.get("window") or []
         if not history:
@@ -406,12 +433,19 @@ class TaskSpec:
         predicate -- silently, with no error anywhere. Derived from the
         predicates rather than declared, so it cannot fall out of step with
         what the task actually scores.
+
+        Only the kinds that actually read `produced` count. `BUILT` reads
+        `truth["built"]` and `CONTAINER_HOLDS` reads `truth["containers"]`, so
+        collecting their items would ask the mod to count production of a
+        machine nobody smelts -- and, because this argument is part of the
+        installed payload, would move that task's blueprint digest for no
+        reason at all.
         """
         items: set[str] = set()
         predicates = list(self.success)
         predicates += [r.predicate for r in self.rewards if r.predicate is not None]
         for predicate in predicates:
-            if predicate.item:
+            if predicate.item and predicate.kind in PRODUCTION_KINDS:
                 items.add(predicate.item)
         return tuple(sorted(items - DEFAULT_TRACKED_ITEMS))
 

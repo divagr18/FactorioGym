@@ -80,8 +80,26 @@ class TestTheThreeMetrics:
         report = _feed(metrics, _steady(15))
         first = report["ticks_to_first_sustained_output"]["iron-plate"]
         assert first is not None
-        # 5 plates at 15 per 3600 ticks arrives around tick 1200.
-        assert 1100 <= first <= 1320
+        # 5 plates arrives around tick 1200, but no window has elapsed then, so
+        # the earliest honest answer is one window in.
+        assert first == RATE_TICKS
+
+    def test_it_is_never_reported_before_a_window_has_elapsed(self):
+        """Otherwise it means "time to produce this much", not "to sustain it"."""
+        metrics = _metrics(at_least=1.0, over_ticks=RATE_TICKS)
+        report = _feed(metrics, _steady(60, ticks=1800, step=60))
+        assert report["cumulative_produced"]["iron-plate"] >= 1
+        assert report["ticks_to_first_sustained_output"]["iron-plate"] is None
+
+    def test_a_higher_rate_is_sustained_sooner_once_windows_are_comparable(self):
+        fast = _feed(_metrics(at_least=30.0), _steady(60, ticks=14400))
+        slow = _feed(_metrics(at_least=30.0), _steady(31, ticks=14400))
+        assert fast["ticks_to_first_sustained_output"]["iron-plate"] is not None
+        assert slow["ticks_to_first_sustained_output"]["iron-plate"] is not None
+        assert (
+            fast["ticks_to_first_sustained_output"]["iron-plate"]
+            <= slow["ticks_to_first_sustained_output"]["iron-plate"]
+        )
 
     def test_a_line_that_never_ran_reports_none_not_zero(self):
         report = _feed(_metrics(at_least=1.0), [(t, 0) for t in range(0, 3601, 600)])

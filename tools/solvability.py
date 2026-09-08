@@ -47,9 +47,11 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from factoriorl import catalog as catalog_module  # noqa: E402
 from factoriorl import skills as skills_module  # noqa: E402
 from factoriorl.engine_config import resolve_game_speed  # noqa: E402
 from factoriorl.env import FactorioEnv  # noqa: E402
+from factoriorl.parameterized import ParameterizedEnv  # noqa: E402
 from factoriorl.rcon import RCONClient  # noqa: E402
 from factoriorl.seeding import Branch, SeedPlan  # noqa: E402
 from factoriorl.session import WorkerSession  # noqa: E402
@@ -65,13 +67,30 @@ from factoriorl.worker import WorkerManager  # noqa: E402
 FLOOR_CEILING = 0.10
 
 
+def is_parameterized(task) -> bool:
+    """Whether this task's catalog carries arguments.
+
+    A parameterized task has no meaningful discrete or skill floor: the space a
+    policy trains on is the factorized one, and `SkillEnv` composes discrete
+    catalog indices. Measuring either would report a floor for a space nobody
+    trains in, so they are reported as absent rather than as a number.
+    """
+    catalog = catalog_module.resolve(task.spec.catalog, task.spec.catalog_subset)
+    return any(template.parameterized for template in catalog.templates)
+
+
 def measure_floor(task, session, plan, split: str, episodes: int, skills: bool) -> float:
     """Fraction of episodes a uniform random policy solves in this action space."""
     solved = 0
     for index in range(episodes):
         env = FactorioEnv(task, session, plan, branch=Branch.TRAIN, split=split)
         env._episode_index = index - 1
-        wrapped = skills_module.SkillEnv(env) if skills else env
+        if skills:
+            wrapped = skills_module.SkillEnv(env)
+        elif is_parameterized(task):
+            wrapped = ParameterizedEnv(env)
+        else:
+            wrapped = env
         wrapped.reset()
         solved += int(
             random_rollout(
@@ -128,16 +147,23 @@ def main() -> int:
                 primitive_floor = measure_floor(
                     task, session, plan, split, args.episodes, skills=False
                 )
-                skill_floor = measure_floor(task, session, plan, split, args.episodes, skills=True)
+                # A parameterized catalog has no skill floor: `SkillEnv`
+                # composes discrete catalog indices, so the number would
+                # describe a space nobody trains in. Absent, not zero.
+                skill_floor = (
+                    None
+                    if is_parameterized(task)
+                    else measure_floor(task, session, plan, split, args.episodes, skills=True)
+                )
+                floors = [primitive_floor] + ([] if skill_floor is None else [skill_floor])
                 entry["splits"][split] = {
                     "reference_success": solved,
                     "episodes": args.episodes,
                     "reference_rate": round(solved / args.episodes, 2),
                     "random_rate": round(primitive_floor, 2),
-                    "random_rate_skills": round(skill_floor, 2),
-                    "discriminative": bool(
-                        primitive_floor <= FLOOR_CEILING and skill_floor <= FLOOR_CEILING
-                    ),
+                    "random_rate_skills": (None if skill_floor is None else round(skill_floor, 2)),
+                    "action_space": ("parameterized" if is_parameterized(task) else "discrete"),
+                    "discriminative": bool(all(f <= FLOOR_CEILING for f in floors)),
                     "mean_steps": round(float(np.mean([t["steps"] for t in traces])), 1),
                     "stuck_reasons": sorted(
                         {t["stuck_reason"] for t in traces if t["stuck_reason"]}
@@ -148,8 +174,13 @@ def main() -> int:
                 print(
                     f"{task_id:16s} {split:5s} reference={status['reference_rate']:.2f} "
                     f"random={status['random_rate']:.2f} "
-                    f"random+skills={status['random_rate_skills']:.2f} "
-                    f"steps={status['mean_steps']:.0f}"
+                    f"random+skills="
+                    + (
+                        "n/a "
+                        if status["random_rate_skills"] is None
+                        else f"{status['random_rate_skills']:.2f} "
+                    )
+                    + f"steps={status['mean_steps']:.0f}"
                     f"{'' if status['discriminative'] else '  <- floor too high'}",
                     flush=True,
                 )

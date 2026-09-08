@@ -1,36 +1,50 @@
 {
-  "episodes_per_split": 4,
+  "episodes_per_split": 3,
   "tasks": {
-    "plate_line": {
+    "build_line": {
       "splits": {
         "train": {
-          "reference_success": 4,
-          "episodes": 4,
+          "reference_success": 3,
+          "episodes": 3,
           "reference_rate": 1.0,
           "random_rate": 0.0,
-          "random_rate_skills": 0.0,
+          "random_rate_skills": null,
+          "action_space": "parameterized",
           "discriminative": true,
-          "mean_steps": 253.0,
+          "mean_steps": 120.0,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "val": {
+          "reference_success": 3,
+          "episodes": 3,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": null,
+          "action_space": "parameterized",
+          "discriminative": true,
+          "mean_steps": 120.0,
           "stuck_reasons": [],
           "last_errors": []
         },
         "test": {
-          "reference_success": 4,
-          "episodes": 4,
+          "reference_success": 3,
+          "episodes": 3,
           "reference_rate": 1.0,
           "random_rate": 0.0,
-          "random_rate_skills": 0.0,
+          "random_rate_skills": null,
+          "action_space": "parameterized",
           "discriminative": true,
-          "mean_steps": 254.8,
+          "mean_steps": 120.0,
           "stuck_reasons": [],
           "last_errors": []
         }
       }
     }
   },
-  "wall_seconds": 121.1,
+  "wall_seconds": 48.2,
   "solvable": [
-    "plate_line"
+    "build_line"
   ],
   "defective": [],
   "floor_ceiling": 0.1,

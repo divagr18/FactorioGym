@@ -76,13 +76,22 @@ class ProductionMetrics:
             self._samples[-1] = (tick, produced)
         else:
             self._samples.append((tick, produced))
-        for item in self.items:
-            if item in self._first_sustained:
-                continue
-            if self._window_output(item, tick) >= self.at_least:
-                self._first_sustained[item] = tick
+        # The same rule the predicate applies, and for the same reason: before
+        # a full window has elapsed the baseline falls back to the earliest
+        # sample, so "sustained" would just mean "produced this much".
+        if self._elapsed() >= self.over_ticks:
+            for item in self.items:
+                if item in self._first_sustained:
+                    continue
+                if self._window_output(item, tick) >= self.at_least:
+                    self._first_sustained[item] = tick
 
     # ---- derivation ---------------------------------------------------
+    def _elapsed(self) -> int:
+        if len(self._samples) < 2:
+            return 0
+        return self._samples[-1][0] - self._samples[0][0]
+
     def _baseline(self, cutoff: int) -> dict[str, float]:
         """Counts at the last sample at or before `cutoff`.
 

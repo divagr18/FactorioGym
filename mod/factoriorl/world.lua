@@ -450,15 +450,20 @@ function world.truth()
   end
 
   -- What the *agent* built, as distinct from what the scene installed.
-  -- `get_entity_build_count_statistics` was already cleared at reset and never
-  -- published, so "counts newly constructed required components" had no channel.
+  --
+  -- Not `get_entity_build_count_statistics`: that was the first attempt and it
+  -- is empty here, because `surface.create_entity` -- which is how the `place`
+  -- action builds -- does not feed the engine's build statistics. Measured: a
+  -- correctly built and running line reported `placed_counts` for both
+  -- machines, 49 plates produced, and `built = {}`.
+  --
+  -- Counted in the `place` handler instead, which is a better fit for what the
+  -- predicate is asking anyway: "newly constructed" means *the agent placed
+  -- it through the action interface*, and a scene's install path does not go
+  -- through that handler, so a preplaced machine can never count.
   local built = {}
-  local ok_build, build_stats =
-    pcall(function() return force.get_entity_build_count_statistics(surface()) end)
-  if ok_build and build_stats then
-    for name, count in pairs(build_stats.input_counts or {}) do
-      if count and count > 0 then built[name] = count end
-    end
+  for name, count in pairs(storage.frrl_built or {}) do
+    if count and count > 0 then built[name] = count end
   end
 
   return {
@@ -477,6 +482,10 @@ end
 --- Clear cumulative statistics. Production statistics are exactly where
 --- cross-episode leakage hides, and nothing cleared them before.
 function world.clear_statistics()
+  -- Placements the agent made, counted in the `place` handler. Cleared here
+  -- with the rest, or a `BUILT` predicate would be satisfied by the previous
+  -- episode's construction.
+  storage.frrl_built = {}
   local force = game.forces["player"]
   for _, getter in ipairs({
     "get_item_production_statistics",
