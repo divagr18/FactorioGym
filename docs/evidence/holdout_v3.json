@@ -1,5 +1,5 @@
 {
-  "content_hash": "ff22dedddf24280e293d2345e64cbf1373a44d30bf7bd27dc7bd905186bab631",
+  "content_hash": "5a00330b91a1186b0a12591c9f6d2090ce8925644fda73eab2155e7e3ba9b8c4",
   "holdout": {
     "schema": "factoriorl.holdout/1",
     "holdout_id": "holdout_v3",
@@ -2052,7 +2052,7 @@
       },
       "plate_line": {
         "task_id": "plate_line",
-        "task_version": "1.1.0",
+        "task_version": "1.2.0",
         "families_in_split": [
           "commissioning_walled"
         ],
@@ -2300,7 +2300,7 @@
           {
             "episode_index": 3048,
             "layout_family": "commissioning_walled",
-            "blueprint_digest": "a9d22d3fe3116061"
+            "blueprint_digest": "bab0fc7e57c4dc37"
           },
           {
             "episode_index": 3049,
@@ -4088,8 +4088,8 @@
       }
     }
   },
-  "generated_at": "2026-09-08T20:34:00Z",
-  "git_commit": "2fdc49a62de227aa68de5a370c3e3f9cdd45e0ae",
+  "generated_at": "2026-09-08T21:17:57Z",
+  "git_commit": "de08f8eaa736a9c0f840a77396b2915a22cc978f",
   "declaration": {
     "candidate_families": [
       "deliver",
@@ -4156,8 +4156,8 @@
       "below_min_distinct_scenes": false
     },
     "plate_line": {
-      "entry_hash": "130d6142ac18f82a",
-      "task_version": "1.1.0",
+      "entry_hash": "18bdee7ecedcdc2a",
+      "task_version": "1.2.0",
       "families_in_split": [
         "commissioning_walled"
       ],

@@ -45,15 +45,17 @@ class TestTheCommittedSuite:
         assert document["seed_plan"]["master"] == regression.REGRESSION_MASTER
         assert document["seed_plan"]["run_id"] == regression.REGRESSION_RUN_ID
 
-    def test_the_plate_line_finding_is_present_and_marked_open(self, cases):
+    def test_the_plate_line_finding_is_recorded_as_fixed(self, cases):
         walled = [c for c in cases if c.task == "plate_line"]
         assert len(walled) == 10, "10 of 200 commissioning_walled scenes were affected"
-        assert all(c.expected_present for c in walled), (
-            "the finding was deliberately not fixed, so it must read as open"
+        assert not any(c.expected_present for c in walled), (
+            "the finding was fixed in v1.2.0, so no case may still read as open"
         )
+        assert all("FIXED in v1.2.0" in c.finding for c in walled)
 
-    def test_the_recorded_scenes_really_do_start_the_character_on_a_wall(self, cases):
-        """The case is only worth keeping if it still reproduces."""
+    def test_the_recorded_scenes_no_longer_start_the_character_on_a_wall(self, cases):
+        """The regression guard. These are the exact ten scenes that were
+        broken, so if the fix is ever undone this fails on all of them."""
         import math
         import sys
         from pathlib import Path
@@ -69,7 +71,17 @@ class TestTheCommittedSuite:
                 math.floor(blueprint.character_position[0]),
                 math.floor(blueprint.character_position[1]),
             )
-            assert start in blocked, f"{case.case_id} no longer starts on a blocked tile"
+            assert start not in blocked, f"{case.case_id} starts on a blocked tile again"
+            assert blueprint.character_obstructed() == []
+
+    def test_the_finding_records_the_scene_it_used_to_be(self, cases):
+        """A fixed case has to say what changed, or it reads as a case with no
+        reason and gets deleted."""
+        for case in (c for c in cases if c.task == "plate_line"):
+            assert "pre-fix scene digested" in case.finding
+            assert case.blueprint_digest not in case.finding, (
+                "the recorded digest must be the current scene, not the old one"
+            )
 
 
 class TestItIsNotADistribution:
@@ -87,8 +99,11 @@ class TestItIsNotADistribution:
         assert all("scene_still_matches" in row for row in report["cases"])
 
     def test_open_findings_are_listed_explicitly(self, cases):
+        """Currently empty -- every recorded finding is fixed. The field has to
+        exist and be accurate either way, so that a future deliberately-unfixed
+        case reads as open rather than as a passing check."""
         report = regression.report(cases)
-        assert report["open_findings"], "a deliberately unfixed finding must be visible"
+        assert report["open_findings"] == [case.case_id for case in cases if case.expected_present]
 
     def test_the_suite_is_not_one_of_the_declared_splits(self, cases):
         """It must not become `val`, which `freeze_holdout` refuses to freeze."""

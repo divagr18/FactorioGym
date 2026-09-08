@@ -185,6 +185,9 @@ def validate_all(sample_seeds: int = 16) -> dict:
                 problems.extend(
                     f"{family.name}[{index}] {p}" for p in blueprint.footprint_conflicts()
                 )
+                problems.extend(
+                    f"{family.name}[{index}] {p}" for p in blueprint.character_obstructed()
+                )
                 observation, truth = blueprint.initial_state()
                 satisfied = [p for p in decidable if p.evaluate(observation, truth)]
                 if decidable and len(satisfied) == len(decidable):

@@ -1,50 +1,50 @@
 {
-  "episodes_per_split": 2,
+  "episodes_per_split": 3,
   "tasks": {
-    "build_line": {
+    "plate_line": {
       "splits": {
         "train": {
-          "reference_success": 2,
-          "episodes": 2,
+          "reference_success": 3,
+          "episodes": 3,
           "reference_rate": 1.0,
           "random_rate": 0.0,
-          "random_rate_skills": null,
-          "action_space": "parameterized",
+          "random_rate_skills": 0.0,
+          "action_space": "discrete",
           "discriminative": true,
-          "mean_steps": 240.0,
+          "mean_steps": 252.7,
           "stuck_reasons": [],
           "last_errors": []
         },
         "val": {
-          "reference_success": 2,
-          "episodes": 2,
+          "reference_success": 3,
+          "episodes": 3,
           "reference_rate": 1.0,
           "random_rate": 0.0,
-          "random_rate_skills": null,
-          "action_space": "parameterized",
+          "random_rate_skills": 0.0,
+          "action_space": "discrete",
           "discriminative": true,
-          "mean_steps": 240.0,
+          "mean_steps": 254.3,
           "stuck_reasons": [],
           "last_errors": []
         },
         "test": {
-          "reference_success": 2,
-          "episodes": 2,
+          "reference_success": 3,
+          "episodes": 3,
           "reference_rate": 1.0,
           "random_rate": 0.0,
-          "random_rate_skills": null,
-          "action_space": "parameterized",
+          "random_rate_skills": 0.0,
+          "action_space": "discrete",
           "discriminative": true,
-          "mean_steps": 240.0,
+          "mean_steps": 255.0,
           "stuck_reasons": [],
           "last_errors": []
         }
       }
     }
   },
-  "wall_seconds": 43.6,
+  "wall_seconds": 111.3,
   "solvable": [
-    "build_line"
+    "plate_line"
   ],
   "defective": [],
   "floor_ceiling": 0.1,

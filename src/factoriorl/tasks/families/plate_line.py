@@ -46,23 +46,22 @@ holdout entry describe commissioning. `restore_power`'s solvability run still
 shows the milder version of the quantisation problem:
 `place_small_electric_pole_south: collision`.
 
-Known defect, not fixed here
-----------------------------
+Fixed in v1.2.0: the start could land on the screen
+--------------------------------------------------
 The split audit was never run on this task until R3 ran it over all eight, and
-it reports a real finding: **10 of 200 `commissioning_walled` scenes start the
-character on a wall tile.** The screen sits at x = 6 and the start is drawn at
-radius 5..9 from the drill at a random angle, so 5% of scenes place the
-character inside the neutral wall. `build_blueprint` teleports without a
-collision check, so the character begins the episode inside the screen.
+it found that **10 of 200 `commissioning_walled` scenes started the character on
+a wall tile.** The screen sits at x = 6 and the start is drawn at radius 5..9
+from the drill at a random angle, so the two independent draws could collide;
+`build_blueprint` teleports without a collision check, so nothing raised.
 
-Left unfixed deliberately. The generator's bytes are what this task's
-commissioning evidence and its `holdout_v3` entry describe, and the reference
-solution still commissions the line at 1.00 -- a Factorio character inside a
-collision box can walk out. Changing the draw would bump the version and
-invalidate both records to remove a defect that has not been shown to change
-any measurement. It is recorded here, and in
-`docs/evidence/phase3-generator-diagnostics.json`, so the next person to touch
-this generator meets it rather than rediscovering it.
+`_clear_of` pushes a colliding start outward along its own bearing. It consumes
+no randomness and is a no-op when the start is already clear, so only the
+affected scenes changed and every other blueprint digest is untouched.
+
+The general form of the defect -- draw a start, then place obstacles -- is now
+checked for every family by `Blueprint.character_obstructed`, so the next
+generator to do this fails `tasks validate` instead of needing an audit to
+notice. `plate_line` was the only family affected.
 """
 
 from __future__ import annotations
@@ -112,7 +111,7 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="plate_line",
-    version="1.1.0",
+    version="1.2.0",
     description=(
         "Commission an automated plate line: fuel the mining drill and the furnace "
         "so the line produces iron plates without further help."
@@ -157,6 +156,39 @@ SPEC = TaskSpec(
         "wait",
     ),
 )
+
+
+#: Tiles the start is pushed out of, per outward step, and how many steps to
+#: try. The screen is one tile thick, so one step almost always clears it; the
+#: bound exists so a future screen shape cannot make this loop forever.
+NUDGE_STEP = 1.0
+NUDGE_ATTEMPTS = 8
+
+
+def _clear_of(
+    start: tuple[float, float], angle: float, blocked: set[tuple[int, int]]
+) -> tuple[float, float]:
+    """Push `start` outward along its own bearing until its tile is free.
+
+    Consumes no randomness and is a **no-op when the start is already clear**,
+    which is the property that matters: only the scenes the split audit flagged
+    change at all, so every other blueprint digest -- and every difficulty
+    number measured against them -- is untouched.
+
+    The consequence, stated rather than hidden: in the few scenes that are
+    adjusted, the character starts slightly beyond the declared 5..9 annulus.
+    That is a smaller deviation than starting inside a wall, which is what the
+    alternative was.
+    """
+    position = start
+    for _ in range(NUDGE_ATTEMPTS):
+        if (math.floor(position[0]), math.floor(position[1])) not in blocked:
+            return position
+        position = (
+            round(position[0] + math.cos(angle) * NUDGE_STEP, 1),
+            round(position[1] + math.sin(angle) * NUDGE_STEP, 1),
+        )
+    return position
 
 
 def generate(family: LayoutFamily, rng) -> Blueprint:
@@ -216,6 +248,16 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
                     force="neutral",
                 )
             )
+        # The start annulus crosses the screen, so the two draws can collide.
+        # Fixed in v1.2.0 after the split audit measured it at 10 of 200 scenes.
+        start = _clear_of(
+            start,
+            angle,
+            {
+                (int(DRILL_POSITION[0]) + side * 5, int(DRILL_POSITION[1]) + offset)
+                for offset in range(-1, 2)
+            },
+        )
 
     return Blueprint(
         entities=tuple(entities),

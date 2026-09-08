@@ -70,7 +70,10 @@ class TestTheSevenExistingEntriesAreUntouched:
         "deliver": "63dd42500ba435bd",
         "mine_smelt": "a11e26d64afdd678",
         "navigate": "22088ee7c7b098ac",
-        "plate_line": "130d6142ac18f82a",
+        # plate_line reached v1.2.0 when the character-on-a-wall defect was
+        # fixed, so its entry was legitimately re-frozen; the other six are the
+        # pre-`build_line` values and must never move.
+        "plate_line": "18bdee7ecedcdc2a",
         "repair_belt": "32f8a13a2b4772b1",
         "restore_power": "dcab54a130c4e091",
         "supply_furnace": "24eb644a3f90d3a6",

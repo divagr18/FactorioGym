@@ -1647,7 +1647,7 @@
       "verdict": "pass"
     },
     "plate_line": {
-      "version": "1.1.0",
+      "version": "1.2.0",
       "goal_marker": "furnace",
       "goal_marker_source": "declared",
       "layout_families": {
@@ -1824,31 +1824,31 @@
           "samples": 200,
           "distinct_scenes": 200,
           "distinct_fraction": 1.0,
-          "unreachable_goals": 10,
+          "unreachable_goals": 0,
           "missing_marker": 0,
           "descriptors": {
             "goal_distance": {
               "available": 200,
               "min": 3.2757,
-              "mean": 7.1075,
+              "mean": 7.1554,
               "max": 10.5
             },
             "path_length": {
-              "available": 190,
+              "available": 200,
               "min": 2.0,
-              "mean": 6.5684,
+              "mean": 6.545,
               "max": 12.0
             },
             "detour_factor": {
-              "available": 190,
+              "available": 200,
               "min": 0.5051,
-              "mean": 0.8904,
+              "mean": 0.893,
               "max": 1.1954
             },
             "budget_slack": {
-              "available": 190,
+              "available": 200,
               "min": 133.3333,
-              "mean": 223.8596,
+              "mean": 222.6667,
               "max": 400.0
             },
             "obstacle_count": {
@@ -1906,10 +1906,10 @@
       },
       "duplicate_families": [],
       "difficulty_overlap": {
-        "goal_distance": 1.0,
-        "path_length": 0.9116,
+        "goal_distance": 0.965,
+        "path_length": 0.925,
         "detour_factor": 0.885,
-        "budget_slack": 0.9487
+        "budget_slack": 0.95
       },
       "structural_overlap": {
         "obstacle_count": 0.0,
@@ -1919,9 +1919,7 @@
         "goal_isolation": 1.0,
         "content_tile_count": 0.0
       },
-      "failures": [
-        "commissioning_walled (test) has 10 scenes whose goal is not reachable by a cardinal walk"
-      ],
+      "failures": [],
       "distinct_scenes_total": 600,
       "coverage": {
         "descriptors": [
@@ -1972,19 +1970,19 @@
       "difficulty_means": {
         "goal_distance": {
           "train": 7.1075,
-          "test": 7.1075
+          "test": 7.1554
         },
         "path_length": {
           "train": 6.25,
-          "test": 6.5684
+          "test": 6.545
         },
         "detour_factor": {
           "train": 0.8558,
-          "test": 0.8904
+          "test": 0.893
         },
         "budget_slack": {
           "train": 235.3333,
-          "test": 223.8596
+          "test": 222.6667
         }
       },
       "difficulty_parity": "ok",
@@ -1995,7 +1993,7 @@
         "obstacle_count",
         "occupancy_fraction"
       ],
-      "verdict": "fail"
+      "verdict": "pass"
     },
     "repair_belt": {
       "version": "1.6.0",
@@ -3447,11 +3445,10 @@
     "deliver",
     "mine_smelt",
     "navigate",
+    "plate_line",
     "repair_belt",
     "restore_power",
     "supply_furnace"
   ],
-  "failing": [
-    "plate_line"
-  ]
+  "failing": []
 }

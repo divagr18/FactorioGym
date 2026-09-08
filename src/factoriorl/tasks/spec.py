@@ -47,6 +47,13 @@ ENTITY_TILE_SIZES: dict[str, tuple[int, int]] = {
 }
 
 
+#: Prototypes the character can stand on. Factorio carries the character over a
+#: transport belt rather than blocking it, so a belt under the start position is
+#: not an obstruction. `tools/generator_diagnostics.py` excludes the same set
+#: from its reachability BFS, for the same reason.
+WALKABLE_PROTOTYPES: frozenset[str] = frozenset({"transport-belt"})
+
+
 def entity_tiles(name: str, position: tuple[float, float]) -> list[tuple[int, int]]:
     """The integer tiles an entity occupies, from its prototype footprint.
 
@@ -157,6 +164,38 @@ class Blueprint:
                 elif tile in seen:
                     problems.append(f"two {entity.name} overlap at {tile}")
                 seen[tile] = entity.name
+        return problems
+
+    def character_obstructed(self) -> list[str]:
+        """The character must not start inside a declared entity's footprint.
+
+        `build_blueprint` teleports the character without a collision check, so
+        a scene that draws a start position independently of its obstacles can
+        put the character inside one and nothing raises. The split audit found
+        exactly that in `plate_line`: 10 of 200 `commissioning_walled` scenes
+        started the character on a wall tile, because the screen sits at x = 6
+        and the start is drawn at radius 5..9 from the drill.
+
+        Checked here rather than in that one generator, because the defect is a
+        property of "draw a start, then place obstacles" and any family can have
+        it. Belts are excluded: Factorio carries the character over a transport
+        belt rather than blocking it, so a belt line under the start is not an
+        obstruction -- `tools/generator_diagnostics.py` makes the same exclusion
+        for the same reason.
+        """
+        start = (
+            math.floor(self.character_position[0]),
+            math.floor(self.character_position[1]),
+        )
+        problems = []
+        for entity in self.entities:
+            if entity.name in WALKABLE_PROTOTYPES:
+                continue
+            if start in set(entity_tiles(entity.name, entity.position)):
+                problems.append(
+                    f"the character starts at {self.character_position}, inside the "
+                    f"{entity.name} at {entity.position} (tile {start})"
+                )
         return problems
 
     def all_markers(self) -> dict[str, list[float]]:
