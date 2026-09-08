@@ -61,8 +61,15 @@ class TimedResponse:
         except ValueError as exc:
             raise ProtocolError(f"unknown action status {raw_status!r}") from exc
         reason = self.response.error
-        if reason is None and isinstance(result.get("reason"), dict):
-            raw = result["reason"]
+        # The mod writes a refused action's cause under `error`; only older
+        # shapes used `reason`. Reading `reason` alone meant this property
+        # reported a rejected action with no cause at all, while
+        # `env.step_payload` -- which reads the raw dict -- saw it.
+        raw_reason = result.get("error")
+        if not isinstance(raw_reason, dict):
+            raw_reason = result.get("reason")
+        if reason is None and isinstance(raw_reason, dict):
+            raw = raw_reason
             try:
                 reason_code = ErrorCode(raw.get("code", ""))
             except ValueError as exc:
@@ -72,7 +79,7 @@ class TimedResponse:
                 message=raw.get("message", ""),
                 details=raw.get("details", {}),
             )
-        data = {k: v for k, v in result.items() if k not in ("status", "reason")}
+        data = {k: v for k, v in result.items() if k not in ("status", "reason", "error")}
         return ActionResult(status=status, reason=reason, data=data)
 
 

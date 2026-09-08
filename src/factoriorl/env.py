@@ -100,7 +100,6 @@ class FactorioEnv(gym.Env):
         self._observation: dict = {}
         self._truth: dict = {}
         self._family: LayoutFamily | None = None
-        self._last_action_ok = True
 
     # ------------------------------------------------------------ helpers
 
@@ -535,7 +534,6 @@ class FactorioEnv(gym.Env):
 
         result = timed.response.result or {}
         action_result = result.get("action") or {}
-        self._last_action_ok = action_result.get("status") == "completed"
         self._observation = result.get("observation") or self.session.observe().response.result
         # The step response carries truth with it; only fall back to a separate
         # request if an older worker did not send it.

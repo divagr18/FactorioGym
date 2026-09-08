@@ -104,7 +104,8 @@ profiles.OBSERVATION = {
   -- `observations.lua` and `memory.lua`, not to this cap.
   ["local-v2"] = {
     name = "local-v2",
-    version = 2,
+    -- 3: `events` added, so a settled action outcome is observable.
+    version = 3,
     radius = 32,
     entity_cap = 48,
     entity_sweep_limit = 257,
@@ -116,7 +117,12 @@ profiles.OBSERVATION = {
     keys = {
       "episode_id", "tick", "absolute_tick", "profiles", "character",
       "inventory", "sensor", "terrain", "resources", "entities",
-      "remembered", "task", "inflight", "goal",
+      -- `events` carries the settled outcome of an ongoing action. `move`,
+      -- `mine` and `craft` reply `running` and the step response freezes at
+      -- that, so without this a *failed* mine has no observable outcome
+      -- anywhere -- and the language-model prompt's "recent action outcomes"
+      -- section was empty on every run.
+      "remembered", "task", "inflight", "goal", "events",
     },
   },
 }

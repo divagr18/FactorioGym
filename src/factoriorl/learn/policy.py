@@ -33,7 +33,11 @@ GRID_FEATURES = 128
 #: a checkpoint trained on the 65x65 grid loads against a 33x33 one without a
 #: single shape error, runs, and produces garbage -- with every gate green,
 #: because nothing else compares the two geometries.
-EXTRACTOR_VERSION = 4
+#: 5: the `self` vector's last three slots became the action-outcome signal
+#: (last action refused, last action completed, refusal rate), fed by the
+#: `events` block that `local-v2` now publishes. Same shape, different meaning,
+#: which is exactly the case this version exists to catch.
+EXTRACTOR_VERSION = 5
 
 
 class FactorioExtractor(BaseFeaturesExtractor):

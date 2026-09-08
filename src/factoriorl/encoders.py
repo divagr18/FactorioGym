@@ -54,6 +54,11 @@ RESOURCES: tuple[str, ...] = ("iron-ore", "copper-ore", "coal", "stone")
 #: Factorio 2.0 uses 16 compass directions (0..15), not 8.
 DIRECTION_COUNT = 16.0
 
+#: Action statuses that mean the engine has finished with a request.
+_SETTLED_STATUS = frozenset({"completed", "failed", "cancelled", "rejected"})
+#: ...and those that mean it refused or failed it.
+_REFUSED_STATUS = frozenset({"failed", "cancelled", "rejected"})
+
 MAX_ENTITIES = 32
 ENTITY_FEATURES = 16
 SELF_FEATURES = 12
@@ -236,6 +241,20 @@ def encode(
     self_vector[6] = 1.0 if crafting.get("queue") else 0.0
     self_vector[7] = float(crafting.get("progress") or 0.0)
     self_vector[8] = 1.0 if observation.get("inflight") else 0.0
+    # Whether the last settled action was refused, and how often refusals have
+    # been happening. Derived from the observation's own `events` log, so this
+    # stays a pure function of what the policy can see. Before `events` was
+    # published there was no channel at all: a refused placement, an
+    # out-of-reach transfer and an empty inventory were four distinct codes at
+    # the engine and zero bits in the policy input.
+    events = [e for e in (observation.get("events") or []) if isinstance(e, dict)]
+    settled = [e for e in events if e.get("status") in _SETTLED_STATUS]
+    if settled:
+        last = settled[-1]
+        self_vector[9] = 1.0 if last.get("status") in _REFUSED_STATUS else 0.0
+        self_vector[10] = 1.0 if last.get("status") == "completed" else 0.0
+        refused = sum(1 for e in settled if e.get("status") in _REFUSED_STATUS)
+        self_vector[11] = refused / len(settled)
 
     inventory = np.zeros(len(ITEMS), dtype=np.float32)
     for index, item in enumerate(ITEMS):
