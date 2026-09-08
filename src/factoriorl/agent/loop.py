@@ -32,6 +32,7 @@ from typing import Any
 
 from factoriorl import manifest as manifest_module
 from factoriorl.agent.adapters import DEFAULT_MAX_TOKENS, ModelAdapter, ModelReply, ModelRequest
+from factoriorl.agent.memory import Memory
 from factoriorl.agent.parsing import DecisionFailure, ParsedAction, ParseFailure, parse_action
 from factoriorl.agent.summary import (
     LegalAction,
@@ -94,6 +95,26 @@ def _prompt_digest() -> str:
     return manifest_module.config_digest(SYSTEM_PROMPT)
 
 
+def _target_of(action_key: str, observation: dict) -> str | None:
+    """Which entity an action acted on, derived from the observation alone.
+
+    The catalog binds `$target` to the *nearest* entity, and the agent never
+    names it, so without this a record of "gave 20 plates" cannot say where --
+    and "already tried" degrades to "already did something". Resolved the same
+    way the catalog resolves it, from the observation the agent was shown.
+    """
+    if not action_key.startswith(("give", "take", "transfer")):
+        return None
+    character = (observation.get("character") or {}).get("position") or [0.0, 0.0]
+    nearest, best = None, None
+    for entity in observation.get("entities") or []:
+        point = entity.get("p") or entity.get("offset") or [0.0, 0.0]
+        distance = abs(point[0] - character[0]) + abs(point[1] - character[1])
+        if best is None or distance < best:
+            nearest, best = entity.get("h") or entity.get("handle"), distance
+    return nearest
+
+
 @dataclass
 class AgentConfig:
     """Everything about a run that is not the environment or the provider."""
@@ -122,6 +143,11 @@ class AgentConfig:
     #: The two are not interchangeable: `deliver`'s floor is 0.00 over
     #: primitives and 0.04 over skills, and before today's hardening it was 0.80.
     skills: bool = False
+    #: Keep a record of what has been observed and tried, and render it into the
+    #: prompt (PLAN 5.4). Per *episode*, never across them: memory that survived
+    #: an episode boundary would carry one evaluation scene's contents into the
+    #: next, which is contamination rather than competence.
+    memory: bool = True
     run_prefix: str = "agent"
     extra: dict = field(default_factory=dict)
 
@@ -136,6 +162,7 @@ class AgentConfig:
             "split": self.split,
             "shaping": self.shaping,
             "skills": self.skills,
+            "memory": self.memory,
         }
 
 
@@ -233,11 +260,19 @@ class AgentLoop:
         self.provenance = dict(provenance or {})
         self.brief = TaskBrief.from_spec(env.spec_)
         self.decisions: list[Decision] = []
+        self.memory = Memory()
 
     # ------------------------------------------------------------- deciding
 
     def _ask(self, summary: ObservationSummary, correction: str) -> ModelReply:
         user = summary.render()
+        if self.config.memory:
+            # Appended rather than woven in, so the observation the model is
+            # shown stays exactly the observation the environment published and
+            # the remembered part is visibly separate from the current one.
+            remembered = self.memory.render()
+            if remembered:
+                user = f"{user}\n\nWHAT YOU HAVE ALREADY SEEN AND TRIED\n{remembered}"
         if correction:
             # Telling the model what was wrong is what makes a retry different
             # from a repeat. A loop that re-sent the identical prompt burned its
@@ -331,8 +366,13 @@ class AgentLoop:
         consecutive_fallbacks = 0
         stopped = "budget"
         info: dict = {}
+        # A fresh record per episode. Carrying one over would put the previous
+        # scene's containers into this scene's prompt.
+        self.memory = Memory()
         while True:
             observation = self.env._observation
+            if self.config.memory:
+                self.memory.observe(steps, observation)
             mask = self.env.action_masks()
             vocabulary = action_vocabulary(self.env)
             legal = legal_actions(vocabulary, mask)
@@ -368,6 +408,18 @@ class AgentLoop:
                 "skill_steps": info.get("skill_steps"),
                 "skill_trace": info.get("skill_trace"),
             }
+            if self.config.memory:
+                # Status and error only. `reward` and `success` sit two lines
+                # above and are deliberately not passed: memory is rendered back
+                # into the prompt, so anything it reads, the model sees.
+                self.memory.record_action(
+                    steps - 1,
+                    decision.action_key,
+                    target=_target_of(decision.action_key, observation),
+                    status=info.get("action_status"),
+                    error=info.get("action_error"),
+                )
+                self.memory.compact()
             self.decisions.append(decision)
             self._append_decision(decision)
 

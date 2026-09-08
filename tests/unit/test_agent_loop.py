@@ -651,3 +651,138 @@ def test_the_agent_loop_never_imports_the_training_stack():
             pytest.skip(f"host under memory pressure: {result.stderr.strip()[:120]}")
         pytest.fail(result.stderr)
     assert not result.stdout.strip(), f"the agent path imported: {result.stdout.strip()}"
+
+
+# ------------------------------- 5.3: a real local endpoint, same contracts
+
+
+class _LocalServer:
+    """A minimal OpenAI-compatible chat-completions endpoint on localhost.
+
+    PLAN 5.3 asks that "local and API models use the same observation and action
+    contracts". Until this existed only the API path had ever run, so the claim
+    rested on the adapters looking similar rather than on the local one having
+    worked. This is a real HTTP server the real adapter really posts to, so the
+    request shape it receives is the request shape a hosted provider receives.
+
+    It is not a stand-in for a model: it echoes back a fixed choice. What is
+    under test is the transport and the contract, not the reply's quality.
+    """
+
+    def __init__(self, reply: str):
+        import http.server
+        import json as _json
+        import threading
+
+        self.requests: list[dict] = []
+        outer = self
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):  # noqa: N802 - http.server's interface
+                length = int(self.headers.get("Content-Length") or 0)
+                body = _json.loads(self.rfile.read(length) or b"{}")
+                outer.requests.append(
+                    {"path": self.path, "body": body, "headers": dict(self.headers)}
+                )
+                payload = _json.dumps(
+                    {
+                        "choices": [{"message": {"content": reply}, "finish_reason": "stop"}],
+                        "usage": {"prompt_tokens": 11, "completion_tokens": 3, "total_tokens": 14},
+                        "model": "local-model",
+                    }
+                ).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+
+            def log_message(self, *_args):
+                return
+
+        self._server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+        self.port = self._server.server_address[1]
+        self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
+
+    def __enter__(self):
+        self._thread.start()
+        return self
+
+    def __exit__(self, *_exc):
+        self._server.shutdown()
+        self._server.server_close()
+
+
+def test_a_local_endpoint_drives_the_loop_through_the_same_contracts(tmp_path):
+    from factoriorl.agent.adapters import OpenAICompatibleAdapter
+
+    with _LocalServer('{"action": 0, "reason": "walk north"}') as server:
+        adapter = OpenAICompatibleAdapter(
+            base_url=f"http://127.0.0.1:{server.port}/v1",
+            model="local-model",
+            api_key_env=None,
+            temperature=0.0,
+        )
+        env = StubEnv()
+        loop = loop_for(env, adapter, tmp_path, episodes=1, max_steps=2)
+        result = loop.run()
+
+    assert result["model_calls"] >= 1
+    assert result["fallback_decisions"] == 0
+    assert not result["failures"]
+
+    sent = server.requests[0]
+    assert sent["path"].endswith("/chat/completions")
+    # The same message shape a hosted provider is sent: a system prompt that
+    # states the action contract, then the rendered observation.
+    messages = sent["body"]["messages"]
+    assert [m["role"] for m in messages] == ["system", "user"]
+    assert "LEGAL ACTIONS" in messages[1]["content"]
+    assert sent["body"]["model"] == "local-model"
+    # No credential is invented for an endpoint that was configured without one.
+    assert "Authorization" not in sent["headers"]
+
+    # And latency and usage are recorded for a local endpoint exactly as they
+    # are for an API one -- 5.3 requires it of both.
+    assert result["latency_ms"]["mean"] >= 0
+    assert result["usage_totals"]["total_tokens"] > 0
+
+
+def test_a_local_endpoint_and_an_api_endpoint_send_the_same_prompt(tmp_path):
+    """The contract claim is that only the transport differs.
+
+    Both adapters are pointed at the same local server, so any difference in
+    what the model is shown would appear here as a difference in the recorded
+    request.
+    """
+    from factoriorl.agent.adapters import AnthropicMessagesAdapter, OpenAICompatibleAdapter
+
+    prompts = {}
+    for label, build in (
+        (
+            "local",
+            lambda port: OpenAICompatibleAdapter(
+                base_url=f"http://127.0.0.1:{port}/v1", model="local-model", api_key_env=None
+            ),
+        ),
+        (
+            "api",
+            lambda port: OpenAICompatibleAdapter(
+                base_url=f"http://127.0.0.1:{port}/v1",
+                model="hosted-model",
+                api_key_env=None,
+                token_parameter="max_completion_tokens",
+                temperature=None,
+            ),
+        ),
+    ):
+        with _LocalServer('{"action": 0, "reason": "walk north"}') as server:
+            loop = loop_for(
+                StubEnv(), build(server.port), tmp_path / label, episodes=1, max_steps=1
+            )
+            loop.run()
+            prompts[label] = server.requests[0]["body"]["messages"]
+
+    assert prompts["local"][0]["content"] == prompts["api"][0]["content"]
+    assert prompts["local"][1]["content"] == prompts["api"][1]["content"]
+    assert AnthropicMessagesAdapter is not None  # the third transport exists, unused here
