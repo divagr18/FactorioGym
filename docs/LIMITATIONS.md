@@ -151,19 +151,31 @@ Phase 4 acceptance (4.5) requires at least three families at 80% on the
 structural split with at least one production or repair family, evaluated over
 100 frozen held-out episodes per family per training seed.
 
-**Two families have no reward gradient, and their 0.00 scores must not be read
-as a property of the tasks.** `repair_belt` and `restore_power` pay a sparse
-success plus a step cost and nothing that can fire before success -- measured on
-`repair_belt`: 190 training episodes, zero successes, mean episode reward
--0.300 against a step cost of exactly 300 x 0.001. More steps cannot help a
-policy with nothing to ascend.
+**WITHDRAWN (2026-09-08).** This section previously stated that `repair_belt`
+and `restore_power` had no reward gradient and no training successes, citing
+"190 training episodes, zero successes, mean episode reward -0.300". Both
+halves were wrong.
 
-Separately, the budget those runs used could not license a negative claim even
-with a gradient. The exploration lower bound for an `H = 300` family is roughly
-15-27 M steps (`docs/research/rl-theory.md`, Anchor 1); the matrix ran 50,000,
-about 0.3% of it. See `docs/research/sparse-reward-decision.md` for what the
-books recommend instead, and why hand-designed subgoal rewards are the one
-option Sutton & Barto §17.4 explicitly warns against.
+`docs/evidence/reward-audit.json` reports `has_gradient: true` for both at
+v1.5.0. And the numbers came from `CurveLogger`, which kept one reward
+accumulator and one step counter for the entire worker vector and read the
+success flag from `infos[0]` only -- so a success in any worker but the first
+was written down as a zero, and the "-0.300" was an eight-worker sum that
+happened to resemble one episode's step cost. The curves on disk contain 24 and
+19 successes on `restore_power` and 1 on `repair_belt`. Fixed in `8b68296`,
+covered by `tests/unit/test_curve_logger.py`.
+
+On the fixed instrumentation, a 6,000-step `restore_power` run logs 51 episodes
+and 5 successes -- **none in worker 0** -- and scores 0.25 stochastic against a
+0.10 random floor on training seeds while scoring 0.00 on both held-out splits.
+The failure is transfer, not learning. Two related corrections: the
+`15-27 M` step lower bound (`docs/research/rl-theory.md` Anchor 1) is
+explicitly "a floor with no ceiling attached" and cannot license a negative
+claim; and `holdout_v2` was re-frozen five times, so the `phase4-release-v2-*`
+scores for these two families were measured on scenes the current holdout no
+longer contains. `deliver`'s frozen entry is byte-identical across the last
+four freezes, so its 0.92 stands.
+
 
 **Status: see `docs/LEDGER.md` and `docs/evidence/phase4-release-v2-*.json`.**
 The first declaration (`holdout_v1`: navigate, deliver, mine_smelt) produced no
