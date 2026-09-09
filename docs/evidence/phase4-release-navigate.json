@@ -1680,5 +1680,12 @@
         "proceeded": true
       }
     }
-  ]
+  ],
+  "holdout_provenance": {
+    "note": "The hash in this file is not the current content_hash of any committed holdout, so `freeze_holdout.manifests_citing` cannot resolve it from the working tree. It is recoverable from git history at the commit named below, which is what makes these numbers traceable rather than orphaned. Every measured value in this file is unchanged; only this metadata was added.",
+    "cited": "f77aa2c291f720f9 (header)",
+    "resolves_to": "holdout_v1 at commits 89bcb6c and acaef6a",
+    "cells": "the header and the cells disagree. Cell 0 cites acb820cb20419579 (holdout_v1 at 4641da0) and cell 1 cites 8ef3df51b951b20c (holdout_v1 at f2e81b1), while runs[0] carries no citation at all -- so this file reports numbers measured against at least three different scene sets plus one unknown",
+    "corrected_at": "2026-09-09, Phase 4 close (P4-B)"
+  }
 }

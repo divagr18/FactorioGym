@@ -1669,5 +1669,12 @@
         "proceeded": true
       }
     }
-  ]
+  ],
+  "holdout_provenance": {
+    "note": "The hash in this file is not the current content_hash of any committed holdout, so `freeze_holdout.manifests_citing` cannot resolve it from the working tree. It is recoverable from git history at the commit named below, which is what makes these numbers traceable rather than orphaned. Every measured value in this file is unchanged; only this metadata was added.",
+    "cited": "b41e4f0c576156bc",
+    "resolves_to": "holdout_v2 at commit f7bc5bf",
+    "cells": "header and both cells cite the same hash; runs[2] carries no citation at all",
+    "corrected_at": "2026-09-09, Phase 4 close (P4-B)"
+  }
 }

@@ -1674,5 +1674,15 @@
         "proceeded": true
       }
     }
-  ]
+  ],
+  "holdout_provenance": {
+    "note": "The hash in this file is not the current content_hash of any committed holdout, so `freeze_holdout.manifests_citing` cannot resolve it from the working tree. It is recoverable from git history at the commit named below, which is what makes these numbers traceable rather than orphaned. Every measured value in this file is unchanged; only this metadata was added.",
+    "cited": "b41e4f0c576156bc (header)",
+    "resolves_to": "holdout_v2 at commit f7bc5bf",
+    "cells": "the header and the cells disagree, and one cell is unrecoverable. Cell 1 cites 2fa1d92b88eb8839 (holdout_v2 at e8a1ee6). Cell 0 cites 7edc5ee292b90972, which was **never any committed holdout's content_hash at any commit in this repository's history** -- `git log --all -S` finds that string only in 8b68296, the commit that added this evidence file. That cell's scene set cannot be retrieved from git, so its number describes a scene set that no longer exists in any form. runs[0] carries no citation at all",
+    "unrecoverable_cells": [
+      "restore_power.cells[0] / runs[1]"
+    ],
+    "corrected_at": "2026-09-09, Phase 4 close (P4-B)"
+  }
 }
