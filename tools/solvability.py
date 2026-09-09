@@ -210,7 +210,20 @@ def main() -> int:
             for t, e in report["tasks"].items()
             if e["splits"] and not all(s["discriminative"] for s in e["splits"].values())
         )
+        # A partial run must not overwrite the published audit. This file was
+        # already lost that way once: an R4.3 `--tasks` run left it holding two
+        # of ten tasks, and nothing noticed because the tool exits 0 and prints
+        # a pass. Identical guard to `generator_diagnostics.py`, which had the
+        # same defect.
         out = ROOT / "docs" / "evidence" / "phase3-solvability.json"
+        if set(task_ids) != set(all_tasks()) or set(splits) != {"train", "test"}:
+            out = out.with_name("phase3-solvability-partial.json")
+            print(
+                f"\npartial run ({len(task_ids)} of {len(all_tasks())} tasks, "
+                f"splits {sorted(splits)}): writing {out.name} rather than "
+                "overwriting the published audit",
+                flush=True,
+            )
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, indent=2), encoding="utf-8")
         manager.cleanup(handle)
