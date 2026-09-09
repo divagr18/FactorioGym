@@ -307,6 +307,55 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
         self.temperature = temperature
         self.token_parameter = token_parameter
         self.extra_body = dict(extra_body or {})
+        #: What `_heal` had to change for this provider. Reported by
+        #: `describe`, because a run whose `temperature` was dropped is not a
+        #: deterministic run and the manifest has to be able to say so.
+        self.healed_parameters: list[dict] = []
+
+    #: Parameters a provider may reject *by name*, and what to send instead.
+    #: Renames, or removal where there is no equivalent. Deliberately not a
+    #: general "drop whatever it complains about": a silent retry that removed
+    #: something load-bearing would change what a run means, so every entry
+    #: here is a spelling difference between OpenAI-compatible servers.
+    PARAMETER_HEALS: dict[str, str | None] = {
+        # OpenAI's newer models reject the older spelling outright.
+        "max_tokens": "max_completion_tokens",
+        # Some models accept only their default sampling temperature and
+        # reject any explicit one. Dropped rather than renamed, so the retried
+        # request samples at the provider's default: that run is **not**
+        # deterministic, which is why every heal is recorded rather than
+        # quietly applied. Determinism is the reason temperature is 0 here at
+        # all -- a failure that cannot be replayed cannot be diagnosed.
+        "temperature": None,
+    }
+
+    #: The two ways a provider says "not that field" and "not that value for
+    #: that field". Both phrases are needed: `gpt-5.6-luna` rejects
+    #: `max_tokens` as an *Unsupported parameter* and then rejects
+    #: `temperature: 0.0` as an *Unsupported value* -- "Only the default (1)
+    #: value is supported" -- so matching only the first phrase healed one call
+    #: and left the next one failing.
+    REJECTION_PHRASES = ("unsupported parameter", "unsupported value")
+
+    def _heal(self, body: dict, error: str | None) -> dict | None:
+        """A retry body when the provider rejected a parameter we sent, else None."""
+        if not error:
+            return None
+        lowered = error.lower()
+        if not any(phrase in lowered for phrase in self.REJECTION_PHRASES):
+            return None
+        for name, replacement in self.PARAMETER_HEALS.items():
+            if f"'{name}'" not in error or name not in body:
+                continue
+            retry = dict(body)
+            value = retry.pop(name)
+            if replacement is not None:
+                retry[replacement] = value
+            self.healed_parameters.append(
+                {"rejected": name, "sent_instead": replacement, "error": error[:200]}
+            )
+            return retry
+        return None
 
     def complete(self, request: ModelRequest) -> ModelReply:
         headers = {"content-type": "application/json"}
@@ -329,7 +378,23 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
         if self.temperature is not None:
             body["temperature"] = self.temperature
         started = time.perf_counter()
-        payload, error, kind = self._post(f"{self.base_url}/chat/completions", headers, body)
+        url = f"{self.base_url}/chat/completions"
+        payload, error, kind = self._post(url, headers, body)
+        # Retry only when the provider named a parameter *we* sent as
+        # unsupported. Measured cost of not doing this: a `gpt-5.6-luna` run
+        # rejected every call with "Unsupported parameter: 'max_tokens' is not
+        # supported with this model. Use 'max_completion_tokens' instead", the
+        # loop took its `wait` fallback each time, and the run ended after five
+        # decisions having never once reached the model. The cause was in
+        # `decisions.jsonl` and nowhere in the result. Bounded at two, because
+        # a provider can reject two spellings in turn and an unbounded loop
+        # would bill for every one of them.
+        for _ in range(2):
+            healed = self._heal(body, error)
+            if healed is None:
+                break
+            body = healed
+            payload, error, kind = self._post(url, headers, body)
         latency = (time.perf_counter() - started) * 1000.0
         if error:
             return ModelReply(text="", latency_ms=latency, error=error, error_kind=kind)
@@ -359,6 +424,11 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
             "model": self.model,
             "base_url": self.base_url,
             "temperature": self.temperature,
+            # Which parameter spellings this provider rejected, and what was
+            # sent instead. Empty for every provider that accepted the first
+            # body; non-empty means the request that produced this run was not
+            # the request the code composed.
+            "healed_parameters": list(self.healed_parameters),
             # The variable's *name* and whether it was set: enough to reproduce
             # the run, and not the secret itself.
             "api_key_env": self.api_key_env,

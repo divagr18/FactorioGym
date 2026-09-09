@@ -5,13 +5,36 @@ and carries its own staleness banner. Direction comes from
 [`docs/DEVELOPMENT_REDIRECTION.md`](DEVELOPMENT_REDIRECTION.md); this file is day-to-day
 state. Read this before treating any older summary as current fact.
 
-**Last reconciled:** 2026-09-09, after R3.1 (`623f7dd`).
+**Last reconciled:** 2026-09-09, after R4.
 
 ---
 
 ## 1. Live now
 
 **Nothing is running.** Both machines idle.
+
+### R4 changed two things every earlier number should be read against
+
+**A withdrawn claim.** `phase5-demonstration.json`'s
+`sustained_production_restored` and `all_clauses_met` are **withdrawn**, in a
+`withdrawal` block inside that file; every other byte of it is the original
+run. The disruption emptied fuel *inventories* only, and
+`docs/evidence/r4-burner-decay.json` measures a burner running **1,170 ticks**
+afterwards on stored energy the clear does not touch -- against a 90-tick
+"recovery". There was no outage criterion and no control arm. What replaces it
+is `docs/evidence/r4-recovery-arms.json`: control 5 plates, agent 5/39/43,
+undisturbed ceiling 43, from a digest-validated common state, with the control
+arm's outage confirmed at tick 5970. Two of three agent runs are `loss_averted`
+rather than `recovery_demonstrated` -- their own line never stopped, so there
+was nothing for them to recover from.
+
+**A prompt that could not state a cause.** `summary._entity_row` never copied
+the per-entity status *name*, `working`, `fuel` or `output` that `local-v2` v4
+was bumped to publish, so every language-model prompt this repo ever rendered
+showed `status 18` and nothing else. Fixed;
+`SUMMARY_ENCODING_VERSION` is **3**. **R3.2's LLM baseline (0/2, 539 decisions)
+and R4.2's first agent arm were both measured against the broken renderer** and
+do not compare across the boundary.
 
 Results against the live holdout (`holdout_v3`, now `ff22dedd` -- it was `4227eb56`
 when these were measured; `build_line` was added and then re-frozen, and every
@@ -201,6 +224,30 @@ which a seed learned was a lottery. That is not transfer variance.
   collision.
 
 ---
+
+## 5b. R4 additions
+
+| what | where | state |
+|---|---|---|
+| one refresh path: `FactorioEnv._adopt`, `advance`, `resync` | `env.py` | done, engine-checked by `gate_r4` |
+| a sampled window, not merely a spanned one | `tasks/spec.py` | done |
+| declared outage/recovery criteria, before any arm ran | `recovery.py` | done |
+| burner decay curve | `tools/burner_decay.py` | measured, published |
+| three arms, agent arm repeated | `tools/recovery_arms.py` | measured, published |
+| `TaskSpec.track`, replacing `release_matrix.CATEGORY` | `tasks/spec.py` | done; `plate_line` and `build_line` are now inside the release qualification filter they were invisible to |
+| `fault-location:published` assistance | `assistance.py` | done |
+| `TaskSpec.disruptions` + typed `disrupt` request | `spec.py`, `session.py`, `world.lua` | done |
+| `diagnose_line` (diagnosis track) | `tasks/families/diagnose_line.py` | registered, frozen, split audit passes; **solvability still short of the floor ceiling in the skills action space -- see below** |
+| `keep_line_running` (persistent-operation track) | `tasks/families/keep_line_running.py` | registered, frozen, split audit passes; solvability not yet measured |
+| `gate_r4.py` | `factoriorl/gate_r4.py` | written, not yet run on an engine |
+
+**What is not finished, stated plainly.** `diagnose_line`'s random floor was
+driven from 0.40 to 0.10 (train) and 0.00 (test) over three measured
+iterations, and the last measurement of the *skills* action space was 1.00
+against a 0.10 ceiling -- taken **before** the budget was cut from 500
+decisions to 200, which is the change aimed at exactly that. It has not been
+re-measured since. `keep_line_running` has never been measured. Neither family
+is a declared holdout candidate, and no result is published for either.
 
 ## 6. Capability status
 

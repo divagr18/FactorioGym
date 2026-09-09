@@ -1194,6 +1194,188 @@ Editing the family would invalidate those runs and change the blueprints behind
 `holdout_v1.json`'s content hash, which is exactly the drift the freeze exists
 to catch. Recorded, not patched.
 
+## R4 - Fresh observations, a measured outage, three declared tracks
+
+### The recovery claim in the tree did not hold up, and its own numbers said so
+
+`docs/evidence/phase5-demonstration.json` recorded
+`sustained_production_restored: true` and `all_clauses_met: true`. Both are now
+withdrawn, in a `withdrawal` block appended to that file with every other byte
+unchanged. What the file already contained:
+
+- the disruption emptied both fuel *inventories* at tick 4050 with
+  `get_fuel_inventory():clear()`, which never touches `entity.energy`;
+- `state_after` records `drill_status: 1` -- **working** -- with `drill_fuel: 0`;
+- `phase_4_recovery` took **3 decisions**, which is 90 ticks.
+
+`tools/burner_decay.py` then measured what nothing had measured: after the fuel
+inventories are emptied, production continues for **1,170 ticks** and makes 5
+more plates. Cross-checked against the machine's own numbers -- 2,999,833 J of
+`remaining_burning_fuel` against a 150 kW drill is 1,199 ticks -- so measurement
+and arithmetic agree to within one decision interval. The demonstration
+refuelled a line that was still running at full rate.
+
+### Three arms, five runs, and a distribution rather than a number
+
+`tools/recovery_arms.py`, from a digest-validated common state at tick 3600:
+
+| arm | plates after the intervention point | outage | recovery |
+|---|---|---|---|
+| no_action (control) | 5 | **confirmed** at tick 5970 | refused |
+| agent, three runs | 5, 39, 43 | refused, refused, confirmed | -- |
+| undisturbed (ceiling) | 43 | refused | -- |
+
+Median attributable to the agent: **34 plates**, range 0 to 38, ceiling 43.
+
+**The agent arm is run three times because one run is not a measurement.**
+`give_coal_N` fuels the *nearest* entity and the drill and furnace are two tiles
+apart, so which machine gets refuelled turns on where the character happens to
+be standing. Two runs of the same model on the same scene differed by 39 plates
+on that alone.
+
+**A confirmed outage in the control arm does not make the agent's arm a
+recovery.** Two of three agent runs never stopped producing for the declared
+duration, so there was no outage in *their* arm to recover from: that is loss
+**averted**, and the report says `loss_averted` rather than
+`recovery_demonstrated`. The third run's own line stopped and never came back --
+`agent_failed`. The first version of that verdict printed "the agent's arm never
+stopped" over an arm whose outage read `confirmed`, because it tested the
+recovery clause and not the outage one.
+
+The extended digest was equal across all five runs at tick 3600, including
+`energy=2667` and `burning=2999833` -- the two fields the old digest was blind
+to, and exactly the quantity the arms differ on.
+
+### The prompt could not say why a machine had stopped
+
+`local-v2` was bumped to v4 to publish four per-entity fields, and its own note
+says why: *"per-entity status name, working flag, fuel and output contents --
+what a stopped machine's cause actually is."* `sensor.entity_record` builds all
+four. `summary._entity_row` copied **none** of them, so every language-model
+prompt this repo has ever rendered showed `status 18` -- the exact string
+`sensor.lua`'s comment calls the thing *"neither client could act on"*.
+
+Found by reading R4.2's first agent arm: 25 decisions on a line whose fuel had
+just been emptied, with the drill's record carrying `status` and nothing else.
+The agent refuelled twice, blind. `SUMMARY_ENCODING_VERSION` is 3, so R3.2's
+baseline and that arm do not silently compare across the change.
+
+There is no "fuel: empty" line when the field is absent, deliberately:
+`sensor.inventory_contents` returns nil both for an empty fuel inventory and for
+an entity that has none, so an absent field cannot tell a drained drill from a
+transport belt. The engine's own status name carries that diagnosis -- a burner
+out of fuel reports `no_fuel`.
+
+### A declared scene has to be the installed scene
+
+`diagnose_line` declared a hundred-plate output jam in every one of its scenes.
+The engine accepted **none** of them: `LuaEntity.insert` picks an inventory by
+what an item is *for*, and a furnace's own product belongs to neither its source
+nor its fuel slot. So the second fault the family was built around did not
+exist.
+
+It survived four solvability runs and a unit test that asserted the
+*declaration* rather than the installation. `world.build_blueprint` now falls
+back to `get_output_inventory()` and returns an `undelivered` list, and
+`FactorioEnv.begin_episode` raises on a non-empty one: a scene that is not the
+declared scene produces numbers that describe no task.
+
+### What a task declares about itself
+
+- **`TaskSpec.track`** replaces `tools/release_matrix.CATEGORY`, a dict
+  hard-coded in a tool whose own comment said *"the task specs carry no category
+  field"*. It listed six of eight tasks; `plate_line` and `build_line` were
+  absent, so `CATEGORY.get(task, "unknown")` filed both under `unknown` and PLAN
+  4.5's qualification filter could not see the two most production-like families
+  in the repo. The default track is `"unclassified"`, which is **not** a valid
+  track, so an undeclared one fails `tasks validate` instead of being filed by
+  accident.
+- **`fault-location:published`** is now a declared assistance. Fault *selection*
+  was named (`goal-focus:nearest_unrepaired`) and fault *localisation* was not,
+  though publishing the tile is the larger hint: with it, "repair a broken line"
+  is "walk to a published coordinate and place one item". Both repair families
+  had been doing it undeclared since v1.6.0. Three comments in the tree claimed
+  `gap` was evaluator-only and "never reaches an observation" -- false since
+  v1.6.0, and in both family modules the sentence sat 170 lines below the
+  `extra_public_markers` that falsifies it.
+- **`landmarks` is in `to_dict()`**, because each one occupies a slot in the goal
+  vector the encoder receives. `extra_public_markers` and `focus_marker` went in
+  for that reason and this was left out.
+- **`TaskSpec.disruptions`** and a typed `disrupt` request. Every disruption
+  before now was a driver-side `bridge.run` string fired at a hard-coded point
+  in a script: the tick lived in the driver, the targets lived in the string, and
+  no trace could state either. The env applies a declared disruption from the one
+  place every observation refresh goes through and `resync`s immediately, so the
+  first post-disruption observation is fresh by construction -- the defect that
+  made the old demonstration's next prompt say "game tick 450" while the world
+  was at 4050.
+
+### A benchmark's floor is a property of its deadline, not only of its scene
+
+`diagnose_line` had to be measured three times before it was worth anything, and
+each refusal taught something transferable.
+
+1. **One fault, 5..9 tiles, 500 decisions**: reference 0.60, random **0.40**, and
+   on the held-out split random **0.60 beat the reference's 0.40**. Every fix in
+   this catalog is a cheap, frequently sampled button press, and `give_coal_N`
+   and `take_iron-plate_5` address the *nearest* entity -- so with two machines a
+   few tiles away there is no target to get wrong, and a policy sampling sixteen
+   actions for hundreds of decisions is nearly a competent one.
+2. **Distance.** Moved to 24..30 tiles, the regime `navigate` measures a 0.00
+   random floor in (path length 24.7), still inside the 32-tile sensor radius so
+   the task stays a diagnosis rather than becoming a search. Random fell to 0.20
+   on training scenes and 0.00 on the holdout.
+3. **The deadline.** With a *trailing* window and a long budget, acceptance can
+   be reached from a fix made almost anywhere in the episode, and a
+   skill-equipped random policy scored **1.00**. `plate_line`'s floor in the same
+   action space is 0.00 -- not because its scene is harder but because it asks
+   for 30 cumulative plates, which only a line running for most of the episode
+   produces. Cutting the budget to just past the earliest possible acceptance
+   (200 decisions, reference at 120) is what makes the number mean anything.
+
+**A structural descriptor cannot see an empty fuel slot.** The split audit
+reported `diagnose_line`'s holdout as "the same shape of scene under a different
+name", correctly: its four families place the identical drill, furnace and ore
+patch and differ only in machine *contents*. `content_tile_count` sees where a
+scene's contents are and nothing saw what was inside them, so
+`declared_item_count` was added -- the same class of blind spot `goal_isolation`
+was added for, and it changed no other family's verdict.
+
+### Engine facts
+
+- **`LuaEntity.insert` cannot fill a furnace's result slot.** It selects an
+  inventory by the item's role, and a furnace's product has no role among its
+  inputs. `get_output_inventory():insert(...)` does it.
+- **`clear_statistics` does not reset a research trigger's counter.**
+  `steam-power`'s trigger is `craft-item iron-plate count=50`; the counter is
+  cumulative on the force and *consumed* rather than cleared when it fires -- 67
+  plates fired it and left 17, then 33 more fired it again. Statistics read 0
+  after the reset and the trigger still re-fired, `disable_research()` has no
+  effect, and `research_enabled` is read-only. **No Lua accessor resets it**, so
+  sequential episodes on one worker cannot reach the same technology state,
+  whatever reset does. Every arm of a state-comparison experiment therefore needs
+  its own worker.
+- **A joining multiplayer client is not free.** The engine creates a `LuaPlayer`,
+  gives it a character and starts the freeplay intro cutscene, and the join stalls
+  the server while it transfers the map. Measured: the stall landed inside a
+  step, the request raised an infrastructure failure, and the episode was
+  truncated at decision 3 and excluded from metrics while the watcher sat on
+  "press TAB to skip the cutscene". The mod now puts any joining player straight
+  into `defines.controllers.spectator` with no character, and
+  `tools/watch_agent.py` waits for the join before it steps. While the map
+  transfers, RCON answers with an empty body -- which `RCONClient.lua` raises as
+  `non-json rcon response: ''`, not an `OSError`.
+- **OpenAI's `gpt-5.6` family rejects two parameters this repo sent.**
+  `max_tokens` is refused outright ("Use 'max_completion_tokens' instead") and
+  `temperature: 0.0` is refused as an *unsupported value* -- "Only the default
+  (1) value is supported". Both arrive as HTTP 400, the agent loop's `wait`
+  fallback absorbed them, and a `gpt-5.6-luna` run ended after five decisions
+  having never once reached the model; the cause was in `decisions.jsonl` and
+  nowhere in the result. `OpenAICompatibleAdapter` now retries a rejected
+  parameter by name and records the substitution in `healed_parameters`, because
+  dropping `temperature` means the run is no longer deterministic and a manifest
+  has to be able to say so.
+
 ## Engine facts worth remembering
 
 - Factorio 2.0 Lua: `global` → `storage`, `game.create_player` removed
