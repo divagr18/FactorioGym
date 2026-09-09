@@ -79,17 +79,32 @@ skills, on the structural split:
 | `repair_belt` | 12-13 | 0.00 | 0.00 |
 | `restore_power` | 12-13 | 0.00 | 0.00 |
 | `plate_line` | 2 | 0.00 | 0.00 |
+| `diagnose_line` | 2 | 0.10 train, 0.00 test | **0.80** |
+| `keep_line_running` | 2-4 | 0.00 | 0.00 |
 
-**`navigate`, `supply_furnace` and `mine_smelt` cannot carry an 80% claim under
-the skill action space**: a uniform random policy already clears or approaches
-it. Only families that place entities the solution does not need -- decoys --
-have a defensible floor. `tools/solvability.py` reports both floors and flags
-any family above 0.10.
+**`navigate`, `supply_furnace`, `mine_smelt` and `diagnose_line` cannot carry
+an 80% claim under the skill action space**: a uniform random policy already
+clears or approaches it. Only families that place entities the solution does
+not need -- decoys -- have a defensible floor. `tools/solvability.py` reports
+both floors and flags any family above 0.10.
+
+`diagnose_line` joined that list on measurement rather than by design, and the
+reason generalises. Its difficulty is *which* fix to apply beside *which*
+machine, and a macro whose whole job is to stand the character beside a machine
+removes most of it: 0.10 over primitives against **0.80** over skills. Cutting
+its budget from 500 decisions to 200 moved that number from 1.00 to 0.80, which
+was worth doing and was not enough. It is a primitive-space benchmark, and a
+skills-space result on it would demonstrate nothing.
+
+`keep_line_running` is the one family measured discriminative in **both**
+spaces -- 0.00 and 0.00, reference 1.00 on train and test. A disruption the
+agent has to notice is not something a rank-addressing macro stumbles into.
 
 PLAN 4b.1 forbids a skill that encodes a family's solution, and the test for it
 originally grepped skill descriptions for task ids and marker names.
 `approach_entity_0` contains no forbidden substring and *is* the answer in five
-of six families. The semantic check now pins the addressable field per family.
+of the six families that existed when that was measured; there are ten now, and the
+two added in R4.3 have not been re-measured against that check. The semantic check now pins the addressable field per family.
 
 ---
 
