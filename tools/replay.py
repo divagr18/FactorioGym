@@ -110,11 +110,21 @@ PAGE = """<!doctype html>
   <span>{model}</span>
   <span>{counts}</span>
   <span class="evlabel">purple = evaluator information, not visible to the agent</span>
-  <span><i class="key">j</i>/<i class="key">k</i> or arrows to step</span>
+  <span><i class="key">j</i>/<i class="key">k</i> or arrows to step,
+    <i class="key">space</i> to play</span>
 </header>
 <div class="wrap">
   <div class="col">
     <input type="search" id="q" placeholder="filter by action, reason or handle">
+    <div class="filters">
+      <button id="play">play</button>
+      <select id="speed">
+        <option value="1000">1 decision / s</option>
+        <option value="500" selected>2 / s</option>
+        <option value="250">4 / s</option>
+        <option value="100">10 / s</option>
+      </select>
+    </div>
     <div class="filters" id="filters"></div>
     <div id="timeline"></div>
   </div>
@@ -391,12 +401,50 @@ function move(delta) {{
   if (row) row.scrollIntoView({{block: 'nearest'}});
 }}
 
+// Autoplay. The map already redraws per decision from that decision's own
+// observation, so playing the index *is* watching the run -- which is the same
+// answer the Factorio Learning Environment settled on: as of its v0.3.0 it "no
+// longer depends on the Factorio game client" and renders map images per step
+// instead. Attaching a real client to this environment does not work at all --
+// with one connected, RCON requests come back with an empty body -- so this is
+// not a lesser substitute for a live view, it is the view.
+let playing = null;
+
+function playTick() {{
+  const shown = DECISIONS.map((d, i) => i).filter(i => matches(DECISIONS[i]));
+  const at = shown.indexOf(current);
+  if (at < 0 || at + 1 >= shown.length) {{ stopPlay(); return; }}
+  select(shown[at + 1]);
+  const row = document.querySelector('.row.sel');
+  if (row) row.scrollIntoView({{ block: 'nearest' }});
+}}
+
+function stopPlay() {{
+  if (playing) clearInterval(playing);
+  playing = null;
+  const b = document.getElementById('play');
+  if (b) b.textContent = 'play';
+}}
+
+function togglePlay() {{
+  if (playing) {{ stopPlay(); return; }}
+  const ms = Math.max(60, parseInt(document.getElementById('speed').value, 10) || 500);
+  playing = setInterval(playTick, ms);
+  document.getElementById('play').textContent = 'pause';
+  playTick();
+}}
+
 document.addEventListener('keydown', e => {{
   if (e.target.tagName === 'INPUT') return;
-  if (e.key === 'j' || e.key === 'ArrowDown') {{ e.preventDefault(); move(1); }}
-  if (e.key === 'k' || e.key === 'ArrowUp') {{ e.preventDefault(); move(-1); }}
-  if (e.key === 'g') select(0);
-  if (e.key === 'G') select(DECISIONS.length - 1);
+  if (e.key === 'j' || e.key === 'ArrowDown') {{ e.preventDefault(); move(1); stopPlay(); }}
+  if (e.key === 'k' || e.key === 'ArrowUp') {{ e.preventDefault(); move(-1); stopPlay(); }}
+  if (e.key === 'g') {{ stopPlay(); select(0); }}
+  if (e.key === 'G') {{ stopPlay(); select(DECISIONS.length - 1); }}
+  if (e.key === ' ') {{ e.preventDefault(); togglePlay(); }}
+}});
+document.getElementById('play').addEventListener('click', togglePlay);
+document.getElementById('speed').addEventListener('change', () => {{
+  if (playing) {{ stopPlay(); togglePlay(); }}
 }});
 document.getElementById('q').addEventListener('input', e => {{
   query = e.target.value.toLowerCase(); timeline();

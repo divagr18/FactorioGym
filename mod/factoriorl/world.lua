@@ -448,10 +448,21 @@ function world.disrupt(kind, targets)
       seen[aliased.unit_number] = true
       entities[#entities + 1] = aliased
     end
-    for _, entity in pairs(surface.find_entities_filtered({ name = name })) do
-      if not seen[entity.unit_number] then
-        seen[entity.unit_number] = true
-        entities[#entities + 1] = entity
+    -- Only if the name is a real prototype. A target may be a *marker alias*
+    -- -- `keep_line_running` declares `drill` and `furnace` -- and
+    -- `find_entities_filtered` raises "Unknown entity name: drill" on anything
+    -- that is not a prototype, which took the whole request down with it.
+    -- Caught by `gate_r4`, whose disruption clause reported
+    -- `touched: []`, `ok: false` beside an observation still showing 47 coal.
+    local ok, found = pcall(function()
+      return surface.find_entities_filtered({ name = name })
+    end)
+    if ok then
+      for _, entity in pairs(found) do
+        if not seen[entity.unit_number] then
+          seen[entity.unit_number] = true
+          entities[#entities + 1] = entity
+        end
       end
     end
   end

@@ -1,0 +1,442 @@
+{
+  "gate": "R4 fresh observations, a measured outage, three declared tracks",
+  "clauses": [
+    "R4.1: every path that advances time or writes to the world leaves the env's cached observation current",
+    "R4.2: the disruption's production effect is measured against criteria declared beforehand, from a validated common state, with a control arm",
+    "R4.3: three declared tracks, each with its own hints, assistance and outcome",
+    "each track's objective is reachable on its held-out split"
+  ],
+  "checks": [
+    {
+      "check": "repair: the task declares this track",
+      "ok": true,
+      "task": "repair_belt"
+    },
+    {
+      "check": "diagnosis: the task declares this track",
+      "ok": true,
+      "task": "diagnose_line"
+    },
+    {
+      "check": "persistent_operation: the task declares this track",
+      "ok": true,
+      "task": "keep_line_running"
+    },
+    {
+      "check": "the repair track declares that it publishes the fault's location",
+      "ok": true,
+      "assistance": "goal-focus:nearest_unrepaired+fault-location:published"
+    },
+    {
+      "check": "the diagnosis track publishes no marker at all",
+      "ok": true,
+      "published": []
+    },
+    {
+      "check": "and no shaping component points at what it withheld",
+      "ok": true,
+      "note": "rewards._measure's CHARACTER_WITHIN branch reads truth, so such a component would hand back through the reward what the observation withholds"
+    },
+    {
+      "check": "the persistent-operation track declares its disruption on the task",
+      "ok": true,
+      "disruptions": [
+        {
+          "kind": "empty_fuel",
+          "at_tick": 3600,
+          "targets": [
+            "drill",
+            "furnace"
+          ]
+        }
+      ]
+    },
+    {
+      "check": "the arms started from a validated common state",
+      "ok": true,
+      "digest_lines": 56,
+      "mismatched": []
+    },
+    {
+      "check": "the arms were judged by the declared criteria, unmodified",
+      "ok": true,
+      "declared": {
+        "item": "iron-plate",
+        "rate_window_ticks": 600,
+        "outage_at_or_below": 0.0,
+        "outage_sustained_ticks": 600,
+        "recovery_at_least": 2.0,
+        "recovery_sustained_ticks": 3600,
+        "deadline_ticks": 9000,
+        "steady_per_window": 2.5,
+        "basis": "windowed production only. Fuel level and machine status are both unusable: a drill runs 1,170 ticks on stored energy after its fuel is taken, and a healthy line reads `working` on 7.5% of ticks."
+      }
+    },
+    {
+      "check": "the control arm suffered a confirmed outage, so the disruption can stop the line",
+      "ok": true,
+      "control_outage": "confirmed"
+    },
+    {
+      "check": "the agent arm was run more than once",
+      "ok": true,
+      "runs": 3,
+      "note": "one run is not a measurement: `give_coal_N` fuels the nearest entity and two runs of the same model differed by 39 plates"
+    },
+    {
+      "check": "the run-on after a fuel clear is measured, and agrees with the arithmetic",
+      "ok": true,
+      "ticks_producing_after_removal": 1170,
+      "implied": 1199
+    },
+    {
+      "check": "no arm is reported as a recovery it did not demonstrate",
+      "ok": true,
+      "outcome": "loss_averted",
+      "per_run": {
+        "agent#1": "loss_averted",
+        "agent#2": "loss_averted",
+        "agent#3": "agent_failed"
+      }
+    },
+    {
+      "check": "the env's tick matches the engine's at reset",
+      "ok": true,
+      "env": 0,
+      "engine": 0
+    },
+    {
+      "check": "the env's tick matches the engine's after advancing past the outage",
+      "ok": true,
+      "env": 3660,
+      "engine": 3660,
+      "advanced_through": "env.advance"
+    },
+    {
+      "check": "the production window is sampled, not jumped",
+      "ok": true,
+      "samples": 123,
+      "widest_gap": 30,
+      "decision_ticks": 30
+    },
+    {
+      "check": "the declared disruption fired, and the engine says what it touched",
+      "ok": true,
+      "applied": [
+        {
+          "index": 0,
+          "declared_at_tick": 3600,
+          "applied_at_tick": 3600,
+          "kind": "empty_fuel",
+          "targets": [
+            "drill",
+            "furnace"
+          ],
+          "touched": [
+            "burner-mining-drill=47",
+            "stone-furnace=48"
+          ],
+          "ok": true,
+          "error": null
+        }
+      ]
+    },
+    {
+      "check": "it fired at or after its declared tick, never before",
+      "ok": true,
+      "declared": 3600,
+      "applied_at": 3600
+    },
+    {
+      "check": "the first post-outage observation shows the emptied fuel",
+      "ok": true,
+      "fuel": {
+        "burner-mining-drill": null,
+        "stone-furnace": null
+      },
+      "note": "`resync` ran inside the refresh path; the driver that fired raw Lua reported 48 coal here"
+    },
+    {
+      "check": "the outage is unannounced: no marker, no event",
+      "ok": true,
+      "goal": {},
+      "published_markers": []
+    },
+    {
+      "check": "repair: the reference reaches the objective on the held-out split",
+      "ok": true,
+      "solved": "2/2"
+    },
+    {
+      "check": "diagnosis: the reference reaches the objective on the held-out split",
+      "ok": true,
+      "solved": "2/2"
+    },
+    {
+      "check": "persistent_operation: the reference reaches the objective on the held-out split",
+      "ok": true,
+      "solved": "2/2"
+    }
+  ],
+  "tracks": {
+    "repair": {
+      "task": {
+        "id": "repair_belt",
+        "version": "1.6.0",
+        "track": "repair"
+      },
+      "supplied_knowledge": {
+        "task_description": "Restore a broken belt line so items reach the unloading chest.",
+        "published_markers": [
+          "gap",
+          "gap2",
+          "sink"
+        ],
+        "withheld_fault_markers": []
+      },
+      "assistance": "goal-focus:nearest_unrepaired+fault-location:published",
+      "declared_disruptions": []
+    },
+    "diagnosis": {
+      "task": {
+        "id": "diagnose_line",
+        "version": "1.0.0",
+        "track": "diagnosis"
+      },
+      "supplied_knowledge": {
+        "task_description": "This plate line has stopped. Find out why and get it producing iron plates again, without being told where the problem is.",
+        "published_markers": [],
+        "withheld_fault_markers": [
+          "drill",
+          "furnace"
+        ]
+      },
+      "assistance": "none",
+      "declared_disruptions": []
+    },
+    "persistent_operation": {
+      "task": {
+        "id": "keep_line_running",
+        "version": "1.0.0",
+        "track": "persistent_operation"
+      },
+      "supplied_knowledge": {
+        "task_description": "This plate line is already running. Keep it producing iron plates for the rest of the episode, whatever happens to it.",
+        "published_markers": [],
+        "withheld_fault_markers": []
+      },
+      "assistance": "none",
+      "declared_disruptions": [
+        {
+          "kind": "empty_fuel",
+          "at_tick": 3600,
+          "targets": [
+            "drill",
+            "furnace"
+          ]
+        }
+      ]
+    }
+  },
+  "recovery": {
+    "outcome": "loss_averted",
+    "comparison": {
+      "plates_after_the_intervention_point": {
+        "no_action": 5.0,
+        "agent_each": [
+          5.0,
+          39.0,
+          43.0
+        ],
+        "agent_median": 39.0,
+        "undisturbed": 43.0
+      },
+      "outage": {
+        "no_action": "confirmed",
+        "agent_each": [
+          "refused",
+          "refused",
+          "confirmed"
+        ],
+        "undisturbed": "refused"
+      },
+      "recovery": {
+        "no_action": "refused",
+        "agent_each": [
+          "unknown",
+          "unknown",
+          "refused"
+        ],
+        "undisturbed": "unknown"
+      },
+      "attributable_to_the_agent": 34.0,
+      "attributable_range": [
+        0.0,
+        38.0
+      ],
+      "ceiling": 43.0,
+      "agent_runs": 3,
+      "note": "attributable = median(agent) - no_action, with undisturbed as the ceiling and the full per-run range beside it. The control arm is what says the disruption was capable of stopping the line at all; without a confirmed outage there, a difference between arms measures nothing. The range is reported because the arm is not deterministic: `give_coal_N` fuels the nearest entity and the two machines are two tiles apart."
+    },
+    "run_on_ticks": 1170
+  },
+  "freshness": {
+    "at_reset": 0,
+    "after_advance": 3660,
+    "disruptions_applied": [
+      {
+        "index": 0,
+        "declared_at_tick": 3600,
+        "applied_at_tick": 3600,
+        "kind": "empty_fuel",
+        "targets": [
+          "drill",
+          "furnace"
+        ],
+        "touched": [
+          "burner-mining-drill=47",
+          "stone-furnace=48"
+        ],
+        "ok": true,
+        "error": null
+      }
+    ],
+    "resyncs": [
+      {
+        "tick": 3600,
+        "reason": "declared disruption empty_fuel on drill,furnace"
+      }
+    ]
+  },
+  "reachable": {
+    "repair": {
+      "task": "repair_belt",
+      "split": "test",
+      "episodes": 2,
+      "reference_solved": 2,
+      "reference_rate": 1.0,
+      "reference_assistance": "marker positions from truth, including the published fault tile",
+      "traces": [
+        {
+          "episode": 0,
+          "succeeded": true,
+          "stuck_reason": null,
+          "final_tick": 630,
+          "produced": null,
+          "disruptions_applied": []
+        },
+        {
+          "episode": 1,
+          "succeeded": true,
+          "stuck_reason": null,
+          "final_tick": 630,
+          "produced": null,
+          "disruptions_applied": []
+        }
+      ]
+    },
+    "diagnosis": {
+      "task": "diagnose_line",
+      "split": "test",
+      "episodes": 2,
+      "reference_solved": 2,
+      "reference_rate": 1.0,
+      "reference_assistance": "marker positions from truth. It does *not* read which machine is starved: it applies every fix, so its success is not evidence that the diagnosis is easy",
+      "traces": [
+        {
+          "episode": 0,
+          "succeeded": true,
+          "stuck_reason": null,
+          "final_tick": 3600,
+          "produced": 12,
+          "disruptions_applied": []
+        },
+        {
+          "episode": 1,
+          "succeeded": true,
+          "stuck_reason": null,
+          "final_tick": 3600,
+          "produced": 12,
+          "disruptions_applied": []
+        }
+      ]
+    },
+    "persistent_operation": {
+      "task": "keep_line_running",
+      "split": "test",
+      "episodes": 2,
+      "reference_solved": 2,
+      "reference_rate": 1.0,
+      "reference_assistance": "marker positions from truth. It does *not* read the declared outage tick, which the agent is never told; it refuels on a cycle instead",
+      "traces": [
+        {
+          "episode": 0,
+          "succeeded": true,
+          "stuck_reason": null,
+          "final_tick": 8400,
+          "produced": 34,
+          "disruptions_applied": [
+            {
+              "index": 0,
+              "declared_at_tick": 3600,
+              "applied_at_tick": 15720,
+              "kind": "empty_fuel",
+              "targets": [
+                "drill",
+                "furnace"
+              ],
+              "touched": [
+                "burner-mining-drill=49",
+                "stone-furnace=49"
+              ],
+              "ok": true,
+              "error": null
+            }
+          ]
+        },
+        {
+          "episode": 1,
+          "succeeded": true,
+          "stuck_reason": null,
+          "final_tick": 8400,
+          "produced": 34,
+          "disruptions_applied": [
+            {
+              "index": 0,
+              "declared_at_tick": 3600,
+              "applied_at_tick": 24120,
+              "kind": "empty_fuel",
+              "targets": [
+                "drill",
+                "furnace"
+              ],
+              "touched": [
+                "burner-mining-drill=49",
+                "stone-furnace=49"
+              ],
+              "ok": true,
+              "error": null
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "elapsed_seconds": 32.4,
+  "passed": true,
+  "failed": [],
+  "per_track_outcome": {
+    "repair": {
+      "assistance": "goal-focus:nearest_unrepaired+fault-location:published",
+      "reference_rate": 1.0
+    },
+    "diagnosis": {
+      "assistance": "none",
+      "reference_rate": 1.0
+    },
+    "persistent_operation": {
+      "assistance": "none",
+      "reference_rate": 1.0
+    }
+  }
+}
