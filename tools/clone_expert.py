@@ -172,7 +172,13 @@ def main() -> int:
             # env counts from -1 and reset advances it, so the row covers
             # 0..eval_episodes-1 on this branch.
             rows[label]["branch"] = branch.value
-            rows[label]["episode_indices"] = list(range(args.eval_episodes))
+            # The indices actually played, not `range(eval_episodes)`. The
+            # structural row starts at the frozen holdout's `start_index`, so
+            # hardcoding 0..N-1 recorded a provenance claim that was false for
+            # exactly the row whose provenance matters -- and fed the wrong
+            # indices to the disjointness check.
+            first = row_start + 1
+            rows[label]["episode_indices"] = list(range(first, first + args.eval_episodes))
             print(
                 f"  {label:11s} rate={rows[label]['success_rate']:.2f} {rows[label]['wilson_95']}",
                 flush=True,
