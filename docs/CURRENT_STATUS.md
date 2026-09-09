@@ -36,7 +36,7 @@ showed `status 18` and nothing else. Fixed;
 and R4.2's first agent arm were both measured against the broken renderer** and
 do not compare across the boundary.
 
-Results against the live holdout (`holdout_v3`, now `ff22dedd` -- it was `4227eb56`
+Results against the live holdout (`holdout_v3`, now `432c2c4d` -- it was `4227eb56`
 when these were measured; `build_line` was added and then re-frozen, and every
 existing per-task `entry_hash` is unchanged, so the rows below still describe the
 scenes they were measured on. See §3.3):
@@ -64,7 +64,7 @@ Three caveats that travel with all of these:
 ## 2. Filename warning — "v3" in an evidence filename is **not** `holdout_v3`
 
 `phase4-release-v3-*.json` are the **third revision of that evidence**. All four cite
-**`holdout_v2`** (`df72fe29…`). The live holdout is `holdout_v3` (`4227eb56…`).
+**`holdout_v2`** (`df72fe29…`). The live holdout is `holdout_v3` (`432c2c4d…`).
 
 | evidence file | holdout it actually cites |
 |---|---|
@@ -116,10 +116,10 @@ Tests | **694 engine-free** (`tests/unit` + `tests/contract`), plus engine-marke
 
 | | `holdout_v1` | `holdout_v2` | **`holdout_v3`** (live) |
 |---|---|---|---|
-content hash | `4d8b9507…` | `df72fe29…` | `5a00330b…` (was `4227eb56…`, `97a190f3…`, `ff22dedd…`) |
+content hash | `4d8b9507…` | `df72fe29…` | `432c2c4d…` (was `4227eb56…`, `97a190f3…`, `ff22dedd…`, `5a00330b…`) |
 seed run_id / start | `holdout-v1` / 1000 | `holdout-v2` / 2000 | `holdout-v3` / 3000 |
 declared candidates | navigate, deliver, mine_smelt | deliver, repair_belt, restore_power | deliver, repair_belt, restore_power |
-tasks frozen | 3 | 6 | **8** (`build_line` added 2026-09-09, deliberately **not** a candidate) |
+tasks frozen | 3 | 6 | **10** (`build_line`, then `diagnose_line` and `keep_line_running` in R4.3 -- all three deliberately **not** candidates) |
 `--verify` vs source | **fails** (repair/restore now 1.6.0) | **fails** (same) | **OK** |
 status | closed | closed | live |
 
@@ -165,12 +165,37 @@ hold, measured today:
 `smoke-20260907T061459-6e54ab08` | 1 | **no** |
 `smoke-20260908T044550-fa6475f1` | 3 | yes |
 
+Those are the two runs the 2026-09-07 gate certified, plus the newest loadable
+one. **They are not the runs the gate would check today.** It scanned gitignored
+`runtime/runs/`, sorted alphabetically and took `runs[-3:]`, and with 78
+directories now holding a `model.zip` that window had drifted onto `vec-…`,
+`vecfull-…` and `w8-…` -- three more `extractor_version: 1` runs. Its own smoke
+run writes a `gate…` prefix that sorts before all of them, so it never checked
+the checkpoint it had just produced. P4-A replaced that with a committed
+declaration (`docs/evidence/phase4-checkpoints.json`).
+
+Worse, and measured while closing this: **all 78 fail `manifest.verify` on the
+current tree**, not only on the architecture. The R4 mod edits moved
+`mod_source_digest` and R2.3 moved every task's action catalog, so no existing
+checkpoint can pass the gate for three independent reasons. The extractor
+version distribution over those 78 is `{3: 42, 4: 18, 1: 14, 2: 2}` -- **none
+records 7**. The first declarable checkpoint has to come from a fresh run.
+
 The current `EXTRACTOR_VERSION` is **7**. The two checkpoints the gate certified
 fail with a size mismatch in the feature extractor's head -- a parameter saved
-at `[256, 320]` against `[256, 384]` in the current model -- because the
-observation encoding grew after they were written. So the gate's
-`checkpoint loads for inference` and `manifest records the extractor version`
-checks would both fail if it were re-run, and **Phase 4's exit gate -- "another
+at `[256, 320]` against `[256, 384]` in the current model.
+
+**The cause is not what this file first said.** It was "the observation
+encoding grew", and that is backwards: `learn/policy.py:91-95` builds the head
+from *code constants*, `GRID_FEATURES + 128 + 128`, and SB3 rebuilds the input
+layers from the observation space pickled inside the checkpoint. So
+space-derived widths are absorbed automatically -- the one checkpoint that
+loads carries a ten-item inventory against today's fourteen. Exactly one commit
+in the whole history broke a shape: `f2218c9` took `GRID_FEATURES` 64 to 128,
+which also added a `grid_net.8` layer the v1 checkpoints do not have at all.
+
+So the gate's `checkpoint loads for inference` and `manifest records the
+extractor version` checks would both fail if it were re-run, and **Phase 4's exit gate -- "another
 run can reproduce the learning procedure and evaluate the provided checkpoints
 without manual intervention" -- cannot be satisfied for those two runs at all.**
 

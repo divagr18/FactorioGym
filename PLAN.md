@@ -10,7 +10,7 @@ The flagship demonstration is an embodied agent that builds a factory, increases
 
 The first public release must contain:
 
-- A reproducible learning result on the user’s RTX 4060 PC.
+- A reproducible learning result on the user’s PC. **Hardware correction (2026-09-07):** this said “RTX 4060”; the machine is an RTX 3050 Laptop GPU, 4.3 GB. See the training-machine row below.
 - An agent that constructs and repairs a small automated production line.
 - A shared runtime enforcing the same underlying game rules.
 - An inspectable replay explaining what happened.
@@ -21,7 +21,7 @@ The first public release must contain:
 | Area | Decision |
 |---|---|
 | Initial platform | Native Windows |
-| Training machine | User’s PC with RTX 4060 and Ryzen 5 5600; no further hardware discovery |
+| Training machine | **Measured 2026-09-07:** RTX 3050 Laptop GPU (4.3 GB, sm_86) and Ryzen 7 5800H. This row said “RTX 4060 and Ryzen 5 5600” until then, and every document in the repository repeated it; the GPU was wrong and the CPU claim was the wrong Ryzen. Confirmed against `torch.cuda`, `Win32_VideoController` and `Win32_Processor`, and run manifests now capture GPU name, VRAM, capability and torch version at runtime so it cannot drift again. No further hardware discovery |
 | Repository | Independent project in `D:\FactorioRL` |
 | Embodiment | Physical character from the beginning |
 | Initial learning | Compact policies, followed by learned skills and hybrid planning |
@@ -249,7 +249,11 @@ At least one qualifying family must involve production or repair. Navigation and
 
 Publish per-seed results, aggregate uncertainty, random and scripted baselines, training time, and failure examples.
 
-The target is an overnight introductory training recipe on the 4060. This is a goal to verify, not an assumed capability.
+The target is an overnight introductory training recipe on the training machine. This is a goal to verify, not an assumed capability.
+
+**Hardware correction (2026-09-07).** This sentence said “on the 4060”, which names hardware that is not present: the machine is an RTX 3050 Laptop GPU with 4.3 GB. Any figure published against “the 4060” would be a false provenance record.
+
+**And the target is not currently met, by arithmetic rather than by attempt.** `docs/research/rl-theory.md` puts a defensible negative at ~0.4 M steps for `navigate` and ~15–27 M for the H=300 families — 55–100 h per family per seed at 75 steps/s, so “~2,000 h ≈ 3 months” for six families at three seeds. Measured end-to-end throughput is 25–43 steps/s at 8 workers, and the published 50k-step cells are 0.2–0.3% of that floor. So those numbers are a **budget-limited** miss, which PLAN section 3 already distinguishes from a finding about the task: “an underpowered baseline makes a negative result an artifact of the budget rather than a finding about the task.” The route that fits the machine is a shorter-horizon variant or teacher-seeding (R5.3), not a lower bar.
 
 ## 4. Coding-agent operating rules
 

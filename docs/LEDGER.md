@@ -861,6 +861,30 @@ steps/s after the observation payload work below.
 **Status: Needs correction** (2026-09-07) - the pipeline is built and a pilot
 ran end to end; the release learning result (4.5) is not yet produced.
 
+**Reconciled 2026-09-09 while closing Phase 4's validity items.** The
+mechanical gate's 2026-09-07 pass is stale in three independent ways, and the
+phase's exit clause -- "evaluate the provided checkpoints without manual
+intervention" -- was unsatisfiable because that phrase named nothing:
+
+* `gate_phase4` scanned gitignored `runtime/runs/`, sorted alphabetically and
+  took `runs[-3:]`. With 78 directories now holding a `model.zip` that window
+  had drifted off both certified runs and onto three more that cannot load, and
+  its own smoke run writes a `gate…` prefix that sorts before all of them, so
+  it never checked the checkpoint it had just produced. There is a committed
+  declaration now.
+* **No run on this machine records `extractor_version` 7** -- the distribution
+  over those 78 is `{3: 42, 4: 18, 1: 14, 2: 2}` -- and all 78 fail
+  `manifest.verify` besides, because the R4 mod edits moved
+  `mod_source_digest` and R2.3 moved every task's action catalog.
+* The version integer never was the right check. Of six bumps exactly one broke
+  a shape (`GRID_FEATURES` 64 to 128, `f2218c9`), four were semantics-only, one
+  changed a width SB3 absorbs, and a `GOAL_ENCODING_VERSION` change bumped
+  nothing here at all. `architecture_signature` records what `load` compares.
+
+4.5 remains unmet and is now recorded as a **budget-limited** miss rather than
+a finding: the published 50k-step cells are 0.2-0.3% of the ~15-27 M steps a
+defensible negative needs for the H=300 families.
+
 ### 4.1 - Baseline policy
 
 MaskablePPO with a custom SB3 features extractor: a small CNN over the 6x65x65

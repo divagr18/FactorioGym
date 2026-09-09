@@ -5,7 +5,7 @@ language-model agents, and comparing hybrid systems in the same game world.
 Flagship target: an agent that builds a factory, recovers from disruption, and
 continues toward a peaceful base-game rocket launch.
 
-Status: **Phases 0–3 accepted**, Phase 4 (RL baseline) in progress.
+Status: **Phases 0–3 accepted**. Phase 4's RL baseline runs and its validity items are closing; its three-family mastery target (4.5) is **unmet** and recorded as such. Current work follows R0–R6 in [docs/DEVELOPMENT_REDIRECTION.md](docs/DEVELOPMENT_REDIRECTION.md).
 See `PLAN.md` for the strategy, `docs/LEDGER.md` for gate status and evidence,
 and `docs/ACTION_MATRIX.md` for the action contract.
 
