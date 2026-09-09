@@ -1,26 +1,39 @@
 # Authoring a task
 
 R6's gate says a user should be able to "author a small task without editing
-internals". This document is honest about how far that is true. Most of a task
-is one new file. Two things are not, and one of them was fixed to get here.
+internals". This document is honest about how far that is true, and every
+listed trap below was hit by someone following an earlier draft of it.
 
-## The minimum
+Most of a task is one new file. Two things are not.
 
-Drop a module into `src/factoriorl/tasks/families/`. Discovery is import-based
-(`pkgutil.iter_modules` over that package), so nothing lists your module and no
-registry needs editing. Every family follows the same four-part shape:
+## A worked example that actually runs
+
+Drop this into `src/factoriorl/tasks/families/fetch_plate.py`. Discovery is
+import-based (`pkgutil.iter_modules` over that package), so nothing lists your
+module and no registry needs editing.
+
+This exact file reaches `reference=1.00` on both splits. Every comment in it
+marks something an earlier version of this document got wrong.
 
 ```python
+"""Carry one iron plate to the marked chest."""
+
 from factoriorl.tasks import RegisteredTask, register
 from factoriorl.tasks.spec import (
-    Blueprint, EntitySpec, LayoutFamily, Predicate, PredicateKind,
-    RewardComponent, RewardKind, TaskSpec,
+    Blueprint,
+    EntitySpec,
+    LayoutFamily,
+    Predicate,
+    PredicateKind,
+    RewardComponent,
+    RewardKind,
+    TaskSpec,
 )
 
 FAMILIES = (
     LayoutFamily("open", "train"),
     LayoutFamily("cluttered", "train"),
-    LayoutFamily("screened", "test"),      # a test family is required
+    LayoutFamily("screened", "test"),  # a test family is required
 )
 
 SPEC = TaskSpec(
@@ -31,157 +44,194 @@ SPEC = TaskSpec(
     success=(Predicate(PredicateKind.CONTAINER_HOLDS, marker="dst", item="iron-plate"),),
     rewards=(
         RewardComponent("delivered", RewardKind.SPARSE_SUCCESS, weight=1.0, shaping=False),
-        RewardComponent("step", RewardKind.STEP_COST, weight=-0.001, shaping=False),
+        # Required, and easy to miss: every family must carry something payable
+        # *before* success, or `test_every_family_has_something_that_pays_before
+        # _success` fails with "a policy has nothing to ascend".
+        RewardComponent(
+            "carried",
+            RewardKind.HIGH_WATER,
+            weight=0.002,
+            cap=0.04,
+            predicate=Predicate(PredicateKind.INVENTORY_HOLDS, item="iron-plate"),
+        ),
+        # Positive weight. `rewards.py` applies -abs(weight); writing a negative
+        # here is harmless but every shipped family writes it positive.
+        RewardComponent("step", RewardKind.STEP_COST, weight=0.001, shaping=False),
     ),
-    track="logistics",                     # must be one of TRACKS
+    track="logistics",  # must be one of TRACKS; the default is invalid on purpose
     max_decision_steps=120,
-    catalog_subset=("move_north", "move_east", "move_south", "move_west",
-                    "take_iron-plate_5", "give_iron-plate_5"),
+    # `step_*` is not optional. `Driver.walk_to`'s coarsest stride is ~4.45
+    # tiles against an arrival tolerance of 1.4, so a move-only subset never
+    # converges and every walk exhausts its budget.
+    catalog_subset=(
+        "move_north",
+        "move_east",
+        "move_south",
+        "move_west",
+        "step_north",
+        "step_east",
+        "step_south",
+        "step_west",
+        "take_iron-plate_5",
+        "give_iron-plate_5",
+        "wait",
+    ),
 )
 
-def generate(family, rng) -> Blueprint:
-    ...
 
-def solve(driver) -> None:                 # optional but effectively required
-    ...
+def generate(family, rng) -> Blueprint:
+    radius = 12
+    dst_x = rng.randint(3, 8)
+    dst_y = rng.randint(-8, -3)
+    entities = [EntitySpec("wooden-chest", (dst_x + 0.5, dst_y + 0.5), marker="dst")]
+    if family.name == "cluttered":
+        taken = {(dst_x, dst_y)}
+        while len(taken) < 5:
+            tile = (rng.randint(-8, 8), rng.randint(2, 8))
+            if tile in taken:
+                continue
+            taken.add(tile)
+            entities.append(EntitySpec("wooden-chest", (tile[0] + 0.5, tile[1] + 0.5)))
+    if family.name == "screened":
+        for x in range(-2, 3):
+            entities.append(EntitySpec("stone-wall", (x + 0.5, -1.5)))
+    return Blueprint(
+        radius=radius,
+        entities=tuple(entities),
+        character_position=(0.5, 0.5),
+        # Five, not one, despite the task's name: `give_iron-plate_5` is an
+        # all-or-nothing transfer of five and fails `no_items` on a smaller
+        # stack. Pick the transfer size and the inventory together.
+        character_inventory={"iron-plate": 5},
+        markers={"dst": (dst_x + 0.5, dst_y + 0.5)},
+        unlock_recipes=("iron-plate",),
+    )
+
+
+def solve(driver) -> None:
+    driver.walk_to(driver.marker("dst"))
+    driver.do("give_iron-plate_5")
+
 
 register(RegisteredTask(spec=SPEC, generate=generate, solve=solve))
 ```
 
+`Blueprint`'s fields are `entities`, `resources`, `character_position`,
+`character_inventory`, `markers`, `unlock_recipes`, `radius` — there is no
+`character` field. `EntitySpec` takes `name`, `position`, and optionally
+`direction`, `force`, `contents`, `recipe`, `marker`. Read
+`src/factoriorl/tasks/spec.py` for the rest; this document does not restate the
+signatures and will drift if it tries.
+
 ### `TaskSpec`: six required fields
 
 `id`, `version`, `description`, `layout_families`, `success`, `rewards`.
-Everything else has a default, with three worth knowing:
+Everything else defaults, with three worth knowing:
 
-- **`track`** defaults to `"unclassified"`, which is *deliberately invalid* and
-  fails validation. Pick from `TRACKS`: movement, logistics, production, repair,
-  diagnosis, persistent_operation.
+- **`track`** defaults to `"unclassified"`, which is deliberately invalid and
+  fails validation.
 - **`decision_ticks`** defaults to 30 and must be **≥ 30**
-  (`catalog.LONG_MOVE_TICKS`). Shorter and a walk is still running when the
-  next action executes, so placements land on whatever tile the character
-  happened to reach. The invariant holds with zero margin, which is why
-  validation asserts it.
-- **`version`** is task identity. A bump invalidates the frozen holdout entry on
-  its own, even with byte-identical scenes.
+  (`catalog.LONG_MOVE_TICKS`), or a walk is still running when the next action
+  executes and placements land wherever the character reached.
+- **`version`** is task identity, and bumping it invalidates the frozen holdout
+  entry on its own.
 
 ### `generate(family, rng) -> Blueprint`
 
-Four rules, each of which has been violated at least once here:
+1. **Branch on every `family.name` you declared.** Two families generating
+   identical scenes is a defect the split audit catches.
+2. **Be a pure function of `rng`.** The environment hands you the same,
+   already-advanced generator it used to pick the family, and the holdout
+   freezer replays that draw sequence exactly.
+3. **Admit at least 32 distinct scenes per family** over 200 seeds.
+4. **Emit every marker your predicates name, in every scene**, at post-snap
+   tile centres (`+0.5`) for 1×1 entities, and declare `unlock_recipes` for
+   anything you hand the agent.
 
-1. **Branch on every `family.name` you declared.** Two families that generate
-   identical scenes is a real defect the split audit now catches.
-2. **Be a pure function of `rng`.** Use only the `rng` you are given — the
-   environment hands you the same, already-advanced generator it used to pick
-   the family, and the holdout freezer and coverage tools replay that exact
-   draw sequence to reproduce your scenes.
-3. **Admit at least 32 distinct scenes per family** over 200 seeds. A
-   one-scene generator evaluated 100 times reports a Wilson interval as though
-   there were 100 draws.
-4. **Emit every marker your predicates name, in every scene.** Marker
-   coordinates for 1×1 entities are post-snap tile centres (`+0.5`), and any
-   item you hand the agent needs its recipe in `unlock_recipes` or the
-   placement guard refuses it.
-
-Keep everything inside `radius`, footprints non-overlapping, and the character
-off anything non-walkable. `Blueprint` has `footprint_conflicts()`,
-`character_obstructed()` and `out_of_box()` so you can check before running.
+`tasks validate` does **not** check footprint overlap despite listing
+"structure" — `Blueprint.footprint_conflicts()` exists and validation does not
+call it. `pytest` catches overlaps two steps later.
 
 ### `solve(driver) -> None`
 
-Not strictly required, but a task without one is marked **defective** by
-`tools/solvability.py` and fails the Phase 3 gate's 0.99 reference threshold —
-so in practice you need it. Return nothing; success is read off
-`driver.success`.
+A task without one is marked **defective** by `tools/solvability.py` and fails
+the Phase 3 gate's 0.99 threshold, so in practice it is required. Return
+nothing; success is read off `driver.success`. `Driver` gives you `do(key,
+**args)`, `walk_to(target)`, `marker(name)`, `container(name)`, `inventory()`,
+`position`, `entities_of_type()`, `nearest_resource()` and
+`placement_for(tile)`. It reads evaluator truth, which is allowed.
 
-`Driver` (`src/factoriorl/tasks/reference.py`) gives you `do(key, **args)`,
-`walk_to(target)`, `position`, `marker(name)`, `container(name)`,
-`inventory()`, `entities_of_type()`, `nearest_resource()` and
-`placement_for(tile)`. It reads evaluator truth, which is allowed — a reference
-solver is not an agent. Note `walk_to` is greedy axis-first with a sidestep on
-stall, not a pathfinder.
+**This part was internals until R6.** `RegisteredTask.solve` existed and
+nothing read it; dispatch went through a hard-coded `SOLVERS` dict, so
+declaring your own solver did nothing. A task's own `solve` now wins.
 
-**This is the part that was internals until R6.** `RegisteredTask.solve` had
-existed since the class was written and nothing read it; dispatch went through
-a hard-coded `SOLVERS` dict in `reference.py`, so declaring your own solver did
-nothing and you had to edit that dict. A task's own `solve` now wins, with
-`SOLVERS` as the fallback for the ten shipped families whose solvers share
-`Driver` helpers.
+## Checking your work — do this before freezing anything
 
-## What still is not one file
-
-Be aware of these before you start; the first is unavoidable.
-
-1. **The frozen holdout.** Two unit tests assert that every registered task
-   appears in `docs/evidence/holdout_v3.json`, so adding a family without
-   freezing it breaks the suite. There is a supported mode for exactly this:
-
-   ```
-   uv run python tools/freeze_holdout.py --add-task fetch_plate --write
-   ```
-
-   It freezes your task under the *file's own* seed plan and copies every
-   existing entry verbatim, so no other task's `entry_hash` moves. Commit the
-   regenerated file. Your task is deliberately **not** added to the declared
-   candidate families.
-
-2. **Prototype footprints**, if you place anything larger than 1×1 that is not
-   already known. An unknown prototype is silently treated as 1×1, which
-   corrupts overlap and reachability checks — so `ENTITY_TILE_SIZES`
-   (`tasks/spec.py`) and `MEASURED_FOOTPRINTS`
-   (`tests/unit/test_reset_and_footprints.py`) both need the entry.
-
-3. **The action catalog**, if your task needs an item the primitive catalog
-   does not cover. `catalog.py` currently knows `stone-furnace`,
-   `transport-belt` and `small-electric-pole` for placement and
-   `iron-ore`, `coal`, `iron-plate`, `stone` for transfer. A `catalog_subset`
-   naming anything else raises at environment construction — and editing the
-   shared list moves the catalog digest for every task.
-
-4. **Reward measurement**, if you want shaping driven by `BUILT`,
-   `ANY_WORKING` or `SUSTAINED_OUTPUT`. Those three fall through to `0.0` in
-   `rewards._measure`, so the component is declared, recorded in the manifest,
-   and pays nothing — silently. `SPARSE_SUCCESS`, `HIGH_WATER`, `POTENTIAL`
-   and `STEP_COST` all work.
-
-5. **A new *track***, as opposed to a new task on an existing track, also needs
-   `TRACKS` and `gate_r4.py`'s track list.
-
-## Checking your work
-
-Engine-free, in this order:
+Order matters, and an earlier draft got it backwards. Every check below can
+send you back to the generator, and changing the generator after freezing means
+re-freezing.
 
 ```
-uv run factoriorl tasks validate                     # declarations, budgets, structure
+uv run factoriorl tasks validate                     # declarations and budgets
 uv run pytest tests/unit tests/contract -q           # ~25 registry-wide sweeps
-uv run python tools/generator_diagnostics.py         # distinct scenes, reachability, splits
+uv run python tools/generator_diagnostics.py         # distinct scenes, reachability
+uv run python tools/solvability.py --tasks fetch_plate    # needs an engine
 ```
 
-Then with an engine:
+Your solver must reach **≥ 0.80 on every split**. The random floor is reported
+in both action spaces and flagged above 0.10 — reported, not enforced, because
+a family whose skills floor is 0.80 cannot carry an 80% claim even though
+nothing fails.
+
+**These commands rewrite tracked evidence files.** `pytest` regenerates
+`docs/evidence/reward-audit.json` through a subprocess, and the two tools
+rewrite their own audits. Expect a dirty tree you did not edit.
+
+## Freezing the holdout — last, and it has a trap
+
+Two files and five tests assert that every registered task appears in
+`docs/evidence/holdout_v3.json`, so you cannot skip this.
 
 ```
-uv run python tools/solvability.py --tasks fetch_plate
+uv run python tools/freeze_holdout.py --add-task fetch_plate --write
 ```
 
-Your solver must reach **≥ 0.80 on every split** or the task is defective. The
-random floor is reported in *both* action spaces and flagged above 0.10 —
-reported rather than enforced, because a family whose skills floor is 0.80
-cannot carry an 80% claim even though nothing fails.
+**`--add-task` refuses once your scenes have changed**, with
+`refusing to add a task to a holdout that does not verify`. It verifies the
+existing file first, and if you already froze an earlier version of your
+generator, all 100 of your entries now differ. The escape is
+`--replace-task`, which exists and is documented only in `--help`. You do not
+need to bump `version` to hit this — any generator change does it.
 
-`generator_diagnostics.py` is the strictest of these. It wants ≥ 32 distinct
-scenes, a goal reachable by a 4-connected walk in every scene, no two families
-byte-identical, difficulty parity ≥ 0.60 across train and test on route
-descriptors, and structural separation ≤ 0.40 on at least one structural
-descriptor. Those thresholds are labelled in the source as a starting point
-rather than a principled value.
+**Freezing moves the file's `content_hash`, which orphans evidence that cites
+it.** Per-task `entry_hash` values are preserved, but the whole-file hash is
+not, and that is the hash `phase4-*.json` evidence records. Adding a task
+therefore reproduces, in one command, the same defect `docs/LIMITATIONS.md` §8
+describes: seven of eleven published evidence files citing a hash nothing has.
+There is no clean answer to this today; know that you are doing it.
+
+## The rest of what is not one file
+
+1. **Prototype footprints**, if you place anything larger than 1×1 that is not
+   already known. An unknown prototype is silently treated as 1×1, corrupting
+   overlap and reachability checks — `ENTITY_TILE_SIZES` (`tasks/spec.py`) and
+   `MEASURED_FOOTPRINTS` (`tests/unit/test_reset_and_footprints.py`).
+2. **The action catalog**, if you need an item it does not cover. It knows
+   `stone-furnace`, `transport-belt`, `small-electric-pole` for placement and
+   `iron-ore`, `coal`, `iron-plate`, `stone` for transfer.
+3. **Reward measurement**, if you want shaping on `BUILT`, `ANY_WORKING` or
+   `SUSTAINED_OUTPUT`. Those fall through to `0.0` in `rewards._measure`, so
+   the component is declared, manifested, and pays nothing, silently.
+4. **A new *track***, which also needs `TRACKS` (`tasks/spec.py`) and the track
+   list in `src/factoriorl/gate_r4.py`.
 
 ## Sweeps that will silently skip you
 
-Five tests use hard-coded six-element family tuples, so a new task is exempt
-until you add it: `tests/unit/test_tasks_and_rewards.py`,
+Hard-coded family tuples in `tests/unit/test_tasks_and_rewards.py`,
 `tests/unit/test_skills.py`, `tests/engine/test_observation_profiles.py` and
-`tools/feasibility_sweep.py`. Nothing fails if you leave them; you just lose
-the determinism, structural-soundness, landmark and decision-interval checks
-for your family. Add yourself.
+`tools/feasibility_sweep.py` (a tool, not a test). Nothing fails if you leave
+them; you lose the determinism, structural-soundness, landmark and
+decision-interval checks for your family.
 
 ## Two silent ceilings
 
@@ -189,10 +239,10 @@ The goal vector is 12 features with 3 geometry slots, so success clauses plus
 landmarks beyond **8 total** are truncated without warning, and only one marker
 can carry geometry. Neither raises.
 
-## Worked examples
+## Worked examples in the tree
 
-- `families/navigate.py` — the simplest, 48-line generator, 6-line solver.
+- `families/navigate.py` — simplest: 48-line generator, 6-line solver.
 - `families/deliver.py` — containers, decoys, a screen.
-- `families/repair_belt.py` — 167-line generator that reasons about fault count
-  visibility and injects the holdout's regime into training so coverage
-  containment passes. Read this one before designing a repair task.
+- `families/repair_belt.py` — 167 lines that reason about fault-count
+  visibility and inject the holdout's regime into training so coverage
+  containment passes. Read it before designing a repair task.

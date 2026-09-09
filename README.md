@@ -68,19 +68,26 @@ withdrawn.
 
 Four things, in the order a newcomer wants them. Full walkthroughs in `docs/`.
 
-**Evaluate a provided checkpoint** — no API key, no training, no network.
+**Evaluate a checkpoint** — no API key, no network. **A fresh clone has no
+checkpoint**, so run the recipe below first, or obtain a `release/` bundle from
+whoever ran one. `runtime/` and `release/` are both gitignored and nothing is
+published for download; `docs/evidence/phase4-checkpoints.json` declares which
+checkpoints a result cites, and does not contain them.
+
+Once you have a run:
 
 ```
-uv run python tools/package_release.py --runs shaped-20260909T143924-c49958ea
-uv run factoriorl evaluate --checkpoint shaped-20260909T143924-c49958ea --episodes 100
+uv run factoriorl evaluate --checkpoint <run_id> --episodes 100
 ```
 
-Checkpoints live in `runtime/runs/`, which is gitignored, so a fresh clone has
-the *declaration* (`docs/evidence/phase4-checkpoints.json`) and not the files.
-`package_release.py` assembles a `release/` bundle from runs you have; if you
-have none yet, train one with the recipe below. `evaluate` reads the task and
-action space from the run's own manifest and refuses a checkpoint this tree
-cannot feed, with a diagnosis rather than a shape error.
+It reads the task and action space from the run's own manifest — those must
+match or a skill-trained policy is silently scored with a truncated catalog —
+refuses a checkpoint this tree cannot feed with a diagnosis rather than a shape
+error, and reports the random floor beside the rate.
+
+To hand a checkpoint to someone else, `tools/package_release.py --runs <ids>`
+assembles `release/` with hashes, the holdouts the runs cite, and every task
+version. It consumes runs you already have; it cannot produce the first one.
 
 **Run the short learning recipe** — ~20 minutes on one GPU. See
 [docs/RECIPE.md](docs/RECIPE.md) for the expected numbers and the random floor

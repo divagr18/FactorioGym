@@ -246,8 +246,11 @@ def cmd_evaluate(args) -> int:
     import json as _json
     from pathlib import Path
 
+    import numpy as np
+
     from factoriorl import manifest as manifest_module
     from factoriorl import tasks
+    from factoriorl.baselines import cached_random_baseline
     from factoriorl.engine_config import resolve_game_speed
     from factoriorl.env import FactorioEnv
     from factoriorl.learn.policy import observation_compatibility
@@ -331,6 +334,46 @@ def cmd_evaluate(args) -> int:
         else:
             probe.unwrapped._episode_index = -1
             rows = evaluate(probe, model, args.episodes, deterministic=not args.sampled)
+
+        # The floor, beside the rate, because `docs/RECIPE.md` says to quote a
+        # rate only with the floor from the same run and this command produced
+        # no floor at all -- so the command the README pushes hardest was the
+        # one that made its own rule impossible to follow. A floor is a
+        # property of the action space as much as of the task: a random policy
+        # over skills is a different agent from a random policy over
+        # primitives, which is why `action_space` is part of the cache key.
+        from factoriorl.learn.train import SKILL_PROFILE
+        from factoriorl.tasks.reference import random_rollout
+
+        def measure_floor() -> dict:
+            floor_env = _wrap(
+                FactorioEnv(task, session, plan, branch=Branch.EVAL, split=args.split),
+                skills,
+            )
+            floor_env.unwrapped._episode_index = -1
+            rng = np.random.default_rng(args.seed)
+            solved = 0
+            for _ in range(args.episodes):
+                floor_env.reset()
+                solved += int(
+                    random_rollout(floor_env, rng, min(task.spec.max_decision_steps, 200))
+                )
+            return {
+                "episodes": args.episodes,
+                "successes": solved,
+                "success_rate": round(solved / args.episodes, 4),
+            }
+
+        baseline = cached_random_baseline(
+            task,
+            args.split,
+            args.seed,
+            args.episodes,
+            measure_floor,
+            action_space=SKILL_PROFILE if skills else task.spec.action_profile,
+            seed_run_id=args.plan_id,
+            start_index=0,
+        )
     finally:
         manager.cleanup(handle)
 
@@ -349,6 +392,11 @@ def cmd_evaluate(args) -> int:
             else None
         ),
         "result": rows,
+        # Never report one without the other. A rate quoted without its floor
+        # has been wrong four times in this repository's history, each time
+        # because an action-space change moved the floor and the headline
+        # survived.
+        "random_baseline": baseline,
     }
     print(_json.dumps(result, indent=2))
     if args.out:

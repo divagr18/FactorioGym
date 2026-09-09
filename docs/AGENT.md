@@ -66,8 +66,11 @@ uv run factoriorl demo
 ```
 
 `demo` is **hardwired to `plate_line`** and to the OpenAI-compatible adapter,
-and writes to a fixed evidence path. It is a demonstration entrypoint, not a
-general runner. There is no `factoriorl agent --task X` subcommand; running an
+and writes to `docs/evidence/phase5-demonstration.json` — a **tracked file**,
+with no `--out` to redirect it. Running it dirties your working tree and
+overwrites committed evidence; stash or restore it afterwards.
+
+It is a demonstration entrypoint, not a general runner. There is no `factoriorl agent --task X` subcommand; running an
 agent on another task means calling `agent.runner.run_task` from Python, or
 using `tools/watch_agent.py`. `AnthropicMessagesAdapter` exists and is
 reachable only from Python — no CLI command constructs it. Both gaps are
@@ -109,6 +112,8 @@ runs** with a message saying so. A trained policy's actions are not logged
 anywhere; `tools/trace_scenes.py` records them for named scenes but in an
 aggregate shape replay cannot read. See `docs/LIMITATIONS.md`.
 
-A worked example ships in the release bundle:
-`watch-20260909T131905-376d37f0`, a successful `plate_line` run — 79 decisions,
-30 iron plates.
+A worked example is included when you build a bundle with
+`tools/package_release.py`: `watch-20260909T131905-376d37f0`, a successful
+`plate_line` run — 79 decisions, 30 iron plates. It is **not** in the
+repository, because `release/` is gitignored and nothing is published for
+download; you need the bundle from whoever built it, or your own agent run.

@@ -27,6 +27,21 @@ episodes.
 Training success reaches 1.00. Wall time was 1,000–1,400 s per cell on an RTX
 3050 laptop and an RTX 4060 desktop.
 
+**Most of that is evaluation, not training, and it prints nothing while it
+runs.** `--eval-episodes 100` scores three rows under two arms plus a random
+baseline — around 800 episodes — which dominates the wall clock: at
+`--steps 2000` training finishes in about 80 seconds and the command still
+takes a quarter of an hour. It is not hung. Lower `--eval-episodes` if you only
+want to see the pipeline work, but note that the frozen holdout has 100
+episodes and scoring fewer means you are no longer comparable to the numbers
+above.
+
+The command also prints its whole result as JSON, including per-scene rows —
+hundreds of kilobytes. Redirect it to a file and read
+`evaluation.structures.success_rate` (the headline), its `stochastic`
+counterpart, and `random_baseline`. Note `eval_split` at the top says `val`;
+the structural number the table above discusses is the `structures` row.
+
 If you land inside 0.84–0.94 the recipe reproduced. Outside it, the most likely
 causes are a different worker count (throughput, not outcome), a different
 `--seed`, or dropping `--skills`, which changes the action space and therefore
@@ -34,24 +49,31 @@ the task.
 
 ## The number this must be read against
 
-**The random floor on this row is 0.01.** Every run measures its own uniform
-random baseline on the same episodes and records it in
-`result.json → evaluation.structures.random_baseline`; ours came back 0.01
-(1 of 100). So 0.89 against 0.01 is a real result.
+**The random floor here is volatile, so use the one your own run measured.**
+Every run measures its own uniform random baseline on its own episodes and
+records it at `result.json → evaluation.<row>.random_baseline`; `factoriorl
+evaluate` reports one too. Measured values for `deliver` under skills span
+**0.01 to 0.11** depending on the scene draw — our six cells came back 0.01,
+an independent 100-episode run on a different seed came back 0.07, and
+`docs/LIMITATIONS.md` records 0.11 on the training split.
+
+An earlier version of this file stated 0.01 as a property of the row. It is
+not; it was one draw, and quoting it as the floor made the headline look
+better than the spread justifies. 0.89 clears even the high end, which is the
+claim that survives.
 
 That comparison is not a formality here. `docs/LIMITATIONS.md` records four
 occasions in one day where a family's floor moved when the action space changed
-and a headline survived that should not have — `deliver`'s own primitive floor
-is 0.00 and its skills floor has been measured as high as 0.11 on the training
-split. **Quote a rate from this recipe only with the floor from the same run
-beside it.** The number is in the file; there is no excuse.
+and a headline survived that should not have. **Quote a rate only with the
+floor from the same run beside it.** Both numbers are in the file.
 
 ## Learning, not mastery
 
 R6's gate says to "report actual learning separately from mastery", so:
 
-- **Learning:** `deliver` reaches ~0.89 on unfamiliar structures against a 0.01
-  floor, reproducibly, across three seeds and two machines. That is the
+- **Learning:** `deliver` reaches ~0.89 on unfamiliar structures, reproducibly,
+  across three seeds and two machines, against a random floor measured between
+  0.01 and 0.11. It clears the high end of that spread comfortably. That is the
   reproducible learning result R6 asks for.
 - **Mastery:** PLAN 4.5 wants three families at 0.80 on the structural split
   with at least one production or repair family. That is **unmet**, and
