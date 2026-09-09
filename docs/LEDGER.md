@@ -872,10 +872,18 @@ intervention" -- was unsatisfiable because that phrase named nothing:
   its own smoke run writes a `gate…` prefix that sorts before all of them, so
   it never checked the checkpoint it had just produced. There is a committed
   declaration now.
-* **No run on this machine records `extractor_version` 7** -- the distribution
-  over those 78 is `{3: 42, 4: 18, 1: 14, 2: 2}` -- and all 78 fail
+* **No run on this machine recorded `extractor_version` 7** -- the distribution
+  over those 78 was `{3: 42, 4: 18, 1: 14, 2: 2}` -- and all 78 failed
   `manifest.verify` besides, because the R4 mod edits moved
-  `mod_source_digest` and R2.3 moved every task's action catalog.
+  `mod_source_digest` and R2.3 moved every task's action catalog. **Closed the
+  same day.** The 4.4 shaping comparison produced the first checkpoints that
+  qualify: three `deliver` runs at `extractor_version` 7, each verifying with an
+  empty problem list, and each with its recorded `architecture_signature` equal
+  to the digest read back off `policy.pth` -- `0f01f04b1e139f2e` in all three.
+  That the recorded value and the on-disk weights agree is the point, because it
+  is what lets the gate tell a checkpoint that will not load from one whose
+  environment merely moved. `docs/evidence/phase4-checkpoints.json` declares
+  them, so 4.1's checkpoint clause is met.
 * The version integer never was the right check. Of six bumps exactly one broke
   a shape (`GRID_FEATURES` 64 to 128, `f2218c9`), four were semantics-only, one
   changed a width SB3 absorbs, and a `GOAL_ENCODING_VERSION` change bumped
@@ -884,6 +892,31 @@ intervention" -- was unsatisfiable because that phrase named nothing:
 4.5 remains unmet and is now recorded as a **budget-limited** miss rather than
 a finding: the published 50k-step cells are 0.2-0.3% of the ~15-27 M steps a
 defensible negative needs for the H=300 families.
+
+**One measurement problem found while reading the 4.4 cells, and not yet
+resolved.** Every failed `deliver` episode is flagged `truncated` with a step
+count *below* the decision budget -- 103 of 113 across the first two cells, as
+low as 12 against a budget of 120, and in 2,734 training episodes not one
+reached 120. `env.py` truncates on exactly two conditions and neither fits: 12
+is not the decision budget, and the 15,000-tick budget needs ~500 decisions at
+`decision_ticks` = 30, so it cannot bind on this family at all. Ruled out: an
+infrastructure failure dressed as a time limit (`vecenv.py:261` excludes those,
+and `reset_failures` is empty in all three rows), `_steps` surviving a reset
+(`reset` zeroes it), and a `gymnasium` `TimeLimit` wrapper (there is none).
+
+Success rates are unaffected -- they read `info["success"]`, not any step count
+-- so the 4.4 rates stand. What is unreliable is `per_scene.steps` and
+`mean_episode_steps`, and therefore any diagnosis that reads episode length,
+which is most of what R5.1 asks a report to say. `tools/diagnose_run.py` labels
+these `truncated_unexplained` rather than attributing them to the only budget
+left standing. Resolving it needs a live instrumented episode, which the
+comparison's code freeze forbids.
+
+Two dead ends recorded so they are not walked twice:
+`production.episode_ticks` exceeds `30 x steps` by a variable 2 to 108 because
+it spans the reset settle, and `simulated_ticks` is *derived* as
+`primitive_steps x decision_ticks` rather than measured, so ratios computed from
+it describe two counters and not the clock.
 
 ### 4.1 - Baseline policy
 
