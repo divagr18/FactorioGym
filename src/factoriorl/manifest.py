@@ -282,7 +282,39 @@ def verify(run_id: str) -> dict:
     # loaded clean, ran, and meant something different -- the same silent
     # failure the extractor version exists to catch on the observation side.
     problems.extend(_catalog_problems(data))
+    problems.extend(_model_problems(data))
     return {"run_id": run_id, "ok": not problems, "problems": problems}
+
+
+def _model_problems(data: dict) -> list[str]:
+    """A run that trained a model must say which architecture it trained.
+
+    Conditional rather than in `REQUIRED_FIELDS`, and the condition is the
+    point: `model` is deliberately present-but-null for a run with no policy --
+    every language-model agent run is one -- so requiring it outright would
+    fail manifests that are correct. Requiring it *when a model exists* closes
+    the gap without inventing a defect in the runs that never had one.
+
+    The gap was real. `extractor_version` was optional as far as this function
+    was concerned, and `architecture_signature` is what actually decides
+    whether a checkpoint loads: `GRID_FEATURES` went 64 to 128 in one commit
+    and every checkpoint written before it is unloadable, which nothing
+    recorded and nothing could detect from the manifest alone.
+    """
+    model = data.get("model")
+    if not model:
+        return []
+    problems = []
+    if model.get("extractor_version") is None:
+        problems.append("model recorded without an extractor_version")
+    if not model.get("architecture_signature"):
+        # Not fatal for runs written before the field existed, so it is
+        # reported as a distinct, quieter problem than a wrong one.
+        problems.append(
+            "model recorded without an architecture_signature (predates the field; "
+            "loadability cannot be checked from this manifest)"
+        )
+    return problems
 
 
 def _catalog_problems(data: dict) -> list[str]:

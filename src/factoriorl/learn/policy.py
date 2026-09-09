@@ -11,6 +11,10 @@ checkpoint whose provenance cannot be checked is an opaque blob.
 
 from __future__ import annotations
 
+import hashlib
+import json
+from pathlib import Path
+
 import torch
 from gymnasium import spaces
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
@@ -124,6 +128,69 @@ def policy_kwargs(features_dim: int = 256) -> dict:
     }
 
 
+def architecture_signature(model) -> str:
+    """Digest of every parameter's name and shape. What `load` actually compares.
+
+    `EXTRACTOR_VERSION` is a declaration of intent and is orthogonal to whether
+    a checkpoint loads, in both directions. Measured over the whole history:
+
+    * Of six bumps, exactly **one** changed a width the loader cannot adapt to
+      -- `GRID_FEATURES` 64 to 128, which took `head.0` from `(256, 320)` to
+      `(256, 384)` and added a `grid_net.8` layer that v1 checkpoints do not
+      have at all. Four bumps were semantics-only, and one changed a width the
+      loader *does* adapt to.
+    * `GOAL_ENCODING_VERSION` went 3 to 4 in a commit that never touched this
+      file, so that meaning change carries no extractor bump at all.
+
+    So a matching integer does not vouch for a checkpoint and a mismatched one
+    does not condemn it: a checkpoint recording version 3 loads cleanly against
+    today's 7, carrying a ten-item inventory against the current fourteen,
+    because SB3 rebuilds the *input* layers from the observation space pickled
+    inside the checkpoint. Only the widths derived from the constants in this
+    module -- `GRID_FEATURES`, `features_dim`, and the hardcoded entity and
+    vector head widths -- can ever break a load.
+
+    Hashing the state dict's `(name, shape)` pairs records exactly that, so a
+    gate can say "this checkpoint predates the current architecture" instead of
+    letting `MaskablePPO.load` raise a size-mismatch traceback.
+    """
+    return _digest(model.policy.state_dict())
+
+
+def _digest(state_dict) -> str:
+    pairs = sorted(
+        (name, tuple(int(dim) for dim in tensor.shape)) for name, tensor in state_dict.items()
+    )
+    return hashlib.sha256(json.dumps(pairs, separators=(",", ":")).encode("utf-8")).hexdigest()[:16]
+
+
+def checkpoint_signature(path) -> str:
+    """The same digest, read out of a saved checkpoint **without loading it**.
+
+    Needed because the interesting case is a checkpoint that *cannot* load:
+    computing the signature from a live model would require the very load that
+    raises. An SB3 zip carries the policy's tensors in `policy.pth`, so the
+    shapes are readable directly and a gate can report "this checkpoint's
+    architecture is X, the declared one is Y" instead of a size-mismatch
+    traceback.
+
+    `weights_only=True`: this reads an artefact to describe it, and nothing in
+    a shape comparison needs arbitrary pickle execution.
+    """
+    import io
+    import zipfile
+
+    import torch as th
+
+    candidate = Path(path)
+    if candidate.suffix != ".zip":
+        candidate = candidate.with_suffix(".zip")
+    with zipfile.ZipFile(candidate) as bundle:
+        with bundle.open("policy.pth") as member:
+            blob = io.BytesIO(member.read())
+    return _digest(th.load(blob, map_location="cpu", weights_only=True))
+
+
 def describe(model) -> dict:
     """Model configuration for the run manifest (PLAN.md section 2)."""
     parameters = sum(p.numel() for p in model.policy.parameters())
@@ -131,6 +198,9 @@ def describe(model) -> dict:
         "algorithm": type(model).__name__,
         "extractor": FactorioExtractor.__name__,
         "extractor_version": EXTRACTOR_VERSION,
+        # The mechanical check, beside the declared one. See
+        # `architecture_signature`.
+        "architecture_signature": architecture_signature(model),
         "parameters": parameters,
         "device": str(model.device),
         "learning_rate": getattr(model, "learning_rate", None),

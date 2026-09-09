@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from factoriorl import manifest as manifest_module
-from factoriorl.learn.policy import EXTRACTOR_VERSION
+from factoriorl.learn.policy import EXTRACTOR_VERSION, checkpoint_signature
 from factoriorl.paths import evidence_dir, runtime_dir
 from factoriorl.seeding import Branch, SeedPlan
 
@@ -61,11 +61,50 @@ class GateReport:
         }
 
 
+#: Where the declared checkpoint set lives. Committed, unlike the runs
+#: themselves.
+DECLARATION = "phase4-checkpoints.json"
+
+
 def _published_runs() -> list[Path]:
+    """The checkpoints this gate is about, from a committed declaration.
+
+    PLAN 4.1's exit clause is about "**the provided** checkpoints", and until
+    this declaration existed that phrase named nothing. The previous
+    implementation scanned gitignored `runtime/runs/`, sorted alphabetically
+    and took the last three. Measured consequences on this machine:
+
+    * 78 directories hold a `model.zip`, and `runs[-3:]` resolved to
+      `vec-…`, `vecfull-…`, `w8-…` -- **not** the two runs the 2026-09-07 gate
+      certified, so the gate silently changed its own subject as runs
+      accumulated;
+    * the gate's own smoke run writes a `gate…` prefix, which sorts before all
+      of those, so it never checked the checkpoint it had just produced;
+    * `release/` is not the source either: its one run records
+      `checkpoint_bytes: null` and ships no `model.zip` at all.
+
+    Falls back to the old scan when no declaration is committed, so a fresh
+    clone with no evidence still runs, and says which it used.
+    """
     root = manifest_module.runs_dir()
+    declared = evidence_dir() / DECLARATION
+    if declared.is_file():
+        body = json.loads(declared.read_text(encoding="utf-8"))
+        return [root / entry["run_id"] for entry in body.get("checkpoints") or []]
     if not root.is_dir():
         return []
-    return [d for d in sorted(root.iterdir()) if (d / "model.zip").is_file()]
+    return [d for d in sorted(root.iterdir()) if (d / "model.zip").is_file()][-3:]
+
+
+def _declared_entry(run_id: str) -> dict:
+    declared = evidence_dir() / DECLARATION
+    if not declared.is_file():
+        return {}
+    body = json.loads(declared.read_text(encoding="utf-8"))
+    for entry in body.get("checkpoints") or []:
+        if entry.get("run_id") == run_id:
+            return entry
+    return {}
 
 
 def run_phase4_gate(mode: str = "reproduce") -> dict:
@@ -107,7 +146,9 @@ def run_phase4_gate(mode: str = "reproduce") -> dict:
     # ---- 3. published checkpoints load and still mean what they claimed --
     runs = _published_runs()
     report.check("at least one published checkpoint exists", bool(runs), count=len(runs))
-    for directory in runs[-3:]:
+    # No slice: `_published_runs` returns the declared set, and a gate that
+    # silently checked three of it would be back to choosing its own subject.
+    for directory in runs:
         run_id = directory.name
         verification = manifest_module.verify(run_id)
         report.check(
@@ -116,12 +157,41 @@ def run_phase4_gate(mode: str = "reproduce") -> dict:
             problems=verification["problems"],
         )
         data = manifest_module.load(run_id)
+        model_block = data.get("model") or {}
+        declared = _declared_entry(run_id)
+        # Recorded, not compared to the current integer.
+        #
+        # `EXTRACTOR_VERSION` declares intent and is orthogonal to loadability
+        # in both directions: of six bumps exactly one changed a width the
+        # loader cannot adapt to, four were semantics-only, and a separate
+        # `GOAL_ENCODING_VERSION` 3-to-4 change bumped nothing here at all. So
+        # a strict `recorded == current` test both rejects checkpoints that
+        # load perfectly and would vouch for ones that do not -- measured: no
+        # run on this machine records 7, while a run recording 3 loads cleanly.
+        # `architecture_signature` below is the check that actually bites.
         report.check(
-            f"{run_id}: manifest records the extractor version",
-            (data.get("model") or {}).get("extractor_version") == EXTRACTOR_VERSION,
-            recorded=(data.get("model") or {}).get("extractor_version"),
+            f"{run_id}: manifest records which extractor it was trained on",
+            model_block.get("extractor_version") is not None,
+            recorded=model_block.get("extractor_version"),
             current=EXTRACTOR_VERSION,
         )
+        # The architecture the declaration says this checkpoint has, against
+        # the one the file actually carries -- read from the zip, because the
+        # interesting case is a checkpoint that cannot load and so cannot be
+        # asked.
+        if declared.get("architecture_signature"):
+            try:
+                actual = checkpoint_signature(directory / "model")
+            except Exception as exc:  # noqa: BLE001
+                actual = f"unreadable: {exc}"
+            report.check(
+                f"{run_id}: the checkpoint on disk is the declared architecture",
+                actual == declared["architecture_signature"],
+                declared=declared["architecture_signature"],
+                on_disk=actual,
+                note="a mismatch means this checkpoint predates the current "
+                "architecture, or is not the file that was declared",
+            )
         report.check(
             f"{run_id}: manifest records the measured host GPU",
             bool(((data.get("host") or {}).get("gpu") or {}).get("name")),
@@ -157,7 +227,22 @@ def run_phase4_gate(mode: str = "reproduce") -> dict:
                     num_timesteps=int(getattr(model, "num_timesteps", 0)),
                 )
             except Exception as exc:  # noqa: BLE001
-                report.check(f"{run_id}: checkpoint loads for inference", False, error=str(exc))
+                # A size mismatch here is not a mystery, so do not report it as
+                # one: read the shapes out of the zip and name the difference.
+                try:
+                    on_disk = checkpoint_signature(directory / "model")
+                except Exception:  # noqa: BLE001
+                    on_disk = "unreadable"
+                report.check(
+                    f"{run_id}: checkpoint loads for inference",
+                    False,
+                    error=str(exc).strip().splitlines()[-1][:200],
+                    on_disk_architecture=on_disk,
+                    declared_architecture=declared.get("architecture_signature"),
+                    hint="the architecture changed under this checkpoint; "
+                    "`GRID_FEATURES` 64 to 128 is the one width change in the "
+                    "history that the loader cannot absorb",
+                )
 
     # ---- 4. schema ----------------------------------------------------
     if runs:
