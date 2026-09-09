@@ -1379,27 +1379,63 @@ was added for, and it changed no other family's verdict.
   sequential episodes on one worker cannot reach the same technology state,
   whatever reset does. Every arm of a state-comparison experiment therefore needs
   its own worker.
-- **A connected multiplayer client breaks the RCON transport, and neither the
-  pause nor the payload size is why.** With a client attached, requests start
-  returning an **empty body**, which `RCONClient.lua` raises as
-  `non-json rcon response: ''` -- not an `OSError`, so a poll catching only
-  that dies too. Three hypotheses were tested and all three are ruled out:
-  - *the pause.* Factorio services RCON inside its tick loop, so a
-    `tick_paused` server plausibly never runs the command.
-    `configure(free_running=True)` was added and **verified on the engine** --
-    paused, the tick held at 0 across two seconds; free-running, 2 to 123 --
-    and the failure was unchanged.
-  - *payload size.* `scenario_define` carries the whole blueprint, ~10 KB for
-    `plate_line`, and the server broadcasts every command to connected players
-    (it fills their screen). Pre-installing every scene before the join moved
-    the failure to `session.reset`, a small request.
-  - *transience.* Six retries a second apart got no answer at all.
+- **A connected multiplayer client made every RCON request return an empty
+  body, and the cause was one line of this repo's own read loop.**
+  `RCONClient.lua` raised `non-json rcon response: ''` -- not an `OSError`, so
+  a poll catching only that died too.
 
-  Since an RCON reply *is* the command's printed output, produced inside the
-  tick loop, a connected client appears to break the association between a
-  command and its reply on the same read. That is a property of the transport;
-  watching a live run would need a different channel between Python and the
-  mod. `tools/replay.py` is the path that works and perturbs nothing.
+  `command` sends a sentinel after every command and treated its reply as proof
+  the real reply was complete, on the stated grounds that "a Source RCON server
+  answers in order on one connection". **That holds only with no players.**
+  Attach a client and the order inverts for anything longer than a trivial
+  command: the sentinel came back first, was read as an empty body, and the
+  real reply arrived during the *next* call where its lower id marked it stale
+  and it was drained. One lost reply per call, indefinitely. Completion is now
+  "both replies seen", in either order; `reordered_replies` counted **89**
+  inversions across one watched run and **0** on every player-free run.
+
+  That also explains the symptom that made it look like a transport property:
+  a bare `/c rcon.print('p')` answered while `return 1` through the bridge did
+  not. The difference was never size -- it was whether the command was short
+  enough to execute inline.
+
+  **Three hypotheses were tested and correctly ruled out, and the conclusion
+  drawn from them was still wrong.** Worth recording, because the reasoning is
+  the transferable part:
+  - *the pause.* `configure(free_running=True)` was added for this and
+    verified on the engine -- paused, the tick held at 0 across two seconds;
+    free-running, 2 to 123 -- and the failure was unchanged. Exact stepping is
+    now measured working *with* a client attached: six steps of exactly 30
+    ticks, `tick_paused` true between each, 0 ticks of drift over three idle
+    seconds. So `free_running` keeps its declaration and loses its
+    justification.
+  - *payload size.* Measured in both directions afterwards: padded commands
+    from 53 to 15,993 bytes all answered (12/12, side-effect counter 13..24
+    with no gaps), and replies of 100 to 64,000 bytes returned intact. The
+    engine also never splits a reply -- 4,096 / 65,536 / 200,000 / 1,000,000 /
+    4,000,000 bytes each arrived as exactly one packet of size+1.
+  - *transience.* Six retries a second apart got no answer at all -- which was
+    the clue, and it was read as confirmation instead. A reply that is never
+    late is a reply that was already delivered and dropped. The retry wrapper
+    built on that reading is deleted; a retry that hides an empty answer would
+    also hide a worker that had genuinely died.
+
+  **The log that was never opened.** `WorkerSpec.console_log` is the
+  *console-only* copy; the engine's own log is
+  `write-data/factorio-current.log`, and during the failure it records nothing
+  but a clean join. The console copy held the answer in the command order right
+  after `[JOIN]`: two sentinels ahead of the command they were meant to follow,
+  and a third request whose command was never logged at all.
+
+  Two genuine impossibilities from the same investigation, with the lines that
+  prove them: `--start-server` puts even the full binary in headless mode
+  (`0.023 Running in headless mode`), so server-side `game.take_screenshot`
+  returns success and writes nothing; and `factorio --host`, the graphical
+  multiplayer host, does render (`Initialised Direct3D[0]`, a 16384x16380
+  atlas) but **never starts RCON** -- no `RemoteCommandProcessor.cpp:126` line
+  in its whole log, and connecting is refused. So no single process both
+  renders and answers RCON on this build; headless server plus graphical client
+  is the shape that works, and it does.
 
   Two lesser facts from the same attempt: the engine gives a joining player a
   character and starts the freeplay intro cutscene, so the mod now puts any
