@@ -20,6 +20,7 @@ from factoriorl.tasks.spec import (
     UNDECIDABLE_AT_RESET,
     Blueprint,
     LayoutFamily,
+    PredicateKind,
     TaskSpec,
 )
 
@@ -154,6 +155,20 @@ def validate_all(sample_seeds: int = 16) -> dict:
                 f"catalog move stride ({catalog_module.LONG_MOVE_TICKS} ticks), so a "
                 "move is still running when the next action executes"
             )
+        # A windowed criterion is only as good as its sampling, and the bound
+        # has to admit the task's own step size. A task stepping every 60 ticks
+        # against a 30-tick bound would have every sustained-output claim
+        # refused, with no error to say why.
+        for predicate in spec.success:
+            if predicate.kind is not PredicateKind.SUSTAINED_OUTPUT:
+                continue
+            if predicate.max_sample_gap < spec.decision_ticks:
+                problems.append(
+                    f"sustained_output max_sample_gap {predicate.max_sample_gap} is "
+                    f"smaller than decision_ticks {spec.decision_ticks}, so no history "
+                    "this task can produce would ever satisfy it"
+                )
+
         splits = {f.split for f in spec.layout_families}
         if "train" not in splits:
             problems.append("no train layout family")

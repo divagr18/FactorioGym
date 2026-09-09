@@ -33,8 +33,12 @@ def _metrics(**kwargs):
     return ProductionMetrics(**kwargs)
 
 
-def _steady(rate_per_window, ticks=7200, step=60):
-    """A constant-rate history, `rate_per_window` per `RATE_TICKS`."""
+def _steady(rate_per_window, ticks=7200, step=30):
+    """A constant-rate history, `rate_per_window` per `RATE_TICKS`.
+
+    `step` is 30 to match what the environment records; a coarser history is
+    under-sampled and `_sampled()` refuses it, which is the point of that rule.
+    """
     return [(t, int(rate_per_window * t / RATE_TICKS)) for t in range(0, ticks + 1, step)]
 
 

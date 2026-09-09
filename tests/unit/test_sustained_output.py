@@ -30,8 +30,14 @@ def _sustained(at_least=10, over_ticks=WINDOW):
     )
 
 
-def _history(rate_per_tick, ticks=8000, step=200, stop_at=None):
-    """A `(tick, produced)` history at a constant rate, optionally stopping."""
+def _history(rate_per_tick, ticks=8000, step=30, stop_at=None):
+    """A `(tick, produced)` history at a constant rate, optionally stopping.
+
+    `step` is 30 because that is what the environment actually produces -- one
+    sample per `decision_ticks`. A coarser fixture is not a smaller version of
+    a real history, it is an *under-sampled* one, and `window_sampled` refuses
+    those on purpose.
+    """
     out, total = [], 0.0
     for tick in range(0, ticks + 1, step):
         if stop_at is None or tick <= stop_at:
@@ -263,3 +269,131 @@ class TestASettlingPeriod:
             p for p in get("build_line").spec.success if p.kind is PredicateKind.SUSTAINED_OUTPUT
         )
         assert predicate.not_before_tick == 2 * predicate.over_ticks
+
+
+class TestAWindowMustBeSampledNotJustSpanned:
+    """A window nothing observed cannot tell a rate from a jump.
+
+    `window_elapsed` checked span only. Measured before this existed:
+
+        history = [(450, 1 plate), (4080, 16 plates)]
+        span 3630, samples 2 -> elapsed True, output 15.0, evaluate True
+
+    Two samples 3,630 ticks apart satisfied a criterion built to reject a
+    burst. The cause is not the baseline's position -- it sits a plausible 30
+    ticks before the cutoff -- it is that no sample lies *inside* the window,
+    so production from just before it is attributed to it.
+
+    Unreachable while every stepping path sampled every `decision_ticks`;
+    `FactorioEnv.advance` makes external advancement possible, which is what
+    R4.1 adds, so it is checked.
+    """
+
+    #: The exact history a 3,600-tick external jump left in the recorded
+    #: Phase 5 demonstration.
+    JUMPED = [(450, {"iron-plate": 1}), (4080, {"iron-plate": 16})]
+
+    def test_the_jump_still_spans_a_window(self):
+        """The old check passes on it, which is why it was not enough."""
+        assert _sustained().window_elapsed({"window": self.JUMPED})
+
+    def test_but_it_was_never_sampled(self):
+        assert not _sustained().window_sampled({"window": self.JUMPED})
+
+    def test_so_it_is_refused(self):
+        assert not _sustained(at_least=10).evaluate({}, {"window": self.JUMPED})
+
+    def test_the_measurement_itself_is_unchanged(self):
+        """`window_output` still reports what it sees; `evaluate` is what
+        refuses. Keeping them separate is what makes the refusal legible."""
+        assert _sustained().window_output({"window": self.JUMPED}) == 15.0
+
+    def test_a_history_sampled_every_decision_passes(self):
+        history = _history(15 / WINDOW)
+        assert _sustained().window_sampled({"window": history})
+        assert _sustained(at_least=10).evaluate({}, {"window": history})
+
+    def test_one_gap_anywhere_in_the_window_is_enough_to_refuse(self):
+        """Not just a two-sample history: a dense run with a single jump at
+        the end is equally unable to place its production."""
+        dense = _history(15 / WINDOW, ticks=3600)
+        history = dense + [(7200, {"iron-plate": 45})]
+        assert _sustained().window_elapsed({"window": history})
+        assert not _sustained().window_sampled({"window": history})
+
+    def test_a_gap_before_the_window_does_not_matter(self):
+        """Only the samples covering the window are its evidence. A sparse
+        prefix is irrelevant, and refusing on it would reject a legitimate
+        history whose early part was recorded coarsely."""
+        history = [(0, {"iron-plate": 0}), (3600, {"iron-plate": 0})] + [
+            (t, {"iron-plate": int(15 * (t - 3600) / WINDOW)}) for t in range(3630, 7201, 30)
+        ]
+        assert _sustained().window_sampled({"window": history})
+
+    def test_the_bound_is_declared_per_predicate(self):
+        """A task stepping every 60 ticks cannot satisfy a 30-tick bound, so
+        the bound is a field rather than a constant."""
+        coarse = [(t, {"iron-plate": int(15 * t / WINDOW)}) for t in range(0, 7201, 60)]
+        assert not _sustained().window_sampled({"window": coarse})
+        declared = Predicate(
+            PredicateKind.SUSTAINED_OUTPUT,
+            item="iron-plate",
+            at_least=10,
+            over_ticks=WINDOW,
+            max_sample_gap=60,
+        )
+        assert declared.window_sampled({"window": coarse})
+        assert declared.evaluate({}, {"window": coarse})
+
+    def test_a_bound_below_the_task_step_is_refused_at_load(self):
+        """Otherwise every claim is silently rejected with nothing to say why."""
+        import factoriorl.tasks as tasks_module
+        from factoriorl.tasks import validate_all
+        from factoriorl.tasks.spec import (
+            Blueprint,
+            LayoutFamily,
+            RewardComponent,
+            RewardKind,
+            TaskSpec,
+        )
+
+        spec = TaskSpec(
+            id="too_coarse",
+            version="1.0.0",
+            description="d",
+            layout_families=(LayoutFamily("f", "train"), LayoutFamily("g", "test")),
+            success=(
+                Predicate(
+                    PredicateKind.SUSTAINED_OUTPUT,
+                    item="iron-plate",
+                    at_least=10,
+                    over_ticks=WINDOW,
+                    max_sample_gap=15,
+                ),
+            ),
+            rewards=(RewardComponent("s", RewardKind.SPARSE_SUCCESS),),
+            decision_ticks=30,
+        )
+        import pytest as _pytest
+
+        _monkey = _pytest.MonkeyPatch()
+        try:
+            _monkey.setattr(
+                tasks_module,
+                "all_tasks",
+                lambda: {"too_coarse": tasks_module.RegisteredTask(spec, lambda f, r: Blueprint())},
+            )
+            report = validate_all(sample_seeds=1)
+        finally:
+            _monkey.undo()
+        problems = report["tasks"]["too_coarse"]["problems"]
+        assert any("max_sample_gap" in p and "decision_ticks" in p for p in problems), problems
+
+    def test_every_registered_task_declares_a_workable_bound(self):
+        from factoriorl.tasks import all_tasks, get
+
+        for name in sorted(all_tasks()):
+            spec = get(name).spec
+            for predicate in spec.success:
+                if predicate.kind is PredicateKind.SUSTAINED_OUTPUT:
+                    assert predicate.max_sample_gap >= spec.decision_ticks, name

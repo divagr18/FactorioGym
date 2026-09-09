@@ -318,6 +318,18 @@ DEFAULT_TRACKED_ITEMS: frozenset[str] = frozenset(
 )
 
 
+#: Default for `Predicate.max_sample_gap`: the widest gap allowed between
+#: consecutive samples covering a window.
+#:
+#: That gap is exactly how much production a window can misattribute: with no
+#: sample between the baseline and the end, output produced just before the
+#: window is indistinguishable from output produced inside it. One decision
+#: interval is the natural bound -- every stepping path samples at least that
+#: often, so a dense history always satisfies it and an externally-advanced
+#: jump does not.
+SAMPLE_TOLERANCE_TICKS = 30
+
+
 #: Predicate kinds a blueprint cannot decide. Whether a machine is *working*
 #: depends on fuel, power networks and heat -- engine state, not scene
 #: declaration -- so `Blueprint.initial_state` leaves those channels empty and
@@ -366,6 +378,14 @@ class Predicate:
     #: `waiting_for_space_in_destination` 87% of the time. That conjunct would
     #: have failed correct builds nine times in ten.
     not_before_tick: int = 0
+    #: Widest gap allowed between consecutive samples covering the window.
+    #:
+    #: Declared per predicate rather than fixed, because it has to be at least
+    #: the task's `decision_ticks` or every claim is refused: a task stepping
+    #: every 60 ticks cannot satisfy a 30-tick bound. `validate_all` checks the
+    #: relationship, so getting it wrong fails at load rather than silently
+    #: rejecting every window.
+    max_sample_gap: int = SAMPLE_TOLERANCE_TICKS
 
     def describe(self) -> str:
         return f"{self.kind.value}({self.marker or ''} {self.item or ''} >= {self.at_least})"
@@ -402,6 +422,10 @@ class Predicate:
             # to reject.
             if not self.window_elapsed(truth):
                 return False
+            # And it must have been *observed*: a window nothing sampled cannot
+            # tell a rate from a jump. See `window_sampled`.
+            if not self.window_sampled(truth):
+                return False
             if self.not_before_tick and not self.settled(truth):
                 return False
             return self.window_output(truth) >= self.at_least
@@ -413,6 +437,47 @@ class Predicate:
         if len(history) < 2:
             return False
         return (history[-1][0] - history[0][0]) >= self.over_ticks
+
+    def window_sampled(self, truth: dict) -> bool:
+        """Whether the window was actually *observed*, not merely spanned.
+
+        `window_elapsed` checks span, and span alone is not enough. Measured
+        before this existed:
+
+            history = [(450, 1 plate), (4080, 16 plates)]
+            span 3630, samples 2 -> elapsed True, output 15.0, evaluate True
+
+        Two samples 3,630 ticks apart satisfied a criterion built to reject a
+        burst. The reason is not the baseline's position -- it sits a plausible
+        30 ticks before the cutoff -- it is that **no sample lies inside the
+        window at all**, so all 15 plates are attributed to it whether they
+        were produced in it or in the 30 ticks before it.
+
+        So what has to be bounded is the spacing between consecutive samples
+        covering the window: that spacing is exactly how much production can be
+        misattributed. `SAMPLE_TOLERANCE_TICKS` is the bound.
+
+        Unreachable while every stepping path sampled every `decision_ticks`;
+        `FactorioEnv.advance` makes external advancement possible, so it
+        becomes reachable and is checked.
+        """
+        history = truth.get("window") or []
+        if len(history) < 2:
+            return False
+        cutoff = history[-1][0] - self.over_ticks
+        # Start at the sample `window_output` will use as its baseline: the
+        # newest one at or before the cutoff, else the earliest.
+        start = 0
+        for index, (tick, _counts) in enumerate(history):
+            if tick <= cutoff:
+                start = index
+            else:
+                break
+        ticks = [tick for tick, _counts in history[start:]]
+        if len(ticks) < 2:
+            return False
+        widest = max(b - a for a, b in zip(ticks[:-1], ticks[1:], strict=True))
+        return widest <= self.max_sample_gap
 
     def settled(self, truth: dict) -> bool:
         """Whether enough game time has passed for the window to mean a rate.

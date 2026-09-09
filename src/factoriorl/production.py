@@ -18,7 +18,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from factoriorl.tasks.spec import Predicate, PredicateKind, TaskSpec
+from factoriorl.tasks.spec import (
+    SAMPLE_TOLERANCE_TICKS,
+    Predicate,
+    PredicateKind,
+    TaskSpec,
+)
 
 #: Rates are reported per this many ticks. One minute at 60 UPS, matching the
 #: default `over_ticks` and the units the commissioning baseline was measured
@@ -40,6 +45,9 @@ class ProductionMetrics:
     #: and the success criterion cannot disagree about what sustained means.
     over_ticks: int = RATE_TICKS
     at_least: float = 1.0
+    #: Widest gap allowed between consecutive samples covering the window.
+    #: Mirrors `Predicate.max_sample_gap`; `for_task` reads the task's.
+    max_sample_gap: int = SAMPLE_TOLERANCE_TICKS
     _samples: list[tuple[int, dict[str, float]]] = field(default_factory=list)
     _first_sustained: dict[str, int] = field(default_factory=dict)
 
@@ -49,6 +57,7 @@ class ProductionMetrics:
         items: list[str] = []
         over_ticks = RATE_TICKS
         at_least = 1.0
+        max_sample_gap = SAMPLE_TOLERANCE_TICKS
         for predicate in spec.success:
             if predicate.kind not in (
                 PredicateKind.PRODUCED,
@@ -60,7 +69,13 @@ class ProductionMetrics:
             if predicate.kind is PredicateKind.SUSTAINED_OUTPUT:
                 over_ticks = predicate.over_ticks
                 at_least = predicate.at_least
-        return cls(items=tuple(items), over_ticks=over_ticks, at_least=at_least)
+                max_sample_gap = predicate.max_sample_gap
+        return cls(
+            items=tuple(items),
+            over_ticks=over_ticks,
+            at_least=at_least,
+            max_sample_gap=max_sample_gap,
+        )
 
     # ---- recording ----------------------------------------------------
     def reset(self) -> None:
@@ -79,7 +94,7 @@ class ProductionMetrics:
         # The same rule the predicate applies, and for the same reason: before
         # a full window has elapsed the baseline falls back to the earliest
         # sample, so "sustained" would just mean "produced this much".
-        if self._elapsed() >= self.over_ticks:
+        if self._elapsed() >= self.over_ticks and self._sampled():
             for item in self.items:
                 if item in self._first_sustained:
                     continue
@@ -91,6 +106,29 @@ class ProductionMetrics:
         if len(self._samples) < 2:
             return 0
         return self._samples[-1][0] - self._samples[0][0]
+
+    def _sampled(self) -> bool:
+        """Whether the window was observed, not merely spanned.
+
+        The same hole `Predicate.window_sampled` closes, and for the same
+        reason: with no sample inside the window, output produced just before
+        it is indistinguishable from output produced in it. Two samples 3,630
+        ticks apart otherwise report a rate.
+        """
+        if len(self._samples) < 2:
+            return False
+        cutoff = self._samples[-1][0] - self.over_ticks
+        start = 0
+        for index, (tick, _counts) in enumerate(self._samples):
+            if tick <= cutoff:
+                start = index
+            else:
+                break
+        ticks = [tick for tick, _counts in self._samples[start:]]
+        if len(ticks) < 2:
+            return False
+        widest = max(b - a for a, b in zip(ticks[:-1], ticks[1:], strict=True))
+        return widest <= self.max_sample_gap
 
     def _baseline(self, cutoff: int) -> dict[str, float]:
         """Counts at the last sample at or before `cutoff`.
