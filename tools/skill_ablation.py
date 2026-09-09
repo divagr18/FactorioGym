@@ -47,6 +47,13 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON = ROOT / ".venv" / "Scripts" / "python.exe"
 EVIDENCE = ROOT / "docs" / "evidence"
 
+# Module level, not inside `main`. These two tools carry a byte-identical
+# `pairing` guard and had the same latent episode-count defect precisely
+# because they are near-copies, so the resolver is shared -- and a shared
+# helper reachable only from inside a function cannot be checked from outside.
+sys.path.insert(0, str(ROOT / "tools"))
+from shaping_comparison import frozen_episodes  # noqa: E402
+
 
 def run_arm(
     task: str, steps: int, seed: int, skills: bool, episodes: int, holdout: str | None
@@ -200,11 +207,6 @@ def main() -> int:
     )
     parser.add_argument("--out", default=None, help="report destination (default docs/evidence)")
     args = parser.parse_args()
-
-    # Shared with `shaping_comparison`, which found the defect: the two tools
-    # carry a byte-identical `pairing` guard and had the same latent break.
-    sys.path.insert(0, str(ROOT / "tools"))
-    from shaping_comparison import frozen_episodes
 
     episodes = frozen_episodes(args.holdout, args.eval_episodes)
     seeds = [int(s) for s in args.seeds.split(",")]

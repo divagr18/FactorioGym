@@ -486,11 +486,34 @@ def test_a_run_writes_the_same_artifact_shape_as_a_training_run(tmp_path):
 
 def test_the_run_artifact_carries_no_evaluator_state(tmp_path):
     """The loop holds the environment, so this is reachable in principle; the
-    boundary only holds if nothing in the package actually reads it."""
+    boundary only holds if nothing in the package actually reads it.
+
+    The scan is asserted to have happened, not assumed. This check used to
+    iterate `(tmp_path / "run").iterdir()` and nothing else, which passes
+    silently in two ways a refactor could easily produce: an empty run
+    directory, and artifacts moved one level down, since `iterdir` does not
+    recurse. `docs/LEDGER.md` makes the general point about a different check
+    -- "a leakage check that never fires is not evidence of a clean reset" --
+    and this is that check for the agent artifacts.
+    """
     env = StubEnv(horizon=2)
+    # First: the leak has to be reachable at all. If the stub stopped putting
+    # the sentinel in truth, every assertion below would pass while testing
+    # nothing.
+    assert TRUTH_SENTINEL in str(env._truth), "the stub must carry the sentinel in truth"
+
     adapter = ScriptedAdapter(['{"action": "wait"}'] * 4)
     loop_for(env, adapter, tmp_path, episodes=1).run()
-    for path in (tmp_path / "run").iterdir():
+
+    run_dir = tmp_path / "run"
+    scanned = [path for path in run_dir.rglob("*") if path.is_file()]
+    assert scanned, f"nothing was scanned under {run_dir}, so this proves nothing"
+    # The artifacts the boundary actually has to cover. Named, so that renaming
+    # one is a test failure rather than a quietly narrower check.
+    names = {path.name for path in scanned}
+    for required in ("decisions.jsonl", "manifest.json", "result.json"):
+        assert required in names, f"{required} missing from {sorted(names)}"
+    for path in scanned:
         assert TRUTH_SENTINEL not in path.read_text(encoding="utf-8"), path.name
 
 

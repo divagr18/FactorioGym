@@ -68,7 +68,10 @@ def test_both_tools_resolve_it_the_same_way():
     ablation = _tool("skill_ablation")
     source = (ROOT / "tools" / "skill_ablation.py").read_text(encoding="utf-8")
     assert "from shaping_comparison import frozen_episodes" in source
-    assert ablation is not None
+    # The resolver reached through the ablation tool, not merely imported by it.
+    # `assert ablation is not None` was the first version of this line and could
+    # not fail: `module_from_spec` either raises or returns a module.
+    assert ablation.frozen_episodes("docs/evidence/holdout_v3.json", None) == 100
 
 
 def test_neither_tool_hardcodes_an_episode_count_any_more():

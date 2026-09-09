@@ -74,6 +74,21 @@ class TestNoRewardPointsAtAWithheldFault:
     tasks so the next diagnosis family inherits the guard.
     """
 
+    def test_at_least_one_task_actually_withholds_a_marker(self):
+        """Otherwise the invariant below is vacuous for every task and would
+        pass a repo in which nothing withholds anything -- which is the state
+        it exists to detect a regression away from."""
+        withholding = {
+            task_id
+            for task_id in all_tasks()
+            if set(get(task_id).spec.fault_markers) - set(get(task_id).spec.public_markers)
+        }
+        assert withholding, (
+            "no task withholds a fault marker, so `test_shaping_never_reads_a_"
+            "withheld_marker` checks nothing on any task"
+        )
+        assert TASK in withholding, f"{TASK} must be one of them; withholding={withholding}"
+
     @pytest.mark.parametrize("task_id", sorted(all_tasks()))
     def test_shaping_never_reads_a_withheld_marker(self, task_id):
         spec = get(task_id).spec
