@@ -182,7 +182,17 @@ def main() -> int:
     parser.add_argument("--task", default="deliver")
     parser.add_argument("--steps", type=int, default=25_000)
     parser.add_argument("--seeds", default="1,2")
-    parser.add_argument("--eval-episodes", type=int, default=50)
+    parser.add_argument(
+        "--eval-episodes",
+        type=int,
+        default=None,
+        help="held-out episodes per arm. Defaults to the holdout's own "
+        "`episodes_per_task`. Below that, `evaluate_parallel` scores the first "
+        "N of the frozen range *to finish* -- which depends on episode length "
+        "and worker scheduling -- so the two arms score different subsets and "
+        "`pairing` refuses a verdict for a reason unrelated to skills. The old "
+        "default of 50 against a 100-episode range was liable to exactly that",
+    )
     parser.add_argument(
         "--holdout",
         default="docs/evidence/holdout_v3.json",
@@ -191,11 +201,17 @@ def main() -> int:
     parser.add_argument("--out", default=None, help="report destination (default docs/evidence)")
     args = parser.parse_args()
 
+    # Shared with `shaping_comparison`, which found the defect: the two tools
+    # carry a byte-identical `pairing` guard and had the same latent break.
+    sys.path.insert(0, str(ROOT / "tools"))
+    from shaping_comparison import frozen_episodes
+
+    episodes = frozen_episodes(args.holdout, args.eval_episodes)
     seeds = [int(s) for s in args.seeds.split(",")]
     runs: list[dict] = []
     for seed in seeds:
         for skills in (False, True):
-            row = run_arm(args.task, args.steps, seed, skills, args.eval_episodes, args.holdout)
+            row = run_arm(args.task, args.steps, seed, skills, episodes, args.holdout)
             runs.append(row)
             label = "skills" if skills else "flat  "
             if row["ok"]:
@@ -246,7 +262,7 @@ def main() -> int:
         "task": args.task,
         "steps": args.steps,
         "seeds": seeds,
-        "eval_episodes": args.eval_episodes,
+        "eval_episodes": episodes,
         "holdout": args.holdout,
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "arms": {

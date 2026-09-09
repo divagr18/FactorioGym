@@ -34,7 +34,36 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON = ROOT / ".venv" / "Scripts" / "python.exe"
 
 
-def run(task: str, steps: int, seed: int, shaped: bool, skills: bool, holdout: str) -> dict:
+#: Episodes per arm when no holdout is used at all. Only reachable via
+#: `--holdout ''`, which already forfeits pairing.
+DEFAULT_UNPAIRED_EPISODES = 25
+
+
+def frozen_episodes(holdout: str, requested: int | None) -> int:
+    """How many held-out episodes to ask for. Defaults to the whole frozen range.
+
+    Asking for fewer does not buy a faster comparison, it buys **no**
+    comparison. `evaluate_parallel` scores the first N of the frozen range *to
+    finish* (`train.py:416`, `vecenv.py:181-207`), and which N that is depends
+    on episode length and worker scheduling — so two policies score different
+    subsets, `pairing()` sees two different `scored_episodes` lists and refuses
+    a verdict. Only the full range makes `only_indices` cover it and the
+    episode identities identical by construction.
+
+    This tool hardcoded 25 against a 100-episode range, so its arms were
+    liable to that refusal for a reason that had nothing to do with shaping.
+    """
+    if requested:
+        return requested
+    if not holdout:
+        return DEFAULT_UNPAIRED_EPISODES
+    body = json.loads((ROOT / holdout).read_text(encoding="utf-8"))
+    return int((body.get("holdout") or {}).get("episodes_per_task") or DEFAULT_UNPAIRED_EPISODES)
+
+
+def run(
+    task: str, steps: int, seed: int, shaped: bool, skills: bool, holdout: str, episodes: int
+) -> dict:
     command = [
         str(PYTHON),
         "-m",
@@ -47,7 +76,7 @@ def run(task: str, steps: int, seed: int, shaped: bool, skills: bool, holdout: s
         "--seed",
         str(seed),
         "--eval-episodes",
-        "25",
+        str(episodes),
         "--prefix",
         "shaped" if shaped else "sparse",
     ]
@@ -127,6 +156,14 @@ def main() -> int:
         help="frozen holdout both arms are scored on; '' to disable (unpaired)",
     )
     parser.add_argument(
+        "--eval-episodes",
+        type=int,
+        default=None,
+        help="held-out episodes per arm. Defaults to the holdout's own "
+        "`episodes_per_task`, which is the only value that makes the arms "
+        "comparable -- see `frozen_episodes`",
+    )
+    parser.add_argument(
         "--no-skills",
         action="store_true",
         help="compare over primitive actions only; most families cannot learn there",
@@ -134,6 +171,7 @@ def main() -> int:
     args = parser.parse_args()
 
     seeds = [int(s) for s in args.seeds.split(",")]
+    episodes = frozen_episodes(args.holdout, args.eval_episodes)
     runs = []
     for seed in seeds:
         for shaped in (True, False):
@@ -144,6 +182,7 @@ def main() -> int:
                 shaped,
                 skills=not args.no_skills,
                 holdout=args.holdout,
+                episodes=episodes,
             )
             runs.append(result)
             label = "shaped" if shaped else "sparse"
@@ -202,6 +241,10 @@ def main() -> int:
         "task": args.task,
         "steps": args.steps,
         "seeds": seeds,
+        # Recorded because it decides whether the arms *can* be paired:
+        # below the frozen range they score different subsets of it.
+        "eval_episodes": episodes,
+        "holdout": args.holdout or None,
         "shaped_held_out_mean": shaped_rate,
         "sparse_held_out_mean": sparse_rate,
         # Both evaluated under the same success predicate: disabling shaping
