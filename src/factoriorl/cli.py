@@ -198,6 +198,7 @@ def cmd_train(args) -> int:
             holdout=args.holdout,
             skills=args.skills,
             start_curriculum=args.start_curriculum,
+            init_from=args.init_from,
             run_prefix=args.prefix,
         )
     )
@@ -429,6 +430,18 @@ def main(argv: list[str] | None = None) -> int:
         help="val for routine runs and sweeps; test only for a release evaluation",
     )
     train_cmd.add_argument("--no-shaping", action="store_true")
+    train_cmd.add_argument(
+        "--init-from",
+        default=None,
+        metavar="CHECKPOINT",
+        help=(
+            "seed the policy's parameters from this checkpoint, leaving the "
+            "optimizer fresh. R5.3's third arm (BC-initialised PPO). The run is "
+            "NOT comparable to a scratch PPO run and records its own "
+            "training_mode so it cannot be reported in the same column; an "
+            "architecture mismatch is refused rather than partially loaded"
+        ),
+    )
     train_cmd.add_argument(
         "--start-curriculum",
         type=float,

@@ -30,7 +30,12 @@ from factoriorl.baselines import cached_random_baseline
 from factoriorl.engine_config import resolve_game_speed
 from factoriorl.env import FactorioEnv
 from factoriorl.learn.buffers import DurationAwareMaskableDictRolloutBuffer
-from factoriorl.learn.policy import EXTRACTOR_VERSION, describe, policy_kwargs
+from factoriorl.learn.policy import (
+    EXTRACTOR_VERSION,
+    describe,
+    initialise_from,
+    policy_kwargs,
+)
 from factoriorl.rcon import RCONClient
 from factoriorl.seeding import Branch, SeedPlan, seed_everything
 from factoriorl.session import WorkerSession
@@ -116,6 +121,18 @@ class TrainConfig:
     #: of at the origin. Training stream only -- no evaluated episode, not even
     #: the unfamiliar-seed row over training layouts, is affected.
     start_curriculum: float = 0.0
+    #: Path to a checkpoint whose *policy parameters* seed this run, leaving the
+    #: optimizer fresh. R5.3's third arm: scratch PPO against behaviour cloning
+    #: against BC-initialised PPO, of which only the first two existed.
+    #:
+    #: A run using this is **not comparable to a scratch PPO run** and records
+    #: its own `training_mode` so it cannot be reported in the same column.
+    #: PLAN 4.2 forbids scripted-solution labels during ordinary PPO training,
+    #: and a policy initialised from a cloned checkpoint inherits parameters
+    #: fitted on exactly those labels -- the prohibition is on the training
+    #: signal, and this arm exists to measure what those parameters are worth,
+    #: so it has to be labelled rather than hidden.
+    init_from: str | None = None
     run_prefix: str = "train"
     extra: dict = field(default_factory=dict)
 
@@ -137,6 +154,7 @@ class TrainConfig:
             "workers": self.workers,
             "paired_stochastic_eval": self.paired_stochastic_eval,
             "start_curriculum": self.start_curriculum,
+            "init_from": self.init_from,
         }
 
 
@@ -770,6 +788,19 @@ def train(config: TrainConfig) -> dict:
             verbose=0,
         )
 
+        # Before the first step and before the manifest is written, so a run
+        # that cannot inherit the weights fails without producing a checkpoint
+        # that looks initialised. `initialise_from` refuses an architecture
+        # mismatch rather than partially loading it.
+        initialisation = None
+        if config.init_from:
+            initialisation = initialise_from(model, config.init_from)
+            if not initialisation["weights_changed"]:
+                raise ValueError(
+                    f"initialising from {config.init_from} changed no policy weights, "
+                    "so this run is a scratch run wearing an initialised label"
+                )
+
         # Written before the first step, so an interrupted run still has one.
         manifest_module.RunManifest(
             run_id=run_id,
@@ -871,16 +902,16 @@ def train(config: TrainConfig) -> dict:
         model.save(run_dir / "model")
         checkpoint = run_dir / "model.zip"
         if checkpoint.is_file():
-            manifest_module.amend(
-                run_id,
-                {
-                    "model": {
-                        "checkpoint": checkpoint.name,
-                        "checkpoint_sha256": hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
-                        "checkpoint_bytes": checkpoint.stat().st_size,
-                    }
-                },
-            )
+            model_block = {
+                "checkpoint": checkpoint.name,
+                "checkpoint_sha256": hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
+                "checkpoint_bytes": checkpoint.stat().st_size,
+            }
+            # Only present when the run actually inherited weights, so its
+            # absence means scratch rather than unrecorded.
+            if initialisation is not None:
+                model_block["initialisation"] = initialisation
+            manifest_module.amend(run_id, {"model": model_block})
         if guard.aborted is not None:
             (run_dir / "status.json").write_text(
                 json.dumps(

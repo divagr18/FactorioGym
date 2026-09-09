@@ -191,6 +191,111 @@ def checkpoint_signature(path) -> str:
     return _digest(th.load(blob, map_location="cpu", weights_only=True))
 
 
+#: Recorded by a run started from someone else's weights. Not a cosmetic
+#: label: PLAN 4.2 forbids scripted-solution labels during ordinary PPO
+#: training, and a BC-initialised run *inherits* parameters fitted on exactly
+#: those labels. It is therefore not comparable to a scratch PPO run and must
+#: never appear in the same column, which is only enforceable if the run says
+#: what it is.
+INITIALISED_MODE = "ppo-initialised-from-checkpoint-v1"
+
+
+def initialise_from(model, path) -> dict:
+    """Start `model` from a saved policy's weights, keeping a fresh optimizer.
+
+    R5.3's third arm. The comparison it asks for is scratch PPO against
+    behaviour cloning against BC-initialised PPO, and the third did not exist.
+
+    **Only the policy's parameters are copied.** `MaskablePPO.load` would
+    replace the optimizer state too, and BC's optimizer moments were
+    accumulated under a supervised cross-entropy loss -- carrying Adam's
+    running averages from that objective into a policy-gradient objective
+    conditions the first PPO updates on gradients of a different loss. The
+    point of the arm is the *starting parameters*, so the optimizer starts
+    fresh.
+
+    **An architecture mismatch is refused, not absorbed.** `load_state_dict`
+    with `strict=False` would silently leave every mismatched layer at its
+    random initialisation, producing a policy that is neither scratch nor
+    cloned and a result attributable to nothing. The signatures compare name
+    and shape for every parameter, which is what SB3's own load compares, and
+    the checkpoint's is read without loading it so an unloadable file gets a
+    diagnosis rather than a traceback.
+
+    Returns what the manifest should record, including a digest of the weights
+    before and after: identical digests mean nothing was transferred, and a run
+    that silently trained from scratch under this flag would otherwise be
+    indistinguishable from one that did not.
+    """
+    candidate = Path(path)
+    if candidate.suffix != ".zip":
+        candidate = candidate.with_suffix(".zip")
+    if not candidate.is_file():
+        raise FileNotFoundError(f"no checkpoint to initialise from at {candidate}")
+
+    target = architecture_signature(model)
+    source = checkpoint_signature(candidate)
+    if target != source:
+        raise ValueError(
+            "refusing to initialise from a checkpoint with a different "
+            f"architecture: this model is {target}, {candidate.name} is {source}. "
+            "A partial load would leave the mismatched layers randomly "
+            "initialised and the result attributable to neither arm"
+        )
+
+    before = _digest_values(model.policy.state_dict())
+
+    import io
+    import zipfile
+
+    with zipfile.ZipFile(candidate) as bundle:
+        with bundle.open("policy.pth") as member:
+            blob = io.BytesIO(member.read())
+    # `weights_only=True`: loading parameters needs no arbitrary pickle
+    # execution, and this file may not be one we produced.
+    state = torch.load(blob, map_location=model.device, weights_only=True)
+    model.policy.load_state_dict(state, strict=True)
+    after = _digest_values(model.policy.state_dict())
+
+    return {
+        "initialised_from": candidate.name,
+        "initialised_from_path": str(candidate),
+        "source_architecture_signature": source,
+        "architecture_signature": target,
+        "policy_weights_digest_before": before,
+        "policy_weights_digest_after": after,
+        # The check that the flag did anything. Equal digests mean the load was
+        # a no-op and the run is really a scratch run wearing a label.
+        "weights_changed": before != after,
+        "optimizer_state": (
+            "fresh. BC's Adam moments were accumulated under a supervised loss, "
+            "so carrying them into a policy-gradient objective would condition "
+            "the first updates on gradients of a different loss"
+        ),
+        "training_mode": INITIALISED_MODE,
+        "not_comparable_to": (
+            "a scratch PPO run. These parameters were fitted on scripted-solution "
+            "labels, which PLAN 4.2 forbids during ordinary PPO training"
+        ),
+    }
+
+
+def _digest_values(state_dict) -> str:
+    """Digest of the parameter *values*, unlike `_digest`'s names and shapes.
+
+    Two policies with identical architecture have identical `_digest`; this
+    separates them, which is what makes "did the load actually transfer
+    anything" a checkable question rather than an assumption.
+    """
+    hasher = hashlib.blake2b(digest_size=8)
+    for name in sorted(state_dict):
+        value = state_dict[name]
+        if isinstance(value, torch.Tensor):
+            hasher.update(name.encode("utf-8"))
+            hasher.update(value.detach().cpu().numpy().tobytes())
+    return hasher.hexdigest()
+
+
 def describe(model) -> dict:
     """Model configuration for the run manifest (PLAN.md section 2)."""
     parameters = sum(p.numel() for p in model.policy.parameters())
