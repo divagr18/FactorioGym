@@ -199,6 +199,8 @@ def cmd_train(args) -> int:
             skills=args.skills,
             start_curriculum=args.start_curriculum,
             init_from=args.init_from,
+            learning_rate=args.learning_rate,
+            ent_coef=args.ent_coef,
             run_prefix=args.prefix,
         )
     )
@@ -430,6 +432,25 @@ def main(argv: list[str] | None = None) -> int:
         help="val for routine runs and sweeps; test only for a release evaluation",
     )
     train_cmd.add_argument("--no-shaping", action="store_true")
+    # Exposed because R5.3's collapse needs them. A BC-initialised policy is
+    # near-deterministic after supervised fitting, so the entropy bonus pulls
+    # hard against exactly what was inherited, and the learning rate sets how
+    # fast a random critic's advantages can move a good actor.
+    train_cmd.add_argument(
+        "--learning-rate",
+        type=float,
+        default=3e-4,
+        metavar="LR",
+        help="PPO learning rate (default 3e-4)",
+    )
+    train_cmd.add_argument(
+        "--ent-coef",
+        type=float,
+        default=0.01,
+        metavar="COEF",
+        help="entropy bonus (default 0.01). Set 0 to stop pulling a sharp "
+        "policy toward uniform, which matters when starting from a clone",
+    )
     train_cmd.add_argument(
         "--init-from",
         default=None,
