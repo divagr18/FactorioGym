@@ -4,7 +4,7 @@ Reviewed against `PLAN.md` (all sections), `docs/LEDGER.md`, `docs/evidence/`,
 and `src/factoriorl/` as of 2026-09-07 (Phases 0–2 Accepted, Phases 3–4 Needs
 correction).
 
-**Source.** `a local copy of Automated Planning and Acting.pdf` — the
+**Source.** `Automated Planning and Acting.pdf` — the
 complete Cambridge University Press text, 360 PDF pages, ISBN 978-1-107-03727-4.
 Every citation below is `§section, p.N` with **N a printed page number** (PDF
 page = printed page + 12). All eight chapters, both appendices and the

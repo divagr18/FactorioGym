@@ -18,7 +18,7 @@ numbers and at least one whole citation forward from the draft's numbering, and 
 those do not survive contact with the complete text. The corrections are listed below and
 should be treated as errata against anything already built on that document.
 
-All citations here are to **`a local copy of the book draft`** — the complete
+All citations here are to **`bookdraft2017nov5.pdf`** — the complete
 second-edition draft of 5 November 2017: 445 PDF pages, seventeen chapters, References at
 printed p. 395. Citations give the **printed page**; **PDF page = printed page + 18**
 (printed p. 215 = PDF page 233). Where a claim rests on a result the book cites rather than

@@ -5,7 +5,7 @@ and carries its own staleness banner. Direction comes from
 [`docs/DEVELOPMENT_REDIRECTION.md`](DEVELOPMENT_REDIRECTION.md); this file is day-to-day
 state. Read this before treating any older summary as current fact.
 
-**Last reconciled:** 2026-09-09, after R4.
+**Last reconciled:** 2026-09-10, after R4, Phase 4's validity items, R5.2, R5.3 and R6.
 
 ---
 
@@ -147,14 +147,31 @@ completes unattended -- but two sub-sections are unmet and a third is only half 
 
 | sub-section | state |
 |---|---|
-4.1 baseline policy | **not met.** Two separate failures, below: the resume clause was never checked, and the certified checkpoints no longer load |
+4.1 baseline policy | **met** (2026-09-09). The 4.4 comparison produced the first checkpoints that qualify: three `deliver` runs at `extractor_version` 7, each verifying with an empty problem list and each with its recorded `architecture_signature` equal to the digest read back off `policy.pth`. `docs/evidence/phase4-checkpoints.json` declares them, and the gate now checks resume and step count as well as loading |
 4.2 single-task learning | met. Learning exceeds the random floor (`deliver` 0.77 against 0.00, `restore_power` 0.26 against 0.00), eval is on a disjoint seed branch, PPO gets no scripted labels, failed runs are retained |
 4.3 profiling | met. Dominant bottleneck identified and it is not close: `environment_step` 56.44 ms against `encode` 0.081 ms. 8 workers chosen at 261 steps/s, 3.43x one worker at 43% per-worker efficiency, described as measured rather than as "faster". Deviations: the sweep ran 1/4/8/12/16 rather than the plan's 1/2/4/8, and the file predates this week's profiling changes |
-4.4 shaping dependence | **not met.** The headline is **withdrawn**: the two arms were never scored on the same episodes, so the gap (shaped 35/50, sparse 48/50) cannot be separated from their different scene draws. `--seed` fixes torch and numpy, not the scenes. The tooling now pairs arms by holdout; **the experiment has not been re-run** |
+4.4 shaping dependence | **met, and the answer is no** (2026-09-09). Re-run paired: six cells, three seeds per arm, all on the same 100 frozen `holdout_v3` episodes. Shaped 0.89, sparse 0.90. It holds on the scenes as well as the rates -- 81 of 100 scenes show zero disagreement and a within-scene permutation test gives p = 0.38. The earlier withdrawn headline stays withdrawn. Note `deliver` carries only `high_water` shaping, which is *not* the Ng-Harada-Russell form, so this measured the class that can change the optimum |
 4.5 release learning result | **not met.** No family reaches 0.80 on the structural split |
-exit gate | **not met.** "Evaluate the provided checkpoints without manual intervention" fails on two of the three published checkpoints; see below |
+exit gate | **met** (2026-09-09), 28 of 28 clauses, `mode: reproduce`, against a *declared* checkpoint set. Before the declaration existed the phrase named nothing: the gate scanned gitignored `runtime/runs/`, sorted alphabetically and took the last three. It checks mechanics and deliberately never a training outcome, so passing it says the pipeline is reproducible and says nothing about learning |
 
-### The Phase 4 gate's pass is stale, and its exit clause is currently unsatisfiable
+### R6: the environment alpha
+
+R6's five gate clauses now have something behind each of them.
+`factoriorl evaluate` exists, the release bundle carries three real checkpoints
+and a successful agent trajectory, and `docs/RECIPE.md`,
+`docs/AUTHORING_TASKS.md`, `docs/AGENT.md` and `docs/RELEASE_CHECKLIST.md` are
+written for a stranger rather than for us. The audit that produced that list
+found nine blockers; `docs/LIMITATIONS.md` section 8 records the ones that
+remain, including that the wheel does not work and that replay does not cover
+trained policies.
+
+Two claims in the tree were false and are now withdrawn: the README's
+assertion that a unit test proved the runtime imports without numpy and
+gymnasium (no such test), and the repository's claim that authoring a task
+needed no internals edit (`RegisteredTask.solve` was never read; dispatch went
+through a hard-coded dict, which is fixed).
+
+### The Phase 4 gate's pass was stale, and its exit clause was unsatisfiable (resolved 2026-09-09)
 
 `phase4-gate.json` passed 15 of 15 on 2026-09-07. Two of those checks no longer
 hold, measured today:
