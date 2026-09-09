@@ -44,7 +44,13 @@ from factoriorl.catalog import ARGUMENT_PREFIX
 #: 2 added argument domains, for `parameterized-v1`. A model shown a
 #: `place_at` it cannot supply a position for has no legal answer, so the
 #: encoding version is part of what a run's numbers mean.
-SUMMARY_ENCODING_VERSION = 2
+#: 3 surfaces the per-entity status *name*, `working`, `fuel` and `output`.
+#: `local-v2` v4 was bumped to publish exactly those four -- "what a stopped
+#: machine's cause actually is" -- and `_entity_row` never copied them, so the
+#: prompt kept rendering `status 18` through every language-model run to date,
+#: including R3.2's baseline and R4.2's first agent arm. Those numbers were
+#: measured against a prompt that could not state why a machine had stopped.
+SUMMARY_ENCODING_VERSION = 3
 
 #: How many entities a summary lists before it starts counting the rest. A
 #: 32-tile sensor can return 48 records; pasting all of them into every prompt
@@ -329,6 +335,21 @@ def _entity_row(record: dict, origin: list[float], remembered: bool) -> dict:
         row["recipe"] = record["recipe"]
     if record.get("status") is not None:
         row["status"] = record["status"]
+    # The three fields the v4 profile bump was made for. `sensor.entity_record`
+    # publishes all of them and `local-v2` v5 declares `entities`, so they were
+    # arriving on the wire and being dropped here -- which left the prompt
+    # rendering `status 18`, the exact string `sensor.lua`'s own comment says
+    # "neither client could act on". A stopped machine's *cause* lives in
+    # `fuel` and `output`; without them "the drill has no fuel" and "the furnace
+    # has no ore" are the same unreadable integer.
+    if record.get("st") is not None:
+        row["st"] = record["st"]
+    if record.get("working") is not None:
+        row["working"] = bool(record["working"])
+    if record.get("fuel"):
+        row["fuel"] = record["fuel"]
+    if record.get("output"):
+        row["output"] = record["output"]
     if record.get("health") is not None:
         row["health"] = record["health"]
     if remembered:
@@ -493,8 +514,23 @@ class ObservationSummary:
                 detail += f"; holds {held}"
             if row.get("recipe"):
                 detail += f"; recipe {row['recipe']}"
-            if row.get("status") is not None:
-                detail += f"; status {row['status']}"
+            if row.get("st") or row.get("status") is not None:
+                # Name first: `status 18` is not actionable and
+                # `waiting_for_source_items` is. The integer stays only as the
+                # fallback for a status the engine has no name for.
+                detail += f"; status {row.get('st') or row['status']}"
+            if row.get("fuel"):
+                fuel = ", ".join(f"{k} x{v}" for k, v in sorted(row["fuel"].items()))
+                detail += f"; fuel {fuel}"
+            # No "fuel: empty" line when the field is absent, deliberately.
+            # `sensor.inventory_contents` returns nil both for an empty fuel
+            # inventory and for an entity that has none, so an absent field
+            # cannot tell a drained drill from a transport belt. The engine's
+            # own status name carries that diagnosis instead: a burner out of
+            # fuel reports `no_fuel`.
+            if row.get("output"):
+                held = ", ".join(f"{k} x{v}" for k, v in sorted(row["output"].items()))
+                detail += f"; output {held}"
             if row.get("remembered"):
                 detail += f"; REMEMBERED, last seen {row.get('age_ticks', 0)} ticks ago"
             lines.append(detail)

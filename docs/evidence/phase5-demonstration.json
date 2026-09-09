@@ -108,5 +108,30 @@
     "reported_time_and_usage": true,
     "sustained_production_restored": true,
     "all_clauses_met": true
+  },
+  "withdrawal": {
+    "withdrawn": [
+      "sustained_production_restored",
+      "all_clauses_met"
+    ],
+    "withdrawn_at": "2026-09-09, R4.2",
+    "traces_unchanged": "Every other key in this file is the original run, byte for byte. What is withdrawn is the acceptance claim drawn from it, not the measurement.",
+    "why": [
+      "No outage was ever established. The disruption emptied both fuel *inventories* at tick 4050 with `get_fuel_inventory():clear()`, which does not touch `entity.energy`, and this file's own `phase_3_disruption.state_after` records `drill_status: 1` -- working -- with `drill_fuel: 0`.",
+      "The line could not have stopped in the time available. `docs/evidence/r4-burner-decay.json` measured the decay curve on this same scene: production continued for 1,170 ticks after the fuel was taken, and the arithmetic agrees -- 2,999,833 J of remaining burning fuel against a 150 kW drill is 1,199 ticks. `phase_4_recovery` took 3 decisions, which is 90 ticks. The agent refuelled a line that was still running at full rate.",
+      "There was no criterion to judge either state by. `fuel == 0` is not an outage, and machine status is worse: a healthy plate line reads `working` on 7.5% of sampled ticks. `src/factoriorl/recovery.py` now declares both criteria, in code, before any arm runs.",
+      "There was no control arm, so nothing distinguished 'the agent restored the line' from 'the line never stopped'. Under the declared criteria the second is what happened."
+    ],
+    "what_still_stands": [
+      "no_undeclared_repair_script",
+      "line_operated_without_replenishment",
+      "replay_shows_construction_disruption_recovery",
+      "reported_time_and_usage"
+    ],
+    "replaced_by": [
+      "docs/evidence/r4-burner-decay.json -- the decay curve this claim needed and did not have.",
+      "docs/evidence/r4-recovery-arms.json -- three arms from a digest-validated common pre-intervention state, with the agent arm repeated."
+    ],
+    "note": "This file's `addressed_actions` block records that the model used *targeted* transfers here -- `give_coal_20` at h1, then at h2. R4.2's arms run the same task's declared catalog untargeted, where `give_coal_N` fuels whichever machine is nearest. That is a difference in what the agent could express, not in the task, and it is why the arm numbers are reported per run with a range rather than as one figure."
   }
 }
