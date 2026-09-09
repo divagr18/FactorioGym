@@ -701,6 +701,124 @@ def _build_at(driver: Driver, drill_centre: tuple[int, int]) -> bool:
     return True
 
 
+def solve_diagnose_line(driver: Driver) -> None:
+    """Apply every fix, in an order that works on all four fault kinds.
+
+    **This solver does not diagnose, and that is deliberate.** A reference
+    solution exists to show that each generated scene is solvable inside its
+    budget -- PLAN 3.2's solvability check -- and nothing more. Reading truth to
+    find out which machine is dry and then fixing only that one would make the
+    reference's success depend on privileged information, and would make "the
+    reference solves it" read as evidence that the diagnosis is easy. It is
+    evidence of neither: this walks to both machines, fuels both, and clears the
+    furnace's output whether or not it was blocked.
+
+    So the reference's disclosed assistance for this family is *not* fault
+    localisation. It is that it never has to choose: the agent's difficulty is
+    picking a fix from an observation, and the solver skips the choice by doing
+    all of them.
+
+    `give_coal_20` fuels the *nearest* entity and the machines are two tiles
+    apart, so each approach ends on the far side of its own machine -- north of
+    the drill, south of the furnace -- exactly as `solve_plate_line` does.
+    """
+    drill, furnace = driver.marker("drill"), driver.marker("furnace")
+    if drill is None or furnace is None:
+        driver.trace.stuck_reason = "missing drill/furnace markers"
+        return
+
+    if not driver.walk_to((drill[0], drill[1] - 2.0), tolerance=1.2):
+        driver.trace.stuck_reason = "could not reach the drill's approach"
+        return
+    if not driver.do("give_coal_20"):
+        return
+    if not driver.walk_to((furnace[0], furnace[1] + 2.0), tolerance=1.2):
+        driver.trace.stuck_reason = "could not reach the furnace's approach"
+        return
+    if not driver.do("give_coal_20"):
+        return
+
+    # Clear the output slot, with enough headroom for the whole episode rather
+    # than just for the window. Six withdrawals was the first attempt and it
+    # made the reference *lose to random* on the test split -- 0.40 against
+    # 0.60 -- because the furnace refilled to a hundred partway through the
+    # 400-decision wait and stopped again while the solver stood still. A stone
+    # furnace's result slot holds one stack of a hundred, the line makes about
+    # 15 plates per 3,600 ticks, and the budget is 15,000 ticks: sixty plates
+    # of headroom cannot be consumed inside it, so twelve withdrawals end the
+    # fault instead of postponing it.
+    for _ in range(12):
+        if driver.success or driver.terminated:
+            return
+        if not driver.do("take_iron-plate_5"):
+            break
+
+    # Then stand still: acceptance cannot arrive before tick 3,600 and needs a
+    # full 3,600-tick window after that, so this is roughly 240 decisions of
+    # waiting and the budget is 500.
+    for _ in range(400):
+        if driver.success or driver.terminated:
+            return
+        if not driver.do("wait"):
+            return
+
+
+def solve_keep_line_running(driver: Driver) -> None:
+    """Top both machines up on a cycle until the window is satisfied.
+
+    **It does not read the declared outage tick, deliberately.** The tick is in
+    `TaskSpec.disruptions` and the solver could look it up, but the agent is
+    never told it -- R4.3 asks for a disruption detectable only by monitoring --
+    and a reference that timed its repair off a field the agent cannot see
+    would be demonstrating a different task's solvability. Cycling costs a few
+    decisions and needs no privileged knowledge, so the reference's disclosed
+    assistance stays "it knows where the machines are", which every family's
+    reference has.
+
+    Each round puts five coal in each machine. Five coal is 20 MJ against a
+    150 kW drill, which is about 8,000 ticks -- so a single post-outage top-up
+    is enough, and the cycle exists to guarantee one lands after the outage
+    rather than to keep the line alive by brute force. Twelve rounds fit in the
+    120 coal the scene provides, against a 12,000-tick budget.
+
+    Approaches from the far side of each machine, as `solve_plate_line` does:
+    `give_coal_5` fuels the *nearest* entity and the two machines are two tiles
+    apart, so standing between them fuels whichever happens to be closer.
+    """
+    drill, furnace = driver.marker("drill"), driver.marker("furnace")
+    if drill is None or furnace is None:
+        driver.trace.stuck_reason = "missing drill/furnace markers"
+        return
+    drill_side = (drill[0], drill[1] - 2.0)
+    furnace_side = (furnace[0], furnace[1] + 2.0)
+
+    for _ in range(12):
+        if driver.success or driver.terminated:
+            return
+        if not driver.walk_to(drill_side, tolerance=1.2):
+            driver.trace.stuck_reason = "could not reach the drill's approach"
+            return
+        if not driver.do("give_coal_5"):
+            return
+        if driver.success or driver.terminated:
+            return
+        if not driver.walk_to(furnace_side, tolerance=1.2):
+            driver.trace.stuck_reason = "could not reach the furnace's approach"
+            return
+        if not driver.do("give_coal_5"):
+            return
+        # Then stand still and let it smelt. Acceptance cannot arrive before
+        # tick 8,400 -- the outage at 3,600, plus the measured 1,200-tick run-on
+        # the fuel clear does not stop, plus a full 3,600-tick window -- so most
+        # of this solver's decisions are waiting, as they are on every family
+        # whose objective is production.
+        for _ in range(24):
+            if driver.success or driver.terminated:
+                return
+            if not driver.do("wait"):
+                return
+
+
 SOLVERS = {
     "navigate": solve_navigate,
     "deliver": solve_deliver,
@@ -710,6 +828,8 @@ SOLVERS = {
     "repair_belt": solve_repair_belt,
     "restore_power": solve_restore_power,
     "build_line": solve_build_line,
+    "diagnose_line": solve_diagnose_line,
+    "keep_line_running": solve_keep_line_running,
 }
 
 

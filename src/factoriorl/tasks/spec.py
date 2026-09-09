@@ -31,6 +31,49 @@ from typing import Any
 # --------------------------------------------------------------------- scene
 
 
+#: Disruption kinds the mod implements, mirroring `world.disrupt`.
+#:
+#: `empty_fuel` clears fuel *inventories* and deliberately leaves
+#: `entity.energy` and `burner.remaining_burning_fuel` alone, because that is
+#: the disruption R4.2 measured: a burner drill keeps producing for about 1,170
+#: ticks on the item already in its burner. A task declaring it is declaring a
+#: delayed outage, not an immediate one.
+#:
+#: `fill_output` fills a machine's result slot, which stops it for a reason no
+#: amount of fuel fixes.
+DISRUPTION_KINDS: frozenset[str] = frozenset({"empty_fuel", "fill_output"})
+
+
+@dataclass(frozen=True)
+class Disruption:
+    """Something the evaluator does to a running scene, declared in advance.
+
+    Declared on the task rather than fired by a driver, which is the whole
+    point. `tools/demonstration.py` injected its outage with a raw Lua string
+    at a fixed point in a five-phase script: the tick was a property of the
+    driver, the targets were a property of the string, and a run's trace could
+    not state either. Two runs of "the same disruption" were not comparable
+    because nothing said what the disruption was.
+
+    Unannounced by construction. Applying one publishes no marker and appends
+    no event, so it is detectable only by monitoring what is already
+    observable -- machine status, fuel and output contents. That is what R4.3's
+    persistent-operation track asks for, and it is why `at_tick` is declared
+    here rather than told to the agent.
+    """
+
+    kind: str
+    #: Game tick at which it lands. Absolute, and compared against the
+    #: observation's own tick, so a disruption cannot be missed by a step that
+    #: advances past it.
+    at_tick: int
+    #: Marker aliases or prototype names. Resolved alias-first by the mod.
+    targets: tuple[str, ...]
+
+    def to_dict(self) -> dict:
+        return {"kind": self.kind, "at_tick": self.at_tick, "targets": list(self.targets)}
+
+
 #: Every track a task may declare. `validate_all` refuses anything else,
 #: including the `"unclassified"` default, so a task that forgets to declare
 #: one fails validation instead of being quietly filed under whichever name a
@@ -737,6 +780,16 @@ class TaskSpec:
     #: as a validation error before a worker is launched.
     track: str = "unclassified"
 
+    #: Disruptions the environment applies during an episode, in declared
+    #: order. Empty for every task that does not want one.
+    #:
+    #: In `to_dict()`: a disruption changes what happens in an episode, so two
+    #: runs differing in it are runs of different tasks. `validate_all` checks
+    #: the kinds and that each lands inside the tick budget -- a disruption
+    #: declared after `max_game_ticks` would never fire and nothing would say
+    #: so.
+    disruptions: tuple[Disruption, ...] = ()
+
     def families(self, split: str) -> tuple[LayoutFamily, ...]:
         return tuple(f for f in self.layout_families if f.split == split)
 
@@ -875,6 +928,7 @@ class TaskSpec:
             # this dict -- and this field was left out when they went in.
             "landmarks": [p.describe() for p in self.landmarks],
             "track": self.track,
+            "disruptions": [d.to_dict() for d in self.disruptions],
             "rewards": [
                 {
                     "name": r.name,

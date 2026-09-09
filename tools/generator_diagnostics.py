@@ -143,6 +143,20 @@ STRUCTURAL_DESCRIPTORS = (
     # without this descriptor the tool reported that holdout as structurally
     # identical to training when it is not.
     "content_tile_count",
+    # `content_tile_count` sees *where* a scene's contents are and nothing sees
+    # *what is in them*. So a fault that is machine state rather than missing
+    # geometry is invisible to every descriptor above: `diagnose_line`'s four
+    # families place the identical drill, furnace and ore patch, and differ
+    # only in which machine starts unfuelled and whether the furnace's output
+    # slot is full. The tool reported that holdout as "the same shape of scene
+    # under a different name" when the shape is the point and the *state* is
+    # the holdout.
+    #
+    # Same class of blind spot as the two descriptors above, and added for the
+    # same reason: `goal_isolation` exists because moving a missing pole along
+    # a chain changes no count, and `content_tile_count` exists because ore is
+    # walkable. This one exists because an empty fuel slot has no footprint.
+    "declared_item_count",
 )
 
 #: Difficulty descriptors whose *smaller* value is the harder scene. Slack is the
@@ -412,6 +426,13 @@ def describe(task, blueprint: Blueprint) -> dict[str, float | None]:
         "entity_type_count": float(len({e.name for e in blueprint.entities})),
         "distractor_count": float(distractors),
         "content_tile_count": float(len(content_tiles)),
+        # Every item the scene declares inside an entity. Counted rather than
+        # itemised because a descriptor is compared by overlap, so it has to be
+        # one number -- and the count already separates "one machine fuelled"
+        # from "both" from "neither" from "output slot full".
+        "declared_item_count": float(
+            sum(sum(entity.contents.values()) for entity in blueprint.entities)
+        ),
         "goal_isolation": None,
         "goal_distance": None,
         "path_length": None,

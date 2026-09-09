@@ -63,6 +63,14 @@ class RequestType(StrEnum):
     # boundary between policy input and evaluator knowledge is structural.
     TRUTH = "truth"
     WORLD_DIGEST = "world_digest"  # evaluator-only leakage probe
+    # Apply one *declared* disruption to an installed scene (R4.3). The only
+    # post-install mutation in the protocol, and typed rather than arbitrary
+    # Lua: every disruption in this repo before now was a driver-side
+    # `bridge.run` string fired at a hard-coded point in a script, so nothing
+    # declared it and no trace could say what had been done to the world.
+    # Evaluator-only, like TRUTH and WORLD_DIGEST -- no action a policy can name
+    # reaches it.
+    DISRUPT = "disrupt"
 
 
 class ActionType(StrEnum):

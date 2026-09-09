@@ -36,7 +36,7 @@ from factoriorl.production import ProductionMetrics
 from factoriorl.rewards import RewardAccountant
 from factoriorl.seeding import Branch, SeedPlan
 from factoriorl.session import WorkerSession
-from factoriorl.tasks import MAX_ADVANCE_TICKS, RegisteredTask
+from factoriorl.tasks import MAX_ADVANCE_TICKS, RegisteredTask, TaskConfigError
 from factoriorl.tasks.spec import LayoutFamily
 
 
@@ -113,6 +113,10 @@ class FactorioEnv(gym.Env):
         #: An evaluator write is not a decision, so it must not be invisible in
         #: the record either.
         self._resyncs: list[dict] = []
+        #: Which declared disruptions have fired this episode, by index,
+        #: and what the engine reported for each.
+        self._disrupted: set[int] = set()
+        self._disruptions_applied: list[dict] = []
         self._installed: set[str] = set()
         self._observation: dict = {}
         self._truth: dict = {}
@@ -400,11 +404,28 @@ class FactorioEnv(gym.Env):
         # recorded in manifests, resolved into the catalog digest, and never
         # sent. The first task to declare `assisted-v1` would have run under
         # `primitive-v1` while its manifest said otherwise.
-        self.session.reset(
+        installed = self.session.reset(
             blueprint_hash=digest,
             observation_profile=self.spec_.observation_profile,
             action_profile=self.spec_.action_profile,
         )
+        # The scene the engine built has to be the scene the task declared.
+        # `LuaEntity.insert` chooses an inventory by what an item is *for*, and
+        # a furnace's own product belongs to neither its source nor its fuel
+        # slot -- so `diagnose_line` declared a hundred-plate output jam in
+        # every scene, the engine accepted none of them, and the fault the
+        # family was built around did not exist. It survived four solvability
+        # runs and a test that asserted the declaration rather than the
+        # installation. Raising is right: a scene that is not the declared one
+        # produces numbers that describe no task.
+        undelivered = (installed.response.result or {}).get("undelivered") or []
+        if undelivered:
+            raise TaskConfigError(
+                f"{self.spec_.id}: the engine would not accept contents this scene "
+                f"declares: {undelivered}. Each entry is "
+                "prototype|item|placed/declared. The installed scene is not the "
+                "declared one, so anything measured on it describes no task."
+            )
         self._observation = self.session.observe().response.result
         self._refresh_truth()
         self.accountant.reset(self._observation, self._truth)
@@ -420,8 +441,11 @@ class FactorioEnv(gym.Env):
         #: sustained objective would be satisfied by the previous episode.
         self._window: list[tuple[int, dict]] = []
         # Cleared for the same reason: an intervention in the previous episode
-        # is not part of this one's record.
+        # is not part of this one's record. Disruptions too, or a task
+        # declaring one would fire it in the first episode only.
         self._resyncs = []
+        self._disrupted = set()
+        self._disruptions_applied = []
 
         digest = self.prepare_scene(self._episode_index)
         self.begin_episode(digest)
@@ -533,6 +557,51 @@ class FactorioEnv(gym.Env):
         template = self.catalog.templates[int(action)]
         return self.step_payload(template.bind(self._context()), action_key=template.key)
 
+    def _apply_due_disruptions(self) -> None:
+        """Fire any declared disruption whose tick the world has reached.
+
+        Called from the one place every observation refresh goes through, so a
+        disruption cannot be skipped by a step that advances past its tick: the
+        comparison is `at_tick <= now`, not equality. `plate_line`'s outage was
+        fired by a driver at a hard-coded point instead, which is why nothing
+        in that run's trace said what had been done to the world.
+
+        The refresh afterwards is `resync`, R4.1's path: the disruption is an
+        evaluator-side write the env issued no step for, so the cached
+        observation is stale until it re-reads. Without it the first
+        post-disruption prompt would describe the world as it was before --
+        measured at 3,600 ticks of staleness in the Phase 5 demonstration.
+
+        Announces nothing else. No marker, no event: R4.3 asks for a
+        disruption detectable only by monitoring, and status, fuel and output
+        are already in the observation.
+        """
+        if not self.spec_.disruptions:
+            return
+        now = int(self._observation.get("tick") or 0)
+        for index, disruption in enumerate(self.spec_.disruptions):
+            if index in self._disrupted or disruption.at_tick > now:
+                continue
+            self._disrupted.add(index)
+            timed = self.session.disrupt(disruption.kind, disruption.targets)
+            applied = timed.response.result or {}
+            self._disruptions_applied.append(
+                {
+                    "index": index,
+                    "declared_at_tick": disruption.at_tick,
+                    "applied_at_tick": int(applied.get("tick") or now),
+                    "kind": disruption.kind,
+                    "targets": list(disruption.targets),
+                    "touched": applied.get("touched") or [],
+                    # A disruption that matched nothing is a defect in the
+                    # task, not a quieter disruption, so the trace carries the
+                    # engine's own answer rather than an assumption.
+                    "ok": bool(timed.response.ok),
+                    "error": None if timed.response.ok else str(timed.response.error),
+                }
+            )
+            self.resync(f"declared disruption {disruption.kind} on {','.join(disruption.targets)}")
+
     def _adopt(self, result: dict) -> None:
         """Take a settled step response as the env's current view of the world.
 
@@ -555,6 +624,7 @@ class FactorioEnv(gym.Env):
             self._truth = truth
             self._record_window()
         self.metrics.record(self._observation, self._truth)
+        self._apply_due_disruptions()
 
     def advance(self, ticks: int) -> int:
         """Advance game time without taking a task action, staying in sync.

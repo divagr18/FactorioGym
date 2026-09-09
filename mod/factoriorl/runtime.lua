@@ -312,7 +312,7 @@ local function handle_describe(request)
     request_types = {
       "status", "observe", "reset", "advance", "act",
       "request_status", "step", "collect", "describe", "configure",
-      "scenario_define", "truth", "world_digest",
+      "scenario_define", "truth", "world_digest", "disrupt",
     },
   })
 end
@@ -366,6 +366,24 @@ local function handle_world_digest(request)
       inflight = #inflight.summary(),
     },
   })
+end
+
+--- Apply one declared disruption. Evaluator-only, like `truth` and
+--- `world_digest`: it changes the world, so it is a mutating request, but it is
+--- never reachable from an action the policy can name.
+local function handle_disrupt(request)
+  local payload = request.payload or {}
+  if type(payload.kind) ~= "string" then
+    return err(request, CODE.BAD_REQUEST, "disrupt needs a string `kind`")
+  end
+  if type(payload.targets) ~= "table" or #payload.targets == 0 then
+    return err(request, CODE.BAD_REQUEST, "disrupt needs a non-empty `targets` list")
+  end
+  local applied, problem = world.disrupt(payload.kind, payload.targets)
+  if not applied then
+    return err(request, CODE.BAD_REQUEST, problem or "disruption did not apply")
+  end
+  return respond(request, CODE.OK, applied)
 end
 
 local function handle_truth(request)
@@ -453,9 +471,12 @@ local HANDLERS = {
   scenario_define = handle_scenario_define,
   truth = handle_truth,
   world_digest = handle_world_digest,
+  disrupt = handle_disrupt,
 }
 
-local MUTATING = { advance = true, act = true, reset = true, step = true }
+-- `disrupt` mutates the scene, so it belongs here: whatever gating a
+-- mutating request receives, a disruption must receive too.
+local MUTATING = { advance = true, act = true, reset = true, step = true, disrupt = true }
 
 function runtime.handle_json(json_string)
   local ok, request = pcall(helpers.json_to_table, json_string)

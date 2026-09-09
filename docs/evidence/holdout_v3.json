@@ -1,5 +1,5 @@
 {
-  "content_hash": "5a00330b91a1186b0a12591c9f6d2090ce8925644fda73eab2155e7e3ba9b8c4",
+  "content_hash": "432c2c4d0ecbc5a98cd53aab2e16dfc7e4765c76729701ebbd71b6aa6835737b",
   "holdout": {
     "schema": "factoriorl.holdout/1",
     "holdout_id": "holdout_v3",
@@ -1029,6 +1029,1024 @@
             "episode_index": 3099,
             "layout_family": "screened_depot",
             "blueprint_digest": "8754eac0a353cca2"
+          }
+        ]
+      },
+      "diagnose_line": {
+        "task_id": "diagnose_line",
+        "task_version": "1.0.0",
+        "families_in_split": [
+          "both_dry"
+        ],
+        "episodes": [
+          {
+            "episode_index": 3000,
+            "layout_family": "both_dry",
+            "blueprint_digest": "4ccd5db600a662d8"
+          },
+          {
+            "episode_index": 3001,
+            "layout_family": "both_dry",
+            "blueprint_digest": "328bbc6ac0eb0bed"
+          },
+          {
+            "episode_index": 3002,
+            "layout_family": "both_dry",
+            "blueprint_digest": "e758283c3248c659"
+          },
+          {
+            "episode_index": 3003,
+            "layout_family": "both_dry",
+            "blueprint_digest": "649e1dd72a798a0e"
+          },
+          {
+            "episode_index": 3004,
+            "layout_family": "both_dry",
+            "blueprint_digest": "42a829db8d4b1e89"
+          },
+          {
+            "episode_index": 3005,
+            "layout_family": "both_dry",
+            "blueprint_digest": "e154d09b0abbe75f"
+          },
+          {
+            "episode_index": 3006,
+            "layout_family": "both_dry",
+            "blueprint_digest": "633b1ad394270362"
+          },
+          {
+            "episode_index": 3007,
+            "layout_family": "both_dry",
+            "blueprint_digest": "5b4e079c41bd8912"
+          },
+          {
+            "episode_index": 3008,
+            "layout_family": "both_dry",
+            "blueprint_digest": "4b6d01c872dc3d36"
+          },
+          {
+            "episode_index": 3009,
+            "layout_family": "both_dry",
+            "blueprint_digest": "99af711b8c474c34"
+          },
+          {
+            "episode_index": 3010,
+            "layout_family": "both_dry",
+            "blueprint_digest": "7e8dab2241a93795"
+          },
+          {
+            "episode_index": 3011,
+            "layout_family": "both_dry",
+            "blueprint_digest": "98e7d4ae2f51bace"
+          },
+          {
+            "episode_index": 3012,
+            "layout_family": "both_dry",
+            "blueprint_digest": "43dfee565a5aaefa"
+          },
+          {
+            "episode_index": 3013,
+            "layout_family": "both_dry",
+            "blueprint_digest": "cfa5b621d17d748f"
+          },
+          {
+            "episode_index": 3014,
+            "layout_family": "both_dry",
+            "blueprint_digest": "f01cc276abc81734"
+          },
+          {
+            "episode_index": 3015,
+            "layout_family": "both_dry",
+            "blueprint_digest": "4cea9b594b785415"
+          },
+          {
+            "episode_index": 3016,
+            "layout_family": "both_dry",
+            "blueprint_digest": "b90c5310546c5383"
+          },
+          {
+            "episode_index": 3017,
+            "layout_family": "both_dry",
+            "blueprint_digest": "d9be6e919e75214f"
+          },
+          {
+            "episode_index": 3018,
+            "layout_family": "both_dry",
+            "blueprint_digest": "3145990106800b59"
+          },
+          {
+            "episode_index": 3019,
+            "layout_family": "both_dry",
+            "blueprint_digest": "a73e0cfcd57c3d15"
+          },
+          {
+            "episode_index": 3020,
+            "layout_family": "both_dry",
+            "blueprint_digest": "f5a9d369c320c5d5"
+          },
+          {
+            "episode_index": 3021,
+            "layout_family": "both_dry",
+            "blueprint_digest": "9407887ad28bad0f"
+          },
+          {
+            "episode_index": 3022,
+            "layout_family": "both_dry",
+            "blueprint_digest": "e4b623f7800d9206"
+          },
+          {
+            "episode_index": 3023,
+            "layout_family": "both_dry",
+            "blueprint_digest": "f058589b145cbb13"
+          },
+          {
+            "episode_index": 3024,
+            "layout_family": "both_dry",
+            "blueprint_digest": "1cb11aa84fa48751"
+          },
+          {
+            "episode_index": 3025,
+            "layout_family": "both_dry",
+            "blueprint_digest": "17a8a07d50e16c26"
+          },
+          {
+            "episode_index": 3026,
+            "layout_family": "both_dry",
+            "blueprint_digest": "fcd1d995afae3425"
+          },
+          {
+            "episode_index": 3027,
+            "layout_family": "both_dry",
+            "blueprint_digest": "68f885bc5b867fd6"
+          },
+          {
+            "episode_index": 3028,
+            "layout_family": "both_dry",
+            "blueprint_digest": "f8c96a931ce8c848"
+          },
+          {
+            "episode_index": 3029,
+            "layout_family": "both_dry",
+            "blueprint_digest": "e5639ec1b9fed78d"
+          },
+          {
+            "episode_index": 3030,
+            "layout_family": "both_dry",
+            "blueprint_digest": "c6c468355bc7b001"
+          },
+          {
+            "episode_index": 3031,
+            "layout_family": "both_dry",
+            "blueprint_digest": "361f72d174b90fbf"
+          },
+          {
+            "episode_index": 3032,
+            "layout_family": "both_dry",
+            "blueprint_digest": "53bfd7813bd24904"
+          },
+          {
+            "episode_index": 3033,
+            "layout_family": "both_dry",
+            "blueprint_digest": "c870dc6f723ca891"
+          },
+          {
+            "episode_index": 3034,
+            "layout_family": "both_dry",
+            "blueprint_digest": "0cb76887ea38f40b"
+          },
+          {
+            "episode_index": 3035,
+            "layout_family": "both_dry",
+            "blueprint_digest": "47dc4ae6f41b47c7"
+          },
+          {
+            "episode_index": 3036,
+            "layout_family": "both_dry",
+            "blueprint_digest": "b4e7613fafa0b368"
+          },
+          {
+            "episode_index": 3037,
+            "layout_family": "both_dry",
+            "blueprint_digest": "f4ec22e032cf64b8"
+          },
+          {
+            "episode_index": 3038,
+            "layout_family": "both_dry",
+            "blueprint_digest": "738f887e6f7f741b"
+          },
+          {
+            "episode_index": 3039,
+            "layout_family": "both_dry",
+            "blueprint_digest": "8c2b01013ca8b981"
+          },
+          {
+            "episode_index": 3040,
+            "layout_family": "both_dry",
+            "blueprint_digest": "8f59a7d9f821ed58"
+          },
+          {
+            "episode_index": 3041,
+            "layout_family": "both_dry",
+            "blueprint_digest": "1e0e4cd84b3d05d6"
+          },
+          {
+            "episode_index": 3042,
+            "layout_family": "both_dry",
+            "blueprint_digest": "5b856c41115b3859"
+          },
+          {
+            "episode_index": 3043,
+            "layout_family": "both_dry",
+            "blueprint_digest": "a5d5b67422d3769c"
+          },
+          {
+            "episode_index": 3044,
+            "layout_family": "both_dry",
+            "blueprint_digest": "858265edf1b28cd4"
+          },
+          {
+            "episode_index": 3045,
+            "layout_family": "both_dry",
+            "blueprint_digest": "1bac22962c65f3af"
+          },
+          {
+            "episode_index": 3046,
+            "layout_family": "both_dry",
+            "blueprint_digest": "c0793b79c06c9329"
+          },
+          {
+            "episode_index": 3047,
+            "layout_family": "both_dry",
+            "blueprint_digest": "a6ff6b192d7f0461"
+          },
+          {
+            "episode_index": 3048,
+            "layout_family": "both_dry",
+            "blueprint_digest": "0bf163f71e6e1a64"
+          },
+          {
+            "episode_index": 3049,
+            "layout_family": "both_dry",
+            "blueprint_digest": "d58b49eae1113443"
+          },
+          {
+            "episode_index": 3050,
+            "layout_family": "both_dry",
+            "blueprint_digest": "1a379b08f108365a"
+          },
+          {
+            "episode_index": 3051,
+            "layout_family": "both_dry",
+            "blueprint_digest": "59408def10df02ab"
+          },
+          {
+            "episode_index": 3052,
+            "layout_family": "both_dry",
+            "blueprint_digest": "6a1dc208e38aebe9"
+          },
+          {
+            "episode_index": 3053,
+            "layout_family": "both_dry",
+            "blueprint_digest": "2738b17e22b05499"
+          },
+          {
+            "episode_index": 3054,
+            "layout_family": "both_dry",
+            "blueprint_digest": "7d7c39e130b252d4"
+          },
+          {
+            "episode_index": 3055,
+            "layout_family": "both_dry",
+            "blueprint_digest": "f1c91829fdec4604"
+          },
+          {
+            "episode_index": 3056,
+            "layout_family": "both_dry",
+            "blueprint_digest": "db7d276280e845be"
+          },
+          {
+            "episode_index": 3057,
+            "layout_family": "both_dry",
+            "blueprint_digest": "e2ff5e0b00126c2c"
+          },
+          {
+            "episode_index": 3058,
+            "layout_family": "both_dry",
+            "blueprint_digest": "dc505f0cd909f004"
+          },
+          {
+            "episode_index": 3059,
+            "layout_family": "both_dry",
+            "blueprint_digest": "03d774cb023b5ae6"
+          },
+          {
+            "episode_index": 3060,
+            "layout_family": "both_dry",
+            "blueprint_digest": "d99f3c36a2371d37"
+          },
+          {
+            "episode_index": 3061,
+            "layout_family": "both_dry",
+            "blueprint_digest": "367a017dd8bebf0d"
+          },
+          {
+            "episode_index": 3062,
+            "layout_family": "both_dry",
+            "blueprint_digest": "78036de12a97f4f4"
+          },
+          {
+            "episode_index": 3063,
+            "layout_family": "both_dry",
+            "blueprint_digest": "e25b29f10be53eea"
+          },
+          {
+            "episode_index": 3064,
+            "layout_family": "both_dry",
+            "blueprint_digest": "f11a9e6bf1ec135e"
+          },
+          {
+            "episode_index": 3065,
+            "layout_family": "both_dry",
+            "blueprint_digest": "f97c22fa860143aa"
+          },
+          {
+            "episode_index": 3066,
+            "layout_family": "both_dry",
+            "blueprint_digest": "6298397fcdf13bd7"
+          },
+          {
+            "episode_index": 3067,
+            "layout_family": "both_dry",
+            "blueprint_digest": "ae8bd3f2b8520d41"
+          },
+          {
+            "episode_index": 3068,
+            "layout_family": "both_dry",
+            "blueprint_digest": "2992c2ff45d97e93"
+          },
+          {
+            "episode_index": 3069,
+            "layout_family": "both_dry",
+            "blueprint_digest": "73a2b8e9c3022334"
+          },
+          {
+            "episode_index": 3070,
+            "layout_family": "both_dry",
+            "blueprint_digest": "e987cd42c7533e70"
+          },
+          {
+            "episode_index": 3071,
+            "layout_family": "both_dry",
+            "blueprint_digest": "ec285999e9a4e5d2"
+          },
+          {
+            "episode_index": 3072,
+            "layout_family": "both_dry",
+            "blueprint_digest": "1f9885ce65272db8"
+          },
+          {
+            "episode_index": 3073,
+            "layout_family": "both_dry",
+            "blueprint_digest": "491308faf07f024f"
+          },
+          {
+            "episode_index": 3074,
+            "layout_family": "both_dry",
+            "blueprint_digest": "d49eb3609ab899b9"
+          },
+          {
+            "episode_index": 3075,
+            "layout_family": "both_dry",
+            "blueprint_digest": "8e41bf8260feb4f8"
+          },
+          {
+            "episode_index": 3076,
+            "layout_family": "both_dry",
+            "blueprint_digest": "b46c80eb2be57797"
+          },
+          {
+            "episode_index": 3077,
+            "layout_family": "both_dry",
+            "blueprint_digest": "ad37ca94fbb808f0"
+          },
+          {
+            "episode_index": 3078,
+            "layout_family": "both_dry",
+            "blueprint_digest": "fe55ec95cc7249c7"
+          },
+          {
+            "episode_index": 3079,
+            "layout_family": "both_dry",
+            "blueprint_digest": "88614252d003aa6f"
+          },
+          {
+            "episode_index": 3080,
+            "layout_family": "both_dry",
+            "blueprint_digest": "9ef506e589d353f2"
+          },
+          {
+            "episode_index": 3081,
+            "layout_family": "both_dry",
+            "blueprint_digest": "11f3df04f7e0ef4c"
+          },
+          {
+            "episode_index": 3082,
+            "layout_family": "both_dry",
+            "blueprint_digest": "28190ca81730e74b"
+          },
+          {
+            "episode_index": 3083,
+            "layout_family": "both_dry",
+            "blueprint_digest": "d440ee4d91b6afac"
+          },
+          {
+            "episode_index": 3084,
+            "layout_family": "both_dry",
+            "blueprint_digest": "4d5c887de6abeb11"
+          },
+          {
+            "episode_index": 3085,
+            "layout_family": "both_dry",
+            "blueprint_digest": "2873a5c459f60b74"
+          },
+          {
+            "episode_index": 3086,
+            "layout_family": "both_dry",
+            "blueprint_digest": "36ae0e1c95a45f87"
+          },
+          {
+            "episode_index": 3087,
+            "layout_family": "both_dry",
+            "blueprint_digest": "d5e90c339aa9556b"
+          },
+          {
+            "episode_index": 3088,
+            "layout_family": "both_dry",
+            "blueprint_digest": "41ddeefced96cd02"
+          },
+          {
+            "episode_index": 3089,
+            "layout_family": "both_dry",
+            "blueprint_digest": "4fe742cf6d63673b"
+          },
+          {
+            "episode_index": 3090,
+            "layout_family": "both_dry",
+            "blueprint_digest": "b24e89fd2d0fe419"
+          },
+          {
+            "episode_index": 3091,
+            "layout_family": "both_dry",
+            "blueprint_digest": "48945da56611aad6"
+          },
+          {
+            "episode_index": 3092,
+            "layout_family": "both_dry",
+            "blueprint_digest": "28e88468730c952b"
+          },
+          {
+            "episode_index": 3093,
+            "layout_family": "both_dry",
+            "blueprint_digest": "8b3ec98aa591b13c"
+          },
+          {
+            "episode_index": 3094,
+            "layout_family": "both_dry",
+            "blueprint_digest": "9666a1b212dc41ae"
+          },
+          {
+            "episode_index": 3095,
+            "layout_family": "both_dry",
+            "blueprint_digest": "c6f645b0de97f622"
+          },
+          {
+            "episode_index": 3096,
+            "layout_family": "both_dry",
+            "blueprint_digest": "fad078bbeb2b0a4c"
+          },
+          {
+            "episode_index": 3097,
+            "layout_family": "both_dry",
+            "blueprint_digest": "1b67777fc5f29ee3"
+          },
+          {
+            "episode_index": 3098,
+            "layout_family": "both_dry",
+            "blueprint_digest": "482bebfa1e1f4a25"
+          },
+          {
+            "episode_index": 3099,
+            "layout_family": "both_dry",
+            "blueprint_digest": "2f2231b7e26f8b4e"
+          }
+        ]
+      },
+      "keep_line_running": {
+        "task_id": "keep_line_running",
+        "task_version": "1.0.0",
+        "families_in_split": [
+          "operation_walled"
+        ],
+        "episodes": [
+          {
+            "episode_index": 3000,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "98a97925b83a0e7a"
+          },
+          {
+            "episode_index": 3001,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "3c0202bbab6aedcc"
+          },
+          {
+            "episode_index": 3002,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "b64722951ee0c16b"
+          },
+          {
+            "episode_index": 3003,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "f1e536ff31d759cf"
+          },
+          {
+            "episode_index": 3004,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "3c9d742c3cf3dfff"
+          },
+          {
+            "episode_index": 3005,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "c8245c3282080fd3"
+          },
+          {
+            "episode_index": 3006,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "d9c8505690156df2"
+          },
+          {
+            "episode_index": 3007,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "efd31be3d50448bc"
+          },
+          {
+            "episode_index": 3008,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "da6fbcdd32f8c9aa"
+          },
+          {
+            "episode_index": 3009,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "0ec6f72474075413"
+          },
+          {
+            "episode_index": 3010,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "c015df785da179ab"
+          },
+          {
+            "episode_index": 3011,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "07b501e8b5f43aee"
+          },
+          {
+            "episode_index": 3012,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "a56518484b20f58e"
+          },
+          {
+            "episode_index": 3013,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "466465e843cf627f"
+          },
+          {
+            "episode_index": 3014,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "01d50ef2db716207"
+          },
+          {
+            "episode_index": 3015,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "5c95de83cb27824e"
+          },
+          {
+            "episode_index": 3016,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "03f04ee7e71e31d9"
+          },
+          {
+            "episode_index": 3017,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "042c71f09018b595"
+          },
+          {
+            "episode_index": 3018,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "e94bbe41fe65d352"
+          },
+          {
+            "episode_index": 3019,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "084bafb554a51bf4"
+          },
+          {
+            "episode_index": 3020,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "31ace026703133a4"
+          },
+          {
+            "episode_index": 3021,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "b3bed4271feb4175"
+          },
+          {
+            "episode_index": 3022,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "46494768f3956a88"
+          },
+          {
+            "episode_index": 3023,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "43bd888b525d384e"
+          },
+          {
+            "episode_index": 3024,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "f2e7f5af17f97c9e"
+          },
+          {
+            "episode_index": 3025,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "fd6170a6e612b49f"
+          },
+          {
+            "episode_index": 3026,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "16eb38e4b4fc8c72"
+          },
+          {
+            "episode_index": 3027,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "7507eae3730a8b24"
+          },
+          {
+            "episode_index": 3028,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "a8f0171e81d9ddbb"
+          },
+          {
+            "episode_index": 3029,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "d1c041ed7f95246c"
+          },
+          {
+            "episode_index": 3030,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "1b18e8c7f82738ac"
+          },
+          {
+            "episode_index": 3031,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "81492ee97f5aaa9c"
+          },
+          {
+            "episode_index": 3032,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "360f2b009765f654"
+          },
+          {
+            "episode_index": 3033,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "d6ead1120d246d4c"
+          },
+          {
+            "episode_index": 3034,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "5bcc21b17e07f115"
+          },
+          {
+            "episode_index": 3035,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "3e7d3abdf576ba64"
+          },
+          {
+            "episode_index": 3036,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "fa42c629f5953ea0"
+          },
+          {
+            "episode_index": 3037,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "57b18645acfe6f29"
+          },
+          {
+            "episode_index": 3038,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "753e637143dd6dd5"
+          },
+          {
+            "episode_index": 3039,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "210f48ae0163c985"
+          },
+          {
+            "episode_index": 3040,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "a66265bac158a27d"
+          },
+          {
+            "episode_index": 3041,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "5e3964112c80d32c"
+          },
+          {
+            "episode_index": 3042,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "dfe6d660f03227d7"
+          },
+          {
+            "episode_index": 3043,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "b8b97a9b7412edaa"
+          },
+          {
+            "episode_index": 3044,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "9ee78f9f0acebfaa"
+          },
+          {
+            "episode_index": 3045,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "ec59c348fb5c3cab"
+          },
+          {
+            "episode_index": 3046,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "45e36645b2b0f4d7"
+          },
+          {
+            "episode_index": 3047,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "8302587919967579"
+          },
+          {
+            "episode_index": 3048,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "8e3f9ed0abf76aa9"
+          },
+          {
+            "episode_index": 3049,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "981e8f4641eb49ec"
+          },
+          {
+            "episode_index": 3050,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "5b70e2ab856fd898"
+          },
+          {
+            "episode_index": 3051,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "43e127400f1f70ca"
+          },
+          {
+            "episode_index": 3052,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "91e6d3b5a4d4dda9"
+          },
+          {
+            "episode_index": 3053,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "b4f44a46a8111768"
+          },
+          {
+            "episode_index": 3054,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "02d113013fd6fa88"
+          },
+          {
+            "episode_index": 3055,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "e12921108e056bca"
+          },
+          {
+            "episode_index": 3056,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "ac2801018ecff75e"
+          },
+          {
+            "episode_index": 3057,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "cf4152ea9a489325"
+          },
+          {
+            "episode_index": 3058,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "66b951d4d037c9a1"
+          },
+          {
+            "episode_index": 3059,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "d7bc62603d802b9b"
+          },
+          {
+            "episode_index": 3060,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "ed6c8d856c0597c7"
+          },
+          {
+            "episode_index": 3061,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "a8d5297590a4a3bd"
+          },
+          {
+            "episode_index": 3062,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "32d2259923e3fdf7"
+          },
+          {
+            "episode_index": 3063,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "86c683cb390657f4"
+          },
+          {
+            "episode_index": 3064,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "30b0e64286318350"
+          },
+          {
+            "episode_index": 3065,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "deff6a63c82f223b"
+          },
+          {
+            "episode_index": 3066,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "7a26795ee94c94c8"
+          },
+          {
+            "episode_index": 3067,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "1c4b39dab1c530f9"
+          },
+          {
+            "episode_index": 3068,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "54e407f1597b196b"
+          },
+          {
+            "episode_index": 3069,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "a77a385f7e84309a"
+          },
+          {
+            "episode_index": 3070,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "39fd75ba19a92e4a"
+          },
+          {
+            "episode_index": 3071,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "55027141ee3aa546"
+          },
+          {
+            "episode_index": 3072,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "430b36b8e5dda670"
+          },
+          {
+            "episode_index": 3073,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "671c33837d6f0c38"
+          },
+          {
+            "episode_index": 3074,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "7ca55bd93515f57c"
+          },
+          {
+            "episode_index": 3075,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "488952354ec948f6"
+          },
+          {
+            "episode_index": 3076,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "dab5363d96641343"
+          },
+          {
+            "episode_index": 3077,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "394504ecc1bf36fd"
+          },
+          {
+            "episode_index": 3078,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "4a2ebfcf161e7020"
+          },
+          {
+            "episode_index": 3079,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "fa5d9fc0f3a25ebf"
+          },
+          {
+            "episode_index": 3080,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "8cfe6530f3784a63"
+          },
+          {
+            "episode_index": 3081,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "a5e273e9c1c13b3c"
+          },
+          {
+            "episode_index": 3082,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "0ea6aadd4684266d"
+          },
+          {
+            "episode_index": 3083,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "5a03927f07a3696e"
+          },
+          {
+            "episode_index": 3084,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "c143927a52606f82"
+          },
+          {
+            "episode_index": 3085,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "71de6ec4202b0e4f"
+          },
+          {
+            "episode_index": 3086,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "a49ebfd6af178806"
+          },
+          {
+            "episode_index": 3087,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "bedc57ab372c473f"
+          },
+          {
+            "episode_index": 3088,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "7e100e79e87366f9"
+          },
+          {
+            "episode_index": 3089,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "7cd93f06eb8e07f6"
+          },
+          {
+            "episode_index": 3090,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "04fc7d2e403404eb"
+          },
+          {
+            "episode_index": 3091,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "c210f69c427fdd95"
+          },
+          {
+            "episode_index": 3092,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "2356faa237a32eb8"
+          },
+          {
+            "episode_index": 3093,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "696347a331d0365f"
+          },
+          {
+            "episode_index": 3094,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "d76962d7394ad9b0"
+          },
+          {
+            "episode_index": 3095,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "a60ff12bf309ebaa"
+          },
+          {
+            "episode_index": 3096,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "0c539d7547baaa21"
+          },
+          {
+            "episode_index": 3097,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "7697766fb1bb841d"
+          },
+          {
+            "episode_index": 3098,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "2fa68d35b1940451"
+          },
+          {
+            "episode_index": 3099,
+            "layout_family": "operation_walled",
+            "blueprint_digest": "6c6e5c75045d0900"
           }
         ]
       },
@@ -4088,8 +5106,8 @@
       }
     }
   },
-  "generated_at": "2026-09-08T21:17:57Z",
-  "git_commit": "de08f8eaa736a9c0f840a77396b2915a22cc978f",
+  "generated_at": "2026-09-09T07:20:04Z",
+  "git_commit": "bf0a870bbe63141863b32cfc2f8f5e158190e8f8",
   "declaration": {
     "candidate_families": [
       "deliver",
@@ -4127,6 +5145,28 @@
       "task_version": "1.3.0",
       "families_in_split": [
         "screened_depot"
+      ],
+      "episodes": 100,
+      "distinct_scenes": 100,
+      "distinct_fraction": 1.0,
+      "below_min_distinct_scenes": false
+    },
+    "diagnose_line": {
+      "entry_hash": "2653ef2c115429bd",
+      "task_version": "1.0.0",
+      "families_in_split": [
+        "both_dry"
+      ],
+      "episodes": 100,
+      "distinct_scenes": 100,
+      "distinct_fraction": 1.0,
+      "below_min_distinct_scenes": false
+    },
+    "keep_line_running": {
+      "entry_hash": "c633f02787ae1e80",
+      "task_version": "1.0.0",
+      "families_in_split": [
+        "operation_walled"
       ],
       "episodes": 100,
       "distinct_scenes": 100,

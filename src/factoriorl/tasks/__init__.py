@@ -52,17 +52,28 @@ def register(task: RegisteredTask) -> RegisteredTask:
     return task
 
 
+#: Whether `discover` has completed. Not `bool(_REGISTRY)`, which was the old
+#: test and was wrong in a way nothing raised: importing a single family module
+#: registers that one task, so a caller who did `from factoriorl.tasks.families
+#: import diagnose_line` before asking for `all_tasks()` got a registry of one
+#: and no error -- discovery was skipped because the registry was "not empty".
+#: A test written that way passed while iterating over one ninth of the tasks.
+_DISCOVERED = False
+
+
 def discover() -> dict[str, RegisteredTask]:
     """Import every family module so it can register itself."""
+    global _DISCOVERED
     from factoriorl.tasks import families
 
     for module in pkgutil.iter_modules(families.__path__):
         importlib.import_module(f"{families.__name__}.{module.name}")
+    _DISCOVERED = True
     return dict(_REGISTRY)
 
 
 def get(task_id: str) -> RegisteredTask:
-    if not _REGISTRY:
+    if not _DISCOVERED:
         discover()
     if task_id not in _REGISTRY:
         raise TaskConfigError(f"unknown task: {task_id} (known: {sorted(_REGISTRY)})")
@@ -70,7 +81,7 @@ def get(task_id: str) -> RegisteredTask:
 
 
 def all_tasks() -> dict[str, RegisteredTask]:
-    if not _REGISTRY:
+    if not _DISCOVERED:
         discover()
     return dict(_REGISTRY)
 
@@ -184,7 +195,7 @@ def validate_all(sample_seeds: int = 16) -> dict:
         # both families' `gap` comments claimed the marker was evaluator-only
         # while `extra_public_markers` published it.
         if spec.track == "diagnosis":
-            published = set(spec.public_markers())
+            published = set(spec.public_markers)
             leaked = published.intersection(spec.fault_markers)
             if leaked:
                 problems.append(

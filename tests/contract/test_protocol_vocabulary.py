@@ -109,6 +109,12 @@ def test_mutating_request_types_are_the_ones_python_expects(runtime_lua):
         RequestType.ACT.value,
         RequestType.RESET.value,
         RequestType.STEP.value,
+        # `disrupt` writes to an installed scene, so it needs both properties
+        # this table confers. Deduplication: a retried disruption must return
+        # the stored reply rather than empty a second fuel inventory. Episode
+        # check: a disruption declared for the previous episode must be refused
+        # rather than applied to this one.
+        RequestType.DISRUPT.value,
     }
 
 

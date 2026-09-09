@@ -290,6 +290,16 @@ function world.build_blueprint(hash)
       })
     end
   end
+  -- Contents a scene declared and the engine would not take, per entity. A
+  -- scene that cannot install its own declaration is a defect in the task, and
+  -- this used to be silent: `LuaEntity.insert` refuses iron plates into a
+  -- stone furnace -- the result slot is not reachable that way -- so
+  -- `diagnose_line` declared a hundred-plate output jam in every scene, the
+  -- engine took none of them, and the fault the family was built around simply
+  -- did not exist. Four solvability runs and a blueprint-level test that
+  -- asserted the *declaration* all failed to see it. So the shortfall is
+  -- reported now, and `install` carries it back to Python.
+  local undelivered = {}
   for _, spec in pairs(blueprint.entities or {}) do
     local created = srf.create_entity({
       name = spec.name,
@@ -300,7 +310,21 @@ function world.build_blueprint(hash)
     if created then
       if spec.contents then
         for item, count in pairs(spec.contents) do
-          created.insert({ name = item, count = count })
+          local placed = created.insert({ name = item, count = count })
+          if placed < count then
+            -- The result slot, explicitly. `insert` picks an inventory by what
+            -- the item is *for*, and a furnace's product is for neither its
+            -- source nor its fuel slot, so a declared output has to name the
+            -- inventory it belongs in.
+            local output = created.get_output_inventory()
+            if output then
+              placed = placed + output.insert({ name = item, count = count - placed })
+            end
+          end
+          if placed < count then
+            undelivered[#undelivered + 1] =
+              spec.name .. "|" .. item .. "|" .. placed .. "/" .. count
+          end
         end
       end
       if spec.recipe then pcall(function() created.set_recipe(spec.recipe) end) end
@@ -344,7 +368,14 @@ function world.build_blueprint(hash)
     extra_tracked_items = blueprint.extra_tracked_items or {},
     radius = radius,
   }
-  return { scenario = storage.frrl_scene.name, destroyed = destroyed }
+  -- `undelivered` is empty on every well-formed scene, and non-empty is a
+  -- task defect rather than a warning: the scene the evaluator installed is
+  -- not the scene the task declared.
+  return {
+    scenario = storage.frrl_scene.name,
+    destroyed = destroyed,
+    undelivered = undelivered,
+  }
 end
 
 --- Positions of the markers the task's objective names (PLAN.md 5.x).
@@ -377,6 +408,96 @@ end
 --- Evaluator-only ground truth (PLAN.md section 2: evaluator information must
 --- not enter policy inputs). This is a separate request from `observe`, so the
 --- separation is structural: a policy reading observations cannot reach it.
+--- Apply one declared disruption to the running scene.
+--
+-- The only mutation the evaluator can make to an installed scene, and it is
+-- typed rather than arbitrary Lua on purpose. Every disruption in this repo
+-- before now was a driver-side `bridge.run` string fired at a hard-coded point
+-- in a five-phase script: nothing declared it, nothing recorded it in a task
+-- spec, and a run's trace could not say what had been done to the world. A
+-- declared kind with declared targets is comparable across runs; a Lua string
+-- is not.
+--
+-- `empty_fuel` clears the *fuel inventory* and deliberately does not touch
+-- `entity.energy`. That is not an oversight -- it is the disruption R4.2
+-- measured. A burner drill keeps running for about 1,170 ticks on the item
+-- already in its burner (2,999,833 J against 150 kW), so a task that wants a
+-- real outage has to wait for the decay rather than assume the clear stopped
+-- anything. `docs/evidence/r4-burner-decay.json` is that measurement.
+--
+-- Targets are marker aliases first, then prototype names, so a task can name
+-- either the entity it declared or a class of machine.
+--
+-- Announces nothing. No marker is published and no event is appended, because
+-- R4.3's persistent-operation track asks for a disruption detectable only by
+-- monitoring -- and status, fuel and output are already observable.
+function world.disrupt(kind, targets)
+  local surface = game.surfaces[1]
+  if not surface then return nil, "no surface" end
+  local wanted = {}
+  for _, name in pairs(targets or {}) do wanted[name] = true end
+
+  local entities = {}
+  local seen = {}
+  for name in pairs(wanted) do
+    -- Marker alias first: `world.alias_entity` is how every other evaluator
+    -- read resolves a scene's declared names, and reaching into
+    -- `storage.frrl_scene` directly would be a second way to do the same thing.
+    local aliased = world.alias_entity(name)
+    if aliased then
+      seen[aliased.unit_number] = true
+      entities[#entities + 1] = aliased
+    end
+    for _, entity in pairs(surface.find_entities_filtered({ name = name })) do
+      if not seen[entity.unit_number] then
+        seen[entity.unit_number] = true
+        entities[#entities + 1] = entity
+      end
+    end
+  end
+  if #entities == 0 then
+    return nil, "no entity matched " .. table.concat(targets or {}, ",")
+  end
+
+  local touched = {}
+  if kind == "empty_fuel" then
+    for _, entity in pairs(entities) do
+      local inventory = entity.get_fuel_inventory()
+      if inventory then
+        local taken = 0
+        for _, stack in pairs(inventory.get_contents()) do taken = taken + stack.count end
+        inventory.clear()
+        touched[#touched + 1] = entity.name .. "=" .. taken
+      end
+    end
+  elseif kind == "fill_output" then
+    -- The other measured way a line stops: a full result slot. Coal cannot fix
+    -- it, which is what makes it a different fault rather than a louder one.
+    for _, entity in pairs(entities) do
+      local inventory = entity.get_output_inventory()
+      if inventory then
+        -- One stack, which is what a stone furnace's result slot holds and so
+        -- what stops it. `insert` returns how many it actually took, and that
+        -- number goes in the reply rather than the number asked for.
+        local added = inventory.insert({ name = "iron-plate", count = 100 })
+        touched[#touched + 1] = entity.name .. "+" .. added
+      end
+    end
+  else
+    return nil, "unknown disruption kind: " .. tostring(kind)
+  end
+
+  return {
+    kind = kind,
+    tick = game.tick,
+    targets = targets,
+    touched = touched,
+    -- What the clear did *not* do, stated in the reply so a trace carries it.
+    note = "fuel inventories only; entity.energy and burner.remaining_burning_fuel untouched",
+  }
+end
+
+
 function world.truth()
   local scene = storage.frrl_scene or {}
   local force = game.forces["player"]

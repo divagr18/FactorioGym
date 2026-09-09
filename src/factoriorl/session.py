@@ -283,6 +283,25 @@ class WorkerSession:
         )
         return self._request(request)
 
+    def disrupt(self, kind: str, targets: tuple[str, ...]) -> TimedResponse:
+        """Apply one declared disruption. Evaluator-only.
+
+        Mutating, so it is issued through the same request path as `act` rather
+        than alongside `observe`; the caller is responsible for refreshing its
+        cached observation afterwards, which `FactorioEnv.resync` does.
+        """
+        return self._request(
+            Request(
+                request_id=self._next_request_id("disrupt"),
+                # A disruption belongs to the episode it lands in: `disrupt` is
+                # in the mod's MUTATING set, so a request carrying a stale
+                # episode id is refused rather than applied to the wrong run.
+                episode_id=self.episode_id or "",
+                type=RequestType.DISRUPT,
+                payload={"kind": kind, "targets": list(targets)},
+            )
+        )
+
     def truth(self) -> TimedResponse:
         """Evaluator-only ground truth. Never handed to a policy."""
         request = Request(
