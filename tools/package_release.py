@@ -232,6 +232,31 @@ def main() -> int:
             }
         )
 
+    # Which published evidence a reader can trace, and which they cannot.
+    # `docs/evidence/phase4-release-*.json` each cite the holdout they were
+    # scored against by content hash, and 7 of 11 cite a hash no committed
+    # holdout has -- earlier revisions that were regenerated rather than
+    # versioned. Those files are not copied into the bundle, and this records
+    # *why* rather than leaving their absence to be noticed. Computed rather
+    # than written down, so it cannot go stale the way a sentence would.
+    bundle["excluded_evidence"] = {
+        "reason": (
+            "cites a holdout content_hash that no holdout in this bundle has, so the "
+            "scores in it cannot be traced to the scenes that produced them"
+        ),
+        "files": [],
+        "included_for_contrast": [],
+    }
+    bundled_hashes = {entry["content_hash"] for entry in bundle["holdouts"]}
+    for source in sorted((ROOT / "docs" / "evidence").glob("phase4-release-*.json")):
+        cited = (json.loads(source.read_text(encoding="utf-8")).get("holdout") or {}).get(
+            "content_hash"
+        )
+        target = "included_for_contrast" if cited in bundled_hashes else "files"
+        bundle["excluded_evidence"][target].append(
+            {"file": source.name, "cites_content_hash": cited}
+        )
+
     for run_id in args.runs:
         entry = collect_run(run_id, out_dir)
         bundle["runs"].append(entry)
