@@ -68,17 +68,28 @@ class Demonstrations:
     #: Per-episode outcome, so a demonstration set that is mostly failures
     #: cannot be mistaken for one that is mostly expert.
     outcomes: list[dict] = field(default_factory=list)
+    #: Which scenes the expert was shown, as (branch, episode_index). R5.3's
+    #: gate requires that "training traces and evaluation scenes are disjoint",
+    #: and until this was recorded the claim was unfalsifiable after the fact: a
+    #: scene is a pure function of (master, run_id, branch, index), so the
+    #: branch is half the identity and an index alone cannot answer it.
+    scenes: list[tuple[str, int]] = field(default_factory=list)
+    split: str | None = None
 
     def __len__(self) -> int:
         return len(self.actions)
 
     def summary(self) -> dict:
+        indices = [index for _, index in self.scenes]
         return {
             "pairs": len(self.actions),
             "episodes": self.episodes,
             "solved": self.solved,
             "solved_rate": round(self.solved / self.episodes, 4) if self.episodes else 0.0,
             "mean_pairs_per_episode": round(len(self.actions) / max(self.episodes, 1), 1),
+            "split": self.split,
+            "branches": sorted({branch for branch, _ in self.scenes}),
+            "episode_index_range": [min(indices), max(indices)] if indices else None,
         }
 
 
@@ -98,10 +109,18 @@ def collect(env, solve, episodes: int, *, first_index: int = 0) -> Demonstration
     different object from one where it always did.
     """
     data = Demonstrations()
+    data.split = getattr(env.unwrapped, "split", None)
     env.unwrapped._episode_index = first_index - 1
 
     for _ in range(episodes):
         env.reset()
+        # Read after the reset, which is what advances the index -- and read off
+        # the env rather than counted here, so a scene the env retried or
+        # skipped is recorded as the scene actually demonstrated.
+        branch = getattr(env.unwrapped, "branch", None)
+        data.scenes.append(
+            (str(getattr(branch, "value", branch)), int(env.unwrapped._episode_index))
+        )
         recorder = _Recorder(env)
         trace = solve(recorder)
         data.episodes += 1
@@ -120,6 +139,54 @@ def collect(env, solve, episodes: int, *, first_index: int = 0) -> Demonstration
             data.observations.append(observation)
             data.actions.append(action)
     return data
+
+
+def disjointness(data: Demonstrations, evaluations: dict) -> dict:
+    """Whether any evaluated scene was also demonstrated.
+
+    R5.3's gate: *"training traces and evaluation scenes are disjoint."* Nothing
+    checked it, and the check is not "do the index ranges overlap": a scene is a
+    pure function of (master, run_id, branch, index), so demonstrations drawn
+    from `Branch.TRAIN` at indices 0..N and an evaluation row drawn from
+    `Branch.EVAL` over the same indices are *different scenes* despite
+    identical numbers. Comparing indices alone would report a collision that
+    does not exist and mask the one that would matter -- an evaluation row moved
+    onto the demonstration branch.
+
+    `evaluations` maps a row label to `{"branch": ..., "episode_indices": [...]}`.
+    A row that records no indices cannot be checked, and is reported as such
+    rather than as clean.
+    """
+    demonstrated = {(branch, index) for branch, index in data.scenes}
+    rows: dict = {}
+    for label, row in (evaluations or {}).items():
+        branch = str(row.get("branch") or "")
+        indices = row.get("episode_indices")
+        if not branch or indices is None:
+            rows[label] = {
+                "checked": False,
+                "why": "the row records no branch or no episode indices, so whether "
+                "it overlaps the demonstrations cannot be determined",
+            }
+            continue
+        overlap = sorted(index for index in indices if (branch, int(index)) in demonstrated)
+        rows[label] = {
+            "checked": True,
+            "branch": branch,
+            "episodes": len(indices),
+            "overlapping_scenes": overlap,
+            "disjoint": not overlap,
+        }
+    checked = [row for row in rows.values() if row["checked"]]
+    return {
+        "requirement": "R5.3: training traces and evaluation scenes are disjoint",
+        "scene_identity": "(branch, episode_index) -- an index alone is not a scene",
+        "demonstrated_scenes": len(demonstrated),
+        "demonstration_branches": sorted({branch for branch, _ in data.scenes}),
+        "rows": rows,
+        "all_checked": len(checked) == len(rows) and bool(rows),
+        "disjoint": bool(checked) and all(row["disjoint"] for row in checked),
+    }
 
 
 class _Recorder:

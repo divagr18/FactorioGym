@@ -53,7 +53,13 @@ def main() -> int:
 
     from factoriorl import manifest as manifest_module
     from factoriorl.env import FactorioEnv
-    from factoriorl.learn.bc import TRAINING_MODE, collect, train_bc, write_report
+    from factoriorl.learn.bc import (
+        TRAINING_MODE,
+        collect,
+        disjointness,
+        train_bc,
+        write_report,
+    )
     from factoriorl.learn.train import TRAIN_SPEED, _make_session, _wrap, evaluate
     from factoriorl.rcon import RCONClient
     from factoriorl.seeding import Branch, SeedPlan, seed_everything
@@ -122,10 +128,32 @@ def main() -> int:
             env = _wrap(FactorioEnv(task, session, plan, branch=branch, split=split), args.skills)
             env.unwrapped._episode_index = -1
             rows[label] = evaluate(env, model, args.eval_episodes)
+            # Recorded so the disjointness check has something to check. The
+            # env counts from -1 and reset advances it, so the row covers
+            # 0..eval_episodes-1 on this branch.
+            rows[label]["branch"] = branch.value
+            rows[label]["episode_indices"] = list(range(args.eval_episodes))
             print(
                 f"  {label:11s} rate={rows[label]['success_rate']:.2f} {rows[label]['wilson_95']}",
                 flush=True,
             )
+
+        # R5.3's gate, checked rather than asserted in prose. Demonstrations come
+        # from Branch.TRAIN and every evaluation row from Branch.EVAL, so the
+        # sets are disjoint by seed stream -- but nothing verified it, and moving
+        # a row onto the demonstration branch would have silently scored the
+        # policy on scenes it was trained to imitate.
+        overlap = disjointness(data, rows)
+        if not overlap["disjoint"]:
+            raise SystemExit(
+                "demonstration and evaluation scenes overlap, so the reported "
+                f"numbers would score the policy on what it imitated: {json.dumps(overlap)}"
+            )
+        print(
+            f"  disjoint: {overlap['demonstrated_scenes']} demonstrated scenes on "
+            f"{overlap['demonstration_branches']}, no overlap with any evaluation row",
+            flush=True,
+        )
 
         report.update(
             {
@@ -142,6 +170,8 @@ def main() -> int:
                     "a PPO baseline run. PLAN 4.2 forbids scripted-solution labels "
                     "during ordinary training; this run is built from them."
                 ),
+                "demonstrations": data.summary(),
+                "scene_disjointness": overlap,
             }
         )
         write_report(run_dir, report)
