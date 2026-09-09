@@ -902,6 +902,24 @@ def main() -> int:
 
     out = ROOT / "docs" / "evidence" / "phase3-generator-diagnostics.json"
     out.parent.mkdir(parents=True, exist_ok=True)
+
+    # A partial run must not overwrite the published audit.
+    #
+    # Measured the hard way: a `--tasks keep_line_running` run during R4.3
+    # replaced the whole-repo audit with a single task, and
+    # `docs/CURRENT_STATUS.md` went on claiming the split audit was "published
+    # for all eight" for a day. The eight-task version survived only in git.
+    # Nothing noticed because the tool exits 0 and prints a pass.
+    #
+    # A subset run is legitimate -- it is how a generator gets iterated on --
+    # so it writes beside the published file rather than over it, and says so.
+    if len(task_ids) < len(all_tasks()):
+        out = out.with_name("phase3-generator-diagnostics-partial.json")
+        print(
+            f"\npartial run ({len(task_ids)} of {len(all_tasks())} tasks): writing {out.name} "
+            "rather than overwriting the published audit. Run with no --tasks to publish.",
+            flush=True,
+        )
     # The digests and per-sample records are working data, not evidence; the
     # published report keeps the aggregates a reader can check.
     out.write_text(json.dumps(report, indent=2), encoding="utf-8")

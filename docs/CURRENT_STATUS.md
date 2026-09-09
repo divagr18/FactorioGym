@@ -362,7 +362,7 @@ PPO training pipeline | runs; R1 complete | R1 |
 Frozen holdout evaluation | terminates under injected failure; records **per-scene outcomes** | R1.2, §10 |
 Paired greedy/stochastic evaluation | verified | `repair_belt-curriculum-holdout_v3.json` |
 Three-family mastery (PLAN 4.5) | **not met** | §4 |
-Split audit over every task | published for **all eight**; `plate_line` fails on a real finding | `phase3-generator-diagnostics.json` |
+Split audit over every task | published for **all ten**, all passing. It briefly held only `keep_line_running`: an R4.3 `--tasks` run overwrote it and nothing noticed, because the tool exits 0 and prints a pass. A subset run now writes `-partial.json` instead | `phase3-generator-diagnostics.json` |
 Held-out *combination* coverage (§9) | checked by set containment; both v1.6.0 fixes confirmed | §7 |
 Regression suite, separate from any rate (§10) | 10 cases, all open findings | `regression_scenes.json` |
 LLM agent loop, addressed actions | works on `deliver` and `plate_line` commissioning | `phase5-agent-runs.json`, `phase5-demonstration.json` |

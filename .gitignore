@@ -32,3 +32,9 @@ opencode.json
 
 # Release bundles are generated from runs; never committed.
 release/
+
+# A subset split-audit run: working data while a generator is being iterated
+# on, never the published audit. `generator_diagnostics.py` writes here rather
+# than over `phase3-generator-diagnostics.json`, which a --tasks run silently
+# replaced once.
+docs/evidence/phase3-generator-diagnostics-partial.json
