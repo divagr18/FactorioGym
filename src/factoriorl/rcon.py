@@ -59,6 +59,11 @@ MAX_REQUEST_ID = 1 << 30
 #: watching player's chat between every pair of real commands.
 SENTINEL_BODY = "/silent-command local _ = 1"
 
+#: How long to wait for a further chunk when the sentinel arrived before its
+#: own command's reply and so cannot bound the read. Short: it is paid only on
+#: a run with a player connected, and only once per such call.
+LATE_CHUNK_TIMEOUT_SECONDS = 0.05
+
 #: `/c` is echoed to every connected player -- the command text lands in their
 #: chat, and every command this repo sends is a page of `pcall`/`remote.call`
 #: wrapper. Watching a run through a real client, that is the whole screen:
@@ -270,12 +275,14 @@ class RCONClient:
         chunks: list[bytes] = []
         seen_request = False
         seen_sentinel = False
+        reordered = False
         while not (seen_request and seen_sentinel):
             packet_id, chunk = self._read_packet()
             if packet_id == sentinel_id:
                 seen_sentinel = True
                 if not seen_request:
                     self.reordered_replies += 1
+                    reordered = True
                 continue
             if packet_id == request_id:
                 seen_request = True
@@ -289,7 +296,50 @@ class RCONClient:
             raise RCONError(
                 f"unexpected rcon packet id {packet_id} (awaiting {request_id}/{sentinel_id})"
             )
+        if reordered and chunks:
+            chunks.extend(self._drain_late_chunks(request_id, sentinel_id))
         return b"".join(chunks).decode("utf-8").rstrip("\n")
+
+    def _drain_late_chunks(self, request_id: int, sentinel_id: int) -> list[bytes]:
+        """Collect any further chunks of a reply whose sentinel arrived first.
+
+        Only reachable when the sentinel overtook its own command, which
+        happens only with a player connected. In that case the sentinel has
+        stopped bounding the read: it has already been seen, so the loop above
+        exits on the *first* chunk bearing the command's id and a reply split
+        across packets would be silently truncated.
+
+        Measured, the engine never splits: 4096, 65536, 200000, 1000000 and
+        4000000-byte replies each arrived as exactly one packet of size+1. So
+        this drain finds nothing on Factorio 2.0.60 and exists because "nothing
+        is currently split" is a fact about one build, and a truncated
+        observation is not the kind of failure that announces itself.
+
+        It costs one short timeout, and only on a watched run -- never on the
+        player-free runs every measurement comes from.
+        """
+        if self._sock is None:
+            return []
+        extra: list[bytes] = []
+        previous = self._sock.gettimeout()
+        self._sock.settimeout(LATE_CHUNK_TIMEOUT_SECONDS)
+        try:
+            while True:
+                packet_id, chunk = self._read_packet()
+                if packet_id == request_id:
+                    if chunk:
+                        extra.append(chunk)
+                    continue
+                if packet_id in (sentinel_id,) or packet_id < request_id:
+                    continue
+                raise RCONError(
+                    f"unexpected rcon packet id {packet_id} while draining {request_id}"
+                )
+        except (TimeoutError, OSError):
+            # Nothing further arrived, which is the expected outcome.
+            return extra
+        finally:
+            self._sock.settimeout(previous)
 
     def lua(self, code: str) -> object:
         """Run Lua through the bridge and decode the bridge payload."""

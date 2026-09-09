@@ -44,6 +44,7 @@ class FakeRCONServer:
         self,
         replies: list[list[str]],
         extra_packets: list[tuple[int, str]] | None = None,
+        reorder: bool = False,
     ):
         #: One entry per non-sentinel command; each entry is the list of body
         #: chunks that command answers with.
@@ -51,6 +52,14 @@ class FakeRCONServer:
         #: (id, body) packets injected before the next reply, simulating a late
         #: response from a call the client already abandoned.
         self.extra_packets = extra_packets or []
+        #: Answer the sentinel *before* the command it followed, which is what
+        #: the real server does once a player is connected: a command too long
+        #: to execute inline is deferred, and the trivial sentinel behind it
+        #: runs first. Reproducing that is the only way to test the case
+        #: engine-free, since a live Factorio cannot be asked to invert on
+        #: demand -- it does it only when someone is watching.
+        self.reorder = reorder
+        self._held: list[tuple[int, list[str]]] = []
         self.command_bodies: list[str] = []
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -99,6 +108,12 @@ class FakeRCONServer:
                 if body == SENTINEL_BODY:
                     # The sentinel: one empty-bodied packet, exactly as Factorio.
                     conn.sendall(encode_packet(packet_id, TYPE_RESPONSE_VALUE, ""))
+                    # Then whatever the preceding command was holding, which is
+                    # the inversion the client has to survive.
+                    for held_id, held_chunks in self._held:
+                        for chunk in held_chunks:
+                            conn.sendall(encode_packet(held_id, TYPE_RESPONSE_VALUE, chunk))
+                    self._held = []
                     continue
                 self.command_bodies.append(body)
                 for stale_id, stale_body in self.extra_packets:
@@ -106,6 +121,9 @@ class FakeRCONServer:
                 self.extra_packets = []
                 chunks = self.replies[reply_index] if reply_index < len(self.replies) else [""]
                 reply_index += 1
+                if self.reorder:
+                    self._held.append((packet_id, chunks))
+                    continue
                 for chunk in chunks:
                     conn.sendall(encode_packet(packet_id, TYPE_RESPONSE_VALUE, chunk))
                 # Deliberately no terminator chunk -- this is the whole point.
@@ -122,8 +140,8 @@ class FakeRCONServer:
 def server_factory():
     made: list[FakeRCONServer] = []
 
-    def make(replies, extra_packets=None) -> FakeRCONServer:
-        server = FakeRCONServer(replies, extra_packets)
+    def make(replies, extra_packets=None, reorder=False) -> FakeRCONServer:
+        server = FakeRCONServer(replies, extra_packets, reorder=reorder)
         made.append(server)
         return server
 
@@ -203,5 +221,79 @@ def test_expect_response_false_returns_without_waiting(server_factory):
     client = _client(server)
     try:
         assert client.command("/quit", expect_response=False) == ""
+    finally:
+        client.close()
+
+
+# ---------------------------------------------------------------- reordering
+#
+# The bug that made watching a run in a real client look impossible, and the
+# reason it looked like a property of the transport rather than of this loop.
+#
+# `command` sent a sentinel after every command and treated its reply as proof
+# the real reply was complete, on the grounds that a Source RCON server answers
+# in order on one connection. That holds only with **no players**. Attach a
+# client and the order inverts for anything longer than a trivial command: the
+# sentinel came back first, was read as an empty body, and the real reply
+# arrived during the *next* call where its lower id marked it stale and it was
+# drained. One lost reply per call, indefinitely, surfacing as
+# `non-json rcon response: ''`.
+#
+# Measured on the live engine: 89 inversions across one watched run, 0 on every
+# player-free run.
+
+
+def test_a_sentinel_that_overtakes_its_command_still_yields_the_body(server_factory):
+    """The regression. Before the fix this returned '' and lost the reply."""
+    server = server_factory([['{"result": 1}']], reorder=True)
+    client = _client(server)
+    try:
+        assert client.command("/silent-command return 1") == '{"result": 1}'
+        assert client.reordered_replies == 1
+    finally:
+        client.close()
+
+
+def test_every_call_keeps_its_own_body_when_every_reply_is_inverted(server_factory):
+    """The failure mode was cross-call: a dropped reply reappeared in the next
+    call as a stale packet. Three inverted calls in a row must each return
+    their own answer, which is what proves nothing is being carried over."""
+    server = server_factory([["first"], ["second"], ["third"]], reorder=True)
+    client = _client(server)
+    try:
+        assert client.command("/silent-command a()") == "first"
+        assert client.command("/silent-command b()") == "second"
+        assert client.command("/silent-command c()") == "third"
+        assert client.reordered_replies == 3
+    finally:
+        client.close()
+
+
+def test_a_split_reply_survives_the_inversion_too(server_factory):
+    """With the sentinel already seen it no longer bounds the read, so the loop
+    would exit on the first chunk and truncate.
+
+    This build never splits a reply -- 4 KB to 4 MB each came back as one
+    packet -- so the drain finds nothing in practice. It exists because that is
+    a fact about one build, and a truncated observation does not announce
+    itself."""
+    server = server_factory([['{"a":', '"' + "y" * 40 + '",', '"b":2}']], reorder=True)
+    client = _client(server)
+    try:
+        assert client.command("/silent-command big()") == '{"a":"' + "y" * 40 + '","b":2}'
+        assert client.reordered_replies == 1
+    finally:
+        client.close()
+
+
+def test_an_in_order_server_reports_no_inversions(server_factory):
+    """The counter is a signal, so it must stay silent when nothing is wrong:
+    a non-zero count means something is connected to the worker."""
+    server = server_factory([["ok"], ["ok"]])
+    client = _client(server)
+    try:
+        client.command("/silent-command a()")
+        client.command("/silent-command b()")
+        assert client.reordered_replies == 0
     finally:
         client.close()
