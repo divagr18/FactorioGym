@@ -1,14 +1,70 @@
 {
-  "episodes_per_split": 10,
+  "episodes_per_split": 8,
   "tasks": {
+    "build_line": {
+      "splits": {
+        "train": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": null,
+          "action_space": "parameterized",
+          "discriminative": true,
+          "mean_steps": 240.0,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": null,
+          "action_space": "parameterized",
+          "discriminative": true,
+          "mean_steps": 240.0,
+          "stuck_reasons": [],
+          "last_errors": []
+        }
+      }
+    },
+    "deliver": {
+      "splits": {
+        "train": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.25,
+          "random_rate_skills": 0.12,
+          "action_space": "discrete",
+          "discriminative": false,
+          "mean_steps": 15.9,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": 0.12,
+          "action_space": "discrete",
+          "discriminative": false,
+          "mean_steps": 16.6,
+          "stuck_reasons": [],
+          "last_errors": []
+        }
+      }
+    },
     "diagnose_line": {
       "splits": {
         "train": {
-          "reference_success": 10,
-          "episodes": 10,
+          "reference_success": 8,
+          "episodes": 8,
           "reference_rate": 1.0,
-          "random_rate": 0.1,
-          "random_rate_skills": 0.8,
+          "random_rate": 0.12,
+          "random_rate_skills": 0.75,
           "action_space": "discrete",
           "discriminative": false,
           "mean_steps": 120.0,
@@ -18,11 +74,11 @@
           ]
         },
         "test": {
-          "reference_success": 10,
-          "episodes": 10,
+          "reference_success": 8,
+          "episodes": 8,
           "reference_rate": 1.0,
           "random_rate": 0.0,
-          "random_rate_skills": 0.8,
+          "random_rate_skills": 0.75,
           "action_space": "discrete",
           "discriminative": false,
           "mean_steps": 120.0,
@@ -34,8 +90,8 @@
     "keep_line_running": {
       "splits": {
         "train": {
-          "reference_success": 10,
-          "episodes": 10,
+          "reference_success": 8,
+          "episodes": 8,
           "reference_rate": 1.0,
           "random_rate": 0.0,
           "random_rate_skills": 0.0,
@@ -48,8 +104,8 @@
           ]
         },
         "test": {
-          "reference_success": 10,
-          "episodes": 10,
+          "reference_success": 8,
+          "episodes": 8,
           "reference_rate": 1.0,
           "random_rate": 0.0,
           "random_rate_skills": 0.0,
@@ -62,16 +118,205 @@
           ]
         }
       }
+    },
+    "mine_smelt": {
+      "splits": {
+        "train": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": 0.12,
+          "action_space": "discrete",
+          "discriminative": false,
+          "mean_steps": 143.0,
+          "stuck_reasons": [],
+          "last_errors": [
+            "give_coal_5: no_items"
+          ]
+        },
+        "test": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": 0.25,
+          "action_space": "discrete",
+          "discriminative": false,
+          "mean_steps": 143.0,
+          "stuck_reasons": [],
+          "last_errors": [
+            "give_coal_5: no_items"
+          ]
+        }
+      }
+    },
+    "navigate": {
+      "splits": {
+        "train": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.25,
+          "random_rate_skills": 1.0,
+          "action_space": "discrete",
+          "discriminative": false,
+          "mean_steps": 7.2,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.25,
+          "random_rate_skills": 1.0,
+          "action_space": "discrete",
+          "discriminative": false,
+          "mean_steps": 7.2,
+          "stuck_reasons": [],
+          "last_errors": []
+        }
+      }
+    },
+    "plate_line": {
+      "splits": {
+        "train": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": 0.12,
+          "action_space": "discrete",
+          "discriminative": false,
+          "mean_steps": 252.5,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": 0.0,
+          "action_space": "discrete",
+          "discriminative": true,
+          "mean_steps": 254.5,
+          "stuck_reasons": [],
+          "last_errors": []
+        }
+      }
+    },
+    "repair_belt": {
+      "splits": {
+        "train": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": 0.0,
+          "action_space": "discrete",
+          "discriminative": true,
+          "mean_steps": 18.6,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": 0.0,
+          "action_space": "discrete",
+          "discriminative": true,
+          "mean_steps": 21.4,
+          "stuck_reasons": [],
+          "last_errors": []
+        }
+      }
+    },
+    "restore_power": {
+      "splits": {
+        "train": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": 0.0,
+          "action_space": "discrete",
+          "discriminative": true,
+          "mean_steps": 12.4,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.0,
+          "random_rate_skills": 0.0,
+          "action_space": "discrete",
+          "discriminative": true,
+          "mean_steps": 22.9,
+          "stuck_reasons": [],
+          "last_errors": [
+            "place_small_electric_pole_south: collision"
+          ]
+        }
+      }
+    },
+    "supply_furnace": {
+      "splits": {
+        "train": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.12,
+          "random_rate_skills": 0.75,
+          "action_space": "discrete",
+          "discriminative": false,
+          "mean_steps": 139.9,
+          "stuck_reasons": [],
+          "last_errors": []
+        },
+        "test": {
+          "reference_success": 8,
+          "episodes": 8,
+          "reference_rate": 1.0,
+          "random_rate": 0.12,
+          "random_rate_skills": 0.12,
+          "action_space": "discrete",
+          "discriminative": false,
+          "mean_steps": 158.4,
+          "stuck_reasons": [],
+          "last_errors": [
+            "give_iron-ore_20: no_items"
+          ]
+        }
+      }
     }
   },
-  "wall_seconds": 498.5,
+  "wall_seconds": 1270.0,
   "solvable": [
+    "build_line",
+    "deliver",
     "diagnose_line",
-    "keep_line_running"
+    "keep_line_running",
+    "mine_smelt",
+    "navigate",
+    "plate_line",
+    "repair_belt",
+    "restore_power",
+    "supply_furnace"
   ],
   "defective": [],
   "floor_ceiling": 0.1,
   "not_discriminative": [
-    "diagnose_line"
+    "deliver",
+    "diagnose_line",
+    "mine_smelt",
+    "navigate",
+    "plate_line",
+    "supply_furnace"
   ]
 }
