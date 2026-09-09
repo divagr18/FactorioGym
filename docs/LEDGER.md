@@ -1417,9 +1417,22 @@ not scored evaluations; no rate here is comparable to a published success rate.
 ## R5.3 - Demonstration learning: the optimiser destroys what the clone gives it
 
 Three arms on `repair_belt` v1.6.0, primitive action space, 25k steps per PPO
-cell, two seeds, all scored on the same 100 frozen `holdout_v3` episodes. Seed 1
-on the laptop (RTX 3050), seed 2 on the desktop (RTX 4060).
-`docs/evidence/r5-demonstration-learning.json`.
+cell, two seeds. Seed 1 on the laptop (RTX 3050), seed 2 on the desktop
+(RTX 4060). `docs/evidence/r5-demonstration-learning.json`.
+
+**Correction (2026-09-10): the BC row was not on the frozen holdout.** This
+entry originally said all six cells were scored on the same 100 frozen
+`holdout_v3` episodes. That is true of the four PPO cells and false of the two
+BC cells: `tools/clone_expert.py` declared a `--holdout` argument and never read
+it, while its own docstring promised "same frozen holdout if one is given". The
+BC arm was therefore scored on the run's own scenes over the test split,
+indices 0-99, and the BC column is **not paired** with the PPO columns --
+the same unpaired comparison that got 4.4 withdrawn.
+
+What survives untouched: the two PPO arms are paired with each other, and the
+findings below rest on training curves and on rows that did use the frozen set.
+`clone_expert` now applies the frozen plan and records coverage; the BC arms
+are being re-run.
 
 | arm | seed | train | seeds | val | structures (greedy/sampled) |
 |---|---|---|---|---|---|

@@ -117,6 +117,24 @@ def main() -> int:
         )
         model.save(run_dir / "model")
 
+        # `--holdout` was accepted and then never read: it was declared as an
+        # argument and referenced nowhere else, while this module's docstring
+        # promised "same frozen holdout if one is given". Every BC result was
+        # therefore scored on the run's own scenes over the test split, not on
+        # the frozen set, and was reported as though it were the latter -- the
+        # same unpaired-comparison defect that got 4.4 withdrawn.
+        frozen = None
+        if args.holdout:
+            frozen = json.loads(Path(args.holdout).read_text(encoding="utf-8"))
+            entry = (frozen["holdout"].get("tasks") or {}).get(args.task)
+            if entry is None:
+                raise SystemExit(f"{args.holdout} does not cover task {args.task}")
+            if entry["task_version"] != task.spec.version:
+                raise SystemExit(
+                    f"{args.holdout} froze {args.task} at v{entry['task_version']}; "
+                    f"this tree is v{task.spec.version}. The scenes would differ"
+                )
+
         rows: dict = {}
         for label, split, branch in (
             ("seeds", "train", Branch.EVAL),
@@ -125,9 +143,31 @@ def main() -> int:
         ):
             if not task.spec.families(split):
                 continue
-            env = _wrap(FactorioEnv(task, session, plan, branch=branch, split=split), args.skills)
-            env.unwrapped._episode_index = -1
+            # The structural row is the published one, so it -- and only it --
+            # moves onto the frozen plan and start index. The other two are
+            # diagnostics for this run and stay on the run's own stream, which
+            # is exactly what `train.py` does.
+            row_plan, row_start = plan, -1
+            if frozen is not None and split == "test":
+                seeds_spec = frozen["holdout"]["seed_plan"]
+                row_plan = SeedPlan(master=seeds_spec["master"], run_id=seeds_spec["run_id"])
+                row_start = frozen["holdout"]["start_index"] - 1
+            env = _wrap(
+                FactorioEnv(task, session, row_plan, branch=branch, split=split), args.skills
+            )
+            env.unwrapped._episode_index = row_start
             rows[label] = evaluate(env, model, args.eval_episodes)
+            if frozen is not None and split == "test":
+                first = frozen["holdout"]["start_index"]
+                rows[label]["holdout"] = {
+                    "id": frozen["holdout"].get("holdout_id"),
+                    "content_hash": frozen["content_hash"],
+                    "start_index": first,
+                    "episodes_per_task": frozen["holdout"]["episodes_per_task"],
+                    "covers_frozen_set": (
+                        args.eval_episodes >= frozen["holdout"]["episodes_per_task"]
+                    ),
+                }
             # Recorded so the disjointness check has something to check. The
             # env counts from -1 and reset advances it, so the row covers
             # 0..eval_episodes-1 on this branch.

@@ -69,7 +69,8 @@
         ]
       },
       "scene_disjointness": true,
-      "training_mode": "behaviour-cloning-v1"
+      "training_mode": "behaviour-cloning-v1",
+      "holdout": "NOT the frozen holdout -- run's own scenes over the test split, indices 0-99. See correction_2026_09_10"
     },
     {
       "arm": "bc",
@@ -122,7 +123,8 @@
         ]
       },
       "scene_disjointness": true,
-      "training_mode": "behaviour-cloning-v1"
+      "training_mode": "behaviour-cloning-v1",
+      "holdout": "NOT the frozen holdout -- run's own scenes over the test split, indices 0-99. See correction_2026_09_10"
     },
     {
       "arm": "scratch_ppo",
@@ -482,5 +484,11 @@
     "two seeds, one per machine, so seed and machine are confounded. Each cell's manifest records the measured GPU, so it stays checkable",
     "BC's 0.10 and 0.19 on the structural row are the first non-zero values on this family, but the earlier 0.00 results were repair_belt v1.4.0 against this v1.6.0 -- and v1.6.0 is the version that fixed the training distribution, so the change is not attributable to the method",
     "the collapse is measured on the training curve. Nothing here identifies its cause"
-  ]
+  ],
+  "correction_2026_09_10": {
+    "what_was_wrong": "This file said all six cells were 'scored on the same 100 frozen holdout_v3 episodes'. True of the four PPO cells and false of the two BC cells: `tools/clone_expert.py` declared a `--holdout` argument and never read it, so the BC arm was scored on the run's own EVAL-branch scenes over the test split starting at index 0, not on the frozen 3000-3099",
+    "consequence": "the BC column is not paired with the PPO columns. Comparing them is the same unpaired comparison that got 4.4 withdrawn -- a difference between arms cannot be separated from a difference between scene draws",
+    "what_still_stands": "the two PPO arms are paired with each other and with the collapse arms, so 'scratch PPO never solved a training episode' and 'BC-initialised PPO inherits competence and loses it' are unaffected: both rest on training curves and on PPO rows that did use the frozen set",
+    "fixed_in": "clone_expert now applies the frozen plan and start index to the structural row and records holdout id, content hash and coverage, as train.py does. The BC arms are being re-run."
+  }
 }
