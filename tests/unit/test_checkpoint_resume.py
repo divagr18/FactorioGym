@@ -164,6 +164,6 @@ class TestTrainingStateSurvives:
         before = {k: v.clone() for k, v in loaded.policy.state_dict().items()}
         loaded.learn(total_timesteps=ROLLOUT, reset_num_timesteps=False)
         after = loaded.policy.state_dict()
-        assert any(
-            not th.allclose(before[key].cpu(), after[key].cpu()) for key in before
-        ), "no weight moved, so the resumed run did not actually train"
+        assert any(not th.allclose(before[key].cpu(), after[key].cpu()) for key in before), (
+            "no weight moved, so the resumed run did not actually train"
+        )

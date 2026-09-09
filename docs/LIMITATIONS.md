@@ -177,6 +177,36 @@ outcomes. No index offset undoes that.
 **`restore_power` yields 70 distinct scenes across its 100 frozen episodes**, so
 its effective sample size is smaller than the count suggests. `mine_smelt` is 92.
 
+**Episode length in `per_scene` contradicts the truncation rule that produced
+it, and the contradiction is unresolved.** Every failed episode on `deliver` is
+flagged `truncated` with a step count *below* the decision budget: 103 of 113
+across the two finished cells of the 4.4 comparison, as low as 12 against a
+budget of 120, and in 2,734 training episodes not one reached 120 (the maximum
+is 114). `env.py` truncates on exactly two conditions, and neither fits. The
+decision budget is 120, so a 12-step truncation is not that. The tick budget is
+15,000 and a decision advances exactly `decision_ticks` = 30, so exhausting it
+takes ~500 decisions -- more than the decision budget allows, making the tick
+budget unreachable by construction on this family. These have been ruled out as
+explanations: an infrastructure failure dressed as a time limit (`vecenv.py:261`
+excludes those, and `reset_failures` is empty for all three rows), `_steps`
+surviving a reset (`reset` zeroes it), and a `gymnasium` `TimeLimit` wrapper
+imposing a smaller cap (there is none).
+
+What this does and does not affect: **success rates are unaffected**, because
+they come from `info["success"]` and not from any step count, so the 4.4
+comparison's rates stand. What is unreliable is `per_scene.steps`,
+`mean_episode_steps`, and therefore any diagnosis that reads episode length --
+which is most of what R5.1 asks a report to say. `tools/diagnose_run.py`
+detects the unreachable-budget case and labels these `truncated_unexplained`
+rather than attributing them to the only budget left standing.
+
+`production.episode_ticks` is not a substitute: it exceeds `30 x steps` by a
+variable 2 to 108 ticks because it spans the reset settle as well as the
+decisions. Nor is `simulated_ticks`, which is derived as `primitive_steps x
+decision_ticks` rather than measured, so ratios computed from it describe two
+counters and not the clock. Resolving this needs a live episode instrumented to
+report `_steps` and `tick` at the truncating step.
+
 **A random floor is a property of the action space, not the task.** Quoting a
 result without the floor measured over the same action space is meaningless, and
 this was got wrong four times in one day -- including a baseline cache keyed on
