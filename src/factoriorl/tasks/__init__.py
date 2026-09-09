@@ -3,7 +3,13 @@
 Discovery-based, not entry-point based: a family module dropped into
 ``factoriorl.tasks.families`` registers itself on import, so adding a task never
 requires a reinstall and never touches worker management. The import-direction
-test in ``tests/unit/test_task_isolation.py`` asserts the second half of that.
+test ``test_tasks_never_import_worker_management`` in
+``tests/unit/test_tasks_and_rewards.py`` asserts the second half of that; the
+file this used to cite, ``tests/unit/test_task_isolation.py``, no longer exists.
+
+Registration is not the whole of authoring a task -- see
+``docs/AUTHORING_TASKS.md`` for what else a new family needs and which of it is
+a file to add rather than an internal to edit.
 
 ``validate_all()`` runs before any worker is launched, so a configuration error
 fails at construction rather than at step 40,000.
@@ -17,6 +23,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from factoriorl.tasks.spec import (
+    DISRUPTION_KINDS,
     TRACKS,
     UNDECIDABLE_AT_RESET,
     Blueprint,
@@ -187,6 +194,24 @@ def validate_all(sample_seeds: int = 16) -> dict:
                 "would put this task in no track's results and show up only as an "
                 "absence"
             )
+        # `TaskSpec.disruptions` claimed this check existed and it did not, so a
+        # task could declare `Disruption("no_such_kind", 999999, ...)` and pass
+        # validation: the kind would be ignored by `world.disrupt` and the tick
+        # would fall after the budget, so the disruption simply never fired and
+        # the task looked like one that had been tested under disruption.
+        for disruption in spec.disruptions:
+            if disruption.kind not in DISRUPTION_KINDS:
+                problems.append(
+                    f"disruption kind {disruption.kind!r} is not one of "
+                    f"{sorted(DISRUPTION_KINDS)}; the mod would ignore it and the "
+                    "episode would run undisturbed while claiming otherwise"
+                )
+            if not 0 <= disruption.at_tick < spec.max_game_ticks:
+                problems.append(
+                    f"disruption {disruption.kind!r} fires at tick "
+                    f"{disruption.at_tick}, outside this task's budget of "
+                    f"{spec.max_game_ticks}; it would never happen"
+                )
         # A `diagnosis` task that publishes its fault is a `repair` task with a
         # different label, and the label is what a reader compares results by.
         # Checked here rather than trusted, because the two declarations that

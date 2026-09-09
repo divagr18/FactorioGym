@@ -833,6 +833,36 @@ SOLVERS = {
 }
 
 
+def _solver_for(task_id: str):
+    """The reference solver for a task: its own declaration first, then `SOLVERS`.
+
+    `RegisteredTask` has carried a `solve` field since it was written and
+    **nothing ever read it**. The real dispatch was this module's hard-coded
+    `SOLVERS` dict, which meant the repository's own claim -- "adding a task
+    means dropping a module here" (`tasks/families/__init__.py`) -- was false:
+    a family that dropped in a module and declared its solver got
+    `no reference solution registered`, which makes `tools/solvability.py`
+    call it *defective* and fails `gate_phase3`'s 0.99 reference threshold.
+    Authoring a task therefore required editing framework internals, which is
+    exactly what R6's gate says a user must not have to do.
+
+    A task's own declaration wins, so a new family is self-contained. `SOLVERS`
+    stays as the fallback because the ten existing solvers genuinely belong
+    here -- they share `Driver`, `_belt_gap`, `_pole_gap` and the rest, and
+    moving them into ten family modules would duplicate that machinery for no
+    gain.
+    """
+    from factoriorl import tasks as tasks_module
+
+    try:
+        declared = tasks_module.get(task_id).solve
+    except Exception:
+        # A task absent from the registry is not this function's problem to
+        # report; the caller's `None` branch says it better.
+        declared = None
+    return declared or SOLVERS.get(task_id)
+
+
 class ReferenceOnEvaluatedEpisode(RuntimeError):
     """A scripted solution was pointed at an evaluated episode.
 
@@ -860,9 +890,12 @@ def solve(env: FactorioEnv) -> SolveTrace:
         )
     task_id = env.spec_.id
     trace = SolveTrace(task=task_id, budget=env.spec_.max_decision_steps)
-    solver = SOLVERS.get(task_id)
+    solver = _solver_for(task_id)
     if solver is None:
-        trace.stuck_reason = f"no reference solution registered for {task_id}"
+        trace.stuck_reason = (
+            f"no reference solution for {task_id}: it is absent from SOLVERS and its "
+            "RegisteredTask declares no `solve`"
+        )
         return trace
     driver = Driver(env, trace)
     solver(driver)

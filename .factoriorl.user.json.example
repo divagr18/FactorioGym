@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "Copy to .factoriorl.user.json in the workspace root. That filename is",
+    "gitignored, which is why this example exists separately.",
+    "",
+    "Only needed if your Factorio is not at the built-in default. Discovery",
+    "order is: FACTORIO_RL_ENGINE environment variable, then this file, then",
+    "the built-in default. The first path that exists wins.",
+    "",
+    "The engine build is pinned exactly -- 2.0.60 build 83512. Anything else is",
+    "refused, by `factoriorl doctor` and again at worker launch. See",
+    "docs/LIMITATIONS.md for why the pin is exact and what it costs you.",
+    "",
+    "game_speed is optional and machine-local: it is the paused-loop tick",
+    "multiplier, and the best value is a property of the machine rather than of",
+    "the system. Measured: 90 on an 8-core laptop, 120 on a Ryzen 5 5600T.",
+    "Omit it to take the default of 90."
+  ],
+  "engine": {
+    "executable": "C:/Program Files/Factorio/bin/x64/factorio.exe",
+    "game_speed": 90
+  }
+}

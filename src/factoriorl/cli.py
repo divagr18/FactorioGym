@@ -24,12 +24,32 @@ PHASE1_EVIDENCE_NAME = "phase1-engine-suite.txt"
 
 
 def cmd_doctor(_args) -> int:
+    """Probe the engine and enforce the pinned build.
+
+    It used to resolve the executable, print the JSON and return 0 without
+    checking the pin. `WorkerManager.__init__` is the only caller of
+    `assert_compatible`, so a user on the wrong build got a clean bill from the
+    diagnostic and a refusal much later from a worker launch -- the opposite of
+    PLAN 6.1's requirement that diagnostics distinguish a game-setup problem
+    from a connection, dependency or provider one.
+    """
     try:
         engine = resolve_engine_config()
     except FactorioRLError as exc:
         print(f"engine check failed: {exc}", file=sys.stderr)
         return 1
-    print(json.dumps(engine.to_dict(), indent=2))
+    report = engine.to_dict()
+    try:
+        engine.assert_compatible()
+    except FactorioRLError as exc:
+        report["pinned_build_ok"] = False
+        report["class"] = "game_setup"
+        print(json.dumps(report, indent=2))
+        print("", file=sys.stderr)
+        print(f"engine build not supported: {exc}", file=sys.stderr)
+        return 1
+    report["pinned_build_ok"] = True
+    print(json.dumps(report, indent=2))
     return 0
 
 
@@ -376,9 +396,15 @@ def cmd_doctor_agent(args) -> int:
     something that looks truncated".
     """
     from factoriorl.agent.adapters import ModelRequest, OpenAICompatibleAdapter
+    from factoriorl.agent.credentials import load_env_file
     from factoriorl.agent.loop import SYSTEM_PROMPT
 
     report: dict = {"class": "model_provider", "base_url": args.base_url, "model": args.model}
+    # The same environment seeding a run performs, so the diagnostic cannot
+    # disagree with the thing it diagnoses: `demo` carried its own inline
+    # loader, so a key present only in `.env` made this report "not set" about
+    # a run that then worked. Names only -- no value leaves this function.
+    report["env_file_supplied"] = load_env_file(args.env_file or None)
     raw = os.environ.get(args.api_key_env) if args.api_key_env else None
     report["credential"] = {
         "variable": args.api_key_env,
@@ -628,6 +654,13 @@ def main(argv: list[str] | None = None) -> int:
         help="environment variable holding the key; empty for a local endpoint",
     )
     agent_doctor.add_argument("--timeout", type=float, default=30.0)
+    agent_doctor.add_argument(
+        "--env-file",
+        default=None,
+        metavar="PATH",
+        help="seed the environment from this file first (default: .env in the "
+        "workspace root, if present). Only variable names are reported",
+    )
     agent_doctor.add_argument("--token-parameter", default="max_tokens")
     agent_doctor.add_argument("--no-temperature", action="store_true")
 

@@ -39,7 +39,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 import time
 from pathlib import Path
@@ -182,12 +181,12 @@ def main() -> int:
     args = parser.parse_args()
 
     # Credentials come from the environment; the adapter redacts before writing.
-    env_file = Path(args.env_file)
-    if env_file.exists():
-        for line in env_file.read_text(encoding="utf-8").splitlines():
-            if "=" in line and not line.strip().startswith("#"):
-                key, value = line.split("=", 1)
-                os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+    # Shared with `factoriorl doctor-agent` rather than inlined here, which is
+    # what let the diagnostic report a key as unset about a run that then found
+    # it. Returns names only, never values.
+    from factoriorl.agent.credentials import load_env_file
+
+    load_env_file(args.env_file)
 
     from factoriorl import manifest as manifest_module
     from factoriorl.env import FactorioEnv

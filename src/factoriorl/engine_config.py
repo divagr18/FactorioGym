@@ -134,15 +134,30 @@ def resolve_game_speed() -> float:
 
 
 def resolve_engine_config() -> EngineConfig:
-    """Locate the Factorio executable and probe its version string."""
-    last_error = "no candidate executable configured"
+    """Locate the Factorio executable and probe its version string.
+
+    The failure names the two things a user can set, rather than the last path
+    tried. The last path tried is `DEFAULT_WINDOWS_EXE`, a drive letter on the
+    machine this was written on, so a user without Factorio was told
+    "executable not found: D:\\Factorio\\bin\\x64\\factorio.exe" -- a path
+    they have no reason to have, and no hint about what to do instead.
+    """
+    tried: list[str] = []
     for path in _candidate_paths():
         if not path.is_file():
-            last_error = f"executable not found: {path}"
+            tried.append(str(path))
             continue
         version, build = probe_version(path)
         return EngineConfig(executable=path.resolve(), version=version, build=build)
-    raise StartupFailure(StartupFailureKind.MISSING_EXECUTABLE, last_error)
+    raise StartupFailure(
+        StartupFailureKind.MISSING_EXECUTABLE,
+        "no Factorio executable found. Set "
+        f"{ENGINE_ENV_VAR}=<path to factorio.exe>, or write "
+        f'{{"engine": {{"executable": "<path>"}}}} into {USER_CONFIG_NAME} at the '
+        f"workspace root -- see {USER_CONFIG_NAME}.example. Requires exactly "
+        f"{EXPECTED_VERSION} build {EXPECTED_BUILD}. Tried: "
+        f"{', '.join(tried) or 'nothing'}",
+    )
 
 
 def probe_version(executable: Path) -> tuple[str, int]:
