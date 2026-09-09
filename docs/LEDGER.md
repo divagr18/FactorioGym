@@ -1332,6 +1332,85 @@ Editing the family would invalidate those runs and change the blueprints behind
 `holdout_v1.json`'s content hash, which is exactly the drift the freeze exists
 to catch. Recorded, not patched.
 
+## R5.2 - The restore_power lottery is mostly an argmax artefact
+
+The suspicion on record was a terminal-gap shortcut: two policies fit training
+equally well, "fill the hole between two poles" scores 0.00 on a holdout whose
+gaps are all terminal, and which one a seed found was the 0.77 / 0.00 / 0.00
+spread. That was inferred from generator distributions. R5.2 asks for the
+policies' actual actions instead, and the actions say something different.
+
+`docs/evidence/r5-restore-power-behaviour-probe.json`. Three release
+checkpoints, ten `gap_near_drill` holdout episodes, both evaluation arms, every
+decision recorded.
+
+| seed | published | argmax solved | sampled solved | argmax closest-to-gap | sampled closest-to-gap | sampled errors |
+|---|---|---|---|---|---|---|
+| 1 | 0.77 | 8/10 | **10/10** | 1.72 | 1.38 | collision 21 |
+| 2 | 0.00 | 0/10 | **3/10** | 4.08 | 1.05 | **no_items 334** |
+| 3 | 0.00 | 0/10 | **1/10** | 2.21 | 1.26 | **no_items 295** |
+
+### The published zeros are greedy-only
+
+The release cells record one `structural_success_rate` per seed and no
+stochastic arm, so R5.1's "both sampled and argmax evaluations are labeled" was
+not met by that evidence. Sampled, neither failing seed is at zero.
+
+### Under argmax they livelock
+
+Seed 2 issues `place_small_electric_pole_north` **1986 times across ten
+episodes** -- about 199 of each episode's ~248 decisions -- collision-rejected
+every time. A rejected placement leaves the world unchanged, so the next
+observation is identical and a deterministic policy repeats it forever. This is
+the same absorbing failure mode found independently on `deliver` the same day,
+and it is what turns a mediocre policy into an exact 0.00.
+
+### Sampled, they reach the fault and run out of poles
+
+The error profile inverts: collisions nearly vanish and `no_items` dominates.
+Median closest approach to the published gap drops from 4.08 to **1.05** tiles
+for seed 2 and from 2.21 to 1.26 for seed 3. They get to the right place and
+exhaust their inventory.
+
+**So the hypothesis is not supported.** The terminal-gap story predicted the
+failing policies would target chain *interiors*. They target the published gap
+and fail at the placement, which is a different defect with a different fix.
+What separates the seeds is placement mechanics rather than targeting: seeds 1
+and 3 place facing south, seed 2 places facing north, and seed 3 additionally
+drifts to the generator end on 3 of 10 scenes.
+
+### Getting to the checkpoints at all
+
+These four archived runs were recorded in the R5 plan as absent from this
+machine. They were on the desktop the whole time; syncing that machine was what
+gave a reason to look.
+
+They cannot run against today's tree. `ITEMS` grew from 10 to 14 when R4.3 added
+two families, so the `inventory` observation is 14 wide where the checkpoints
+expect 10. The model *loads* -- SB3 rebuilds input layers from its own pickled
+space -- but the environment cannot feed it, and nothing in the checkpoint
+machinery catches that, because `architecture_signature` compares the policy's
+own tensors and not the space the environment will present. The probe therefore
+ran in a git worktree at `3e85950`, the last commit before `restore_power` went
+to v1.6.0.
+
+Finding that commit needed history: **all four manifests record an empty
+`git.commit`**, because the desktop copy was not a git repository when the runs
+were made. It is one now.
+
+### Scope
+
+This closes R5.2's "confirm policies' actual actions rather than inferring them
+solely from generator distributions". It does not close the matched
+interior/terminal comparison, which still needs a layout family placing a long
+chain with both gaps terminal -- terminality is currently confounded with chain
+length in `two_gaps` -- nor the multi-fault reaching/fixing/retargeting/
+completing decomposition, which needs per-scene progress instrumentation that
+does not exist.
+
+Ten scenes per arm per seed, v1.5.0 stack against holdout_v2. These are traces,
+not scored evaluations; no rate here is comparable to a published success rate.
+
 ## R5.3 - Demonstration learning: the optimiser destroys what the clone gives it
 
 Three arms on `repair_belt` v1.6.0, primitive action space, 25k steps per PPO

@@ -1,0 +1,180 @@
+{
+  "probe": "PLAN R5.2 -- what did the restore_power lottery seeds actually do?",
+  "headline": "The 0.77/0.00/0.00 spread is largely an argmax artefact, and the hypothesised terminal-gap shortcut is not what the failing seeds do. Sampled on the same ten holdout scenes the three seeds score 10/10, 3/10 and 1/10, not 0. The failing seeds walk to within about one tile of the published gap and then exhaust their poles",
+  "method": "tools/trace_scenes.py against the three release checkpoints, ten gap_near_drill holdout episodes (3000-3009), both evaluation arms, recording every decision",
+  "provenance": {
+    "checkpoints": "restore_power v1.5.0, extractor_version 4, skills action space (23 actions)",
+    "why_a_worktree": "these checkpoints cannot run against today's tree: ITEMS grew from 10 to 14 when R4.3 added two families, so the inventory observation is 14 wide where the checkpoint expects 10. The model loads -- SB3 rebuilds input layers from its own pickled space -- but the environment cannot feed it. Probed instead in a git worktree at 3e85950, the last commit before restore_power went to v1.6.0, which is the stack these policies were built for",
+    "commit": "3e85950",
+    "holdout": "holdout_v2 (the one the release runs cited)",
+    "manifest_git_commit_was_empty": "all four archived manifests record an empty git.commit, because the desktop copy was not a git repository when the runs were made. The commit had to be recovered from history by bisecting on the task version -- a provenance gap now closed by making that copy a real clone"
+  },
+  "cells": [
+    {
+      "seed": 1,
+      "run_id": "release-20260908T175553-69d564f0",
+      "published_structural_success_rate": 0.77,
+      "published_arm": "greedy only -- the release cells record a single structural_success_rate with no stochastic arm",
+      "argmax": {
+        "solved": 8,
+        "scenes": 10,
+        "median_decisions": 37.0,
+        "closest_to_gap": {
+          "median": 1.72,
+          "min": 0.97,
+          "max": 3.37,
+          "within_2_tiles": 8
+        },
+        "reached_generator_within_3_tiles": 0,
+        "top_actions": {
+          "place_small_electric_pole_south": 795,
+          "move_east": 54,
+          "step_east": 13,
+          "step_west": 6
+        },
+        "action_errors": {
+          "collision": 763
+        }
+      },
+      "sampled": {
+        "solved": 10,
+        "scenes": 10,
+        "median_decisions": 13.5,
+        "closest_to_gap": {
+          "median": 1.38,
+          "min": 0.58,
+          "max": 2.38,
+          "within_2_tiles": 8
+        },
+        "reached_generator_within_3_tiles": 0,
+        "top_actions": {
+          "move_east": 59,
+          "place_small_electric_pole_south": 48,
+          "step_east": 15,
+          "step_north": 6
+        },
+        "action_errors": {
+          "collision": 21
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "run_id": "release-20260908T190150-df3bf1b9",
+      "published_structural_success_rate": 0.0,
+      "published_arm": "greedy only -- the release cells record a single structural_success_rate with no stochastic arm",
+      "argmax": {
+        "solved": 0,
+        "scenes": 10,
+        "median_decisions": 248.5,
+        "closest_to_gap": {
+          "median": 4.08,
+          "min": 1.5,
+          "max": 6.6,
+          "within_2_tiles": 2
+        },
+        "reached_generator_within_3_tiles": 0,
+        "top_actions": {
+          "place_small_electric_pole_north": 1986,
+          "move_east": 200,
+          "move_west": 160,
+          "place_small_electric_pole_south": 94
+        },
+        "action_errors": {
+          "collision": 1953,
+          "no_items": 102
+        }
+      },
+      "sampled": {
+        "solved": 3,
+        "scenes": 10,
+        "median_decisions": 132.5,
+        "closest_to_gap": {
+          "median": 1.05,
+          "min": 0.53,
+          "max": 2.37,
+          "within_2_tiles": 9
+        },
+        "reached_generator_within_3_tiles": 2,
+        "top_actions": {
+          "place_small_electric_pole_north": 319,
+          "step_east": 104,
+          "move_west": 100,
+          "step_north": 98
+        },
+        "action_errors": {
+          "no_items": 334,
+          "collision": 55
+        }
+      }
+    },
+    {
+      "seed": 3,
+      "run_id": "release-20260908T193040-032dd7ab",
+      "published_structural_success_rate": 0.0,
+      "published_arm": "greedy only -- the release cells record a single structural_success_rate with no stochastic arm",
+      "argmax": {
+        "solved": 0,
+        "scenes": 10,
+        "median_decisions": 240.5,
+        "closest_to_gap": {
+          "median": 2.21,
+          "min": 0.67,
+          "max": 3.79,
+          "within_2_tiles": 4
+        },
+        "reached_generator_within_3_tiles": 3,
+        "top_actions": {
+          "place_small_electric_pole_south": 1680,
+          "move_east": 259,
+          "move_west": 235,
+          "place_small_electric_pole_west": 174
+        },
+        "action_errors": {
+          "collision": 1794,
+          "no_items": 29
+        }
+      },
+      "sampled": {
+        "solved": 1,
+        "scenes": 10,
+        "median_decisions": 136.5,
+        "closest_to_gap": {
+          "median": 1.26,
+          "min": 0.47,
+          "max": 2.66,
+          "within_2_tiles": 8
+        },
+        "reached_generator_within_3_tiles": 7,
+        "top_actions": {
+          "move_west": 164,
+          "step_east": 146,
+          "place_small_electric_pole_south": 129,
+          "move_east": 123
+        },
+        "action_errors": {
+          "no_items": 295,
+          "collision": 8
+        }
+      }
+    }
+  ],
+  "findings": [
+    "The published zeros are greedy-only. Sampled, seed 2 solves 3 of 10 and seed 3 solves 1 of 10 -- neither is the incapable policy a 0.00 implies.",
+    "Under argmax the failing seeds livelock: seed 2 issues place_small_electric_pole_north 1986 times across ten episodes, ~199 of each episode's ~248 decisions, collision-rejected every time. A rejected placement leaves the world unchanged, so the next observation is identical and a deterministic policy repeats it. Same absorbing failure mode found independently on `deliver` the same day.",
+    "Sampling breaks the livelock and the error profile inverts: collisions vanish and `no_items` dominates. The failing seeds reach the gap -- median closest approach about one tile -- place poles, and run out.",
+    "So the failure is inventory exhaustion near the correct target, not the terminal-gap shortcut restore_power.py hypothesised. That hypothesis predicted the failing policies would target chain interiors; they do not.",
+    "Seed 1 is near-perfect when sampled: 10 of 10 in 11-29 decisions, against 8 of 10 under argmax with two 245-decision livelocks.",
+    "The seeds differ in placement mechanics rather than targeting: seed 1 and seed 3 place facing south, seed 2 places facing north. Seed 3 also drifts to the generator end of the chain on 3 of 10 scenes."
+  ],
+  "what_this_closes": "R5.2's clause 'confirm policies' actual actions rather than inferring them solely from generator distributions'. The generator-distribution argument inferred a targeting shortcut; the recorded actions contradict it",
+  "what_remains": [
+    "The matched interior/terminal comparison still needs a layout family that places a long chain with both gaps terminal; terminality is currently confounded with chain length in two_gaps.",
+    "Multi-fault reaching/fixing/retargeting/completing needs the per-scene progress instrumentation, which does not exist."
+  ],
+  "limitations": [
+    "ten scenes per arm per seed, chosen as the first ten of the frozen range rather than sampled -- these are traces, not a scored evaluation, and no rate here should be compared to a published success rate",
+    "v1.5.0 stack against holdout_v2, so none of these numbers is comparable to anything measured on today's tree",
+    "the probe explains what the policies do, not why they learned it"
+  ]
+}
