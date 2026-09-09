@@ -253,10 +253,17 @@ class WorkerSession:
         protocol that changes what happens. With it set the mod stops
         re-pausing the world between decisions, so an action lands at whatever
         tick it arrives at rather than exactly `decision_ticks` after the last
-        one. It exists because a Factorio server with a client attached and its
-        tick loop paused stops answering RCON at all, so an exactly-stepped
-        world cannot be watched in a real client. Every measured run leaves it
-        off; a run that sets it is a demonstration.
+        one. Every measured run leaves it off; a run that sets it is a
+        demonstration.
+
+        It was added on the belief that a paused server with a client attached
+        stops answering RCON, making an exactly-stepped world impossible to
+        watch. That belief was wrong -- the empty replies were a reply-ordering
+        bug in `rcon.py`, fixed there -- and exact stepping has since been
+        measured working with a client in the game: six steps of exactly 30
+        ticks, `tick_paused` true between every one, 0 ticks of idle drift over
+        three seconds. So nothing needs this knob; it survives only for a
+        watcher who would rather see a world that keeps moving.
         """
         payload: dict = {}
         if speed is not None:

@@ -10,9 +10,12 @@ bytes (Factorio 2.0 rejects single-NUL packets as invalid message types).
 - Auth: type 3, body = password. Success answers id = request id (echo),
   empty body; failure answers id = -1.
 - Command: type 2. The console executes the body as a server command, so
-  Lua must be prefixed with ``/c ``. Responses arrive as type-0 chunks
-  carrying the request id; a final empty-body chunk terminates multi-packet
-  responses (a short read timeout guards against servers that skip it).
+  Lua must be prefixed with ``/c `` (or ``/silent-command ``). The reply is one
+  type-0 packet carrying the request id -- **this build does not split long
+  replies**: a ``rcon.print`` of 4 096, 65 536, 200 000, 1 000 000 and
+  4 000 000 bytes each came back as exactly one packet of size+1. Source RCON
+  permits a 4096-byte split and Factorio never uses it, so the reassembly loop
+  below is for the protocol rather than for any reply this engine sends.
 
 Lua runs through the mod bridge: ``remote.call("frrl_bridge", "run", code)``
 returns ``{result = ...}`` or ``{error = ...}``; Lua errors never kill the
@@ -26,6 +29,7 @@ embedded in Lua is serialized with ``ensure_ascii=False``.
 from __future__ import annotations
 
 import json
+import os
 import socket
 import struct
 from dataclasses import dataclass
@@ -47,9 +51,41 @@ MAX_REQUEST_ID = 1 << 30
 #: A console command that runs successfully and prints nothing, so the server
 #: answers it with a single empty-bodied packet. Following every real command
 #: with one of these turns "have I received the whole response?" from a timeout
-#: guess into a fact: RCON replies in order on one connection, so the sentinel's
-#: reply cannot arrive before the real response is complete.
-SENTINEL_BODY = "/c local _ = 1"
+#: guess into a fact -- see :meth:`RCONClient.command` for why the sentinel's
+#: arrival is necessary but not sufficient.
+#:
+#: Always silent, in both modes. It is framing, not a command any run meant to
+#: issue, so echoing it doubles the console log and puts a `local _ = 1` in a
+#: watching player's chat between every pair of real commands.
+SENTINEL_BODY = "/silent-command local _ = 1"
+
+#: `/c` is echoed to every connected player -- the command text lands in their
+#: chat, and every command this repo sends is a page of `pcall`/`remote.call`
+#: wrapper. Watching a run through a real client, that is the whole screen:
+#: `local ok, result = pcall(function() return remote.call("frrl_bridge", ...`
+#: printed verbatim over the world, several times a second.
+#:
+#: `/silent-command` runs identically and prints nothing. Measured on this
+#: build: a `/sc rcon.print('sc-ok')` answered normally with a 6-byte reply and
+#: appeared in neither the console log nor a connected player's chat, while the
+#: five `/c` probes sent alongside it were all logged.
+#:
+#: Silent is the default, which costs something worth naming: `--console-log`
+#: no longer records the commands a run issued, because the engine is the thing
+#: that stops writing them. Set `FACTORIO_RL_ECHO_COMMANDS=1` (or pass
+#: `silent=False`) to get that record back when a run needs to be audited from
+#: the engine's own log rather than from Python's side of the wire.
+SILENT_PREFIX = "/silent-command "
+COMMAND_PREFIX = "/c "
+
+#: Opt back in to `/c`, so the engine logs and broadcasts every command.
+ECHO_ENV_VAR = "FACTORIO_RL_ECHO_COMMANDS"
+
+
+def echo_commands_requested() -> bool:
+    """True when the environment asks for `/c` instead of `/silent-command`."""
+    return os.environ.get(ECHO_ENV_VAR, "").strip().lower() in ("1", "true", "yes", "on")
+
 
 _LUA_BRIDGE = (
     'local ok, result = pcall(function() return remote.call("frrl_bridge", "run", {code}) end) '
@@ -95,10 +131,23 @@ def encode_packet(packet_id: int, packet_type: int, body: str) -> bytes:
 class RCONClient:
     """Blocking client; one request/response per call."""
 
-    def __init__(self, endpoint: RCONEndpoint, timeout: float = 10.0) -> None:
+    def __init__(
+        self, endpoint: RCONEndpoint, timeout: float = 10.0, silent: bool | None = None
+    ) -> None:
         self._next_request_id = FIRST_REQUEST_ID
         self.endpoint = endpoint
         self.timeout = timeout
+        #: Issue Lua through `/silent-command` rather than `/c`, so the command
+        #: text is not echoed into a watching player's chat or the console log.
+        #: ``None`` defers to :data:`ECHO_ENV_VAR`, which is how a run gets the
+        #: engine-side command record back without editing code.
+        self.silent = not echo_commands_requested() if silent is None else silent
+        #: Calls whose sentinel arrived before the command's own reply. Zero on
+        #: every player-free run, so a non-zero count is a positive signal that
+        #: something is connected to the worker -- worth reporting rather than
+        #: absorbing silently, since that inversion is what used to look like a
+        #: dead transport.
+        self.reordered_replies = 0
         self._sock: socket.socket | None = None
 
     def connect(self) -> None:
@@ -168,9 +217,38 @@ class RCONClient:
 
         Completion is determined by a **sentinel**, not by waiting: the real
         command is followed immediately by a command known to print nothing.
-        A Source RCON server answers in order on one connection, so the arrival
-        of the sentinel's reply proves the real response is complete. That is
-        exact, and it costs one extra packet instead of a 250 ms timeout.
+        The sentinel's reply proves the real response is complete, and it costs
+        one extra packet instead of a 250 ms timeout.
+
+        The sentinel is necessary but **not sufficient**, because "answers in
+        order on one connection" is only true of a server with no players.
+        Attach a Factorio client to the worker and the order inverts for
+        anything longer than a trivial command -- the console log during the
+        failure shows the sentinel executing before the command it was meant to
+        follow::
+
+            [JOIN] Keno joined the game
+            [COMMAND] <server> (command): rcon.print('p')
+            [COMMAND] <server> (command): local _ = 1
+            [COMMAND] <server> (command): local _ = 1     <- sentinel, ahead of
+            [COMMAND] <server> (command): local ok, result = pcall(...)   its own
+                                                                       command
+
+        Treating the sentinel alone as completion then returned an **empty
+        body** for every call: the real reply arrived during the *next* call,
+        where its lower id marked it stale and it was drained. One lost reply
+        per call, indefinitely, and `lua` reported it as
+        `non-json rcon response: ''`. That is what made a watched run
+        impossible, and it was read as a property of the RCON transport rather
+        than of this loop. Ordering was the only thing wrong: with a client
+        attached the same server answered a 16 KB command and a 64 KB reply
+        without complaint.
+
+        So completion is now "both replies seen", in either order. Every
+        command gets at least one packet bearing its id -- an empty-bodied one
+        when it printed nothing, which is exactly how the sentinel itself
+        answers -- so this is a fact about the connection and not another
+        assumption about timing.
 
         Per-call ids also make a timed-out call survivable. Every call used to
         reuse a single id, so one timeout desynchronized the connection
@@ -190,11 +268,17 @@ class RCONClient:
         self._send(sentinel_id, TYPE_COMMAND, SENTINEL_BODY)
 
         chunks: list[bytes] = []
-        while True:
+        seen_request = False
+        seen_sentinel = False
+        while not (seen_request and seen_sentinel):
             packet_id, chunk = self._read_packet()
             if packet_id == sentinel_id:
-                break
+                seen_sentinel = True
+                if not seen_request:
+                    self.reordered_replies += 1
+                continue
             if packet_id == request_id:
+                seen_request = True
                 if chunk:
                     chunks.append(chunk)
                 continue
@@ -209,7 +293,8 @@ class RCONClient:
 
     def lua(self, code: str) -> object:
         """Run Lua through the bridge and decode the bridge payload."""
-        raw = self.command("/c " + wrap_lua(code))
+        prefix = SILENT_PREFIX if self.silent else COMMAND_PREFIX
+        raw = self.command(prefix + wrap_lua(code))
         try:
             payload = json.loads(raw)
         except json.JSONDecodeError as exc:

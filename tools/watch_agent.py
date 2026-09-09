@@ -11,48 +11,63 @@ itself with `--mp-connect`, and then hands the environment to `AgentLoop`.
 
 Three things to know before reading anything off the screen
 ----------------------------------------------------------
-**The world is paused between decisions.** Exact stepping is `game.tick_paused`
-plus a fixed `decision_ticks` per action, so the client shows a 30-tick burst
-of motion and then a freeze while the model is thinking -- one to several
-seconds per decision. That stutter is the environment working correctly, not
-lag. `--game-speed` is forced to 1.0 here so each burst plays at real time;
-the throughput runs use whatever `engine_config` resolves, which is faster.
+**The world keeps running while the model thinks, by default.** The measured
+environment does not: exact stepping is `game.tick_paused` plus a fixed
+`decision_ticks` per action, so the world moves for 30 ticks and then freezes
+for the one to several seconds an inference takes. That stutter is the
+environment working correctly, but it is a bad thing to watch, and watching is
+what this tool is for -- so it runs free by default and `--exact-stepping` puts
+the pause back. `--game-speed` is forced to 1.0 either way, so motion plays at
+real time; the throughput runs use whatever `engine_config` resolves, which is
+faster and unwatchable.
 
-**`--launch-client` does not work, and the cause is the RCON transport
-itself.** With a client connected, requests start coming back with an **empty
-body** -- `RCONClient.lua` raises `non-json rcon response: ''` and the session
-turns it into a `ProtocolError`. What was tried, in order, and what each
-attempt ruled out:
+**This used to be impossible, and the reason was one line in `rcon.py`.** With
+a client connected every request came back with an **empty body** --
+`non-json rcon response: ''`, turned into a `ProtocolError`, and the run died
+before its first decision. Three hypotheses were tested and correctly ruled
+out (the pause, the payload size, transience), and the conclusion drawn was
+that a connected client breaks the RCON transport itself. It does not.
 
-* *The pause.* Exact stepping holds `game.tick_paused = true` between
-  decisions, and Factorio services RCON inside its tick loop, so a paused
-  server plausibly never runs the command. `configure(free_running=True)` was
-  added for this and **verified on the engine** -- paused, the tick held at 0
-  across two seconds; free-running, it went 2 to 123. The failure was
-  unchanged, so the pause is not the cause.
-* *Payload size.* `scenario_define` carries the whole blueprint, about ten
-  kilobytes for `plate_line`'s 49 ore tiles, and the server broadcasts every
-  command to connected players -- it visibly fills their screen. Pre-installing
-  every scene before the client joins removed that request from the window
-  where a client exists. The next failure was `session.reset`, a small request,
-  so size is not the cause either.
-* *Transience.* A six-attempt retry a second apart got no answer at all.
+What nobody had read was the engine's own log. `WorkerSpec.console_log` is only
+the *console* copy; the real log is `write-data/factorio-current.log`, and it
+records the failure with no error at all -- a clean join and nothing else. The
+console copy is where the answer was, in the command order right after the
+join::
 
-Since Factorio's RCON reply *is* the command's printed output and it is
-produced inside the tick loop, a connected client appears to break the
-association between a command and its reply on the same read. That is a
-property of the transport, not of this repo's code, and fixing it would mean a
-different channel between Python and the mod.
+    [JOIN] Keno joined the game
+    [COMMAND] <server> (command): rcon.print('p')
+    [COMMAND] <server> (command): local _ = 1
+    [COMMAND] <server> (command): local _ = 1      <- a sentinel, ahead of the
+    [COMMAND] <server> (command): local ok, result = pcall(...)  command it was
+                                                              meant to follow
 
-**So use `tools/replay.py` to watch a run.** It renders a run directory into one
-self-contained HTML page with a map view, a timeline, and the exact prompt sent
-at every decision. It perturbs nothing, which the live path cannot claim --
-joining creates a `LuaPlayer` no measured run has.
+`RCONClient.command` sends a sentinel after every command and treated its
+arrival as proof the real reply was complete, because "a Source RCON server
+answers in order on one connection". That is true only with no players. Attach
+a client and the order inverts for anything longer than a trivial command, so
+the sentinel was read as an empty response and the real reply arrived during
+the *next* call, where its lower id marked it stale and it was drained. One
+lost reply per call, forever. Completion is now "both replies seen", in either
+order, and `RCONClient.reordered_replies` counts the inversions -- 15 of them
+across a six-step probe.
 
-The `--launch-client` and `--free-running` flags are kept because the finding
-is worth keeping and both are correct in themselves. Nothing from this tool is
-written to `docs/evidence/`: the run artifact lands under `runtime/runs/` like
-any other agent run.
+None of the three ruled-out hypotheses was wrong, and size in particular is
+now measured rather than argued: with a client attached the same server
+answered a 16 KB command and a 64 KB reply without complaint, and does not
+split a reply at all (4 MB arrived in one packet).
+
+**Exact stepping survives a client, which is why the default is a preference
+rather than a workaround.** Verified with a client in the game: six steps
+advanced the tick by exactly 30 each, `game.tick_paused` read `True` between
+every one, and the world drifted 0 ticks across three idle seconds. So
+`--exact-stepping` genuinely works with something watching; it is simply less
+pleasant to watch than a world that never stops.
+
+The one perturbation left is real and unfixable: joining creates a `LuaPlayer`
+no measured run has. So nothing here is written to `docs/evidence/`; the run
+artifact lands under `runtime/runs/` like any other agent run, and
+`tools/replay.py` -- which perturbs nothing -- stays the way to look at a run
+that *was* measured.
 
 **Watch the prompt, not just the screen.** Every decision's exact prompt, the
 model's reply and the outcome go to `decisions.jsonl` in the run directory
@@ -112,51 +127,14 @@ WATCHABLE = {
 }
 
 
-class PatientClient:
-    """Retries an RCON call that came back empty. Watched runs only.
-
-    A connected client makes the server answer RCON with an **empty body** now
-    and then -- while it transfers the map, and again at points during play.
-    `RCONClient.lua` reports that as `non-json rcon response: \'\'`, the session
-    turns it into a `ProtocolError`, and the run dies. Measured three times:
-    once inside `wait_for_client`, once inside a step (truncated at decision 3,
-    excluded from metrics), and once inside `define_scenario` during the loop's
-    own reset, which killed the run before the first decision.
-
-    The retry lives **here and not in `rcon.py`** on purpose. Measured runs have
-    no players, never see this, and must keep treating a non-answer as the
-    failure it is -- a bounded retry in the shared client would also mask a
-    worker that had actually died. A watched run is a demonstration, so it may
-    be patient; nothing it produces is evidence.
-
-    Wrapped over `session._client`, the same seam `gate_r3.GuardedClient` uses.
-    """
-
-    #: Attempts, and the pause between them. Small: a stall lasts a moment, and
-    #: a long retry would hide a genuinely dead worker behind a slow run.
-    ATTEMPTS = 6
-    PAUSE_SECONDS = 1.0
-
-    def __init__(self, inner) -> None:
-        self._inner = inner
-        self.retries = 0
-
-    def lua(self, code: str):
-        last: Exception | None = None
-        for attempt in range(self.ATTEMPTS):
-            try:
-                return self._inner.lua(code)
-            except Exception as exc:  # noqa: BLE001
-                if "non-json rcon response" not in str(exc):
-                    raise
-                last = exc
-                self.retries += 1
-                if attempt + 1 < self.ATTEMPTS:
-                    time.sleep(self.PAUSE_SECONDS)
-        raise last if last else RuntimeError("rcon retry exhausted")
-
-    def __getattr__(self, name):
-        return getattr(self._inner, name)
+#: There used to be a `PatientClient` here that retried any call answered with
+#: an empty body, six times a second apart, on the theory that a connected
+#: client made the server stall. It never once succeeded on a retry, which was
+#: the clue: the reply was not late, it had already been delivered and dropped.
+#: With the ordering fixed in `rcon.py` there is nothing to be patient about, so
+#: the wrapper is gone rather than kept as a safety net -- a retry that masks an
+#: empty answer would also mask a worker that had genuinely died, and a watched
+#: run should fail as loudly as a measured one.
 
 
 class Narrating(ModelAdapter):
@@ -282,14 +260,30 @@ def main() -> int:
         "use whatever engine_config resolves, which is faster and unwatchable",
     )
     parser.add_argument(
-        "--free-running",
+        "--exact-stepping",
         action="store_true",
-        help="stop re-pausing the world between decisions. Implied by "
-        "--launch-client, because a paused server with a client attached stops "
-        "answering RCON at all. It **changes what happens**: the world keeps "
+        help="pause the world between decisions, the way a measured run does. "
+        "Off by default here: a world that freezes for the several seconds the "
+        "model spends thinking is a worse thing to watch than one that keeps "
+        "running, and watching is the whole purpose of this tool. It is a "
+        "choice and not a workaround -- exact stepping was measured working "
+        "with a client in the game (six steps, exactly 30 ticks each, "
+        "tick_paused true between every one, 0 ticks of idle drift over 3s), so "
+        "pass this when you want to see the environment the benchmark actually "
+        "measures. Free running **changes what happens**: the world keeps "
         "ticking while the model thinks, so an action lands at whatever tick it "
-        "arrives at instead of exactly decision_ticks after the last one. A run "
-        "with this set is a demonstration and never a measurement",
+        "arrives at instead of exactly decision_ticks after the last one, which "
+        "is why a run either way is a demonstration and never a measurement",
+    )
+    parser.add_argument(
+        "--echo-commands",
+        action="store_true",
+        help="send Lua as `/c` instead of `/silent-command`, so the engine logs "
+        "and broadcasts every command. Factorio prints a broadcast command "
+        "verbatim to every connected player, and this repo's commands are a page "
+        "of pcall/remote.call wrapper each -- so on a watched run that is the "
+        "whole screen. Silent is the default; pass this when the point is to "
+        "audit what the run asked the engine to do from the engine's own log",
     )
     parser.add_argument(
         "--launch-client",
@@ -368,24 +362,27 @@ def main() -> int:
         print(f"  engine:    {engine.executable}", flush=True)
         print("=" * 68, flush=True)
         print(
-            "\nthe world is paused between decisions -- a 30-tick burst, then a\n"
-            "freeze while the model thinks. That is exact stepping, not lag.\n"
+            "\nthe world keeps running while the model thinks, so what you see\n"
+            "is continuous. That is --free-running, the default here and not\n"
+            "what the benchmark measures: pass --exact-stepping for a paused\n"
+            "world that advances exactly 30 ticks per decision instead.\n"
             "a joined client adds a LuaPlayer the measured runs do not have, so\n"
             "nothing here is written to docs/evidence.\n",
             flush=True,
         )
 
         session = WorkerSession(handle, timeout=60.0)
-        # Installed before anything else touches the session, so every request
-        # in the run -- scenario install, reset, step, truth -- goes through it.
-        patient = PatientClient(session._client)
-        session._client = patient
+        # Set before the first request, so every command in the run -- scenario
+        # install, reset, step, truth -- goes out the same way.
+        session._client.silent = not args.echo_commands
         session.status()
 
-        # A client cannot watch a paused world: the server stops answering RCON
-        # while one is attached and the tick loop is paused. So the flag implies
-        # free running, and the run says so in its own provenance.
-        free_running = args.free_running or args.launch_client
+        # Free running by default, because a world that freezes for every
+        # second the model spends thinking is a poor thing to watch. Exact
+        # stepping is available and was measured working with a client attached
+        # -- see the module docstring -- so this is a preference, not a
+        # workaround for a transport that cannot do the other thing.
+        free_running = not args.exact_stepping
         if free_running:
             session.configure(free_running=True)
             print(
@@ -402,27 +399,22 @@ def main() -> int:
             branch=Branch.TRAIN,
             split=args.split,
         )
-        # Install every scene the loop will use, *before* a client exists.
+        # Install every scene the loop will use, *before* a client exists, so
+        # the watcher joins the task rather than the world the worker booted
+        # into -- the freeplay crash site with the two-chest `reference` scene
+        # beside it.
         #
-        # Two reasons, and the second one is the load-bearing half.
-        #
-        # First, so the watcher joins the task rather than the world the worker
-        # booted into -- the freeplay crash site with the two-chest `reference`
-        # scene beside it.
-        #
-        # Second, `scenario_define` carries the whole blueprint: for
-        # `plate_line` that is every one of 49 ore tiles, about ten kilobytes of
-        # JSON in one RCON command. The server *broadcasts* each command to
-        # connected players -- it fills their screen -- and with a client
-        # attached that one request comes back with an empty body while smaller
-        # ones answer fine. So every big install has to happen before the join,
-        # and the reason the first attempt still failed is that
-        # `FactorioEnv.reset` **increments** `_episode_index`: pre-resetting
-        # installed episode 1's scene and the loop then asked for episode 2's,
-        # sending the ten kilobytes again with the client already in the game.
+        # This used to carry a second, load-bearing reason: `scenario_define`
+        # is the biggest request the protocol has -- for `plate_line` every one
+        # of 49 ore tiles, about ten kilobytes -- and it was believed to be too
+        # big to survive a connected client. It is not. With a client in the
+        # game the same server answered a 16 KB command and a 64 KB reply, and
+        # `prepare_scene` itself was measured succeeding with the client
+        # already joined. The install stays here for the first reason alone.
         #
         # `prepare_scene` installs without resetting, and `_install` caches by
-        # digest, so the loop's own resets afterwards send only small requests.
+        # digest. `FactorioEnv.reset` **increments** `_episode_index`, so the
+        # index is rewound afterwards to leave the loop drawing episode 0.
         for index in range(args.episodes):
             env.prepare_scene(index)
         env._episode_index = -1
@@ -471,11 +463,15 @@ def main() -> int:
             },
         )
         result = loop.run()
-        if patient.retries:
+        if session._client.reordered_replies:
+            # Not a warning. It is the count of calls whose sentinel arrived
+            # before the command's own reply, which is what a connected player
+            # does to the reply order and what used to end the run. A non-zero
+            # number here is the transport doing its job.
             print(
-                f"\nthe server returned an empty RCON reply {patient.retries} time(s) and "
-                "the call was retried. That is the cost of having a client "
-                "connected; a measured run has no players and no retries.",
+                f"\nthe sentinel overtook the real reply on "
+                f"{session._client.reordered_replies} call(s) and both were "
+                "waited for. That count is zero on every player-free run.",
                 flush=True,
             )
         if provider.healed_parameters:

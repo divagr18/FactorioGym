@@ -71,10 +71,10 @@ local function begin_episode()
   -- caller never asked for. PLAN.md section 2: the world pauses between
   -- decisions.
   --
-  -- Unless the caller declared `free_running`, which is the only way to watch a
-  -- run in a real client -- see `handle_configure`. A free-running reset still
-  -- installs the scene correctly; what it gives up is that the first
-  -- observation is taken at a tick nobody chose.
+  -- Unless the caller declared `free_running` -- see `handle_configure`, which
+  -- also records why that is no longer needed to watch a run. A free-running
+  -- reset still installs the scene correctly; what it gives up is that the
+  -- first observation is taken at a tick nobody chose.
   game.tick_paused = not state.free_running
   return state.episode_id
 end
@@ -337,13 +337,15 @@ end
 -- whatever tick it happens to arrive at instead of exactly `decision_ticks`
 -- after the last one. Every measured run leaves it off.
 --
--- It exists because exact stepping and *watching* are incompatible. A Factorio
--- server with a client connected and its tick loop paused stops answering RCON
--- altogether -- measured at three separate points, and a six-attempt retry a
--- second apart got no reply at all -- so a paused world cannot be observed in a
--- real client, only in `tools/replay.py`. Free running is what makes a live
--- demonstration possible, at the price of no longer being the environment the
--- benchmark measures.
+-- It was added on the belief that exact stepping and *watching* are
+-- incompatible: a server with a client connected and its tick loop paused
+-- appeared to stop answering RCON altogether. That was a reply-ordering bug on
+-- the Python side, not an engine property, and with it fixed exact stepping was
+-- measured working with a client in the game -- six steps of exactly 30 ticks,
+-- `tick_paused` true between every one, 0 ticks of drift across three idle
+-- seconds. So nothing requires this knob any more. It stays because a
+-- continuously moving world is easier to watch than a stuttering one, and
+-- because a run that used it must still say so.
 local function handle_configure(request)
   local payload = request.payload or {}
   local applied = {}
