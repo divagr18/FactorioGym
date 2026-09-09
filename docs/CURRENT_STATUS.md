@@ -258,9 +258,15 @@ at 0.80, `supply_furnace` at 0.88 and `deliver` at 0.80 there. It is a
 **primitive-space** benchmark and a skills-space result on it would demonstrate
 nothing. `keep_line_running` is discriminative in both spaces.
 
-**Still outstanding:** `python -m factoriorl.gate_r4` is written but has not
-been run on an engine. Neither new family is a declared holdout candidate and
-no agent or policy result is published for either.
+**`python -m factoriorl.gate_r4` passes**, 20 clauses on a real engine
+(`docs/evidence/r4-tracks.json`). It failed two of them on its first run and
+found a real defect: `world.disrupt` passed marker aliases to
+`find_entities_filtered`, which raises on a name that is not a prototype, so
+the declared outage never landed -- reported as `touched: []`, `ok: false`
+beside an observation still showing 47 coal. Fixed and re-run.
+
+Neither new family is a declared holdout candidate, and no agent or policy
+result is published for either.
 
 **First language-model success on `plate_line`.** `gpt-5.6-luna` finished it --
 30 plates, 249 decisions, tick 7470 -- against R3.2's 0/2 with
