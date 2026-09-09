@@ -858,8 +858,19 @@ steps/s after the observation payload work below.
 
 ## Phase 4 - Compact RL baseline
 
-**Status: Needs correction** (2026-09-07) - the pipeline is built and a pilot
-ran end to end; the release learning result (4.5) is not yet produced.
+**Status: validity items closed, 4.5 unmet** (2026-09-09). The mechanical exit
+gate passes 28 of 28 clauses against a *declared* checkpoint set --
+`docs/evidence/phase4-gate.json`, `mode: reproduce`, three `deliver`
+checkpoints each verifying against current code, loading for inference,
+restoring optimizer state and carrying their step count, with the architecture
+on disk matching the one declared. That is the phase's exit clause
+("evaluate the provided checkpoints without manual intervention") satisfied for
+the first time, because until today the phrase named nothing.
+
+**The gate is not an acceptance.** It checks mechanics and deliberately never a
+stochastic training outcome, so passing it says the pipeline is reproducible and
+says nothing about learning. 4.5 -- three families at 80% on the structural
+split -- remains **unmet**, recorded below as a budget-limited miss.
 
 **Reconciled 2026-09-09 while closing Phase 4's validity items.** The
 mechanical gate's 2026-09-07 pass is stale in three independent ways, and the
