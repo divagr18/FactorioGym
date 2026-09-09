@@ -941,31 +941,38 @@ question. So this is a real empirical result on the weaker class, and it says
 that class of shaping neither helped nor hurt here. It says nothing about
 `navigate` or either repair family.
 
-**Four scenes no policy ever solved.** 3007, 3026, 3033 and 3040 were missed by
-all six cells, and every one of the 24 attempts burned exactly 120 decisions --
-the full budget -- and ended on a `precondition` rejection. Six independently
-trained policies failing identically is a property of the scenes rather than of
-learning, and it caps the achievable rate on this holdout at 0.96, so 0.89 and
-0.90 should be read against that rather than against 1.00.
+**Four scenes greedy evaluation cannot act in.** 3007, 3026, 3033 and 3040 were
+missed by all six cells, and every one of the 24 attempts burned exactly 120
+decisions and ended on a `precondition` rejection. A per-decision trace settled
+it: the policy issues `take_iron-plate_20` 120 times in a row, is rejected 120
+times, and never moves -- its closest approach to the source is where the
+character started.
 
-Whether the four are solvable is **not established**, and the direct check is
-closed by design: `reference.solve` raises `ReferenceOnEvaluatedEpisode` on a
-scene drawn from the eval branch, because a scripted solution must never
-complete an evaluated run (R3.1). Two engine-free explanations were tested and
-both fail:
+The loop is a fixed point. A rejected action does not change the world, so the
+next observation is identical, so a deterministic policy picks the same
+rejected action again; there is no escape without stochasticity and the budget
+is guaranteed to run out. **Sampled, the same checkpoint solves all four** in
+29, 24, 8 and 16 decisions.
 
-* **Not distance.** Their character-to-source-to-destination totals are
-  28.4-32.6 against a median of 30.2 over the other 96, and 68 of those are at
-  least as far.
-* **Not the wall screen.** 88 of the other 96 scenes also have a blocked
-  straight line from source to destination -- that screen is what defines
-  `screened_depot` -- and policies solve 74 of them by walking around.
+I published the wrong conclusion here first. Reading the failure pattern alone
+I recorded that the four scenes "may be unsolvable" and that the row's ceiling
+was therefore 0.96. The pattern was real; the inference was not, and the trace
+contradicts it. There is no ceiling and the scenes are fine.
 
-The remaining route is a per-step action trace for the RL path, which does not
-exist yet: only the language-model loop records per-decision traces
-(`tools/replay.py` prints "no primitive trace recorded for this run"
-otherwise). That is the same gap R5-C needs closed, so the two want fixing
-together.
+What replaces it is a better finding. Under action rejection greedy evaluation
+has an **absorbing** failure mode, which is stronger than the aliasing argument
+for stochastic optimality (Sutton & Barto Ex. 13.1): part of the greedy/sampled
+gap on the structural row -- 0.84 against 0.98 -- is a count of scenes where
+argmax cannot act at all. It also explains why `out_of_decisions` is exactly 5
+in five of the six cells: a livelock always spends the whole budget.
+
+Also worth recording, because it changes what 4.4 measured: `shaping_comparison`
+enables skills by default, so these cells ran the **19-action skills space**,
+not the 13 primitives. The runs' own random baselines were measured on the same
+episodes and are low -- 0.01 on structures against 0.84 -- so the result is far
+above chance in that space, but the space should be named. Traced with
+`tools/trace_scenes.py`; evidence in
+`docs/evidence/r5-deliver-hardcore-trace.json`.
 
 **One measurement problem found while reading the 4.4 cells, and not yet
 resolved.** Every failed `deliver` episode is flagged `truncated` with a step

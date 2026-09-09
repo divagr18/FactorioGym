@@ -177,25 +177,45 @@ outcomes. No index offset undoes that.
 **`restore_power` yields 70 distinct scenes across its 100 frozen episodes**, so
 its effective sample size is smaller than the count suggests. `mine_smelt` is 92.
 
-**Four of `deliver`'s 100 frozen holdout scenes may be unsolvable, so the
-achievable ceiling on that row is 0.96 rather than 1.00.** Episodes 3007, 3026,
-3033 and 3040 were missed by all six cells of the paired 4.4 comparison -- three
-seeds under each of two reward settings -- and all 24 attempts burned exactly
-120 decisions, the full budget, ending on a `precondition` rejection. Six
-independently trained policies failing identically is a property of the scenes,
-not of learning, and any rate quoted on this row should be read against 0.96.
+**Greedy evaluation can livelock on a rejected action, and it costs real
+success.** This is the concrete mechanism behind the argmax penalty, not a
+restatement of it.
 
-Whether they are genuinely unsolvable is **not established**, and the direct
-check is closed by design: `reference.solve` raises
-`ReferenceOnEvaluatedEpisode` for a scene from the eval branch, because a
-scripted solution must never complete an evaluated run (R3.1). Two engine-free
-explanations were tested and both fail. Not distance: their
-character-source-destination totals are 28.4-32.6 against a median of 30.2 over
-the other 96 scenes, 68 of which are at least as far. Not the wall screen: 88 of
-the other 96 also have a blocked straight line from source to destination --
-that screen is what defines `screened_depot` -- and policies solve 74 of them by
-walking around. Settling it needs a per-step action trace for the RL path, which
-does not exist: only the language-model loop records per-decision traces.
+Four of `deliver`'s frozen holdout scenes -- 3007, 3026, 3033, 3040 -- were
+missed by all six cells of the paired 4.4 comparison, every one of the 24
+attempts burning exactly 120 decisions and ending on a `precondition`
+rejection. A per-decision trace of one declared checkpoint on those scenes
+shows what happened: the policy issues `take_iron-plate_20` **120 times in a
+row**, is rejected 120 times, and never moves. Closest approach to the source
+is 8.6-9.2 tiles, which is exactly where the character started.
+
+The loop is a fixed point, and the reason is structural. A rejected action does
+not change the world, so the next observation is identical to the last, so a
+*deterministic* policy selects the same rejected action again. There is no
+escape without stochasticity, and the episode is guaranteed to exhaust its
+budget. That is why `out_of_decisions` sits at exactly 5 in five of the six
+cells: a livelock always burns the full budget, so the count is a property of
+how many scenes trigger it rather than of the policy's competence.
+
+**The same checkpoint solves all four scenes when sampled** -- 29, 24, 8 and 16
+decisions. So the scenes are solvable, the achievable ceiling on this row is
+not capped at 0.96, and an earlier version of this entry which said they "may
+be unsolvable" was wrong. It was written from the failure pattern alone, before
+the trace existed; the pattern was real and the inference from it was not.
+
+What this adds to the argmax finding recorded elsewhere. Sutton & Barto's
+Example 13.1 explains why a stochastic policy can be *better* under state
+aliasing. This is stronger and more specific: under action rejection a greedy
+policy has an **absorbing** failure mode, so the greedy/sampled gap on the
+structural row (0.84 against 0.98) is not only a scoring difference but partly
+a count of scenes where argmax cannot act at all. Any report quoting a greedy
+rate on a task whose actions can be refused should say so.
+
+Traced with `tools/trace_scenes.py`; evidence in
+`docs/evidence/r5-deliver-hardcore-trace.json`. Note the trace needed
+`--skills` to match the checkpoint: `shaping_comparison` enables skills by
+default, so the 4.4 cells ran a 19-action space rather than the 13 primitives,
+and the action space is part of what a checkpoint was trained against.
 
 **Episode length in published `per_scene` rows is wrong, and the environment
 was not at fault.** Every failed episode on `deliver` was flagged `truncated`
