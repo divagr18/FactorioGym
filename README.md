@@ -147,7 +147,8 @@ state, not a pass.
 ## What this does and does not do
 
 Read `docs/LIMITATIONS.md` before trusting any number here. It is long on
-purpose.
+purpose, and `docs/RELEASE_CHECKLIST.md` lists what is deferred and not
+available.
 
 The environment is real and the tasks are hard. The learning results are
 **weak, and reported separately from mastery**: one family (`deliver`) reaches
