@@ -131,6 +131,31 @@ def run_phase4_gate(mode: str = "reproduce") -> dict:
             try:
                 model = MaskablePPO.load(directory / "model", device="cpu")
                 report.check(f"{run_id}: checkpoint loads for inference", model is not None)
+                # PLAN 4.1 asks for "both inference and resumable training
+                # state", and this second half was unverified while the gate
+                # reported 15 of 15. The two fail differently: a checkpoint
+                # that deserialises but drops its optimizer state resumes with
+                # a freshly initialised Adam, so the moment estimates are gone
+                # and the first updates after a resume are a re-warm-up -- the
+                # continued run is not the run it claims to continue. A
+                # checkpoint that resets `num_timesteps` rewinds any
+                # learning-rate or clip-range schedule while the curve keeps
+                # counting up, which is quieter and worse.
+                #
+                # `tests/unit/test_checkpoint_resume.py` pins the round trip
+                # itself against a synthetic env; this checks the *published*
+                # checkpoints, which is the claim the gate is making.
+                state = model.policy.optimizer.state_dict().get("state") or {}
+                report.check(
+                    f"{run_id}: checkpoint restores optimizer state, so training can resume",
+                    bool(state),
+                    parameter_groups=len(state),
+                )
+                report.check(
+                    f"{run_id}: checkpoint carries its step count, so a resume continues it",
+                    int(getattr(model, "num_timesteps", 0)) > 0,
+                    num_timesteps=int(getattr(model, "num_timesteps", 0)),
+                )
             except Exception as exc:  # noqa: BLE001
                 report.check(f"{run_id}: checkpoint loads for inference", False, error=str(exc))
 

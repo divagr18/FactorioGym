@@ -147,11 +147,48 @@ completes unattended -- but two sub-sections are unmet and a third is only half 
 
 | sub-section | state |
 |---|---|
-4.1 baseline policy | met, **except** "checkpoints restore both inference and *resumable training* state": the gate checks `checkpoint loads for inference` only, and no test anywhere exercises resume |
+4.1 baseline policy | **not met.** Two separate failures, below: the resume clause was never checked, and the certified checkpoints no longer load |
 4.2 single-task learning | met. Learning exceeds the random floor (`deliver` 0.77 against 0.00, `restore_power` 0.26 against 0.00), eval is on a disjoint seed branch, PPO gets no scripted labels, failed runs are retained |
 4.3 profiling | met. Dominant bottleneck identified and it is not close: `environment_step` 56.44 ms against `encode` 0.081 ms. 8 workers chosen at 261 steps/s, 3.43x one worker at 43% per-worker efficiency, described as measured rather than as "faster". Deviations: the sweep ran 1/4/8/12/16 rather than the plan's 1/2/4/8, and the file predates this week's profiling changes |
 4.4 shaping dependence | **not met.** The headline is **withdrawn**: the two arms were never scored on the same episodes, so the gap (shaped 35/50, sparse 48/50) cannot be separated from their different scene draws. `--seed` fixes torch and numpy, not the scenes. The tooling now pairs arms by holdout; **the experiment has not been re-run** |
 4.5 release learning result | **not met.** No family reaches 0.80 on the structural split |
+exit gate | **not met.** "Evaluate the provided checkpoints without manual intervention" fails on two of the three published checkpoints; see below |
+
+### The Phase 4 gate's pass is stale, and its exit clause is currently unsatisfiable
+
+`phase4-gate.json` passed 15 of 15 on 2026-09-07. Two of those checks no longer
+hold, measured today:
+
+| run | manifest `extractor_version` | loads under current code? |
+|---|---|---|
+`pilot-20260907T061820-e3cdf3b6` | 1 | **no** |
+`smoke-20260907T061459-6e54ab08` | 1 | **no** |
+`smoke-20260908T044550-fa6475f1` | 3 | yes |
+
+The current `EXTRACTOR_VERSION` is **7**. The two checkpoints the gate certified
+fail with a size mismatch in the feature extractor's head -- a parameter saved
+at `[256, 320]` against `[256, 384]` in the current model -- because the
+observation encoding grew after they were written. So the gate's
+`checkpoint loads for inference` and `manifest records the extractor version`
+checks would both fail if it were re-run, and **Phase 4's exit gate -- "another
+run can reproduce the learning procedure and evaluate the provided checkpoints
+without manual intervention" -- cannot be satisfied for those two runs at all.**
+
+A second thing falls out of the same table: the one checkpoint that *does* load
+records version 3 against a current 7. The version number and the tensor shapes
+have drifted apart, so `extractor_version` is not a proxy for loadability in
+either direction -- the gate's strict `recorded == current` comparison would
+reject the only checkpoint that works, and a matching number would not prove
+one that did not.
+
+Two checks were added for the clause that was never verified at all --
+PLAN 4.1's *"restore both inference and resumable training state"*. The gate
+now asserts that a published checkpoint carries optimizer state and a non-zero
+step count, and `tests/unit/test_checkpoint_resume.py` pins the round trip
+itself against a synthetic maskable env: weights identical, Adam's moment
+estimates restored, `num_timesteps` preserved, and a resume with
+`reset_num_timesteps=False` that continues the count and moves the weights. Six
+cases, engine-free, all passing. The contract is sound; the artefacts are stale.
 
 **No family meets PLAN 4.5** (three families ≥0.80 on the structural split, three seeds).
 
