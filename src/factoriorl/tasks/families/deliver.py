@@ -89,6 +89,8 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="deliver",
+    # Move plates into the scored container.
+    track="logistics",
     # 1.1.0: the task was not a benchmark against the skill action space. A
     # uniform-random policy over primitives scored 0.12, but over primitives
     # plus the six skills it scored 0.72-0.80 against an 0.80 acceptance bar,

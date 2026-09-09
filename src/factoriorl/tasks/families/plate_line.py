@@ -111,6 +111,10 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="plate_line",
+    # Commission a line so it produces without further help. It was absent
+    # from `release_matrix.CATEGORY` entirely, so the release qualification
+    # filter could not see it.
+    track="production",
     version="1.2.0",
     description=(
         "Commission an automated plate line: fuel the mining drill and the furnace "

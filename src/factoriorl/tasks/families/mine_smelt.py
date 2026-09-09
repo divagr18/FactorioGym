@@ -46,6 +46,8 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="mine_smelt",
+    # Mine ore and smelt it.
+    track="production",
     # 1.1.0: the plate target rose from 3 to 12. The version is what keeps a
     # cached random baseline, and any published result, from being compared
     # across two different tasks wearing the same name.

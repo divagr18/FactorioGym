@@ -31,6 +31,37 @@ from typing import Any
 # --------------------------------------------------------------------- scene
 
 
+#: Every track a task may declare. `validate_all` refuses anything else,
+#: including the `"unclassified"` default, so a task that forgets to declare
+#: one fails validation instead of being quietly filed under whichever name a
+#: tool happened to guess.
+#:
+#: The first four are `tools/release_matrix.CATEGORY`'s names, kept exactly so
+#: that moving the categories onto the specs changes where they are declared
+#: and not what they mean. The last two are R4.3's new tracks:
+#:
+#: * `movement` -- get somewhere.
+#: * `logistics` -- move items between places.
+#: * `production` -- make something, including building or commissioning the
+#:   line that makes it.
+#: * `repair` -- fix a declared fault whose location is *published*.
+#: * `diagnosis` -- the same repair with the fault's location withheld.
+#:   Finding it is the task, so publishing the marker would remove the task
+#:   rather than make it easier.
+#: * `persistent_operation` -- keep a line running across a declared
+#:   disruption.
+TRACKS: frozenset[str] = frozenset(
+    {
+        "movement",
+        "logistics",
+        "production",
+        "repair",
+        "diagnosis",
+        "persistent_operation",
+    }
+)
+
+
 #: Tile footprints, keyed by prototype. Read off a real engine's bounding
 #: boxes, not guessed: `test_entity_footprints` pins the table, and a prototype
 #: absent from it is treated as 1x1.
@@ -682,6 +713,30 @@ class TaskSpec:
     #: bump a version or move a frozen holdout digest.
     fault_markers: tuple[str, ...] = ()
 
+    #: Which of R4.3's three declared tracks this task belongs to.
+    #:
+    #: Declared on the task rather than looked up by id. It replaces
+    #: `tools/release_matrix.CATEGORY`, a dict hard-coded in a tool whose own
+    #: comment said *"the task specs carry no category field"* -- and which
+    #: listed six of the eight tasks, so the release qualification filter
+    #: (`QUALIFYING_CATEGORIES = {"production", "repair"}`) could not see
+    #: `plate_line` or `build_line` at all. A task absent from a hand-written
+    #: dict fails the filter silently, which is the failure mode a declared
+    #: field removes.
+    #:
+    #: In `to_dict()`, unlike `fault_markers` and `difficulty_marker`: those
+    #: describe how a task is *measured* and change nothing the agent meets,
+    #: while different tracks are different benchmarks -- a production result
+    #: and a diagnosis result are not comparable, and a manifest that cannot
+    #: tell them apart invites exactly that comparison.
+    #:
+    #: The default is deliberately not a real track. A defaulted-but-valid
+    #: value would file a new task under some existing track by accident, which
+    #: is the `CATEGORY.get(task, "unknown")` failure with a different spelling;
+    #: `"unclassified"` is refused by `validate_all`, so the omission surfaces
+    #: as a validation error before a worker is launched.
+    track: str = "unclassified"
+
     def families(self, split: str) -> tuple[LayoutFamily, ...]:
         return tuple(f for f in self.layout_families if f.split == split)
 
@@ -812,6 +867,14 @@ class TaskSpec:
             "layout_families": [{"name": f.name, "split": f.split} for f in self.layout_families],
             "success": [p.describe() for p in self.success],
             "failure": [p.describe() for p in self.failure],
+            # Landmarks are policy input, not evaluator bookkeeping: each one
+            # occupies a slot in the goal vector `_goal_vector` hands the
+            # encoder. Two tasks that agree on everything else and differ here
+            # present the policy with different observations, which is the same
+            # argument that put `extra_public_markers` and `focus_marker` in
+            # this dict -- and this field was left out when they went in.
+            "landmarks": [p.describe() for p in self.landmarks],
+            "track": self.track,
             "rewards": [
                 {
                     "name": r.name,

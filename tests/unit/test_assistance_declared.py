@@ -41,19 +41,55 @@ def _observation():
 
 
 class TestDescribeAssistance:
+    # `plate_line` rather than `repair_belt` for the focus-policy tests: these
+    # exercise one axis, and `repair_belt` declares fault markers that its
+    # `extra_public_markers` publishes, so it now reports
+    # `fault-location:published` no matter what its focus policy is. Using it
+    # here would have made these assertions about two things at once.
     def test_a_selecting_policy_is_named(self):
-        spec = replace(get("repair_belt").spec, focus_policy=SELECTING)
+        spec = replace(get("plate_line").spec, focus_policy=SELECTING)
         assert describe_assistance(spec) == f"goal-focus:{SELECTING}"
 
     def test_a_static_policy_reports_none(self):
-        spec = replace(get("repair_belt").spec, focus_policy="static")
+        spec = replace(get("plate_line").spec, focus_policy="static")
         assert describe_assistance(spec) == STATIC
 
     def test_assistances_compose_rather_than_replace(self):
         """A second assistance must not silently overwrite the first."""
-        spec = replace(get("repair_belt").spec, focus_policy=SELECTING)
+        spec = replace(get("plate_line").spec, focus_policy=SELECTING)
         described = describe_assistance(spec, extra=("navigation",))
         assert "goal-focus" in described and "navigation" in described
+
+
+class TestFaultLocalisationIsDeclared:
+    """R4.3: fault *selection* was named and fault *localisation* was not.
+
+    Publishing the fault tile is the larger of the two hints -- with it,
+    "repair a broken line" is "walk to a published coordinate and place one
+    item" -- and it was undeclared in every repair run to date.
+    """
+
+    def test_both_repair_families_declare_it(self):
+        for task_id in ("repair_belt", "restore_power"):
+            described = describe_assistance(get(task_id).spec)
+            assert "fault-location:published" in described, task_id
+
+    def test_a_task_with_no_fault_does_not_claim_it(self):
+        for task_id in ("navigate", "plate_line"):
+            described = describe_assistance(get(task_id).spec)
+            assert "fault-location" not in described, task_id
+
+    def test_withholding_the_marker_withdraws_the_declaration(self):
+        """The two declarations are independent: `fault_markers` says what the
+        evaluator treats as the fault, `extra_public_markers` says what the
+        agent sees. They coincide in both repair families today, and the
+        declaration must track the intersection rather than either one."""
+        spec = replace(get("repair_belt").spec, extra_public_markers=())
+        assert "fault-location:published" not in describe_assistance(spec)
+
+    def test_it_composes_with_the_focus_selector(self):
+        described = describe_assistance(get("repair_belt").spec)
+        assert "goal-focus" in described and "fault-location:published" in described
 
 
 class TestFocusPolicyIsDeclared:

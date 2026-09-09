@@ -107,17 +107,29 @@ THRESHOLD = 0.80
 FLOOR_CEILING = 0.10
 
 # PLAN 4.5 requires at least one qualifying family to involve production or
-# repair, and the task specs carry no category field, so the mapping is written
-# here explicitly rather than inferred from a task id at aggregation time.
-CATEGORY = {
-    "navigate": "movement",
-    "deliver": "logistics",
-    "mine_smelt": "production",
-    "supply_furnace": "production",
-    "repair_belt": "repair",
-    "restore_power": "repair",
-}
+# repair. The category now comes from `TaskSpec.track` (R4.3), which is where
+# the sentence this comment used to carry -- "the task specs carry no category
+# field" -- stopped being true.
+#
+# It was not a cosmetic move. The dict this replaced listed six of the eight
+# registered tasks: `plate_line` and `build_line` were absent, so
+# `CATEGORY.get(task, "unknown")` filed both under `unknown` and the
+# qualification filter below could not see the two most production-like
+# families in the repo. A task missing from a hand-written dict fails the
+# filter silently; a task missing a declared track fails `tasks validate`.
+#
+# Consequence, stated rather than buried: with both now declared
+# `production`, they are inside the qualifying set and so inside the release
+# gate they were previously invisible to. That makes acceptance harder, which
+# is the only direction PLAN section 4 permits.
 QUALIFYING_CATEGORIES = {"production", "repair"}
+
+
+def category_of(task_id: str) -> str:
+    from factoriorl.tasks import get
+
+    return get(task_id).spec.track
+
 
 # Longer horizons need more samples; a single budget across families would
 # either waste hours on navigate or starve mine_smelt. Keyed on the family's own
@@ -394,7 +406,7 @@ def main() -> int:
         clears = bool(mean_structural is not None and mean_structural >= THRESHOLD)
         discriminative = bool(mean_floor is not None and mean_floor <= FLOOR_CEILING)
         families[task] = {
-            "category": CATEGORY.get(task, "unknown"),
+            "category": category_of(task),
             "seeds_completed": len(cells),
             "seeds_outside_frozen_range": excluded,
             "structural_success_rate_mean": mean_structural,

@@ -17,6 +17,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from factoriorl.tasks.spec import (
+    TRACKS,
     UNDECIDABLE_AT_RESET,
     Blueprint,
     LayoutFamily,
@@ -168,6 +169,41 @@ def validate_all(sample_seeds: int = 16) -> dict:
                     f"smaller than decision_ticks {spec.decision_ticks}, so no history "
                     "this task can produce would ever satisfy it"
                 )
+
+        if spec.track not in TRACKS:
+            problems.append(
+                f"track {spec.track!r} is not one of {sorted(TRACKS)}; a typo'd track "
+                "would put this task in no track's results and show up only as an "
+                "absence"
+            )
+        # A `diagnosis` task that publishes its fault is a `repair` task with a
+        # different label, and the label is what a reader compares results by.
+        # Checked here rather than trusted, because the two declarations that
+        # decide it -- `fault_markers` and `extra_public_markers` -- sit 170
+        # lines apart in the family module and were already out of step once:
+        # both families' `gap` comments claimed the marker was evaluator-only
+        # while `extra_public_markers` published it.
+        if spec.track == "diagnosis":
+            published = set(spec.public_markers())
+            leaked = published.intersection(spec.fault_markers)
+            if leaked:
+                problems.append(
+                    f"track is 'diagnosis' but the fault markers {sorted(leaked)} are "
+                    "published to the agent, so the fault does not have to be found"
+                )
+            for reward in spec.rewards:
+                marker = getattr(reward.predicate, "marker", None)
+                if reward.shaping and marker in spec.fault_markers:
+                    # `rewards._measure`'s CHARACTER_WITHIN branch reads
+                    # *truth*, so shaping toward an unpublished fault would
+                    # hand back through the reward exactly what the
+                    # observation withheld.
+                    problems.append(
+                        f"track is 'diagnosis' but shaping component {reward.name!r} "
+                        f"points at the withheld fault marker {marker!r}; "
+                        "rewards._measure reads truth, so the reward would leak the "
+                        "answer the observation withholds"
+                    )
 
         splits = {f.split for f in spec.layout_families}
         if "train" not in splits:

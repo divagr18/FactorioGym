@@ -169,6 +169,10 @@ class TestTheResetCheckActuallyRuns:
             id="already_solved",
             version="1.0.0",
             description="d",
+            # `TaskSpec.track` has no valid default, so every fixture
+            # declares one -- that is the point of the default being
+            # refused rather than guessed.
+            track="production",
             layout_families=(LayoutFamily("f", "train"), LayoutFamily("g", "test")),
             success=(
                 Predicate(
@@ -270,6 +274,10 @@ class TestTheCheckDeclaresWhatItCannotDecide:
             id="only_working",
             version="1.0.0",
             description="d",
+            # `TaskSpec.track` has no valid default, so every fixture
+            # declares one -- that is the point of the default being
+            # refused rather than guessed.
+            track="production",
             layout_families=(LayoutFamily("f", "train"), LayoutFamily("g", "test")),
             success=(Predicate(PredicateKind.ENTITY_WORKING, marker="drill"),),
             rewards=(RewardComponent("s", RewardKind.SPARSE_SUCCESS),),
@@ -298,6 +306,10 @@ class TestAMixedConjunctionIsJudgedSoundly:
             id="mixed",
             version="1.0.0",
             description="d",
+            # `TaskSpec.track` has no valid default, so every fixture
+            # declares one -- that is the point of the default being
+            # refused rather than guessed.
+            track="production",
             layout_families=(LayoutFamily("f", "train"), LayoutFamily("g", "test")),
             success=success,
             rewards=(RewardComponent("s", RewardKind.SPARSE_SUCCESS),),

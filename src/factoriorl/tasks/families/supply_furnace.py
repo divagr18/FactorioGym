@@ -39,6 +39,8 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="supply_furnace",
+    # Keep a furnace fed.
+    track="production",
     # 1.1.0: plate target 5 -> 20, so the task outruns its own random floor.
     # The version is in the random-baseline cache key, which keeps a cached
     # 0.88 from ever being compared against the harder task.

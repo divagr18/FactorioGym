@@ -168,8 +168,12 @@ function observations.snapshot(state)
     -- the result away afterwards.
     force = force_declared and force_state(ch and ch.force or game.forces["player"]) or nil,
     task = { transfers = task.transfers, items_moved = task.items_moved },
-    -- Where the objective is. Only markers a success or failure predicate
-    -- names, chosen by the task at scene install; decoys never appear.
+    -- Where the objective is. Two sources, chosen by the task at scene
+    -- install: markers a success or failure predicate names, and markers the
+    -- task declares in `extra_public_markers` -- which is how `repair_belt`
+    -- and `restore_power` publish their fault tiles. This said "only markers
+    -- a success or failure predicate names" until R4.6, which had been false
+    -- since v1.6.0. Decoys are in neither source and never appear.
     goal = world.public_markers(),
     inflight = inflight.summary(),
     events = state.events or {},

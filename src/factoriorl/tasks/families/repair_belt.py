@@ -29,6 +29,10 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="repair_belt",
+    # The gap's coordinate is published through `extra_public_markers`, so
+    # the fault is given and the work is the fix. `describe_assistance` names
+    # it `fault-location:published`.
+    track="repair",
     # 1.1.0: the line's row and its starting column are sampled and the line
     # length moves in steps of two, so every family admits a distribution of
     # scenes and the holdout spans the pooled training difficulty. The version
@@ -259,10 +263,19 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         unlock_recipes=("transport-belt",),
         markers={
             "sink": (float(start_x + length + 1), row),
-            # Evaluator-only: `gap` is named by no success or failure predicate,
-            # so `TaskSpec.public_markers` does not publish it and it never
-            # reaches an observation. Shaping may read truth -- the evaluator
-            # computes the reward -- but the policy input may not.
+            # Published, not evaluator-only. This said the opposite until
+            # R4.6: no success or failure predicate names `gap`, but
+            # `extra_public_markers` above lists it, and
+            # `TaskSpec.public_markers` takes *both* sources -- so `gap` and
+            # `gap2` have been in the observation since v1.6.0. The comment
+            # survived the change that falsified it, sitting 170 lines below
+            # the declaration that falsifies it.
+            #
+            # It matters beyond tidiness: whether the fault coordinate is in
+            # the policy input is the difference between "repair a line" and
+            # "walk to a published tile and press place", which is the seam
+            # R4.3's track split runs along. `describe_assistance` now names
+            # it as `fault-location:published`.
             # +0.5 on both axes: a 1x1 belt created at (x, y) is snapped by
             # the engine to the tile centre (x+0.5, y+0.5), so the pre-snap
             # coordinate names a point half a tile off the slot the belt

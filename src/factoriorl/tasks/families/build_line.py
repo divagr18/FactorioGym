@@ -104,6 +104,9 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="build_line",
+    # Build the line, then keep it producing. Also absent from the old
+    # hard-coded category dict.
+    track="production",
     version="1.1.0",
     description=(
         "Build a plate line from nothing: place a burner mining drill on the ore, "

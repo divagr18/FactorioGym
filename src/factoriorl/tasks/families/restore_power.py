@@ -35,6 +35,9 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="restore_power",
+    # As `repair_belt`: the missing pole's tile is published, so this is a
+    # fix rather than a search.
+    track="repair",
     # 1.1.0: the line's row and starting column are sampled, so the holdout
     # admits a distribution of scenes rather than a single one.
     # 1.6.0: training samples the terminal gap position the holdout always
@@ -205,10 +208,13 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         unlock_recipes=("small-electric-pole",),
         markers={
             "drill": (drill_x, row),
-            # Evaluator-only, like repair_belt's: named by no success or failure
-            # predicate, so `public_markers` never publishes it and it cannot
-            # reach an observation. The first missing pole in the chain is the
-            # place the agent has to get to before anything can happen.
+            # Published, like repair_belt's, and for the same reason: no
+            # predicate names `gap`, but `extra_public_markers` above lists it
+            # and `public_markers` unions both sources, so it has been in the
+            # observation since v1.6.0. This comment claimed the opposite
+            # until R4.6. The first missing pole in the chain is the place the
+            # agent has to get to before anything can happen -- and the agent
+            # is told where it is.
             # Tile centre, as in repair_belt: a 1x1 pole snaps to (x+.5, y+.5).
             # Every missing pole, not just the first. `two_gaps` published only
             # `min(gaps)`, so the second fault had no coordinate anywhere the

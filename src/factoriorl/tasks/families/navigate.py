@@ -33,6 +33,8 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="navigate",
+    # Reach a published position. No construction, no fault.
+    track="movement",
     version="1.2.0",
     description="Walk to a marked work site within the step budget.",
     layout_families=FAMILIES,
