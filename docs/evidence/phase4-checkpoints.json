@@ -1,0 +1,44 @@
+{
+  "declares": "the checkpoints PLAN.md:710's exit gate evaluates",
+  "why": "Before this file, `gate_phase4` scanned gitignored runtime/runs/, sorted alphabetically and took the last three, so its subject drifted as runs accumulated and it never checked its own smoke run.",
+  "declared_at_commit": "d26890d46f3ebb4e61780ccb5158e4d509557da5",
+  "checkpoints": [
+    {
+      "run_id": "shaped-20260909T143924-c49958ea",
+      "problems": [],
+      "task": "deliver",
+      "task_version": "1.3.0",
+      "extractor_version": 7,
+      "recorded_architecture_signature": "0f01f04b1e139f2e",
+      "mod_source_digest": "e65c1bf3a05672ee",
+      "catalog_digest": "1f675c1a935cb330",
+      "checkpoint_sha256": "eae3bbeb5ff6b1b0b80c0a40da73f44a1eeb8299bca427374eb9aa04730eaff2",
+      "architecture_signature": "0f01f04b1e139f2e"
+    },
+    {
+      "run_id": "sparse-20260909T150201-a3d21032",
+      "problems": [],
+      "task": "deliver",
+      "task_version": "1.3.0",
+      "extractor_version": 7,
+      "recorded_architecture_signature": "0f01f04b1e139f2e",
+      "mod_source_digest": "e65c1bf3a05672ee",
+      "catalog_digest": "1f675c1a935cb330",
+      "checkpoint_sha256": "d5c497ecb3f3092b0a737129037c9fcc9f5215b43c10e84a769c969b6915aa40",
+      "architecture_signature": "0f01f04b1e139f2e"
+    },
+    {
+      "run_id": "shaped-20260909T160311-343f6615",
+      "problems": [],
+      "task": "deliver",
+      "task_version": "1.3.0",
+      "extractor_version": 7,
+      "recorded_architecture_signature": "0f01f04b1e139f2e",
+      "mod_source_digest": "e65c1bf3a05672ee",
+      "catalog_digest": "1f675c1a935cb330",
+      "checkpoint_sha256": "97b6303116719abd70af615878d3ea27b4a08b08995b2452afc920fc53953ac9",
+      "architecture_signature": "0f01f04b1e139f2e"
+    }
+  ],
+  "note": "`architecture_signature` is what `MaskablePPO.load` compares; `extractor_version` is a declaration of intent and is orthogonal to loadability in both directions. `mod_source_digest` and `catalog_digest` are recorded because `manifest.verify` compares them against the working tree, so this declaration states when it was true."
+}

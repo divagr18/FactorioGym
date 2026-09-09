@@ -26,12 +26,17 @@ the mod or a catalog changes. That is deliberate — a checkpoint whose
 environment moved underneath it should stop being described as verified — but
 it means a declaration states *when* it was true, hence `declared_at_commit`.
 
-Measured at the time of writing: **no run on this machine could be declared.**
-All 78 fail `manifest.verify` on the current tree — the R4 mod edits moved
+Measured when this was written: **no run on this machine could be declared.**
+All 78 failed `manifest.verify` on the current tree — the R4 mod edits moved
 `mod_source_digest`, and every task's action catalog moved with R2.3 — and none
-records an `architecture_signature` because the field did not exist. So the
-first valid declaration has to come from a run made after this commit, which is
-what the Phase 4 work does next.
+recorded an `architecture_signature`, because the field did not exist. So the
+first valid declaration had to come from a run made after that commit.
+
+It now has. The 4.4 paired shaping comparison produced the first checkpoints
+that verify: three `deliver` runs at `extractor_version` 7, each with
+`manifest.verify` clean and its recorded `architecture_signature` equal to the
+one read back off `policy.pth`. That is what `phase4-checkpoints.json` declares,
+and it is the substance of Phase 4's 4.1 item.
 
 Run: uv run python tools/declare_checkpoints.py <run_id> [<run_id> ...]
 """
