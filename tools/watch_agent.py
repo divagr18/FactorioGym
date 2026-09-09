@@ -18,26 +18,41 @@ seconds per decision. That stutter is the environment working correctly, not
 lag. `--game-speed` is forced to 1.0 here so each burst plays at real time;
 the throughput runs use whatever `engine_config` resolves, which is faster.
 
-**`--launch-client` does not currently work, and the reason is structural.**
-Exact stepping sets `game.tick_paused = true` between decisions
-(`runtime.lua` unpauses only for the duration of an advance). A Factorio server
-with a connected client and a paused tick loop **stops answering RCON**: the
-call returns an empty body, `RCONClient.lua` raises
-`non-json rcon response: ''`, and the session turns it into a
-`ProtocolError`. Measured at three different points -- while waiting for the
-join, inside a step (truncated at decision 3, excluded from metrics), and
-inside `define_scenario` during the loop's own reset -- and a six-attempt
-retry a second apart did not get a single answer, so it is not a transient.
+**`--launch-client` does not work, and the cause is the RCON transport
+itself.** With a client connected, requests start coming back with an **empty
+body** -- `RCONClient.lua` raises `non-json rcon response: ''` and the session
+turns it into a `ProtocolError`. What was tried, in order, and what each
+attempt ruled out:
 
-The client is left in place because the finding is worth keeping and the flag
-is one line from working if the pause is ever made optional, but **use
-`tools/replay.py` to watch a run**: it renders a run directory into one
-self-contained HTML page with a map view, the timeline and the exact prompt
-sent at every decision. That path perturbs nothing, which the live one cannot
-say -- joining creates a `LuaPlayer` no measured run has.
+* *The pause.* Exact stepping holds `game.tick_paused = true` between
+  decisions, and Factorio services RCON inside its tick loop, so a paused
+  server plausibly never runs the command. `configure(free_running=True)` was
+  added for this and **verified on the engine** -- paused, the tick held at 0
+  across two seconds; free-running, it went 2 to 123. The failure was
+  unchanged, so the pause is not the cause.
+* *Payload size.* `scenario_define` carries the whole blueprint, about ten
+  kilobytes for `plate_line`'s 49 ore tiles, and the server broadcasts every
+  command to connected players -- it visibly fills their screen. Pre-installing
+  every scene before the client joins removed that request from the window
+  where a client exists. The next failure was `session.reset`, a small request,
+  so size is not the cause either.
+* *Transience.* A six-attempt retry a second apart got no answer at all.
 
-Either way, nothing from this tool is written to `docs/evidence/`: the run
-artifact lands under `runtime/runs/` like any other agent run.
+Since Factorio's RCON reply *is* the command's printed output and it is
+produced inside the tick loop, a connected client appears to break the
+association between a command and its reply on the same read. That is a
+property of the transport, not of this repo's code, and fixing it would mean a
+different channel between Python and the mod.
+
+**So use `tools/replay.py` to watch a run.** It renders a run directory into one
+self-contained HTML page with a map view, a timeline, and the exact prompt sent
+at every decision. It perturbs nothing, which the live path cannot claim --
+joining creates a `LuaPlayer` no measured run has.
+
+The `--launch-client` and `--free-running` flags are kept because the finding
+is worth keeping and both are correct in themselves. Nothing from this tool is
+written to `docs/evidence/`: the run artifact lands under `runtime/runs/` like
+any other agent run.
 
 **Watch the prompt, not just the screen.** Every decision's exact prompt, the
 model's reply and the outcome go to `decisions.jsonl` in the run directory
@@ -267,6 +282,16 @@ def main() -> int:
         "use whatever engine_config resolves, which is faster and unwatchable",
     )
     parser.add_argument(
+        "--free-running",
+        action="store_true",
+        help="stop re-pausing the world between decisions. Implied by "
+        "--launch-client, because a paused server with a client attached stops "
+        "answering RCON at all. It **changes what happens**: the world keeps "
+        "ticking while the model thinks, so an action lands at whatever tick it "
+        "arrives at instead of exactly decision_ticks after the last one. A run "
+        "with this set is a demonstration and never a measurement",
+    )
+    parser.add_argument(
         "--launch-client",
         action="store_true",
         help="start a second Factorio and connect it. Without this the address "
@@ -357,6 +382,19 @@ def main() -> int:
         session._client = patient
         session.status()
 
+        # A client cannot watch a paused world: the server stops answering RCON
+        # while one is attached and the tick loop is paused. So the flag implies
+        # free running, and the run says so in its own provenance.
+        free_running = args.free_running or args.launch_client
+        if free_running:
+            session.configure(free_running=True)
+            print(
+                "  FREE RUNNING: the world is not paused between decisions, so "
+                "this run is a demonstration and not a measurement -- an action "
+                "lands at whatever tick it arrives at",
+                flush=True,
+            )
+
         env = FactorioEnv(
             get(args.task),
             session,
@@ -364,16 +402,39 @@ def main() -> int:
             branch=Branch.TRAIN,
             split=args.split,
         )
-        # Install the scene *before* the client joins. The first version started
-        # the client first, so the watcher joined the world the worker had
-        # booted into -- the freeplay crash site, with the two-chest `reference`
-        # scene beside it -- and sat looking at that while the tool waited for
-        # them. The env resets again when the loop starts its episode, which is
-        # harmless: a scene is referenced by hash, and repeated reset is the
-        # thing PLAN 3.3 measures 504 times.
-        env._episode_index = 0
+        # Install every scene the loop will use, *before* a client exists.
+        #
+        # Two reasons, and the second one is the load-bearing half.
+        #
+        # First, so the watcher joins the task rather than the world the worker
+        # booted into -- the freeplay crash site with the two-chest `reference`
+        # scene beside it.
+        #
+        # Second, `scenario_define` carries the whole blueprint: for
+        # `plate_line` that is every one of 49 ore tiles, about ten kilobytes of
+        # JSON in one RCON command. The server *broadcasts* each command to
+        # connected players -- it fills their screen -- and with a client
+        # attached that one request comes back with an empty body while smaller
+        # ones answer fine. So every big install has to happen before the join,
+        # and the reason the first attempt still failed is that
+        # `FactorioEnv.reset` **increments** `_episode_index`: pre-resetting
+        # installed episode 1's scene and the loop then asked for episode 2's,
+        # sending the ten kilobytes again with the client already in the game.
+        #
+        # `prepare_scene` installs without resetting, and `_install` caches by
+        # digest, so the loop's own resets afterwards send only small requests.
+        for index in range(args.episodes):
+            env.prepare_scene(index)
+        env._episode_index = -1
         env.reset()
-        print(f"  scene installed: {args.task}, {args.split} split", flush=True)
+        # Rewound, so the loop's first reset draws episode 0 again -- the scene
+        # already installed and now on the watcher's screen.
+        env._episode_index = -1
+        print(
+            f"  scene installed: {args.task}, {args.split} split, "
+            f"{args.episodes} episode(s) pre-installed",
+            flush=True,
+        )
 
         if args.launch_client:
             client = launch_client(engine.executable, address, handle.spec.mod_directory)
@@ -402,6 +463,7 @@ def main() -> int:
                 "engine": handle.engine.to_dict(),
                 "workers": [handle.spec.manifest()],
                 "watched": True,
+                "free_running": free_running,
                 "note": (
                     "a human client was connected to this server, which creates a "
                     "LuaPlayer no measured run has. Demonstration only."

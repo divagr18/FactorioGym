@@ -241,23 +241,38 @@ class WorkerSession:
         )
         return self._request(request)
 
-    def configure(self, speed: float) -> TimedResponse:
-        """Set the worker's pacing multiplier.
+    def configure(
+        self, speed: float | None = None, *, free_running: bool | None = None
+    ) -> TimedResponse:
+        """Evaluator pacing knobs.
 
-        Pacing only: Factorio is tick-based and the simulation is identical at
-        any speed, which `factoriorl bench speed` proves by comparing episode
-        records field by field. At the default 60 UPS a 30-tick interval costs
-        a hard 500 ms of wall clock, so this is the largest throughput lever.
+        `speed` is pacing only: Factorio is tick-based, so the simulation is
+        identical at any speed.
+
+        `free_running` is **not** pacing only, and is the one knob in this
+        protocol that changes what happens. With it set the mod stops
+        re-pausing the world between decisions, so an action lands at whatever
+        tick it arrives at rather than exactly `decision_ticks` after the last
+        one. It exists because a Factorio server with a client attached and its
+        tick loop paused stops answering RCON at all, so an exactly-stepped
+        world cannot be watched in a real client. Every measured run leaves it
+        off; a run that sets it is a demonstration.
         """
+        payload: dict = {}
+        if speed is not None:
+            payload["speed"] = float(speed)
+        if free_running is not None:
+            payload["free_running"] = bool(free_running)
         request = Request(
             request_id=self._next_request_id("configure"),
             episode_id=self.episode_id or "",
             type=RequestType.CONFIGURE,
-            payload={"speed": speed},
+            payload=payload,
         )
         timed = self._request(request)
-        if timed.response.ok:
-            self.speed = float((timed.response.result or {}).get("applied", {}).get("speed", speed))
+        if timed.response.ok and speed is not None:
+            applied = (timed.response.result or {}).get("applied", {})
+            self.speed = float(applied.get("speed", speed))
         return timed
 
     def describe(self) -> TimedResponse:

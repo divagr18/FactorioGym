@@ -1355,16 +1355,35 @@ was added for, and it changed no other family's verdict.
   sequential episodes on one worker cannot reach the same technology state,
   whatever reset does. Every arm of a state-comparison experiment therefore needs
   its own worker.
-- **A joining multiplayer client is not free.** The engine creates a `LuaPlayer`,
-  gives it a character and starts the freeplay intro cutscene, and the join stalls
-  the server while it transfers the map. Measured: the stall landed inside a
-  step, the request raised an infrastructure failure, and the episode was
-  truncated at decision 3 and excluded from metrics while the watcher sat on
-  "press TAB to skip the cutscene". The mod now puts any joining player straight
-  into `defines.controllers.spectator` with no character, and
-  `tools/watch_agent.py` waits for the join before it steps. While the map
-  transfers, RCON answers with an empty body -- which `RCONClient.lua` raises as
-  `non-json rcon response: ''`, not an `OSError`.
+- **A connected multiplayer client breaks the RCON transport, and neither the
+  pause nor the payload size is why.** With a client attached, requests start
+  returning an **empty body**, which `RCONClient.lua` raises as
+  `non-json rcon response: ''` -- not an `OSError`, so a poll catching only
+  that dies too. Three hypotheses were tested and all three are ruled out:
+  - *the pause.* Factorio services RCON inside its tick loop, so a
+    `tick_paused` server plausibly never runs the command.
+    `configure(free_running=True)` was added and **verified on the engine** --
+    paused, the tick held at 0 across two seconds; free-running, 2 to 123 --
+    and the failure was unchanged.
+  - *payload size.* `scenario_define` carries the whole blueprint, ~10 KB for
+    `plate_line`, and the server broadcasts every command to connected players
+    (it fills their screen). Pre-installing every scene before the join moved
+    the failure to `session.reset`, a small request.
+  - *transience.* Six retries a second apart got no answer at all.
+
+  Since an RCON reply *is* the command's printed output, produced inside the
+  tick loop, a connected client appears to break the association between a
+  command and its reply on the same read. That is a property of the transport;
+  watching a live run would need a different channel between Python and the
+  mod. `tools/replay.py` is the path that works and perturbs nothing.
+
+  Two lesser facts from the same attempt: the engine gives a joining player a
+  character and starts the freeplay intro cutscene, so the mod now puts any
+  joiner into `defines.controllers.spectator` with no character (checked by
+  identity against `storage.frrl_character`, or it would delete the agent's own
+  body); and `FactorioEnv.reset` **increments** `_episode_index`, so
+  pre-resetting to show a scene installs the *next* episode's scene rather than
+  the one the loop will use.
 - **OpenAI's `gpt-5.6` family rejects two parameters this repo sent.**
   `max_tokens` is refused outright ("Use 'max_completion_tokens' instead") and
   `temperature: 0.0` is refused as an *unsupported value* -- "Only the default

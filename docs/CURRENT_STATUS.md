@@ -241,13 +241,34 @@ which a seed learned was a lottery. That is not transfer variance.
 | `keep_line_running` (persistent-operation track) | `tasks/families/keep_line_running.py` | registered, frozen, split audit passes; solvability not yet measured |
 | `gate_r4.py` | `factoriorl/gate_r4.py` | written, not yet run on an engine |
 
-**What is not finished, stated plainly.** `diagnose_line`'s random floor was
-driven from 0.40 to 0.10 (train) and 0.00 (test) over three measured
-iterations, and the last measurement of the *skills* action space was 1.00
-against a 0.10 ceiling -- taken **before** the budget was cut from 500
-decisions to 200, which is the change aimed at exactly that. It has not been
-re-measured since. `keep_line_running` has never been measured. Neither family
-is a declared holdout candidate, and no result is published for either.
+**Both new families measure `solvable`, none `defective`** (10 episodes per
+split):
+
+| family | split | reference | random, primitives | random, skills |
+|---|---|---|---|---|
+| `diagnose_line` | train | 1.00 | 0.10 | 0.80 |
+| `diagnose_line` | test | 1.00 | 0.00 | 0.80 |
+| `keep_line_running` | train | 1.00 | 0.00 | 0.00 |
+| `keep_line_running` | test | 1.00 | 0.00 | 0.00 |
+
+`diagnose_line`'s primitive floor took three measured iterations to come down
+from 0.40; its **skills** floor is 0.80, which puts it in the same class as
+three already-accepted families -- `tools/solvability.py` records `mine_smelt`
+at 0.80, `supply_furnace` at 0.88 and `deliver` at 0.80 there. It is a
+**primitive-space** benchmark and a skills-space result on it would demonstrate
+nothing. `keep_line_running` is discriminative in both spaces.
+
+**Still outstanding:** `python -m factoriorl.gate_r4` is written but has not
+been run on an engine. Neither new family is a declared holdout candidate and
+no agent or policy result is published for either.
+
+**First language-model success on `plate_line`.** `gpt-5.6-luna` finished it --
+30 plates, 249 decisions, tick 7470 -- against R3.2's 0/2 with
+`gpt-4.1-mini`. Two caveats that keep it a demonstration rather than a
+benchmark row: `--wait-batch 8` was set, which is a declared assistance, and
+the provider rejects `temperature: 0.0`, so the run sampled at its default and
+is not reproducible from its seed. Both are recorded in the run manifest;
+`runtime/runs/watch-20260909T131905-376d37f0/replay.html` renders it.
 
 ## 6. Capability status
 

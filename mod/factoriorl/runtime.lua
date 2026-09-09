@@ -70,7 +70,12 @@ local function begin_episode()
   -- nothing left to stop it, and the next observation would report a tick the
   -- caller never asked for. PLAN.md section 2: the world pauses between
   -- decisions.
-  game.tick_paused = true
+  --
+  -- Unless the caller declared `free_running`, which is the only way to watch a
+  -- run in a real client -- see `handle_configure`. A free-running reset still
+  -- installs the scene correctly; what it gives up is that the first
+  -- observation is taken at a tick nobody chose.
+  game.tick_paused = not state.free_running
   return state.episode_id
 end
 
@@ -283,6 +288,9 @@ local function handle_status(request)
     absolute_tick = game.tick,
     episode_id = state.episode_id,
     tick_paused = game.tick_paused,
+    -- Declared, so a status read says whether this worker is stepping
+    -- exactly or merely quickly.
+    free_running = state.free_running or false,
     speed = game.speed,
     advancing = inflight.occupant("advance") ~= nil,
     profiles = profiles.metadata(state.observation_profile, state.action_profile),
@@ -317,10 +325,37 @@ local function handle_describe(request)
   })
 end
 
---- Evaluator-facing knobs that do not change simulation outcomes.
+--- Evaluator-facing pacing knobs.
+--
+-- `speed` does not change simulation outcomes -- Factorio is tick-based, so the
+-- simulation is identical at any speed, and `factoriorl bench speed` proves it
+-- by comparing episode records field by field.
+--
+-- `free_running` **does**, and is the one knob here that has to be declared
+-- rather than assumed harmless. With it set, the world is not re-paused between
+-- decisions: it keeps ticking while the caller decides, so an action lands at
+-- whatever tick it happens to arrive at instead of exactly `decision_ticks`
+-- after the last one. Every measured run leaves it off.
+--
+-- It exists because exact stepping and *watching* are incompatible. A Factorio
+-- server with a client connected and its tick loop paused stops answering RCON
+-- altogether -- measured at three separate points, and a six-attempt retry a
+-- second apart got no reply at all -- so a paused world cannot be observed in a
+-- real client, only in `tools/replay.py`. Free running is what makes a live
+-- demonstration possible, at the price of no longer being the environment the
+-- benchmark measures.
 local function handle_configure(request)
   local payload = request.payload or {}
   local applied = {}
+  if payload.free_running ~= nil then
+    if type(payload.free_running) ~= "boolean" then
+      return respond(request, CODE.REJECTED, nil,
+        err(ERR.BAD_TYPE, "free_running must be a boolean"))
+    end
+    state.free_running = payload.free_running
+    if state.free_running then game.tick_paused = false end
+    applied.free_running = state.free_running
+  end
   if payload.speed ~= nil then
     if type(payload.speed) ~= "number" or payload.speed <= 0 then
       return respond(request, CODE.REJECTED, nil,
@@ -591,7 +626,7 @@ function runtime.on_tick(_)
         result.truth = world.truth()
       end
       ledger_settle(entry.request_id, item.status, result, item.error_code)
-      game.tick_paused = true
+      game.tick_paused = not state.free_running
     else
       ledger_settle(entry.request_id, item.status, item.result, item.error_code)
     end

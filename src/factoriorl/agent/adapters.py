@@ -351,9 +351,16 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
             value = retry.pop(name)
             if replacement is not None:
                 retry[replacement] = value
-            self.healed_parameters.append(
-                {"rejected": name, "sent_instead": replacement, "error": error[:200]}
-            )
+            # Once per distinct substitution, not once per call. Every request
+            # of a 249-decision run hits the same two rejections, and appending
+            # each time turned the run's closing summary into 80 repetitions of
+            # the same two facts.
+            record = {"rejected": name, "sent_instead": replacement, "error": error[:200]}
+            if not any(
+                row["rejected"] == name and row["sent_instead"] == replacement
+                for row in self.healed_parameters
+            ):
+                self.healed_parameters.append(record)
             return retry
         return None
 

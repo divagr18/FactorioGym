@@ -60,6 +60,34 @@ scene, and it is a different *kind* of fix from inserting coal. Restoring the
 line therefore takes at least two correct actions of two kinds, and a random
 policy has to do both.
 
+What the measured floors are, and which one to quote against
+-----------------------------------------------------------
+At the settled configuration -- 24..30 tiles, a blocked output in every scene,
+200 decisions -- ten episodes per split give:
+
+| split | reference | random, primitives | random, skills |
+|---|---|---|---|
+| train | 1.00 | 0.10 | 0.80 |
+| test  | 1.00 | 0.00 | 0.80 |
+
+The primitive floor is at or under the 0.10 ceiling `tools/solvability.py`
+declares, and the family is reported `solvable`, not `defective`.
+
+The **skills** floor is 0.80, and that is not a defect peculiar to this family:
+that tool's own docstring records `mine_smelt` at 0.80, `supply_furnace` at
+0.88 and `deliver` at 0.80 in the same action space. A random walk over
+`approach_entity_k` is a far better agent than a random walk over
+`move_north`, and for a task whose difficulty is *which* fix to apply beside
+*which* machine, a macro that goes and stands beside a machine removes most of
+it.
+
+So this is a **primitive-space** benchmark, under the discipline the repo
+already applies to those three families: an 80% skills-space result on it would
+demonstrate nothing, because the floor is 0.80. Cutting the budget moved that
+number from 1.00 to 0.80, which is worth having and is not enough to make it a
+skills-space benchmark. Reported rather than tuned away -- a fourth iteration
+chasing a floor is how a task ends up shaped around its own measurement.
+
 The splits
 ----------
 * **train** -- `drill_dry` and `furnace_dry`: the blocked output plus exactly
