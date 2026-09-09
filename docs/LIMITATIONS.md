@@ -323,7 +323,66 @@ rather than a shortcut.
 
 ---
 
-## 8. Throughput
+## 8. Distribution and adoption
+
+Written for R6's environment alpha. Everything here is a gap a stranger will
+hit, listed so nothing unbuilt is implied to work (PLAN 6.4).
+
+**A source checkout is the only supported install.** `pip install factoriorl`
+resolves and imports, and then cannot start a worker. Two independent reasons:
+`workspace_root()` is `Path(__file__).parents[2]`, which from
+`site-packages/factoriorl/` resolves into the Python installation rather than a
+project, so `mod_source_dir()` and `runtime_dir()` point at nothing useful; and
+`mod/` is outside `src/` so it is not in the wheel at all, which makes
+`package_mod` raise before the engine is launched. `factoriorl demo` and
+`factoriorl replay` additionally shell out to `tools/`, which is also unpackaged.
+The `rl` extra is genuine and `FactorioEnv` does import under it -- what does
+not work is the part that needs the mod and the binary.
+
+Until R6 the README claimed a unit test proved the runtime imports cleanly
+without numpy and gymnasium. **No such test exists.** The nearest one imports
+`factoriorl.env` -- requiring both -- and asserts only that torch and
+sb3-contrib did not leak in. The claim is withdrawn rather than backfilled,
+because the property it described was never checked.
+
+**Replay does not cover trained policies.** `factoriorl replay` reads
+`decisions.jsonl`, which only the language-model loop writes, and refuses a
+training run with a message saying so. A trained policy's per-decision actions
+are recorded nowhere in the ordinary path; `tools/trace_scenes.py` records them
+for named scenes, deliberately outside the evaluation path, and in an aggregate
+shape replay cannot read. So of R6's five gate clauses, replay serves the agent
+half and not the learning half.
+
+**There is no `factoriorl agent` subcommand.** `factoriorl demo` is hardwired to
+`plate_line`, to the OpenAI-compatible adapter, and to a fixed output path
+under `docs/evidence/`. Running an agent on any other task means calling
+`agent.runner.run_task` from Python or invoking `tools/watch_agent.py`
+directly. `AnthropicMessagesAdapter` is implemented, tested and reachable only
+from Python -- no CLI surface constructs it.
+
+**The engine build is pinned exactly and cannot be relaxed.** 2.0.60 build
+83512, refused otherwise by `factoriorl doctor` and again at worker launch.
+This is not conservatism: the observation and action contracts are written
+against one build's prototype table, so a different build is a different
+environment. It does mean the project will not run on whatever Factorio a user
+already has, and that the download has to come from the release archive rather
+than from Steam.
+
+**Windows only in practice.** Nothing is deliberately Windows-specific and the
+engine discovery chain has no non-Windows default, but nothing has been run
+anywhere else, so treat any other platform as untested rather than supported.
+
+**Seven of eleven published release-evidence files cannot be traced to the
+scenes that produced them.** Each `phase4-release-*.json` cites its holdout by
+`content_hash`, and seven cite a hash no committed holdout has -- earlier
+revisions that were regenerated instead of versioned. They are excluded from
+the release bundle, and `MANIFEST.json` lists them by name with the hash they
+cite so the exclusion is legible rather than silent. The four `-v3-` files
+resolve, against `holdout_v2`.
+
+---
+
+## 9. Throughput
 
 Eight workers is the shipped default, measured: 8 workers 261 steps/s, 12
 workers 279, 16 workers 272 -- the last is a regression. Per-worker efficiency
