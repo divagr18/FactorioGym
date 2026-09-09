@@ -197,35 +197,45 @@ that screen is what defines `screened_depot` -- and policies solve 74 of them by
 walking around. Settling it needs a per-step action trace for the RL path, which
 does not exist: only the language-model loop records per-decision traces.
 
-**Episode length in `per_scene` contradicts the truncation rule that produced
-it, and the contradiction is unresolved.** Every failed episode on `deliver` is
-flagged `truncated` with a step count *below* the decision budget: 103 of 113
-across the two finished cells of the 4.4 comparison, as low as 12 against a
-budget of 120, and in 2,734 training episodes not one reached 120 (the maximum
-is 114). `env.py` truncates on exactly two conditions, and neither fits. The
-decision budget is 120, so a 12-step truncation is not that. The tick budget is
-15,000 and a decision advances exactly `decision_ticks` = 30, so exhausting it
-takes ~500 decisions -- more than the decision budget allows, making the tick
-budget unreachable by construction on this family. These have been ruled out as
-explanations: an infrastructure failure dressed as a time limit (`vecenv.py:261`
-excludes those, and `reset_failures` is empty for all three rows), `_steps`
-surviving a reset (`reset` zeroes it), and a `gymnasium` `TimeLimit` wrapper
-imposing a smaller cap (there is none).
+**Episode length in published `per_scene` rows is wrong, and the environment
+was not at fault.** Every failed episode on `deliver` was flagged `truncated`
+with a step count *below* the decision budget: 103 of 113 across the first two
+cells of the paired 4.4 comparison, as low as 12 against a budget of 120, and
+in 2,734 training episodes not one reached 120. `env.py` truncates on exactly
+two conditions and neither could produce that -- 12 is not the 120-decision
+budget, and the 15,000-tick budget needs ~500 decisions at `decision_ticks` =
+30, so it cannot bind on this family at all.
 
-What this does and does not affect: **success rates are unaffected**, because
-they come from `info["success"]` and not from any step count, so the 4.4
-comparison's rates stand. What is unreliable is `per_scene.steps`,
-`mean_episode_steps`, and therefore any diagnosis that reads episode length --
-which is most of what R5.1 asks a report to say. `tools/diagnose_run.py`
-detects the unreachable-budget case and labels these `truncated_unexplained`
-rather than attributing them to the only budget left standing.
+An instrumented episode settled it, and cleared the environment. Across 120
+decisions the tick count advanced by exactly 30 each step, `info["steps"]`
+tracked `env._steps` at every step, truncation fired on the **decision**
+condition at `_steps == 120`, and the tick condition was never true. The
+truncation logic is correct.
 
-`production.episode_ticks` is not a substitute: it exceeds `30 x steps` by a
-variable 2 to 108 ticks because it spans the reset settle as well as the
-decisions. Nor is `simulated_ticks`, which is derived as `primitive_steps x
-decision_ticks` rather than measured, so ratios computed from it describe two
-counters and not the clock. Resolving this needs a live episode instrumented to
-report `_steps` and `tick` at the truncating step.
+The defect was in the reporting path: `per_scene["steps"]` and
+`mean_episode_steps` came from an accumulator local to `evaluate_parallel`
+rather than from the env's own count. The two diverge because the
+`EpisodeResetFailed` branch calls `vec.reset()` and `continue`, zeroing every
+env's `_steps` while skipping the increment that would have tracked it. Both
+fields now read `info["steps"]` -- the counter `env.py:744` actually compares
+against `max_decision_steps`, so the reported length can no longer contradict
+the truncation flag beside it -- and `loop_steps` is kept alongside so a future
+disagreement is visible rather than silent.
+
+**What is still not established**, and it matters for how the old numbers are
+read: `reset_failures` was empty in all three evaluation rows of the cell
+examined, so that branch did not fire there and does not by itself explain
+those 103 rows. The mechanism that produced them is unidentified. Treat
+`per_scene["steps"]` and `mean_episode_steps` in **all evidence published
+before this fix** as unreliable; success rates in those files are unaffected,
+because they read `info["success"]` and never a step count.
+
+Two dead ends, recorded so they are not walked twice.
+`production.episode_ticks` is not a substitute for a decision count: it exceeds
+`30 x steps` by a variable 2 to 108 ticks because it spans the reset settle as
+well as the decisions. Nor is `simulated_ticks`, which is *derived* as
+`primitive_steps x decision_ticks` rather than measured, so ratios computed
+from it describe two counters and not the clock.
 
 **A random floor is a property of the action space, not the task.** Quoting a
 result without the floor measured over the same action space is meaningless, and

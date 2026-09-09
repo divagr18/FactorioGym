@@ -472,13 +472,32 @@ def evaluate_parallel(
                     scored.add(episode)
                 counted += 1
                 successes += int(bool(info.get("success")))
-                lengths.append(int(steps[index]))
+                # The env's own decision count, not this loop's accumulator.
+                # `steps[index]` counts loop iterations, and the two diverge:
+                # `EpisodeResetFailed` does `vec.reset()` and `continue`, which
+                # zeroes every env's `_steps` while skipping the `steps += 1`
+                # that would have tracked it, so after one reset failure the
+                # counters are permanently offset. The env is the authority --
+                # it is the counter `env.py:744` compares against
+                # `max_decision_steps` to decide truncation in the first place,
+                # so reading anything else can report a step count that
+                # contradicts the truncation flag beside it. Measured on a
+                # `deliver` episode: `info["steps"]` tracked `env._steps`
+                # exactly for all 120 decisions and truncation fired on the
+                # decision condition, while published rows carried counts as
+                # low as 12 with the same flag.
+                length = int(info.get("steps", steps[index]))
+                lengths.append(length)
                 rewards.append(float(totals[index]))
                 row = {
                     "episode_index": episode,
                     "layout_family": info.get("layout_family"),
                     "success": bool(info.get("success")),
-                    "steps": int(steps[index]),
+                    "steps": length,
+                    # Kept beside it rather than replaced, because a mismatch is
+                    # itself a signal: it means an episode boundary went
+                    # unaccounted for in this loop.
+                    "loop_steps": int(steps[index]),
                     "reward": round(float(totals[index]), 4),
                     # Why it ended, which pass/fail alone does not say: a policy
                     # that ran out of budget and one that hit a failure
