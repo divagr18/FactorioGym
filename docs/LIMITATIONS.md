@@ -110,6 +110,30 @@ two added in R4.3 have not been re-measured against that check. The semantic che
 
 ## 4. Rewards
 
+**Only three of this repo's shaping components preserve the optimal policy.**
+Ng, Harada & Russell's condition (*Algorithms for Decision Making* p.365): a
+policy optimal under the original reward stays optimal under a shaped reward
+**iff** the shaping has the form `F(s,a,s') = gamma*B(s') - B(s)`.
+
+| kind | components | preserves the optimum? |
+|---|---|---|
+`potential` | `navigate.approach`, `repair_belt.toward_gap`, `restore_power.toward_gap` | **yes** -- can change learning speed only |
+`high_water` | `plates_produced`, `carried`, `at_destination`, `ore_mined`, `ore_carried` | **no** -- can change the optimal policy |
+
+`rewards.py`'s `POTENTIAL` computes `weight * (gamma * phi_next - previous)`
+with `phi_next = 0` on termination, which is that form exactly, and its comment
+already gives the reason termination must zero it.
+
+A `high_water` mark is not of that form, and the consequence is the plateau
+recorded below: shaping earnable while the success predicate is false creates a
+*new* optimum, which is what paid a policy for stopping. **The caps that fixed
+it bound the damage; they do not restore invariance.** So a shaping result on a
+family whose shaping is `high_water` is an empirical question, and one on a
+`potential` family is answered by the theorem -- worth stating whenever a
+shaping comparison is quoted, because `deliver`, the family PLAN 4.4's
+comparison runs on, has `high_water` shaping only.
+
+
 **Three families used to pay a policy for stopping.** Shaping earnable while the
 success predicate is false is a plateau: bank it, idle, and the only opposition
 is the step cost. `deliver` returned +0.23 for reaching the plateau and standing
