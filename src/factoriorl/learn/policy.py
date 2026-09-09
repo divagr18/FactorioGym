@@ -332,11 +332,16 @@ def observation_compatibility(model, env) -> dict:
         for key in sorted(set(mine) | set(yours))
         if mine.get(key) != yours.get(key)
     }
+    # `int` and `bool` deliberately: `Discrete.n` is a numpy integer, so the
+    # comparison yields `np.bool_` and this whole dict goes into JSON, which
+    # refuses numpy scalars.
     action_theirs = getattr(getattr(model, "action_space", None), "n", None)
     action_ours = getattr(getattr(env, "action_space", None), "n", None)
+    action_theirs = None if action_theirs is None else int(action_theirs)
+    action_ours = None if action_ours is None else int(action_ours)
     return {
         "comparable": True,
-        "compatible": not differences and action_theirs == action_ours,
+        "compatible": bool(not differences and action_theirs == action_ours),
         "observation_differences": differences,
         "actions": {"checkpoint": action_theirs, "environment": action_ours},
         "hint": (
