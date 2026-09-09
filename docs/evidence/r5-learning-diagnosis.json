@@ -1,0 +1,225 @@
+{
+  "report": "R5.1 -- interpretable learning results, from the committed record",
+  "gate": "Reports identify where attempts fail. Neither zero success nor high training success alone is called an algorithmic explanation.",
+  "attaches_no_algorithmic_claim": "Every entry classifies which *question* a pair of rows poses. None names a mechanism, because the gate forbids naming one from a rate",
+  "the_separating_measurement": "the unfamiliar-seed row. A 0.00 structural score with an unfamiliar-seed rate of 1.00 is a transfer miss; the same 0.00 with a rate of 0.00 is a learning miss. Reporting both as '0.00 held-out' would be true and useless",
+  "runs": [
+    {
+      "source": "restore_power-curriculum-holdout_v3.json",
+      "run_id": "rpcur-20260908T235651-08d4f166",
+      "task": "restore_power",
+      "total_steps": 50000,
+      "final_train_success_rate": 0.9,
+      "rows": {
+        "seeds": {
+          "greedy": 0.71,
+          "sampled": 1.0,
+          "sampled_minus_greedy": 0.29,
+          "scored_episodes": 100,
+          "per_scene_rows": 0
+        },
+        "val": {
+          "greedy": 0.05,
+          "sampled": 0.21,
+          "sampled_minus_greedy": 0.16,
+          "scored_episodes": 100,
+          "per_scene_rows": 0
+        },
+        "structures": {
+          "greedy": 0.26,
+          "sampled": 0.66,
+          "sampled_minus_greedy": 0.4,
+          "scored_episodes": 100,
+          "per_scene_rows": 0
+        }
+      },
+      "which_question": "a transfer question: the policy executes its training distribution and does not generalise structurally"
+    },
+    {
+      "source": "repair_belt-curriculum-holdout_v3.json",
+      "run_id": "cur16-20260908T204530-b1e2eb75",
+      "task": "repair_belt",
+      "total_steps": 50000,
+      "final_train_success_rate": 0.05,
+      "rows": {
+        "seeds": {
+          "greedy": 0.0,
+          "sampled": 0.12,
+          "sampled_minus_greedy": 0.12,
+          "scored_episodes": 100,
+          "per_scene_rows": 0
+        },
+        "val": {
+          "greedy": 0.01,
+          "sampled": 0.08,
+          "sampled_minus_greedy": 0.07,
+          "scored_episodes": 100,
+          "per_scene_rows": 0
+        },
+        "structures": {
+          "greedy": 0.0,
+          "sampled": 0.06,
+          "sampled_minus_greedy": 0.06,
+          "scored_episodes": 100,
+          "per_scene_rows": 0
+        }
+      },
+      "which_question": "a learning question: the policy misses on unfamiliar seeds over its own training layouts, so the structural miss is not a transfer result"
+    },
+    {
+      "source": "restore_power-v1.6.0-holdout_v3.json",
+      "run_id": "rp16-20260908T205825-078a96f0",
+      "task": "restore_power",
+      "total_steps": 25000,
+      "final_train_success_rate": 0.5,
+      "rows": {
+        "seeds": {
+          "greedy": 0.03,
+          "sampled": 0.7,
+          "sampled_minus_greedy": 0.67,
+          "scored_episodes": 100,
+          "per_scene_rows": 0
+        },
+        "val": {
+          "greedy": 0.0,
+          "sampled": 0.12,
+          "sampled_minus_greedy": 0.12,
+          "scored_episodes": 100,
+          "per_scene_rows": 0
+        },
+        "structures": {
+          "greedy": 0.0,
+          "sampled": 0.37,
+          "sampled_minus_greedy": 0.37,
+          "scored_episodes": 100,
+          "per_scene_rows": 0
+        }
+      },
+      "which_question": "both questions are open: the policy clears neither threshold, so it is neither a clean transfer miss nor a clean learning miss"
+    }
+  ],
+  "seed_spreads": [
+    {
+      "task": "restore_power",
+      "holdout": "holdout_v2",
+      "sources": [
+        "phase4-release-v3-restore_power.json",
+        "phase4-release-v3-restore_power-seeds23.json"
+      ],
+      "seeds_declared": [
+        1,
+        2,
+        3
+      ],
+      "structural_per_seed": [
+        0.0,
+        0.0,
+        0.77
+      ],
+      "unfamiliar_seed_rate": 0.975,
+      "structural_mean": 0.2567,
+      "spread": "bimodal, so not transfer variance: widely separated with nothing between. Every seed cleared 0.9 on unfamiliar seeds, so every seed learned -- what differed is which policy it learned",
+      "mean_is_representative": false,
+      "span": 0.77,
+      "rates_reported_for_every_declared_seed": true
+    },
+    {
+      "task": "repair_belt",
+      "holdout": "holdout_v2",
+      "sources": [
+        "phase4-release-v3-repair_belt.json"
+      ],
+      "seeds_declared": [
+        1
+      ],
+      "structural_per_seed": [
+        0.0
+      ],
+      "unfamiliar_seed_rate": 0.0,
+      "structural_mean": 0.0,
+      "spread": "one seed, so there is no spread to read",
+      "mean_is_representative": null,
+      "rates_reported_for_every_declared_seed": true
+    },
+    {
+      "task": "deliver",
+      "holdout": "holdout_v2",
+      "sources": [
+        "phase4-release-v3-deliver.json"
+      ],
+      "seeds_declared": [
+        1,
+        2,
+        3
+      ],
+      "structural_per_seed": [
+        0.54,
+        0.85,
+        0.92
+      ],
+      "unfamiliar_seed_rate": 0.9833,
+      "structural_mean": 0.77,
+      "spread": "unimodal: the mean describes something a seed could produce",
+      "mean_is_representative": true,
+      "span": 0.38,
+      "rates_reported_for_every_declared_seed": true
+    }
+  ],
+  "both_arms": {
+    "requirement": "both sampled and argmax evaluations are labeled; neither is substituted after seeing a better score",
+    "sampled_never_scored_below_greedy": true,
+    "largest_gaps": [
+      {
+        "source": "restore_power-v1.6.0-holdout_v3.json",
+        "task": "restore_power",
+        "row": "seeds",
+        "greedy": 0.03,
+        "sampled": 0.7,
+        "ratio": 23.3
+      },
+      {
+        "source": "repair_belt-curriculum-holdout_v3.json",
+        "task": "repair_belt",
+        "row": "val",
+        "greedy": 0.01,
+        "sampled": 0.08,
+        "ratio": 8.0
+      },
+      {
+        "source": "restore_power-curriculum-holdout_v3.json",
+        "task": "restore_power",
+        "row": "val",
+        "greedy": 0.05,
+        "sampled": 0.21,
+        "ratio": 4.2
+      },
+      {
+        "source": "restore_power-curriculum-holdout_v3.json",
+        "task": "restore_power",
+        "row": "structures",
+        "greedy": 0.26,
+        "sampled": 0.66,
+        "ratio": 2.5
+      },
+      {
+        "source": "restore_power-curriculum-holdout_v3.json",
+        "task": "restore_power",
+        "row": "seeds",
+        "greedy": 0.71,
+        "sampled": 1.0,
+        "ratio": 1.4
+      }
+    ],
+    "reading": "the gap is evidence about argmax under partial observability, not a defect: where states are aliased under function approximation the optimal policy is stochastic (Sutton & Barto, Example 13.1)"
+  },
+  "cannot_localise_within_an_episode": {
+    "rows_with_per_scene_data": [],
+    "why": "evaluate_parallel has emitted per_scene since 623f7dd (02:22 on 2026-09-09) and every result cited here predates it, so no row carries scene-level outcomes. The localisation half of R5-B needs a re-run; tools/diagnose_run.py is the consumer waiting for it"
+  },
+  "provenance_limits": [
+    "the three-seed spreads were measured against holdout_v2, not the live holdout_v3, so they are not comparable to anything measured today",
+    "restore_power yields only 70 distinct scenes across its 100 frozen episodes, so its effective sample is smaller than the count suggests",
+    "the curriculum fraction is recorded only in manifest.json, and those manifests are absent from this machine, so no result here can be tied to the curriculum setting that produced it"
+  ],
+  "missing_sources": []
+}

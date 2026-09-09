@@ -86,10 +86,25 @@ from factoriorl import tasks  # noqa: E402
 ROWS = ("seeds", "val", "structures")
 
 
-def load(run_id: str) -> dict:
-    path = manifest_module.runs_dir() / run_id / "result.json"
+def load(run: str) -> dict:
+    """A run id under `runtime/runs/`, or a path to a result file.
+
+    Published evidence under `docs/evidence/` is a copy of a `result.json`, and
+    the runs behind those copies are gitignored and mostly absent from any one
+    machine -- both curriculum runs, for instance, exist only on the desktop. A
+    tool that could read only live run directories therefore could not read the
+    committed record at all, which is the only form most of these results
+    survive in.
+    """
+    candidate = Path(run)
+    if candidate.is_file():
+        return json.loads(candidate.read_text(encoding="utf-8"))
+    path = manifest_module.runs_dir() / run / "result.json"
     if not path.is_file():
-        raise SystemExit(f"no result.json for {run_id} (looked in {path})")
+        raise SystemExit(
+            f"no result for {run!r}: not a file, and no {path}. Pass a run id "
+            "under runtime/runs/ or a path to a result.json"
+        )
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -104,7 +119,15 @@ def budgets(run_id: str, task_id: str | None) -> dict | None:
     the fallback, and says so, because a mislabelled split is worse than an
     absent one.
     """
-    manifest_path = manifest_module.runs_dir() / run_id / "manifest.json"
+    # A result file passed by path may sit beside its manifest, or may be a
+    # published copy with no manifest at all. Both are tried before the
+    # registry, since either beats today's spec for an older run.
+    candidate = Path(run_id)
+    manifest_path = (
+        candidate.with_name("manifest.json")
+        if candidate.is_file()
+        else manifest_module.runs_dir() / run_id / "manifest.json"
+    )
     if manifest_path.is_file():
         try:
             data = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -309,7 +332,12 @@ def compare(scenes_a: list[dict], scenes_b: list[dict]) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("runs", nargs="+", help="one run id to diagnose, or two to compare")
+    parser.add_argument(
+        "runs",
+        nargs="+",
+        help="one to diagnose, or two to compare. Each is a run id under "
+        "runtime/runs/ or a path to a result.json (published evidence works)",
+    )
     parser.add_argument(
         "--row",
         default=None,
@@ -328,12 +356,13 @@ def main() -> int:
     report: dict = {
         "runs": [
             {
+                "source": source,
                 "run_id": r.get("run_id"),
                 "task": r.get("task"),
                 "total_steps": r.get("total_steps"),
                 "final_train_success_rate": r.get("final_train_success_rate"),
             }
-            for r in results
+            for source, r in zip(args.runs, results, strict=True)
         ],
         "rows": {},
     }
