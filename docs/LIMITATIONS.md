@@ -177,6 +177,26 @@ outcomes. No index offset undoes that.
 **`restore_power` yields 70 distinct scenes across its 100 frozen episodes**, so
 its effective sample size is smaller than the count suggests. `mine_smelt` is 92.
 
+**Four of `deliver`'s 100 frozen holdout scenes may be unsolvable, so the
+achievable ceiling on that row is 0.96 rather than 1.00.** Episodes 3007, 3026,
+3033 and 3040 were missed by all six cells of the paired 4.4 comparison -- three
+seeds under each of two reward settings -- and all 24 attempts burned exactly
+120 decisions, the full budget, ending on a `precondition` rejection. Six
+independently trained policies failing identically is a property of the scenes,
+not of learning, and any rate quoted on this row should be read against 0.96.
+
+Whether they are genuinely unsolvable is **not established**, and the direct
+check is closed by design: `reference.solve` raises
+`ReferenceOnEvaluatedEpisode` for a scene from the eval branch, because a
+scripted solution must never complete an evaluated run (R3.1). Two engine-free
+explanations were tested and both fail. Not distance: their
+character-source-destination totals are 28.4-32.6 against a median of 30.2 over
+the other 96 scenes, 68 of which are at least as far. Not the wall screen: 88 of
+the other 96 also have a blocked straight line from source to destination --
+that screen is what defines `screened_depot` -- and policies solve 74 of them by
+walking around. Settling it needs a per-step action trace for the RL path, which
+does not exist: only the language-model loop records per-decision traces.
+
 **Episode length in `per_scene` contradicts the truncation rule that produced
 it, and the contradiction is unresolved.** Every failed episode on `deliver` is
 flagged `truncated` with a step count *below* the decision budget: 103 of 113

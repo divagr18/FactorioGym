@@ -893,6 +893,69 @@ intervention" -- was unsatisfiable because that phrase named nothing:
 a finding: the published 50k-step cells are 0.2-0.3% of the ~15-27 M steps a
 defensible negative needs for the H=300 families.
 
+### 4.4 - Does shaping change the outcome? (re-run 2026-09-09, paired)
+
+Six cells, `deliver`, 25k steps, three seeds per arm, all scored on the same 100
+frozen `holdout_v3` episodes. The withdrawn first attempt had evaluated each arm
+on a different scene draw; this one is paired, and the tool refuses a verdict
+without it.
+
+| seed | shaped | sparse | agree | shaped only | sparse only | McNemar |
+|---|---|---|---|---|---|---|
+| 1 | 0.84 | 0.84 | 82 | 9 | 9 | p = 1.0 |
+| 2 | 0.91 | 0.94 | 95 | 1 | 4 | p = 0.375 |
+| 3 | 0.92 | 0.92 | 94 | 3 | 3 | p = 1.0 |
+| **mean** | **0.89** | **0.90** | | | | |
+
+**Shaping did not change the outcome at this budget**, on the rates and on the
+scenes. Across all six cells 81 of 100 scenes show zero disagreement between
+the arms, and a within-scene permutation test over the per-seed solve counts
+gives p = 0.38. Only two scenes were ever *splittable* -- solved by every run of
+one arm and none of the other requires a scene whose total solves is exactly
+three -- and one split, against 0.2 expected. That is not evidence.
+
+Seed 1 is the reason the paired reading was worth doing at all, and also a
+caution against over-reading it. Both arms scored 0.84 with byte-identical
+Wilson intervals, which looks like one result measured twice, and they agreed on
+only 82 of 100 scenes. But the same discordance appears in neither of the other
+seeds (5 and 6 scenes) and washes out across seeds: it is run-to-run variance,
+not a shaping effect. A single paired seed would have supported a story the
+three-seed test does not.
+
+**What this measured, and what it did not.** `deliver` carries only `high_water`
+shaping (`at_destination` cap 0.05, `carried` cap 0.04), which is **not** the
+Ng-Harada-Russell form and therefore *can* change the optimal policy -- unlike
+the three `potential` components, where the theorem already answers the
+question. So this is a real empirical result on the weaker class, and it says
+that class of shaping neither helped nor hurt here. It says nothing about
+`navigate` or either repair family.
+
+**Four scenes no policy ever solved.** 3007, 3026, 3033 and 3040 were missed by
+all six cells, and every one of the 24 attempts burned exactly 120 decisions --
+the full budget -- and ended on a `precondition` rejection. Six independently
+trained policies failing identically is a property of the scenes rather than of
+learning, and it caps the achievable rate on this holdout at 0.96, so 0.89 and
+0.90 should be read against that rather than against 1.00.
+
+Whether the four are solvable is **not established**, and the direct check is
+closed by design: `reference.solve` raises `ReferenceOnEvaluatedEpisode` on a
+scene drawn from the eval branch, because a scripted solution must never
+complete an evaluated run (R3.1). Two engine-free explanations were tested and
+both fail:
+
+* **Not distance.** Their character-to-source-to-destination totals are
+  28.4-32.6 against a median of 30.2 over the other 96, and 68 of those are at
+  least as far.
+* **Not the wall screen.** 88 of the other 96 scenes also have a blocked
+  straight line from source to destination -- that screen is what defines
+  `screened_depot` -- and policies solve 74 of them by walking around.
+
+The remaining route is a per-step action trace for the RL path, which does not
+exist yet: only the language-model loop records per-decision traces
+(`tools/replay.py` prints "no primitive trace recorded for this run"
+otherwise). That is the same gap R5-C needs closed, so the two want fixing
+together.
+
 **One measurement problem found while reading the 4.4 cells, and not yet
 resolved.** Every failed `deliver` episode is flagged `truncated` with a step
 count *below* the decision budget -- 103 of 113 across the first two cells, as
