@@ -140,6 +140,19 @@ taken before the change, and `stale_citations` reports no run as stale.
 
 ## 4. Results, with provenance
 
+**Phase 4 is not done.** Its mechanical exit gate passes -- `phase4-gate.json`, 15 checks
+on 2026-09-07: training dependencies resolve, CUDA is a real device, train and eval seed
+branches are disjoint, published checkpoints load, manifests verify, and a short run
+completes unattended -- but two sub-sections are unmet and a third is only half verified:
+
+| sub-section | state |
+|---|---|
+4.1 baseline policy | met, **except** "checkpoints restore both inference and *resumable training* state": the gate checks `checkpoint loads for inference` only, and no test anywhere exercises resume |
+4.2 single-task learning | met. Learning exceeds the random floor (`deliver` 0.77 against 0.00, `restore_power` 0.26 against 0.00), eval is on a disjoint seed branch, PPO gets no scripted labels, failed runs are retained |
+4.3 profiling | met. Dominant bottleneck identified and it is not close: `environment_step` 56.44 ms against `encode` 0.081 ms. 8 workers chosen at 261 steps/s, 3.43x one worker at 43% per-worker efficiency, described as measured rather than as "faster". Deviations: the sweep ran 1/4/8/12/16 rather than the plan's 1/2/4/8, and the file predates this week's profiling changes |
+4.4 shaping dependence | **not met.** The headline is **withdrawn**: the two arms were never scored on the same episodes, so the gap (shaped 35/50, sparse 48/50) cannot be separated from their different scene draws. `--seed` fixes torch and numpy, not the scenes. The tooling now pairs arms by holdout; **the experiment has not been re-run** |
+4.5 release learning result | **not met.** No family reaches 0.80 on the structural split |
+
 **No family meets PLAN 4.5** (three families ≥0.80 on the structural split, three seeds).
 
 | family | best held-out | seeds | holdout cited | status |
@@ -293,7 +306,9 @@ Regression suite, separate from any rate (§10) | 10 cases, all open findings | 
 LLM agent loop, addressed actions | works on `deliver` and `plate_line` commissioning | `phase5-agent-runs.json`, `phase5-demonstration.json` |
 Construction (**reference** builder builds machinery) | **R3.1 gate passes**, 15/15 on a real engine | `r3-construction.json` |
 Construction (**agent** builds machinery) | **not demonstrated** — the R3.2 baseline is measured and reported; the gate stays unmet until an agent passes | `r3-agent-baseline.json` |
-Recovery (validated disruption + no-action control) | **not demonstrated** | redirection R4 |
+Recovery (validated disruption + no-action control) | **demonstrated**: control arm's outage confirmed at tick 5970, agent arm repeated 3x, digest-validated common state. Two of three agent runs are `loss_averted`, not recovery -- their own line never stopped | `r4-recovery-arms.json`, `r4-tracks.json` |
+Declared disruptions, applied by the env | **implemented and gated**: typed `disrupt` request, `TaskSpec.disruptions`, fresh post-disruption observation by construction | `r4-tracks.json` |
+Three declared tracks (repair / diagnosis / persistent operation) | **implemented**, each with its own hints, assistance and outcome; no aggregate across them | `r4-tracks.json` |
 `assisted-v1` action profile | **not implemented** | §3.2 |
 Release packaging | `release/` snapshot is **stale** (predates the curve-logger and holdout_v3 corrections) | — |
 
