@@ -1332,6 +1332,84 @@ Editing the family would invalidate those runs and change the blueprints behind
 `holdout_v1.json`'s content hash, which is exactly the drift the freeze exists
 to catch. Recorded, not patched.
 
+## R5.3 - Demonstration learning: the optimiser destroys what the clone gives it
+
+Three arms on `repair_belt` v1.6.0, primitive action space, 25k steps per PPO
+cell, two seeds, all scored on the same 100 frozen `holdout_v3` episodes. Seed 1
+on the laptop (RTX 3050), seed 2 on the desktop (RTX 4060).
+`docs/evidence/r5-demonstration-learning.json`.
+
+| arm | seed | train | seeds | val | structures (greedy/sampled) |
+|---|---|---|---|---|---|
+| behaviour cloning | 1 | - | 0.44 | 0.25 | **0.10** |
+| behaviour cloning | 2 | - | 0.59 | 0.20 | **0.19** |
+| scratch PPO | 1 | 0.00 | 0.00 | 0.00 | 0.00 / 0.00 |
+| scratch PPO | 2 | 0.00 | 0.00 | 0.00 | 0.00 / 0.00 |
+| BC-initialised PPO | 1 | 0.00 | 0.00 | 0.00 | 0.00 / 0.00 |
+| BC-initialised PPO | 2 | 0.00 | 0.00 | 0.00 | 0.00 / 0.01 |
+
+### The endpoints say nothing happened. The curves say what happened.
+
+Read as a table of final scores this is a null: BC-initialised PPO matches
+scratch PPO at 0.00 on every row of both seeds, so initialisation "made no
+difference". That reading is wrong, and the training curves show why.
+
+| | scratch PPO | BC-initialised PPO |
+|---|---|---|
+| seed 1 | **0 solved of 80 episodes, ever** | 3 solved, timesteps 136-3,952, best 17 decisions, then 0 for ~20k steps |
+| seed 2 | **0 solved of 80 episodes, ever** | 16 solved, timesteps 128-496, best 16 decisions, then 0 for ~24k steps |
+
+The clone transfers real competence -- solving in as few as 16 decisions within
+the first few hundred steps -- and PPO destroys it inside the first few percent
+of training, permanently. Both seeds. The collapse is faster where the
+initialisation was stronger (seed 2's BC scored 0.19 structurally against seed
+1's 0.10, and collapsed at timestep 496 rather than 3,952), which is the
+opposite of what a "needs more training" story would predict.
+
+**Scratch PPO's flat zero is doing the work here.** With a control that never
+solves anything in 80 episodes, the early solves cannot be exploration; they
+are attributable to the initialisation and nothing else. The two runs differ in
+exactly one respect.
+
+So R5.3's answer is not "no effect". It is that BC-initialised PPO is scratch
+PPO with a head start the optimiser throws away, and that an endpoint-only
+comparison of the kind 4.4 was withdrawn for would have reported the opposite.
+
+### A hypothesis, flagged as one
+
+The critic is probably untrained. `initialise_from` copies the whole policy
+`state_dict`, which in SB3 includes the value head, but behaviour cloning only
+ever optimises action cross-entropy -- so the transferred critic is effectively
+random, PPO's first advantage estimates are noise, and noisy advantages applied
+to a competent actor would wreck it. That predicts a fix (warm the critic before
+letting the actor move, or start at a much smaller learning rate) and it is not
+tested here. R5.3 says to stop after the smallest comparison that resolves the
+question, and the question was whether the three arms differ.
+
+### What the gate asked for
+
+Demonstration counts and teacher access are disclosed: `reference.solve` with
+full evaluator truth, 200 demonstration episodes per seed, **200/200 solved**,
+~18-19 state-action pairs each. Behaviour cloning is reported as a measured
+route rather than the only possible one. Both arms are labelled on every row.
+
+**Training traces and evaluation scenes are disjoint, and checked rather than
+asserted** -- `bc.disjointness` compares `(branch, episode_index)` pairs, which
+is the identity that matters, since demonstrations at `Branch.TRAIN` 0-199 and
+an evaluation row at `Branch.EVAL` over the same integers are different scenes.
+Both seeds passed.
+
+### Limitations that bound all of the above
+
+25k steps on a 300-decision-horizon family is a small fraction of what a
+defensible negative needs, so scratch PPO at 0.00 is partly a statement about
+budget. Two seeds, one per machine, so seed and machine are confounded -- each
+manifest records the measured GPU, so it stays checkable. BC's 0.10 and 0.19 are
+the first non-zero structural numbers on this family, where the earlier runs
+scored exactly 0.00 twice; but those were v1.4.0 against this v1.6.0, and
+v1.6.0 is the version that fixed the training distribution, so the improvement
+is not attributable to the method. And the collapse is measured, not explained.
+
 ## R4 - Fresh observations, a measured outage, three declared tracks
 
 ### The recovery claim in the tree did not hold up, and its own numbers said so
