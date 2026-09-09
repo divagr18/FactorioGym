@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -512,8 +513,47 @@ class AgentLoop:
         return legal[0].index
 
     def run_episode(self, episode: int) -> dict:
-        started = time.perf_counter()
+        """Reset, then play one segment for the whole budget."""
         self.env.reset()
+        return self.run_segment(episode, fresh_memory=True)
+
+    def run_segment(
+        self,
+        episode: int,
+        *,
+        first_step: int = 0,
+        budget: int | None = None,
+        fresh_memory: bool = False,
+        until: Callable[[], bool] | None = None,
+    ) -> dict:
+        """Play decisions on an **already-reset** environment.
+
+        Extracted so a driver that needs to interleave agent control with
+        evaluator time -- commission, run a measurement window, inject a
+        disruption, hand back for recovery -- can hand back to *this* loop
+        instead of re-implementing the stepping.
+
+        `tools/demonstration.py` re-implemented it, and the copy drifted twice:
+        it omitted `arguments=`/`requires=` from `summarise`, so a
+        `parameterized-v1` catalog would be prompted with no argument values at
+        all, and it omitted `target=` from the memory record. Its own docstring
+        records that the same re-implementation had already cost one measured
+        defect (`unknown_target` x 50). One stepping path is the fix.
+
+        `first_step` continues the decision numbering across a hand-back, so a
+        replay reads as one episode rather than several starting at zero.
+        `fresh_memory` is False by default because a hand-back is the *same*
+        scene: what the agent saw before the intervention is still its own
+        history. `run_episode` passes True, since a new episode is not.
+
+        `until` is an **evaluator-side** stopping condition, checked after each
+        decision: "the line is producing", "both machines hold fuel again". It
+        may read truth, because it only decides when to stop asking -- it is
+        never rendered into a prompt and the model is not told it exists. The
+        segment records `stopped: "until"` when it fires, so a replay can tell
+        a segment that reached its goal from one that ran out of budget.
+        """
+        started = time.perf_counter()
         total_reward = 0.0
         steps = 0
         consecutive_fallbacks = 0
@@ -522,17 +562,22 @@ class AgentLoop:
         # The same bound the batching must respect, resolved once: an unbounded
         # `wait_batch` could otherwise run past `max_steps` and spend an
         # episode's budget without asking the model anything.
-        budget = min(
+        ceiling = min(
             self.env.spec_.max_decision_steps,
             self.config.max_steps if self.config.max_steps is not None else 1 << 30,
         )
-        # A fresh record per episode. Carrying one over would put the previous
-        # scene's containers into this scene's prompt.
-        self.memory = Memory()
-        while True:
+        segment_budget = ceiling if budget is None else min(budget, ceiling)
+        # Counted in absolute decisions, so a segment cannot spend more than the
+        # task budget just because it started late.
+        budget = max(0, min(segment_budget, ceiling - first_step))
+        if fresh_memory:
+            # A fresh record per episode. Carrying one over would put the
+            # previous scene's containers into this scene's prompt.
+            self.memory = Memory()
+        while steps < budget:
             observation = self.env._observation
             if self.config.memory:
-                self.memory.observe(steps, observation)
+                self.memory.observe(first_step + steps, observation)
             mask = self.env.action_masks()
             vocabulary = action_vocabulary(self.env)
             legal = legal_actions(vocabulary, mask)
@@ -540,7 +585,7 @@ class AgentLoop:
                 observation,
                 brief=self.brief,
                 actions=legal,
-                step=steps,
+                step=first_step + steps,
                 arguments=argument_domains(self.env),
                 requires=argument_requirements(self.env),
             )
@@ -550,7 +595,7 @@ class AgentLoop:
                 legal,
                 vocabulary,
                 episode=episode,
-                step=steps,
+                step=first_step + steps,
                 fallback_index=self._fallback_index(legal),
                 targetable=targetable,
                 handles=handles,
@@ -610,7 +655,7 @@ class AgentLoop:
                 # above and are deliberately not passed: memory is rendered back
                 # into the prompt, so anything it reads, the model sees.
                 self.memory.record_action(
-                    steps - 1,
+                    first_step + steps - 1,
                     decision.action_key,
                     target=_target_of(decision.action_key, observation),
                     status=info.get("action_status"),
@@ -630,12 +675,23 @@ class AgentLoop:
             if terminated or truncated:
                 stopped = "terminated" if terminated else "truncated"
                 break
-            if self.config.max_steps is not None and steps >= self.config.max_steps:
-                stopped = "step_ceiling"
+            if until is not None and until():
+                stopped = "until"
                 break
+
+        if stopped == "budget" and steps >= budget:
+            # Distinguish "the run's own ceiling" from "the task's budget": a
+            # driver that asked for 15 decisions and got 15 did not run out of
+            # task, and reporting it as a truncation would misread the segment.
+            stopped = (
+                "step_ceiling"
+                if self.config.max_steps is not None and first_step + steps >= self.config.max_steps
+                else "segment_budget"
+            )
 
         return {
             "episode": episode,
+            "first_step": first_step,
             "steps": steps,
             "stopped": stopped,
             "total_reward": round(total_reward, 4),

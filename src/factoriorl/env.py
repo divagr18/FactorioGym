@@ -36,7 +36,7 @@ from factoriorl.production import ProductionMetrics
 from factoriorl.rewards import RewardAccountant
 from factoriorl.seeding import Branch, SeedPlan
 from factoriorl.session import WorkerSession
-from factoriorl.tasks import RegisteredTask
+from factoriorl.tasks import MAX_ADVANCE_TICKS, RegisteredTask
 from factoriorl.tasks.spec import LayoutFamily
 
 
@@ -109,6 +109,10 @@ class FactorioEnv(gym.Env):
         #: (tick, produced) samples for the episode. Cleared with it, or a
         #: sustained objective would be satisfied by the previous episode.
         self._window: list[tuple[int, dict]] = []
+        #: Every out-of-band refresh, with the tick and the declared reason.
+        #: An evaluator write is not a decision, so it must not be invisible in
+        #: the record either.
+        self._resyncs: list[dict] = []
         self._installed: set[str] = set()
         self._observation: dict = {}
         self._truth: dict = {}
@@ -415,6 +419,9 @@ class FactorioEnv(gym.Env):
         #: (tick, produced) samples for the episode. Cleared with it, or a
         #: sustained objective would be satisfied by the previous episode.
         self._window: list[tuple[int, dict]] = []
+        # Cleared for the same reason: an intervention in the previous episode
+        # is not part of this one's record.
+        self._resyncs = []
 
         digest = self.prepare_scene(self._episode_index)
         self.begin_episode(digest)
@@ -526,6 +533,78 @@ class FactorioEnv(gym.Env):
         template = self.catalog.templates[int(action)]
         return self.step_payload(template.bind(self._context()), action_key=template.key)
 
+    def _adopt(self, result: dict) -> None:
+        """Take a settled step response as the env's current view of the world.
+
+        Extracted from `step_payload` because it was the one place the cache was
+        refreshed, and it was reachable only by issuing an env step. Anything
+        that advanced time or wrote to the world another way -- the Phase 5
+        demonstration driver did both -- left `_observation`, `_truth`, the
+        production window and the metrics describing a world that no longer
+        existed. Measured: that driver's first post-outage prompt said "game
+        tick 450" while the world was at 4050, and reported a drill holding 48
+        coal and `working` at the moment it was empty.
+        """
+        self._observation = result.get("observation") or self.session.observe().response.result
+        # The step response carries truth with it; only fall back to a separate
+        # request if an older worker did not send it.
+        truth = result.get("truth")
+        if truth is None:
+            self._refresh_truth()
+        else:
+            self._truth = truth
+            self._record_window()
+        self.metrics.record(self._observation, self._truth)
+
+    def advance(self, ticks: int) -> int:
+        """Advance game time without taking a task action, staying in sync.
+
+        Two things make this the honest way to do it:
+
+        **It goes through `session.step`, not `session.advance`.** Only a
+        settled *step* carries `observation` and `truth` back (`runtime.lua`
+        attaches them for `request_type == "step"` and nothing else), so
+        `advance` would return a tick count and leave the env blind. The
+        demonstration driver already called `session.step` and discarded
+        exactly the pair this adopts.
+
+        **It advances in `decision_ticks` chunks and adopts each one.** A single
+        3,600-tick jump would leave the production history with two samples
+        3,630 ticks apart, and `Predicate.window_sampled` refuses those -- for
+        the good reason that such a history cannot place its own output in
+        time. Chunking keeps the window *sampled*, so a measurement window that
+        spans an external advance still means a rate.
+
+        Returns the ticks actually advanced. Does not count decision steps: no
+        action was taken, and charging the task budget for evaluator time would
+        make an intervention shorten the episode.
+        """
+        if ticks <= 0:
+            return 0
+        chunk = max(1, min(self.spec_.decision_ticks, MAX_ADVANCE_TICKS))
+        advanced = 0
+        wait = self.catalog.templates[self.catalog.wait_index]
+        payload = wait.bind(self._context())
+        while advanced < ticks:
+            step = min(chunk, ticks - advanced)
+            timed = self.session.step(payload, ticks=step)
+            self._adopt(timed.response.result or {})
+            advanced += step
+        return advanced
+
+    def resync(self, reason: str) -> None:
+        """Re-read the world after something outside the env changed it.
+
+        For an evaluator-side write -- a declared disruption, a scripted
+        intervention -- which the env cannot see because it issued no request.
+        `reason` is recorded so a trace says why the cache was refreshed
+        outside a step rather than leaving it to be inferred.
+        """
+        self._observation = self.session.observe().response.result or {}
+        self._refresh_truth()
+        self.metrics.record(self._observation, self._truth)
+        self._resyncs.append({"tick": int(self._observation.get("tick") or 0), "reason": reason})
+
     def step_payload(self, payload: dict, *, action_key: str | None = None):
         """Take one action by typed payload, with identical accounting.
 
@@ -581,17 +660,7 @@ class FactorioEnv(gym.Env):
 
         result = timed.response.result or {}
         action_result = result.get("action") or {}
-        self._observation = result.get("observation") or self.session.observe().response.result
-        # The step response carries truth with it; only fall back to a separate
-        # request if an older worker did not send it.
-        truth = result.get("truth")
-        if truth is None:
-            self._refresh_truth()
-        else:
-            self._truth = truth
-            self._record_window()
-
-        self.metrics.record(self._observation, self._truth)
+        self._adopt(result)
         succeeded = self._succeeded()
         # Termination is decided *before* the transition is scored: the
         # potential-based shaping needs to know whether s' is absorbing.

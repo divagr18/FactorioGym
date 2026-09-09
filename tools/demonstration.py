@@ -47,13 +47,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from factoriorl import assistance as assistance_module  # noqa: E402
 from factoriorl.agent.adapters import OpenAICompatibleAdapter  # noqa: E402
+
+# `action_vocabulary`, `legal_actions` and `summarise` are deliberately *not*
+# imported any more. They were needed only by `play()`, this file's hand-copy of
+# `AgentLoop.run_episode`; the loop owns the stepping now, and the fact that
+# nothing here needs the prompt-building pieces is the check that the copy is
+# really gone.
 from factoriorl.agent.loop import AgentConfig, AgentLoop  # noqa: E402
-from factoriorl.agent.summary import (  # noqa: E402
-    action_vocabulary,
-    legal_actions,
-    summarise,
-)
 from factoriorl.engine_config import resolve_game_speed  # noqa: E402
 from factoriorl.rcon import RCONClient  # noqa: E402
 
@@ -129,81 +131,23 @@ def probe(endpoint, code: str) -> dict:
         return json.loads(client.lua(code))
 
 
-def play(loop: AgentLoop, *, episode: int, first_step: int, budget: int, until) -> dict:
-    """Let the agent act for at most `budget` decisions, stopping when `until`.
+def window(env, endpoint, ticks: int) -> dict:
+    """Advance the world with the agent stopped, and count what it produced.
 
-    A thin re-implementation of the loop's own stepping, because a
-    demonstration needs to hand control back and forth and `run` plays whole
-    episodes. Decisions are appended through the loop's own recorder, so the
-    replay sees one continuous run.
+    Through `env.advance`, not `session.step`. The old version stepped the
+    session directly in 300-tick chunks and discarded the observation and truth
+    each response carried, so the env's cache -- and with it the next prompt --
+    was left describing the world as it had been before the window. Measured on
+    the committed run: the first post-outage prompt said "game tick 450" while
+    the world was at 4050 (R4.1).
+
+    `env.advance` also chunks by `decision_ticks` rather than 300, which keeps
+    the production history *sampled*: a coarser jump leaves a window nothing
+    observed, and `Predicate.window_sampled` refuses those.
     """
-    env = loop.env
-    steps = 0
-    while steps < budget:
-        observation = env._observation
-        if loop.config.memory:
-            loop.memory.observe(first_step + steps, observation)
-        mask = env.action_masks()
-        vocabulary = action_vocabulary(env)
-        legal = legal_actions(vocabulary, mask)
-        summary = summarise(observation, brief=loop.brief, actions=legal, step=first_step + steps)
-        # Through the loop's own helpers, not around them. The first version of
-        # this function reimplemented the stepping and immediately drifted: it
-        # never offered the model an addressee, so fifty replies naming one were
-        # refused as `unknown_target` and the demonstration measured a feature
-        # it had switched off.
-        targetable, handles = loop._addressing(observation)
-        decision = loop.decide(
-            summary,
-            legal,
-            vocabulary,
-            episode=episode,
-            step=first_step + steps,
-            fallback_index=loop._fallback_index(legal),
-            targetable=targetable,
-            handles=handles,
-        )
-        _, reward, terminated, truncated, info = loop._execute(decision)
-        decision.result = {
-            "reward": round(float(reward), 4),
-            "terminated": bool(terminated),
-            "truncated": bool(truncated),
-            "action_status": info.get("action_status"),
-            "action_error": info.get("action_error"),
-            "success": bool(info.get("success", False)),
-            "infrastructure_failure": info.get("infrastructure_failure"),
-            "skill": info.get("skill"),
-            "skill_outcome": info.get("skill_outcome"),
-            "skill_steps": info.get("skill_steps"),
-            "skill_trace": info.get("skill_trace"),
-        }
-        loop.decisions.append(decision)
-        loop._append_decision(decision)
-        if loop.config.memory:
-            loop.memory.record_action(
-                first_step + steps,
-                decision.action_key,
-                status=info.get("action_status"),
-                error=info.get("action_error"),
-            )
-            loop.memory.compact()
-        steps += 1
-        if until():
-            break
-        if terminated or truncated:
-            break
-    return {"decisions": steps, "stopped_at": first_step + steps}
-
-
-def window(session, endpoint, ticks: int) -> dict:
-    """Advance the world with the agent stopped, and count what it produced."""
     before = probe(endpoint, PRODUCTION)
     started = time.perf_counter()
-    advanced = 0
-    while advanced < ticks:
-        chunk = min(300, ticks - advanced)
-        session.step({"action": "wait"}, ticks=chunk)
-        advanced += chunk
+    advanced = env.advance(ticks)
     after = probe(endpoint, PRODUCTION)
     return {
         "ticks": advanced,
@@ -309,10 +253,10 @@ def main() -> int:
         def producing() -> bool:
             return probe(endpoint, PRODUCTION)["plates"] > opening["plates"]
 
-        report["phase_1_commission"] = play(
-            loop, episode=0, first_step=0, budget=args.commission_budget, until=producing
+        report["phase_1_commission"] = loop.run_segment(
+            0, first_step=0, budget=args.commission_budget, fresh_memory=True, until=producing
         )
-        report["phase_2_window"] = window(session, endpoint, args.window_ticks)
+        report["phase_2_window"] = window(env, endpoint, args.window_ticks)
 
         disruption = probe(endpoint, EMPTY_FUEL)
         report["phase_3_disruption"] = {
@@ -321,8 +265,26 @@ def main() -> int:
             **disruption,
         }
 
+        # The intervention is a raw world write the env issued no request for,
+        # so it cannot see it. Without this the recovery prompt would report a
+        # drill holding 48 coal and `working` at the moment it was empty --
+        # which is exactly what the committed run recorded.
+        env.resync(f"{DISRUPTION}: both fuel inventories emptied")
+
         # Recorded so the report shows the state the recovery began from.
         report["phase_3_disruption"]["state_after"] = probe(endpoint, PRODUCTION)
+        report["phase_3_disruption"]["observation_after_resync"] = {
+            "tick": int(env._observation.get("tick") or 0),
+            "entities": [
+                {
+                    "type": record.get("type"),
+                    "status": record.get("st"),
+                    "working": record.get("working"),
+                    "fuel": record.get("fuel") or {},
+                }
+                for record in (env._observation.get("entities") or [])
+            ],
+        }
 
         def refuelled() -> bool:
             """Both machines hold fuel again.
@@ -336,15 +298,15 @@ def main() -> int:
             state = probe(endpoint, PRODUCTION)
             return bool(state.get("drill_fuel") and state.get("furnace_fuel"))
 
-        report["phase_4_recovery"] = play(
-            loop,
-            episode=0,
-            first_step=report["phase_1_commission"]["stopped_at"],
+        commission = report["phase_1_commission"]
+        report["phase_4_recovery"] = loop.run_segment(
+            0,
+            first_step=commission["first_step"] + commission["steps"],
             budget=args.recovery_budget,
             until=refuelled,
         )
         report["phase_4_recovery"]["refuelled"] = refuelled()
-        report["phase_5_window"] = window(session, endpoint, args.window_ticks)
+        report["phase_5_window"] = window(env, endpoint, args.window_ticks)
 
         final = probe(endpoint, PRODUCTION)
         report["totals"] = {
@@ -353,7 +315,15 @@ def main() -> int:
             "wall_seconds": round(time.perf_counter() - started, 1),
             "plates_total": final["plates"],
             "decisions": len(loop.decisions),
-            "assistance_profile": task.spec.action_profile,
+            # `describe_assistance`, not the action profile. The old field put
+            # "primitive-v1" under a name that reads as an assistance record,
+            # so this run had no assistance record at all.
+            "assistance": assistance_module.describe_assistance(task.spec),
+            "action_profile": task.spec.action_profile,
+            # Every refresh the env made outside a step, with its declared
+            # reason. An evaluator write is not a decision and must not be
+            # invisible in the record either.
+            "out_of_band_refreshes": list(env._resyncs),
             "deliberation_profile": "language-model-v1",
         }
         usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
