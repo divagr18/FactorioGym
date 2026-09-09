@@ -436,6 +436,18 @@ function world.truth()
   -- name instead, so a machine counts whoever placed it.
   local working_counts = {}
   local placed_counts = {}
+  -- Stored energy, which decides how long a machine keeps running after its
+  -- fuel *inventory* is emptied. `get_fuel_inventory():clear()` does not touch
+  -- it, so the Phase 5 disruption left the drill at `status = working` with
+  -- `fuel = 0` -- and nothing anywhere could say for how long, because neither
+  -- the observation, the truth channel nor the digest carried this.
+  --
+  -- Evaluator-side only, deliberately. R4.2 needs it to *account* for stored
+  -- energy when defining an outage; putting it in the observation would change
+  -- the policy contract and the profile version for a quantity a player reads
+  -- off a fuel bar rather than a number.
+  local stored_energy = {}
+  local burning = {}
   local srf = surface()
   if srf then
     for _, entity in ipairs(srf.find_entities_filtered({ force = force })) do
@@ -444,6 +456,16 @@ function world.truth()
         local ok, status = pcall(function() return entity.status end)
         if ok and status == defines.entity_status.working then
           working_counts[entity.name] = (working_counts[entity.name] or 0) + 1
+        end
+        local ok_energy, energy = pcall(function() return entity.energy end)
+        if ok_energy and energy and energy > 0 then
+          stored_energy[entity.name] = (stored_energy[entity.name] or 0) + energy
+        end
+        local ok_burner, remaining = pcall(function()
+          return entity.burner and entity.burner.remaining_burning_fuel or nil
+        end)
+        if ok_burner and remaining and remaining > 0 then
+          burning[entity.name] = (burning[entity.name] or 0) + remaining
         end
       end
     end
@@ -474,6 +496,9 @@ function world.truth()
     -- Additive: every existing predicate reads only the four above.
     working_counts = working_counts,
     placed_counts = placed_counts,
+    -- Joules, summed per prototype. See the comment where they are gathered.
+    stored_energy = stored_energy,
+    remaining_burning_fuel = burning,
     built = built,
     scenario = scene.name,
   }
@@ -535,6 +560,20 @@ function world.digest()
       end
       table.sort(contents)
       parts[#parts + 1] = table.concat(contents, ",")
+      -- Stored energy and the fuel item mid-burn. The digest is "everything a
+      -- reset must restore", and it could not see either -- so two worlds with
+      -- equal digests could hold different amounts of energy in a burner,
+      -- which is precisely the quantity R4.2's three arms are comparing.
+      -- Rounded to whole joules: an exact float would make the digest depend
+      -- on formatting rather than on state.
+      local ok_energy, energy = pcall(function() return entity.energy end)
+      parts[#parts + 1] = "energy=" ..
+        string.format("%d", (ok_energy and energy) and math.floor(energy + 0.5) or 0)
+      local ok_burner, remaining = pcall(function()
+        return entity.burner and entity.burner.remaining_burning_fuel or nil
+      end)
+      parts[#parts + 1] = "burning=" ..
+        string.format("%d", (ok_burner and remaining) and math.floor(remaining + 0.5) or 0)
       entities[#entities + 1] = "entity|" .. table.concat(parts, "|")
     end
   end

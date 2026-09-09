@@ -1,0 +1,7259 @@
+{
+  "experiment": "R4.2, first half: production after the fuel inventory is emptied",
+  "task": "plate_line",
+  "why": "The Phase 5 demonstration removed fuel at tick 4050, recorded the drill still `working` with zero fuel, and refuelled 90 ticks later. Nothing measured whether the line ever stopped, so its recovery claim rests on an outage that may not have happened.",
+  "method": {
+    "disruption": "get_fuel_inventory():clear() on both machines; entity.energy untouched",
+    "advance": "env.advance, in decision_ticks chunks, tick-aligned through the typed path",
+    "stored_energy_source": "world.truth(); the observation carries neither field"
+  },
+  "settle_ticks": 3600,
+  "observe_ticks": 7200,
+  "fuelled": "burner-mining-drill,stone-furnace",
+  "steady_state": {
+    "tick": 3600,
+    "plates": 14.0,
+    "working_counts": {
+      "burner-mining-drill": 1
+    },
+    "stored_energy": {
+      "burner-mining-drill": 2666.7,
+      "stone-furnace": 100
+    },
+    "remaining_burning_fuel": {
+      "burner-mining-drill": 2999833.3,
+      "stone-furnace": 3965100
+    },
+    "machines": {
+      "mining-drill": {
+        "status": "working",
+        "working": true,
+        "fuel": {
+          "coal": 47
+        },
+        "output": {}
+      },
+      "furnace": {
+        "status": "no_ingredients",
+        "working": false,
+        "fuel": {
+          "coal": 48
+        },
+        "output": {
+          "iron-plate": 14
+        }
+      }
+    }
+  },
+  "settle_curve": [
+    {
+      "tick": 0,
+      "plates": 0.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {},
+      "remaining_burning_fuel": {},
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 50
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {
+            "coal": 50
+          },
+          "output": {}
+        }
+      }
+    },
+    {
+      "tick": 300,
+      "plates": 0.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 3249833.3,
+        "stone-furnace": 3914400
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {}
+        }
+      }
+    },
+    {
+      "tick": 600,
+      "plates": 1.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2499833.3,
+        "stone-furnace": 3534800
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {
+            "iron-plate": 1
+          }
+        }
+      }
+    },
+    {
+      "tick": 900,
+      "plates": 2.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1749833.3,
+        "stone-furnace": 3156700
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {
+            "iron-plate": 2
+          }
+        }
+      }
+    },
+    {
+      "tick": 1200,
+      "plates": 4.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 999833.3,
+        "stone-furnace": 2846100
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {
+            "iron-plate": 4
+          }
+        }
+      }
+    },
+    {
+      "tick": 1500,
+      "plates": 5.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 249833.3,
+        "stone-furnace": 2472400
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {
+            "iron-plate": 5
+          }
+        }
+      }
+    },
+    {
+      "tick": 1800,
+      "plates": 6.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 3499833.3,
+        "stone-furnace": 2094300
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 48
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {
+            "iron-plate": 6
+          }
+        }
+      }
+    },
+    {
+      "tick": 2100,
+      "plates": 7.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2749833.3,
+        "stone-furnace": 1716200
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 48
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {
+            "iron-plate": 7
+          }
+        }
+      }
+    },
+    {
+      "tick": 2400,
+      "plates": 9.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1999833.3,
+        "stone-furnace": 1405600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 48
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {
+            "iron-plate": 9
+          }
+        }
+      }
+    },
+    {
+      "tick": 2700,
+      "plates": 10.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1249833.3,
+        "stone-furnace": 1031900
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 48
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {
+            "iron-plate": 10
+          }
+        }
+      }
+    },
+    {
+      "tick": 3000,
+      "plates": 11.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 499833.3,
+        "stone-furnace": 653800
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 48
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {
+            "iron-plate": 11
+          }
+        }
+      }
+    },
+    {
+      "tick": 3300,
+      "plates": 12.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 3749833.3,
+        "stone-furnace": 275700
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 47
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 49
+          },
+          "output": {
+            "iron-plate": 12
+          }
+        }
+      }
+    },
+    {
+      "tick": 3600,
+      "plates": 14.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2999833.3,
+        "stone-furnace": 3965100
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {
+            "coal": 47
+          },
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {
+            "coal": 48
+          },
+          "output": {
+            "iron-plate": 14
+          }
+        }
+      }
+    }
+  ],
+  "disruption": "tick=3600|burner-mining-drill=47,stone-furnace=48",
+  "at_removal": {
+    "tick": 3600,
+    "plates": 14.0,
+    "working_counts": {
+      "burner-mining-drill": 1
+    },
+    "stored_energy": {
+      "burner-mining-drill": 2666.7,
+      "stone-furnace": 100
+    },
+    "remaining_burning_fuel": {
+      "burner-mining-drill": 2999833.3,
+      "stone-furnace": 3965100
+    },
+    "machines": {
+      "mining-drill": {
+        "status": "working",
+        "working": true,
+        "fuel": {},
+        "output": {}
+      },
+      "furnace": {
+        "status": "no_ingredients",
+        "working": false,
+        "fuel": {},
+        "output": {
+          "iron-plate": 14
+        }
+      }
+    }
+  },
+  "decay_curve": [
+    {
+      "tick": 3600,
+      "plates": 14.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2999833.3,
+        "stone-furnace": 3965100
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 14
+          }
+        }
+      }
+    },
+    {
+      "tick": 3630,
+      "plates": 14.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2924833.3,
+        "stone-furnace": 3924500
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 14
+          }
+        }
+      }
+    },
+    {
+      "tick": 3660,
+      "plates": 14.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2849833.3,
+        "stone-furnace": 3879500
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 14
+          }
+        }
+      }
+    },
+    {
+      "tick": 3690,
+      "plates": 14.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2774833.3,
+        "stone-furnace": 3834500
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 14
+          }
+        }
+      }
+    },
+    {
+      "tick": 3720,
+      "plates": 14.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2699833.3,
+        "stone-furnace": 3789500
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 14
+          }
+        }
+      }
+    },
+    {
+      "tick": 3750,
+      "plates": 14.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2624833.3,
+        "stone-furnace": 3744500
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 14
+          }
+        }
+      }
+    },
+    {
+      "tick": 3780,
+      "plates": 14.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2549833.3,
+        "stone-furnace": 3699500
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 14
+          }
+        }
+      }
+    },
+    {
+      "tick": 3810,
+      "plates": 15.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2474833.3,
+        "stone-furnace": 3677000
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 15
+          }
+        }
+      }
+    },
+    {
+      "tick": 3840,
+      "plates": 15.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2399833.3,
+        "stone-furnace": 3677000
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 15
+          }
+        }
+      }
+    },
+    {
+      "tick": 3870,
+      "plates": 15.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2324833.3,
+        "stone-furnace": 3636400
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 15
+          }
+        }
+      }
+    },
+    {
+      "tick": 3900,
+      "plates": 15.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2249833.3,
+        "stone-furnace": 3591400
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 15
+          }
+        }
+      }
+    },
+    {
+      "tick": 3930,
+      "plates": 15.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2174833.3,
+        "stone-furnace": 3546400
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 15
+          }
+        }
+      }
+    },
+    {
+      "tick": 3960,
+      "plates": 15.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2099833.3,
+        "stone-furnace": 3501400
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 15
+          }
+        }
+      }
+    },
+    {
+      "tick": 3990,
+      "plates": 15.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 2024833.3,
+        "stone-furnace": 3456400
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 15
+          }
+        }
+      }
+    },
+    {
+      "tick": 4020,
+      "plates": 15.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1949833.3,
+        "stone-furnace": 3411400
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 15
+          }
+        }
+      }
+    },
+    {
+      "tick": 4050,
+      "plates": 16.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1874833.3,
+        "stone-furnace": 3388900
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 16
+          }
+        }
+      }
+    },
+    {
+      "tick": 4080,
+      "plates": 16.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1799833.3,
+        "stone-furnace": 3388900
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 16
+          }
+        }
+      }
+    },
+    {
+      "tick": 4110,
+      "plates": 16.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1724833.3,
+        "stone-furnace": 3348300
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 16
+          }
+        }
+      }
+    },
+    {
+      "tick": 4140,
+      "plates": 16.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1649833.3,
+        "stone-furnace": 3303300
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 16
+          }
+        }
+      }
+    },
+    {
+      "tick": 4170,
+      "plates": 16.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1574833.3,
+        "stone-furnace": 3258300
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 16
+          }
+        }
+      }
+    },
+    {
+      "tick": 4200,
+      "plates": 16.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1499833.3,
+        "stone-furnace": 3213300
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 16
+          }
+        }
+      }
+    },
+    {
+      "tick": 4230,
+      "plates": 16.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1424833.3,
+        "stone-furnace": 3168300
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 16
+          }
+        }
+      }
+    },
+    {
+      "tick": 4260,
+      "plates": 16.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1349833.3,
+        "stone-furnace": 3123300
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 16
+          }
+        }
+      }
+    },
+    {
+      "tick": 4290,
+      "plates": 17.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1274833.3,
+        "stone-furnace": 3100800
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 17
+          }
+        }
+      }
+    },
+    {
+      "tick": 4320,
+      "plates": 17.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1199833.3,
+        "stone-furnace": 3100800
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 17
+          }
+        }
+      }
+    },
+    {
+      "tick": 4350,
+      "plates": 17.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1124833.3,
+        "stone-furnace": 3060200
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 17
+          }
+        }
+      }
+    },
+    {
+      "tick": 4380,
+      "plates": 17.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 1049833.3,
+        "stone-furnace": 3015200
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 17
+          }
+        }
+      }
+    },
+    {
+      "tick": 4410,
+      "plates": 17.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 974833.3,
+        "stone-furnace": 2970200
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 17
+          }
+        }
+      }
+    },
+    {
+      "tick": 4440,
+      "plates": 17.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 899833.3,
+        "stone-furnace": 2925200
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 17
+          }
+        }
+      }
+    },
+    {
+      "tick": 4470,
+      "plates": 17.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 824833.3,
+        "stone-furnace": 2880200
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 17
+          }
+        }
+      }
+    },
+    {
+      "tick": 4500,
+      "plates": 17.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 749833.3,
+        "stone-furnace": 2835200
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 17
+          }
+        }
+      }
+    },
+    {
+      "tick": 4530,
+      "plates": 18.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 674833.3,
+        "stone-furnace": 2812700
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 18
+          }
+        }
+      }
+    },
+    {
+      "tick": 4560,
+      "plates": 18.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 599833.3,
+        "stone-furnace": 2812700
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 18
+          }
+        }
+      }
+    },
+    {
+      "tick": 4590,
+      "plates": 18.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 524833.3,
+        "stone-furnace": 2772100
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 18
+          }
+        }
+      }
+    },
+    {
+      "tick": 4620,
+      "plates": 18.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 449833.3,
+        "stone-furnace": 2727100
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 18
+          }
+        }
+      }
+    },
+    {
+      "tick": 4650,
+      "plates": 18.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 374833.3,
+        "stone-furnace": 2682100
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 18
+          }
+        }
+      }
+    },
+    {
+      "tick": 4680,
+      "plates": 18.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 299833.3,
+        "stone-furnace": 2637100
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 18
+          }
+        }
+      }
+    },
+    {
+      "tick": 4710,
+      "plates": 18.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 224833.3,
+        "stone-furnace": 2592100
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 18
+          }
+        }
+      }
+    },
+    {
+      "tick": 4740,
+      "plates": 18.0,
+      "working_counts": {
+        "burner-mining-drill": 1,
+        "stone-furnace": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 1600
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 149833.3,
+        "stone-furnace": 2547100
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {
+            "iron-plate": 18
+          }
+        }
+      }
+    },
+    {
+      "tick": 4770,
+      "plates": 19.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2666.7,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "burner-mining-drill": 74833.3,
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 4800,
+      "plates": 19.0,
+      "working_counts": {
+        "burner-mining-drill": 1
+      },
+      "stored_energy": {
+        "burner-mining-drill": 2500.0,
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "working",
+          "working": true,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 4830,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 4860,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 4890,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 4920,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 4950,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 4980,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5010,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5040,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5070,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5100,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5130,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5160,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5190,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5220,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5250,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5280,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5310,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5340,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5370,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5400,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5430,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5460,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5490,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5520,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5550,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5580,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5610,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5640,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5670,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5700,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5730,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5760,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5790,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5820,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5850,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5880,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5910,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5940,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 5970,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6000,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6030,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6060,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6090,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6120,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6150,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6180,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6210,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6240,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6270,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6300,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6330,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6360,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6390,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6420,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6450,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6480,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6510,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6540,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6570,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6600,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6630,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6660,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6690,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6720,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6750,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6780,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6810,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6840,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6870,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6900,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6930,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6960,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 6990,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7020,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7050,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7080,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7110,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7140,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7170,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7200,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7230,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7260,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7290,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7320,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7350,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7380,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7410,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7440,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7470,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7500,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7530,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7560,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7590,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7620,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7650,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7680,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7710,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7740,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7770,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7800,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7830,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7860,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7890,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7920,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7950,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 7980,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8010,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8040,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8070,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8100,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8130,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8160,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8190,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8220,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8250,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8280,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8310,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8340,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8370,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8400,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8430,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8460,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8490,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8520,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8550,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8580,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8610,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8640,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8670,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8700,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8730,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8760,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8790,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8820,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8850,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8880,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8910,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8940,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 8970,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9000,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9030,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9060,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9090,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9120,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9150,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9180,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9210,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9240,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9270,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9300,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9330,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9360,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9390,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9420,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9450,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9480,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9510,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9540,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9570,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9600,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9630,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9660,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9690,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9720,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9750,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9780,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9810,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9840,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9870,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9900,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9930,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9960,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 9990,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10020,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10050,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10080,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10110,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10140,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10170,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10200,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10230,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10260,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10290,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10320,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10350,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10380,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10410,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10440,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10470,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10500,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10530,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10560,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10590,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10620,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10650,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10680,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10710,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10740,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10770,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    },
+    {
+      "tick": 10800,
+      "plates": 19.0,
+      "working_counts": {},
+      "stored_energy": {
+        "stone-furnace": 100
+      },
+      "remaining_burning_fuel": {
+        "stone-furnace": 2524600
+      },
+      "machines": {
+        "mining-drill": {
+          "status": "no_fuel",
+          "working": false,
+          "fuel": {},
+          "output": {}
+        },
+        "furnace": {
+          "status": "no_ingredients",
+          "working": false,
+          "fuel": {},
+          "output": {
+            "iron-plate": 19
+          }
+        }
+      }
+    }
+  ],
+  "findings": {
+    "plates_at_removal": 14.0,
+    "plates_at_end": 19.0,
+    "plates_after_removal": 5.0,
+    "last_tick_production_rose": 4770,
+    "ticks_producing_after_removal": 1170,
+    "still_producing_at_end": false,
+    "working_at_removal": {
+      "burner-mining-drill": 1
+    },
+    "stored_energy_at_removal": {
+      "burner-mining-drill": 2666.7,
+      "stone-furnace": 100
+    },
+    "drill_remaining_burning_fuel_joules": 2999833.3,
+    "drill_watts": 150000,
+    "implied_run_on_ticks": 1199,
+    "measured_agrees_with_arithmetic": true,
+    "demonstration_recovery_ticks": 90,
+    "line_was_still_running_when_the_agent_refuelled": true
+  }
+}
