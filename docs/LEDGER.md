@@ -974,30 +974,33 @@ above chance in that space, but the space should be named. Traced with
 `tools/trace_scenes.py`; evidence in
 `docs/evidence/r5-deliver-hardcore-trace.json`.
 
-**One measurement problem found while reading the 4.4 cells, and not yet
-resolved.** Every failed `deliver` episode is flagged `truncated` with a step
-count *below* the decision budget -- 103 of 113 across the first two cells, as
-low as 12 against a budget of 120, and in 2,734 training episodes not one
-reached 120. `env.py` truncates on exactly two conditions and neither fits: 12
-is not the decision budget, and the 15,000-tick budget needs ~500 decisions at
-`decision_ticks` = 30, so it cannot bind on this family at all. Ruled out: an
-infrastructure failure dressed as a time limit (`vecenv.py:261` excludes those,
-and `reset_failures` is empty in all three rows), `_steps` surviving a reset
-(`reset` zeroes it), and a `gymnasium` `TimeLimit` wrapper (there is none).
+**A measurement problem I reported while reading the 4.4 cells, and then
+withdrew.** The entry here previously said 103 of 113 failures were truncated
+below the decision budget with neither of `env.py`'s two conditions able to
+explain it. That was wrong, and the cause was my own conflation of two counts.
 
-Success rates are unaffected -- they read `info["success"]`, not any step count
--- so the 4.4 rates stand. What is unreliable is `per_scene.steps` and
-`mean_episode_steps`, and therefore any diagnosis that reads episode length,
-which is most of what R5.1 asks a report to say. `tools/diagnose_run.py` labels
-these `truncated_unexplained` rather than attributing them to the only budget
-left standing. Resolving it needs a live instrumented episode, which the
-comparison's code freeze forbids.
+`evaluate_parallel` counts **policy decisions**, one per `vec.step`. The
+environment's `_steps` counts **primitive actions**. Under the skills action
+space -- which the 4.4 cells used, `shaping_comparison` enabling skills by
+default -- `SkillEnv.step` runs a whole skill and one decision becomes many
+primitive steps: a solved `deliver` episode is 4 decisions and 18 primitive
+steps. Truncation compares `_steps` against `max_decision_steps`, so the "120"
+is a primitive budget and a skills policy gets roughly 30 decisions. Rows
+showing truncation at 12-118 decisions were consistent throughout.
 
-Two dead ends recorded so they are not walked twice:
-`production.episode_ticks` exceeds `30 x steps` by a variable 2 to 108 because
-it spans the reset settle, and `simulated_ticks` is *derived* as
-`primitive_steps x decision_ticks` rather than measured, so ratios computed from
-it describe two counters and not the clock.
+Reverted with it: the `EpisodeResetFailed` mechanism I offered, which does not
+fire in those runs, and the change making `per_scene["steps"]` report
+primitives. `steps` is the decision count again, with `primitive_steps` beside
+it so the ratio is visible.
+
+What survives is smaller and real. `max_decision_steps` is a primitive budget
+despite its name, so episode lengths from a skills run and a primitive run are
+different quantities and must not be compared without the ratio. The
+instrumented episode confirmed 30 ticks per decision and truncation firing on
+the decision condition. And two dead ends remain worth not re-walking:
+`production.episode_ticks` is 30 x the *primitive* count, and `simulated_ticks`
+is derived rather than measured, so ratios computed from it describe two
+counters and not the clock.
 
 ### 4.1 - Baseline policy
 

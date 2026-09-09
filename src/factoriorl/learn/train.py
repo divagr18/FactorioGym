@@ -490,21 +490,26 @@ def evaluate_parallel(
                     scored.add(episode)
                 counted += 1
                 successes += int(bool(info.get("success")))
-                # The env's own decision count, not this loop's accumulator.
-                # `steps[index]` counts loop iterations, and the two diverge:
-                # `EpisodeResetFailed` does `vec.reset()` and `continue`, which
-                # zeroes every env's `_steps` while skipping the `steps += 1`
-                # that would have tracked it, so after one reset failure the
-                # counters are permanently offset. The env is the authority --
-                # it is the counter `env.py:744` compares against
-                # `max_decision_steps` to decide truncation in the first place,
-                # so reading anything else can report a step count that
-                # contradicts the truncation flag beside it. Measured on a
-                # `deliver` episode: `info["steps"]` tracked `env._steps`
-                # exactly for all 120 decisions and truncation fired on the
-                # decision condition, while published rows carried counts as
-                # low as 12 with the same flag.
-                length = int(info.get("steps", steps[index]))
+                # Two different counts, both correct, and conflating them cost
+                # an evening. `steps[index]` counts *policy decisions* -- one
+                # per `vec.step` -- while `info["steps"]` is the env's
+                # `_steps`, which counts *primitive* actions. Under the skills
+                # action space one decision expands into many primitives
+                # (`SkillEnv.step` runs a whole skill), so a solved `deliver`
+                # episode reads 4 decisions and 18 primitive steps.
+                #
+                # `max_decision_steps` is compared against `_steps`
+                # (`env.py:744`), so it is a *primitive* budget despite the
+                # name: a skills policy gets far fewer decisions than the
+                # number suggests. That is why published rows showed
+                # truncation at 12-118 decisions against a "120" budget --
+                # consistent all along, not the defect it looked like.
+                #
+                # `steps` stays the decision count, because "where did the
+                # attempt fail" is a question about decisions the policy made.
+                # The primitive count is recorded beside it rather than
+                # replacing it.
+                length = int(steps[index])
                 lengths.append(length)
                 rewards.append(float(totals[index]))
                 row = {
@@ -512,10 +517,10 @@ def evaluate_parallel(
                     "layout_family": info.get("layout_family"),
                     "success": bool(info.get("success")),
                     "steps": length,
-                    # Kept beside it rather than replaced, because a mismatch is
-                    # itself a signal: it means an episode boundary went
-                    # unaccounted for in this loop.
-                    "loop_steps": int(steps[index]),
+                    # The env's primitive count. Equal to `steps` in the
+                    # primitive action space and larger under skills, which is
+                    # the ratio a reader needs to interpret either number.
+                    "primitive_steps": int(info.get("steps", length)),
                     "reward": round(float(totals[index]), 4),
                     # Why it ended, which pass/fail alone does not say: a policy
                     # that ran out of budget and one that hit a failure

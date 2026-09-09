@@ -1,30 +1,26 @@
-"""The reported step count must be the env's, not the evaluation loop's.
+"""Two step counts, both correct, counting different things.
 
-`per_scene["steps"]` and `mean_episode_steps` came from an accumulator local to
-`evaluate_parallel`, incremented once per `vec.step` and zeroed on each episode
-boundary. That looks equivalent to the env's own `_steps` and is not: the
-`EpisodeResetFailed` branch calls `vec.reset()` and `continue`, which zeroes
-every env's `_steps` while skipping the `steps += 1` that would have tracked
-it, so after one reset failure the two counters are permanently offset.
+`evaluate_parallel` tracks one number per `vec.step` -- the count of **policy
+decisions** -- while `info["steps"]` is the environment's `_steps`, which counts
+**primitive actions**. In the primitive action space they agree. Under skills
+they do not: `SkillEnv.step` runs a whole skill through
+`self.runner.run(skill)`, so one decision expands into many primitive steps and
+a solved `deliver` episode reads 4 decisions against 18 primitive steps.
 
-Why the env wins the tie. `env.py:744` compares `_steps` against
-`max_decision_steps` to decide truncation, so it is the counter the
-`truncated` flag is *about*. Reading anything else can publish a step count
-that contradicts the flag sitting beside it in the same row -- which is what
-happened: published rows carried counts as low as 12 alongside a truncation
-flag, on a task whose only reachable truncation condition is 120 decisions.
-A live episode confirmed the env side is sound (`info["steps"]` tracked
-`env._steps` for all 120 decisions, truncation fired on the decision
-condition, and the 15,000-tick budget was never approached at 30 ticks a
-decision).
+Conflating them cost an evening and a wrong published claim. `env.py:744`
+compares `_steps` against `max_decision_steps`, so that budget is a *primitive*
+budget despite its name, and a skills policy gets far fewer decisions than the
+number suggests. Published rows showing truncation at 12-118 decisions against
+a "120" budget were consistent all along; they looked like a defect only
+because the two counts were assumed to be the same quantity.
 
-`loop_steps` is kept beside the corrected field rather than dropped, because a
-disagreement between them means an episode boundary went unaccounted for in
-the loop, and that is worth seeing rather than hiding.
+So `steps` is the decision count -- "where did the attempt fail" is a question
+about decisions the policy made -- and `primitive_steps` is recorded beside it,
+because the ratio between them is what a reader needs to interpret either.
 
 Driven against a fake vec env: `evaluate_parallel` only calls `reset`,
-`action_masks`, `step`, `pending_episodes` and `in_flight_episodes`, so no
-engine is involved.
+`action_masks`, `step`, `pending_episodes`, `in_flight_episodes` and
+`episode_attempts`, so no engine is involved.
 """
 
 from __future__ import annotations
@@ -44,18 +40,18 @@ class _Model:
 
 
 class LengthVecEnv:
-    """Plays each scene for a declared number of loop iterations.
+    """Plays each scene for a declared number of decisions.
 
-    `reported_steps` is what the env claims in `info["steps"]`. Setting it
-    different from the iteration count is the whole point: it is the only way
-    to tell which counter the report actually reads.
+    `primitive` is what the env claims in `info["steps"]`. Setting it different
+    from the decision count is the whole point: it is how a skills expansion
+    looks, and the only way to tell which count each field reports.
     """
 
-    def __init__(self, lengths: dict[int, int], reported: dict[int, int] | None = None):
+    def __init__(self, decisions: dict[int, int], primitive: dict[int, int] | None = None):
         self.num_envs = 1
-        self.lengths = lengths
-        self.reported = reported or {}
-        self._queue = list(lengths)
+        self.decisions = decisions
+        self.primitive = primitive or {}
+        self._queue = list(decisions)
         self._live: int | None = None
         self._elapsed = 0
 
@@ -82,12 +78,12 @@ class LengthVecEnv:
     def step(self, actions):
         self._elapsed += 1
         episode = self._live
-        done = episode is None or self._elapsed >= self.lengths.get(episode, 1)
+        done = episode is None or self._elapsed >= self.decisions.get(episode, 1)
         info: dict = {"episode_index": episode}
         if done and episode is not None:
             info["success"] = False
             info["TimeLimit.truncated"] = True
-            info["steps"] = self.reported.get(episode, self._elapsed)
+            info["steps"] = self.primitive.get(episode, self._elapsed)
         out = (
             {"x": np.zeros((1, 1), dtype=np.float32)},
             np.array([0.0], dtype=np.float32),
@@ -100,54 +96,51 @@ class LengthVecEnv:
 
 
 def _run(env, episodes):
-    return evaluate_parallel(env, _Model(), episodes, only_indices=set(env.lengths))
+    return evaluate_parallel(env, _Model(), episodes, only_indices=set(env.decisions))
 
 
-def test_the_reported_count_is_the_envs_not_the_loops():
-    """The regression. The loop sees 4 iterations; the env says 120. A row that
-    said 4 while flagging truncation on a 120-decision budget was the published
-    contradiction."""
-    env = LengthVecEnv(lengths={START: 4}, reported={START: 120})
-    result = _run(env, 1)
-    row = result["per_scene"][0]
-    assert row["steps"] == 120
-    assert row["loop_steps"] == 4
-
-
-def test_the_loop_count_is_kept_so_a_mismatch_is_visible():
-    """Dropping it would hide the fact that an episode boundary went
-    unaccounted for, which is the symptom that found this."""
-    env = LengthVecEnv(lengths={START: 3}, reported={START: 99})
+def test_steps_is_the_decision_count_not_the_primitive_count():
+    """The correction. A skills episode makes 4 decisions that expand into 18
+    primitive steps, and `steps` must be the 4 -- reporting 18 answers a
+    question nobody asked of a per-scene diagnostic."""
+    env = LengthVecEnv(decisions={START: 4}, primitive={START: 18})
     row = _run(env, 1)["per_scene"][0]
-    assert row["loop_steps"] == 3 and row["steps"] == 99
+    assert row["steps"] == 4
+    assert row["primitive_steps"] == 18
 
 
-def test_mean_episode_steps_follows_the_corrected_count():
-    """The aggregate is built from the same list, so a fix that touched only
-    `per_scene` would leave the summary wrong."""
-    env = LengthVecEnv(
-        lengths={START: 2, START + 1: 2},
-        reported={START: 100, START + 1: 120},
-    )
-    result = _run(env, 2)
-    assert result["mean_episode_steps"] == 110.0
+def test_the_primitive_count_is_recorded_beside_it():
+    """Without it, a 4 and a 120 in the same column are indistinguishable
+    between action spaces, and the truncation flag looks inconsistent."""
+    env = LengthVecEnv(decisions={START: 12}, primitive={START: 120})
+    row = _run(env, 1)["per_scene"][0]
+    assert row["steps"] == 12 and row["primitive_steps"] == 120
 
 
-def test_the_counts_agree_when_nothing_goes_wrong():
-    """The common case must be unchanged: with no reset failure the loop and
-    the env count the same decisions, and the fix must not perturb that."""
-    env = LengthVecEnv(lengths={START: 5, START + 1: 7})
+def test_the_two_agree_in_the_primitive_action_space():
+    """One decision is one primitive step when no skill is involved, so the
+    ratio is 1 and neither field is surprising."""
+    env = LengthVecEnv(decisions={START: 5, START + 1: 7})
     result = _run(env, 2)
     for row in result["per_scene"]:
-        assert row["steps"] == row["loop_steps"]
+        assert row["steps"] == row["primitive_steps"]
     assert sorted(row["steps"] for row in result["per_scene"]) == [5, 7]
 
 
-def test_an_env_that_reports_no_step_count_falls_back_to_the_loop():
-    """Older runs and any env that omits the key still get a number rather
-    than a crash -- the fallback is the loop counter, which is what the field
-    always was."""
-    env = LengthVecEnv(lengths={START: 6})
+def test_mean_episode_steps_is_in_decisions():
+    """The aggregate is built from the same list, so it has to report the same
+    quantity as the field beside it."""
+    env = LengthVecEnv(
+        decisions={START: 4, START + 1: 6},
+        primitive={START: 100, START + 1: 120},
+    )
+    assert _run(env, 2)["mean_episode_steps"] == 5.0
+
+
+def test_an_env_reporting_no_primitive_count_falls_back_to_decisions():
+    """Any env that omits the key still yields a number rather than a crash,
+    and the fallback keeps the two fields consistent."""
+    env = LengthVecEnv(decisions={START: 6})
     original = env.step
 
     def step(actions):
@@ -158,4 +151,4 @@ def test_an_env_that_reports_no_step_count_falls_back_to_the_loop():
 
     env.step = step
     row = _run(env, 1)["per_scene"][0]
-    assert row["steps"] == 6 and row["loop_steps"] == 6
+    assert row["steps"] == 6 and row["primitive_steps"] == 6

@@ -208,6 +208,135 @@ def cmd_train(args) -> int:
     return 0
 
 
+def cmd_evaluate(args) -> int:
+    """Score a provided checkpoint, without editing internals.
+
+    R6's gate: *"Another user can install, evaluate a provided checkpoint, run
+    the short learning recipe, connect an agent, and author a small task
+    without editing internals."* We ship a declared checkpoint set in
+    `docs/evidence/phase4-checkpoints.json` and, until this existed, no
+    supported way to run one -- evaluation happened only as a phase of
+    training, so a reader of that file had to write their own harness.
+
+    Defaults are read from the run's own manifest where there is one, because
+    the settings that must match are not ones a user should have to know: a
+    policy trained with skills has a larger action space and scoring it without
+    them silently truncates its catalog.
+    """
+    import json as _json
+    from pathlib import Path
+
+    from factoriorl import manifest as manifest_module
+    from factoriorl import tasks
+    from factoriorl.engine_config import resolve_game_speed
+    from factoriorl.env import FactorioEnv
+    from factoriorl.learn.policy import observation_compatibility
+    from factoriorl.learn.train import _wrap, evaluate, evaluate_parallel
+    from factoriorl.rcon import RCONClient
+    from factoriorl.seeding import Branch, SeedPlan
+    from factoriorl.session import WorkerSession
+    from factoriorl.vecenv import FactorioVecEnv
+    from factoriorl.worker import WorkerManager
+
+    checkpoint = Path(args.checkpoint)
+    run_dir = manifest_module.runs_dir() / args.checkpoint
+    if not checkpoint.is_file():
+        checkpoint = run_dir / "model.zip"
+    if not checkpoint.is_file():
+        print(f"no checkpoint at {checkpoint}", file=sys.stderr)
+        return 2
+
+    # The manifest beside the checkpoint knows the task and the action space.
+    # Reading them beats asking, and beats a user guessing wrong.
+    task_id, skills = args.task, args.skills
+    manifest_path = checkpoint.parent / "manifest.json"
+    declared: dict = {}
+    if manifest_path.is_file():
+        declared = _json.loads(manifest_path.read_text(encoding="utf-8"))
+        task_id = task_id or ((declared.get("task") or {}).get("id"))
+        if not args.skills:
+            skills = bool((declared.get("config") or {}).get("skills"))
+    if not task_id:
+        print(
+            "no --task given and no manifest beside the checkpoint to read it from",
+            file=sys.stderr,
+        )
+        return 2
+
+    from sb3_contrib import MaskablePPO
+
+    task = tasks.get(task_id)
+    model = MaskablePPO.load(checkpoint, device=args.device)
+    plan = SeedPlan(master=args.seed, run_id=args.plan_id)
+
+    manager = WorkerManager()
+    handle = manager.launch(f"eval-{task_id}")
+    try:
+        # Built directly rather than through the trainer's `_make_session`,
+        # which is shaped for a training run's worker bookkeeping.
+        with RCONClient(handle.spec.rcon_endpoint, timeout=30.0) as client:
+            client.lua(f"game.speed = {resolve_game_speed()} return game.speed")
+        session = WorkerSession(handle, timeout=30.0)
+        session.status()
+
+        probe = _wrap(
+            FactorioEnv(task, session, plan, branch=Branch.EVAL, split=args.split), skills
+        )
+        report = observation_compatibility(model, probe)
+        if report.get("comparable") and not report.get("compatible"):
+            print(_json.dumps({"incompatible": report}, indent=2), file=sys.stderr)
+            print(
+                "\nrefusing to evaluate: this checkpoint cannot be fed by this "
+                "environment. Scoring it anyway would fail deep in the policy with "
+                "a reshape error that names neither the key nor the reason.",
+                file=sys.stderr,
+            )
+            return 3
+
+        if args.workers > 1:
+            vec = FactorioVecEnv(
+                task,
+                plan,
+                num_workers=args.workers,
+                branch=Branch.EVAL,
+                split=args.split,
+                shaping=False,
+                worker_prefix=f"eval-{task_id}",
+                skills=skills,
+            )
+            try:
+                rows = evaluate_parallel(vec, model, args.episodes, deterministic=not args.sampled)
+            finally:
+                vec.close()
+        else:
+            probe.unwrapped._episode_index = -1
+            rows = evaluate(probe, model, args.episodes, deterministic=not args.sampled)
+    finally:
+        manager.cleanup(handle)
+
+    result = {
+        "checkpoint": str(checkpoint),
+        "task": {"id": task.spec.id, "version": task.spec.version},
+        "split": args.split,
+        "action_space": "skills" if skills else "primitive",
+        "arm": "sampled" if args.sampled else "argmax",
+        "episodes": args.episodes,
+        # Stated because a checkpoint whose environment moved underneath it can
+        # still be scored; the number just describes a different world.
+        "manifest_verifies_against_this_tree": (
+            manifest_module.verify(checkpoint.parent.name).get("ok")
+            if manifest_path.is_file()
+            else None
+        ),
+        "result": rows,
+    }
+    print(_json.dumps(result, indent=2))
+    if args.out:
+        Path(args.out).write_text(_json.dumps(result, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote {args.out}")
+    return 0
+
+
 def cmd_doctor_train(_args) -> int:
     """Fail loudly on a CPU-only wheel: the commonest Windows setup failure."""
     try:
@@ -525,6 +654,27 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="game speed; the best value is machine-specific, see profiling.PROFILE_SPEED",
     )
+    ev = sub.add_parser("evaluate", help="score a provided checkpoint on a task's evaluation split")
+    ev.add_argument("--checkpoint", required=True, metavar="RUN_OR_PATH")
+    ev.add_argument(
+        "--task", default=None, help="defaults to the task recorded in the run's manifest"
+    )
+    ev.add_argument("--split", default="test", choices=("train", "val", "test"))
+    ev.add_argument("--episodes", type=int, default=100)
+    ev.add_argument(
+        "--skills",
+        action="store_true",
+        help="force the skill action space. Defaults to whatever the manifest "
+        "records, because scoring a skill-trained policy without it silently "
+        "truncates its catalog",
+    )
+    ev.add_argument("--sampled", action="store_true", help="sample instead of argmax")
+    ev.add_argument("--workers", type=int, default=1)
+    ev.add_argument("--device", default="auto")
+    ev.add_argument("--seed", type=int, default=20260907)
+    ev.add_argument("--plan-id", default="evaluate", metavar="ID")
+    ev.add_argument("--out", default=None)
+
     gate4 = sub.add_parser("phase4-gate", help="run the Phase 4 exit gate")
     gate4.add_argument("--mode", choices=("reproduce", "full"), default="reproduce")
 
@@ -575,6 +725,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_replay(args)
     if args.command == "profile":
         return cmd_profile(args)
+    if args.command == "evaluate":
+        return cmd_evaluate(args)
     if args.command == "phase4-gate":
         return cmd_phase4_gate(args)
     if args.command == "tasks":

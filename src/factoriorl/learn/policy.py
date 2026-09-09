@@ -296,6 +296,60 @@ def _digest_values(state_dict) -> str:
     return hasher.hexdigest()
 
 
+def observation_compatibility(model, env) -> dict:
+    """Whether this checkpoint can be fed by this environment.
+
+    A checkpoint can load and still be unusable. SB3 rebuilds a policy's input
+    layers from the observation space pickled *inside* the checkpoint, so
+    `load` succeeds against any environment; the failure surfaces later, deep
+    in `obs_to_tensor`, as `cannot reshape array of size 14 into shape (10)`
+    with no indication of which key or why.
+
+    That is not hypothetical. `ITEMS` grew from 10 to 14 when R4.3 added two
+    task families, so every checkpoint trained before it expects a 10-wide
+    `inventory` and today's environment offers 14. `architecture_signature`
+    does not catch this either -- it compares the policy's own tensors, not the
+    space the environment will present.
+
+    So this compares the two spaces key by key and names what differs, which is
+    the difference between "this checkpoint predates the R4.3 item catalog" and
+    a reshape traceback.
+    """
+    theirs = getattr(model, "observation_space", None)
+    ours = getattr(env, "observation_space", None)
+    if theirs is None or ours is None:
+        return {"comparable": False, "why": "one side exposes no observation space"}
+
+    def shapes(space) -> dict:
+        spaces_dict = getattr(space, "spaces", None)
+        if spaces_dict is None:
+            return {"<box>": tuple(getattr(space, "shape", ()) or ())}
+        return {key: tuple(getattr(sub, "shape", ()) or ()) for key, sub in spaces_dict.items()}
+
+    mine, yours = shapes(ours), shapes(theirs)
+    differences = {
+        key: {"checkpoint": yours.get(key), "environment": mine.get(key)}
+        for key in sorted(set(mine) | set(yours))
+        if mine.get(key) != yours.get(key)
+    }
+    action_theirs = getattr(getattr(model, "action_space", None), "n", None)
+    action_ours = getattr(getattr(env, "action_space", None), "n", None)
+    return {
+        "comparable": True,
+        "compatible": not differences and action_theirs == action_ours,
+        "observation_differences": differences,
+        "actions": {"checkpoint": action_theirs, "environment": action_ours},
+        "hint": (
+            "an action-count mismatch is usually the skills flag: a policy trained "
+            "with --skills has a larger catalog. An observation mismatch usually "
+            "means the checkpoint predates a change to the item or entity catalog, "
+            "and cannot be evaluated against this tree at all"
+        )
+        if differences or action_theirs != action_ours
+        else None,
+    }
+
+
 def describe(model) -> dict:
     """Model configuration for the run manifest (PLAN.md section 2)."""
     parameters = sum(p.numel() for p in model.policy.parameters())
