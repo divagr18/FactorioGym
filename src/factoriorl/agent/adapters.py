@@ -55,11 +55,26 @@ DEFAULT_TIMEOUT_SECONDS = 60.0
 
 @dataclass(frozen=True)
 class ModelRequest:
-    """Everything an adapter is given. Deliberately provider-neutral."""
+    """Everything an adapter is given. Deliberately provider-neutral.
+
+    ``messages`` carries a full append-only history when there is one. It is
+    optional because most callers -- the provider diagnostic, the scripted
+    fixtures, every existing tool -- send a single turn and have no history to
+    keep; those keep passing ``system`` and ``user`` and behave exactly as
+    before. When it *is* supplied it wins, and ``system``/``user`` are still
+    populated so that an adapter which cannot use a history, and any code
+    reading the request for a log, still sees the current turn.
+
+    The distinction matters for cost rather than for correctness: a provider
+    caches on an exact prefix, so a history that only ever grows is billed at
+    the cache-hit rate from the second call onward. See
+    ``factoriorl.agent.transcript``.
+    """
 
     system: str
     user: str
     max_tokens: int = DEFAULT_MAX_TOKENS
+    messages: tuple[dict[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -300,6 +315,11 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
         #: configuration rather than a second adapter.
         token_parameter: str = "max_tokens",
         extra_body: dict | None = None,
+        #: `None` leaves the field off entirely, which is what every provider
+        #: that has never heard of thinking mode needs. `True` sends
+        #: `{"type": "enabled"}`, DeepSeek's OpenAI-format spelling.
+        thinking: bool | None = None,
+        reasoning_effort: str | None = None,
     ) -> None:
         super().__init__(api_key_env=api_key_env, timeout=timeout)
         self.base_url = base_url.rstrip("/")
@@ -307,6 +327,8 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
         self.temperature = temperature
         self.token_parameter = token_parameter
         self.extra_body = dict(extra_body or {})
+        self.thinking = thinking
+        self.reasoning_effort = reasoning_effort
         #: What `_heal` had to change for this provider. Reported by
         #: `describe`, because a run whose `temperature` was dropped is not a
         #: deterministic run and the manifest has to be able to say so.
@@ -368,16 +390,33 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
         headers = {"content-type": "application/json"}
         if self._api_key:
             headers["authorization"] = f"Bearer {self._api_key}"
-        body = {
-            "model": self.model,
-            "messages": [
+        # An append-only history when the caller keeps one, otherwise the single
+        # turn every existing caller sends. Sent verbatim in the order given:
+        # reordering or re-rendering these would change the prefix a provider
+        # caches on, which is the one thing the transcript exists to protect.
+        messages = (
+            [dict(message) for message in request.messages]
+            if request.messages
+            else [
                 {"role": "system", "content": request.system},
                 {"role": "user", "content": request.user},
-            ],
+            ]
+        )
+        body = {
+            "model": self.model,
+            "messages": messages,
             self.token_parameter: request.max_tokens,
             "stream": False,
             **self.extra_body,
         }
+        if self.thinking is not None:
+            # DeepSeek's OpenAI-format spelling. Recorded in `describe()` because
+            # thinking mode also silently ignores `temperature`, so a run using
+            # it is not deterministic and that has to be published rather than
+            # assumed away.
+            body["thinking"] = {"type": "enabled" if self.thinking else "disabled"}
+            if self.thinking and self.reasoning_effort:
+                body["reasoning_effort"] = self.reasoning_effort
         # Zero by default: the same observation should produce the same decision
         # when a run is replayed, and sampling noise in a 600-step episode makes
         # a failure impossible to reproduce. `None` omits the field entirely,
@@ -436,6 +475,23 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
             # body; non-empty means the request that produced this run was not
             # the request the code composed.
             "healed_parameters": list(self.healed_parameters),
+            # Which field carried the output ceiling, so a reader can tell a
+            # `max_tokens` provider from a `max_completion_tokens` one without
+            # inferring it from `healed_parameters`.
+            "token_parameter": self.token_parameter,
+            "thinking": self.thinking,
+            "reasoning_effort": self.reasoning_effort,
+            # Thinking mode accepts `temperature` and then ignores it -- the
+            # provider's own guide says setting it "will not trigger an error
+            # but will also have no effect". So a thinking run is not
+            # deterministic no matter what `temperature` above says, and that
+            # is published here rather than left to be inferred.
+            "determinism": (
+                "temperature is ignored in thinking mode; this run is not "
+                "reproducible from its seed"
+                if self.thinking
+                else "temperature as recorded"
+            ),
             # The variable's *name* and whether it was set: enough to reproduce
             # the run, and not the secret itself.
             "api_key_env": self.api_key_env,

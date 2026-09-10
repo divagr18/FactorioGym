@@ -49,6 +49,7 @@ from factoriorl.agent.summary import (
     targetable_actions,
     visible_handles,
 )
+from factoriorl.agent.transcript import Transcript
 
 #: How many times one decision may be asked for before the loop stops asking.
 #: Declared here rather than buried in the loop because PLAN 5.3 requires the
@@ -337,6 +338,7 @@ class AgentLoop:
         self.brief = TaskBrief.from_spec(env.spec_)
         self.decisions: list[Decision] = []
         self.memory = Memory()
+        self.transcript = Transcript(system=SYSTEM_PROMPT)
 
     def _world_signature(self) -> tuple:
         """What must change before the model is asked again during a wait.
@@ -406,7 +408,8 @@ class AgentLoop:
 
     # ------------------------------------------------------------- deciding
 
-    def _ask(self, summary: ObservationSummary, correction: str) -> ModelReply:
+    def _compose(self, summary: ObservationSummary) -> str:
+        """The single user turn for this decision."""
         user = summary.render()
         if self.config.memory:
             # Appended rather than woven in, so the observation the model is
@@ -415,12 +418,28 @@ class AgentLoop:
             remembered = self.memory.render()
             if remembered:
                 user = f"{user}\n\nWHAT YOU HAVE ALREADY SEEN AND TRIED\n{remembered}"
-        if correction:
-            # Telling the model what was wrong is what makes a retry different
-            # from a repeat. A loop that re-sent the identical prompt burned its
-            # whole retry budget on the same malformed answer three times.
-            user = f"{user}\n\nYour previous answer was rejected: {correction}\nAnswer again."
-        request = ModelRequest(system=SYSTEM_PROMPT, user=user, max_tokens=self.config.max_tokens)
+        return user
+
+    def _ask(self) -> ModelReply:
+        """Send the transcript exactly as it stands.
+
+        Nothing is composed here. The body is whatever ``self.transcript``
+        holds, which is what lets a retry after a *transport* failure re-send a
+        byte-identical request: the call never reached the model, so there is
+        nothing to append, and an identical body is a complete cache hit rather
+        than a fresh charge at the miss rate.
+
+        ``system`` and ``user`` are still filled from the transcript, so an
+        adapter that cannot use a history -- and anything reading the request
+        for a log -- still sees the current turn.
+        """
+        messages = self.transcript.record_sent()
+        request = ModelRequest(
+            system=messages[0]["content"],
+            user=messages[-1]["content"],
+            max_tokens=self.config.max_tokens,
+            messages=tuple(messages),
+        )
         return self.adapter.complete(request)
 
     def decide(
@@ -437,16 +456,23 @@ class AgentLoop:
     ) -> Decision:
         """Ask until the answer validates or the bound is reached."""
         attempts: list[Attempt] = []
-        correction = ""
-        for number in range(1, max(self.config.max_attempts, 1) + 1):
-            reply = self._ask(summary, correction)
+        # One user turn per decision, appended once. Retries within the
+        # decision extend the history instead of rewriting this turn, so the
+        # body sent on attempt N stays a strict prefix of the body sent on N+1.
+        limit = max(self.config.max_attempts, 1)
+        self.transcript.append_user(self._compose(summary))
+        for number in range(1, limit + 1):
+            reply = self._ask()
             if not reply.ok:
                 # A failed call is recorded with its measured latency and does
                 # not consume a *different* budget from a malformed answer: both
                 # are ways this decision did not happen, and both are bounded by
                 # the same attempt count so a flapping endpoint cannot loop.
                 attempts.append(Attempt(number, reply, None))
-                correction = f"the previous request failed ({reply.error_kind})"
+                # Nothing is appended: the call never reached the model, so
+                # there is no answer to record and no correction to make. The
+                # next attempt re-sends a byte-identical body, which a
+                # prefix-caching provider serves entirely from cache.
                 continue
             # Everything recorded from the provider passes through the adapter's
             # redactor, because the adapter is the only object that holds the
@@ -469,6 +495,10 @@ class AgentLoop:
             )
             attempts.append(Attempt(number, reply, outcome))
             if isinstance(outcome, ParsedAction):
+                # The accepted answer joins the history, so the next
+                # decision's observation is appended after it and the cached
+                # prefix keeps growing.
+                self.transcript.append_assistant(reply.text)
                 return Decision(
                     episode=episode,
                     step=step,
@@ -481,7 +511,19 @@ class AgentLoop:
                     resolution="model",
                     record_summary=self.config.record_summaries,
                 )
-            correction = f"{outcome.failure.value}: {outcome.detail}"
+            # The model's own answer, then why it was refused -- appended,
+            # never spliced into a turn already sent. Telling it what was
+            # wrong is what makes a retry different from a repeat; a loop that
+            # re-sent an identical prompt once burned its whole retry budget
+            # on the same malformed answer three times.
+            self.transcript.append_assistant(reply.text)
+            if number < limit:
+                # No correction after the final attempt: nothing would read
+                # it, and ending on the assistant turn keeps the roles
+                # alternating for the next decision.
+                self.transcript.append_user(
+                    f"Your previous answer was rejected: {outcome.failure.value}: {outcome.detail}"
+                )
 
         # The bound was reached. The environment still needs an action, and the
         # catalog guarantees a legal no-op exists in every state, so the loop
@@ -574,6 +616,13 @@ class AgentLoop:
             # A fresh record per episode. Carrying one over would put the
             # previous scene's containers into this scene's prompt.
             self.memory = Memory()
+            # And a fresh transcript, for that reason and no other. Starting
+            # over throws away a cached prefix, which is the expensive thing
+            # in this design -- but a history carried across scenes would put
+            # the previous scene's observations into this one's prompt, which
+            # is contamination rather than competence. A single continuous
+            # episode pays this once.
+            self.transcript = Transcript(system=SYSTEM_PROMPT)
         while steps < budget:
             observation = self.env._observation
             if self.config.memory:

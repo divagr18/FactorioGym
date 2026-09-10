@@ -674,7 +674,38 @@ def test_every_adapter_answers_the_same_call(tmp_path):
     signature = inspect.signature(ScriptedAdapter.complete)
     for cls in (OpenAICompatibleAdapter, AnthropicMessagesAdapter):
         assert inspect.signature(cls.complete) == signature
-    assert set(inspect.signature(ModelRequest).parameters) == {"system", "user", "max_tokens"}
+    assert set(inspect.signature(ModelRequest).parameters) == {
+        "system",
+        "user",
+        "max_tokens",
+        # An append-only history, for providers that price a cached prefix
+        # differently from a fresh one. Still only strings.
+        "messages",
+    }
+
+
+def test_a_request_carries_nothing_an_adapter_could_reach_the_game_through():
+    """The property the field list above is a proxy for.
+
+    Naming the fields pins the shape; this pins the *reason*. Every field is a
+    string, an int, or a sequence of string-to-string mappings, so there is no
+    object on a request through which an adapter could reach the environment,
+    the catalog or the mask -- whatever fields get added later.
+    """
+    allowed = {"str", "int", "tuple[dict[str, str], ...]"}
+    annotations = inspect.get_annotations(ModelRequest)
+    assert annotations, "ModelRequest lost its annotations; this check is now vacuous"
+    for name, annotation in annotations.items():
+        rendered = (
+            annotation
+            if isinstance(annotation, str)
+            else getattr(annotation, "__name__", str(annotation))
+        )
+        assert rendered in allowed, (
+            f"ModelRequest.{name} is {rendered!r}, which is not a plain string, "
+            f"int or mapping of strings. An adapter must not be handed anything "
+            f"it could use to reach the game directly"
+        )
 
 
 # ------------------------------------------------------------- isolation
@@ -945,3 +976,93 @@ def test_addressing_adds_no_verb_the_catalog_did_not_already_have():
     assert set(default) == set(addressed)
     differing = {k for k in default if default[k] != addressed[k]}
     assert differing <= {"from", "to"}, differing
+
+
+# ------------------------------------------------- prefix caching (roadmap A0)
+
+
+def _bodies(adapter) -> list[list[dict]]:
+    """The message list actually sent on each call."""
+    return [[dict(m) for m in request.messages] for request in adapter.requests]
+
+
+def test_each_request_body_is_a_prefix_of_the_next(tmp_path):
+    """The invariant a prefix-caching provider bills against.
+
+    DeepSeek caches on an exact prefix and charges 50x less for the part that
+    matches, so over a long run this single property is the difference between
+    about $1.19 and about $34. It is asserted structurally rather than hoped for.
+    """
+    env = StubEnv(horizon=4)
+    adapter = ScriptedAdapter([json.dumps({"action": "wait", "reason": "hold"})] * 4)
+    loop_for(env, adapter, tmp_path, episodes=1).run()
+
+    bodies = _bodies(adapter)
+    assert len(bodies) >= 3, "need several calls for this to mean anything"
+    for earlier, later in zip(bodies, bodies[1:], strict=False):
+        assert later[: len(earlier)] == earlier, (
+            "a request was not a prefix of the next: something rewrote history, "
+            "and every token after the edit reverts to the cache-miss rate"
+        )
+        assert len(later) > len(earlier), "the history did not grow"
+
+
+def test_a_retry_appends_instead_of_rewriting_the_turn_already_sent(tmp_path):
+    """The loop used to splice the correction into the same user string. That is
+    a prefix mutation: it invalidates the cache for the whole conversation."""
+    env = StubEnv(horizon=1)
+    adapter = ScriptedAdapter(["not an action", json.dumps({"action": "wait"})])
+    loop_for(env, adapter, tmp_path, episodes=1).run()
+
+    first, second = _bodies(adapter)
+    assert second[: len(first)] == first
+    # The rejected answer, then the reason -- both appended.
+    assert [m["role"] for m in second[len(first) :]] == ["assistant", "user"]
+    assert second[len(first)]["content"] == "not an action"
+    assert "rejected" in second[-1]["content"]
+
+
+def test_a_transport_failure_resends_a_byte_identical_body(tmp_path):
+    """The call never reached the model, so there is no answer to record and no
+    correction to make. Resending the identical body is a complete cache hit."""
+    env = StubEnv(horizon=1)
+    adapter = ScriptedAdapter(
+        [TimeoutError("read timed out"), json.dumps({"action": "wait", "reason": "ok"})]
+    )
+    loop_for(env, adapter, tmp_path, episodes=1).run()
+
+    first, second = _bodies(adapter)
+    assert first == second, "a failed call must not change what is sent next"
+
+
+def test_a_new_episode_starts_a_new_transcript(tmp_path):
+    """Contamination beats cost here.
+
+    `docs/LIMITATIONS.md` is explicit that memory is per episode, because
+    carrying it over would put one evaluation scene's contents into the next
+    scene's prompt. The transcript is the same argument with the same answer,
+    even though resetting it throws away the cached prefix.
+    """
+    env = StubEnv(horizon=1)
+    adapter = ScriptedAdapter([json.dumps({"action": "wait", "reason": "ok"})] * 2)
+    loop = loop_for(env, adapter, tmp_path, episodes=2)
+    loop.run()
+
+    bodies = _bodies(adapter)
+    assert len(bodies) == 2
+    # Each episode's first request is system + one user turn, and nothing more.
+    assert len(bodies[0]) == len(bodies[1]) == 2
+    assert loop.transcript.to_dict()["turns"] == 2, "the second episode's own turns"
+
+
+def test_no_reasoning_content_is_ever_sent_back(tmp_path):
+    """Without `tools`, DeepSeek ignores a returned `reasoning_content` and does
+    not concatenate it. Sending one anyway would inflate the context for nothing;
+    the transcript has no field for it, so this is structural."""
+    env = StubEnv(horizon=2)
+    adapter = ScriptedAdapter([json.dumps({"action": "wait", "reason": "ok"})] * 2)
+    loop_for(env, adapter, tmp_path, episodes=1).run()
+
+    for body in _bodies(adapter):
+        for message in body:
+            assert set(message) == {"role", "content"}, message
