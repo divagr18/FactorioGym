@@ -283,11 +283,18 @@ def train_bc(
 
     torch_device = model.policy.device
     features = _stack(data.observations)
-    labels = torch.as_tensor(np.asarray(data.actions), dtype=torch.long, device=torch_device)
-    tensors = {
-        key: torch.as_tensor(value, dtype=torch.float32, device=torch_device)
-        for key, value in features.items()
-    }
+    # The dataset stays on the CPU and each minibatch is moved as it is used.
+    # Holding it all on the GPU is what a naive `device=torch_device` here does,
+    # and the observation is a 6x65x65 grid -- about 405 KB per state -- so a
+    # long-horizon family exceeds a 4 GB card before training starts. Measured:
+    # `build_line` and `keep_line_running` both died with "tried to allocate
+    # 5.29 GiB", while `restore_power` (12 pairs an episode) fitted fine. That
+    # made BC look inapplicable to exactly the families it was most needed for.
+    #
+    # The loop already minibatched; only the residency was wrong, so the
+    # arithmetic is unchanged and the transfer per step is one batch.
+    labels = torch.as_tensor(np.asarray(data.actions), dtype=torch.long)
+    tensors = {key: torch.as_tensor(value, dtype=torch.float32) for key, value in features.items()}
 
     optimiser = torch.optim.Adam(model.policy.parameters(), lr=learning_rate)
     generator = np.random.default_rng(seed)
@@ -299,9 +306,9 @@ def train_bc(
         losses, correct = [], 0
         for start in range(0, total, batch_size):
             index = order[start : start + batch_size]
-            batch_index = torch.as_tensor(index, dtype=torch.long, device=torch_device)
-            batch = {key: value[batch_index] for key, value in tensors.items()}
-            target = labels[batch_index]
+            batch_index = torch.as_tensor(index, dtype=torch.long)
+            batch = {key: value[batch_index].to(torch_device) for key, value in tensors.items()}
+            target = labels[batch_index].to(torch_device)
 
             latent = model.policy.extract_features(batch)
             if isinstance(latent, tuple):
