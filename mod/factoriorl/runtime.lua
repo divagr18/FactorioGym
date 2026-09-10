@@ -317,10 +317,15 @@ local function handle_describe(request)
     actions = matrix.describe(),
     profiles = profiles.metadata(state.observation_profile, state.action_profile),
     scenarios = world.scenarios(),
+    -- Every type `HANDLERS` dispatches. A client that validates what it may
+    -- send by reading `describe` is told this list and nothing else, so an
+    -- omission here is a request type that exists and is invisible. This list
+    -- silently missed `open_world` when it was added; a contract test now
+    -- asserts it equals the handler table.
     request_types = {
       "status", "observe", "reset", "advance", "act",
       "request_status", "step", "collect", "describe", "configure",
-      "scenario_define", "truth", "world_digest", "disrupt",
+      "scenario_define", "truth", "world_digest", "disrupt", "open_world",
     },
   })
 end
@@ -533,6 +538,7 @@ local function handle_open_world(request)
   end
 
   local built = world.open_world({
+    fresh = fresh,
     inventory = fresh and payload.inventory or nil,
     position = payload.position,
     chart_radius = payload.chart_radius,

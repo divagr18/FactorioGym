@@ -263,18 +263,35 @@ end
 --     own `created_items`, read from the installed game.
 function world.open_world(options)
   options = options or {}
+  -- `fresh` decides whether this is a *start* or a *resume*, and it gates the
+  -- two destructive things below. The sweep in particular: on a freshly created
+  -- save the player-force entities are the reference scene `on_init` paints --
+  -- two chests, a wall row -- and removing them is the whole point. On a mid-run
+  -- checkpoint they are the factory the agent spent thirty minutes building, and
+  -- removing them would destroy exactly what a resume exists to recover.
+  --
+  -- This was ungated when open_world was written, because nothing could produce
+  -- a save to resume from and so nothing could hit it.
+  local fresh = options.fresh ~= false
   local srf = surface()
   local removed = 0
-  for _, entity in pairs(srf.find_entities_filtered({ force = "player" })) do
-    if entity.valid and entity.type ~= "character" then
-      entity.destroy({ raise_destroy = true })
-      removed = removed + 1
+  if fresh then
+    for _, entity in pairs(srf.find_entities_filtered({ force = "player" })) do
+      if entity.valid and entity.type ~= "character" then
+        entity.destroy({ raise_destroy = true })
+        removed = removed + 1
+      end
     end
   end
 
   local ch = world.ensure_character()
-  local spawn = options.position or { 0, 0 }
-  ch.teleport({ spawn[1], spawn[2] })
+  -- Only moved on a fresh start. A resume leaves the character wherever the save
+  -- holds it: teleporting it home would undo whatever walking the parent segment
+  -- did, and the agent's memory of where it was is already gone.
+  if fresh or options.position then
+    local spawn = options.position or { 0, 0 }
+    ch.teleport({ spawn[1], spawn[2] })
+  end
 
   -- Requested against delivered, per item. `insert` returns what it actually
   -- took, and a partial insert would otherwise look like a successful start
@@ -305,14 +322,18 @@ function world.open_world(options)
     extra_tracked_items = options.extra_tracked_items or {},
     radius = radius,
     open_world = true,
+    fresh = fresh,
   }
 
   return {
     scenario = storage.frrl_scene.name,
+    -- Zero on a resume, by construction. A non-zero count there means the sweep
+    -- ran when it should not have, which is directly assertable.
     destroyed = removed,
     delivered = delivered,
     undelivered = undelivered,
     position = { ch.position.x, ch.position.y },
+    fresh = fresh,
   }
 end
 

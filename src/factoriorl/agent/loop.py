@@ -51,6 +51,10 @@ from factoriorl.agent.summary import (
 )
 from factoriorl.agent.transcript import Transcript
 
+#: Provenance keys `_write_manifest` places itself. Everything else a caller
+#: supplies is carried into `extra` instead of being dropped on the floor.
+_PROVENANCE_CONSUMED = frozenset({"engine", "assistance", "seeds", "workers"})
+
 #: How many times one decision may be asked for before the loop stops asking.
 #: Declared here rather than buried in the loop because PLAN 5.3 requires the
 #: retry bound to exist; three is one honest attempt plus two corrections, and a
@@ -932,6 +936,21 @@ class AgentLoop:
                 "system_prompt_digest": _prompt_digest(),
                 "max_tokens": self.config.max_tokens,
             },
-            extra={"config": self.config.to_dict(), **self.config.extra},
+            # Provenance this method does not itself consume, carried through
+            # rather than dropped. It read exactly four keys -- engine,
+            # assistance, seeds, workers -- so `run_world` could assemble a
+            # `world` block, a parsed `starting_inventory` and a `clock` record
+            # and have all three silently discarded. Which map, which starting
+            # items, and whether the world ran while the model thought are
+            # precisely what a later reader needs.
+            extra={
+                "config": self.config.to_dict(),
+                **{
+                    key: value
+                    for key, value in self.provenance.items()
+                    if key not in _PROVENANCE_CONSUMED
+                },
+                **self.config.extra,
+            },
         ).to_dict()
         self._write_json(self.run_dir / "manifest.json", payload)

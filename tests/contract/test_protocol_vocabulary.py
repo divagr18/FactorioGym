@@ -97,6 +97,25 @@ def test_every_request_type_has_a_lua_handler(runtime_lua):
     assert expected <= registered, f"request types with no handler: {sorted(expected - registered)}"
 
 
+def test_describe_advertises_every_handler(runtime_lua):
+    """`describe` is how a client learns what it may send.
+
+    The list is hand-maintained beside the handler table, and it silently missed
+    `open_world` for a day: the request existed, worked, and was invisible to
+    anything that validated against `describe` first.
+    """
+    handlers = re.search(r"local HANDLERS = \{(.*?)\n\}", runtime_lua, re.DOTALL)
+    assert handlers, "HANDLERS table not found"
+    registered = set(re.findall(r"^\s*([a-z_]+)\s*=", handlers.group(1), re.MULTILINE))
+    advertised = re.search(r"request_types = \{(.*?)\}", runtime_lua, re.DOTALL)
+    assert advertised, "describe's request_types list not found"
+    listed = set(re.findall(r'"([a-z_]+)"', advertised.group(1)))
+    assert listed == registered, (
+        f"describe and HANDLERS disagree: only in describe {sorted(listed - registered)}, "
+        f"only in HANDLERS {sorted(registered - listed)}"
+    )
+
+
 def test_mutating_request_types_are_the_ones_python_expects(runtime_lua):
     mutating = re.search(r"local MUTATING = \{(.*?)\}", runtime_lua, re.DOTALL)
     assert mutating, "MUTATING table not found"
