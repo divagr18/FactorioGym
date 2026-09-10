@@ -1,0 +1,37 @@
+{
+  "checkpoint": "D:\\FactorioRL\\runtime\\runs\\rpbc2-20260910T035059-ec6e95a8\\model.zip",
+  "task": {
+    "id": "restore_power",
+    "version": "1.6.0"
+  },
+  "split": "test",
+  "action_space": "primitive",
+  "arm": "argmax",
+  "episodes": 100,
+  "manifest_verifies_against_this_tree": null,
+  "holdout": {
+    "id": "holdout_v3",
+    "content_hash": "432c2c4d0ecbc5a98cd53aab2e16dfc7e4765c76729701ebbd71b6aa6835737b",
+    "start_index": 3000,
+    "episodes_per_task": 100,
+    "covers_frozen_set": true,
+    "split": "test"
+  },
+  "result": {
+    "episodes": 100,
+    "successes": 100,
+    "success_rate": 1.0,
+    "wilson_95": [
+      0.963,
+      1.0
+    ],
+    "mean_episode_reward": 0.6777,
+    "mean_episode_steps": 15.8
+  },
+  "random_baseline": {
+    "episodes": 100,
+    "successes": 0,
+    "success_rate": 0.0,
+    "cached": true
+  }
+}
