@@ -1,0 +1,5518 @@
+{
+  "measures": "P(reference solve fails | one legal-but-wrong action injected)",
+  "control": "same injection points with `wait` substituted -- legal, changes nothing, spends one step. `excess_fragility` is fragility minus control, and is the part not explained by simply having spent a step",
+  "reading": "near 0 is disjunctive -- many solutions, a wrong move is recoverable. near 1 is conjunctive -- one solution, any deviation is fatal",
+  "not_measured": "whether a policy can find any of those solutions. A disjunctive task can still be unlearnable; read this beside the random floor, not instead of it",
+  "solver_restarts": "the solver is re-invoked on the perturbed state up to --restarts times, because most reference solvers are straight-line plans and would otherwise score the plan's shape rather than the task's",
+  "credit": "framing from github.com/beyarkay/factorion",
+  "tasks": {
+    "restore_power": {
+      "version": "1.6.0",
+      "splits": {
+        "train": {
+          "episodes": 6,
+          "trials": 30,
+          "recovered": 30,
+          "fragility": 0.0,
+          "control_trials": 30,
+          "control_fragility": 0.0,
+          "excess_fragility": 0.0,
+          "mean_reference_actions": 13.3,
+          "scenes": [
+            {
+              "episode": 0,
+              "reference_actions": 12,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "place_small_electric_pole_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 1,
+              "reference_actions": 11,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "place_small_electric_pole_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 2,
+              "reference_actions": 13,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "place_small_electric_pole_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "place_small_electric_pole_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 3,
+              "reference_actions": 17,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 4,
+              "reference_actions": 8,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "place_small_electric_pole_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 2,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "place_small_electric_pole_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "place_small_electric_pole_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "place_small_electric_pole_east",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 2,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 5,
+              "reference_actions": 19,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "place_small_electric_pole_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 14,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 19,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 14,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 19,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            }
+          ]
+        },
+        "test": {
+          "episodes": 6,
+          "trials": 30,
+          "recovered": 30,
+          "fragility": 0.0,
+          "control_trials": 30,
+          "control_fragility": 0.0,
+          "excess_fragility": 0.0,
+          "mean_reference_actions": 14.8,
+          "scenes": [
+            {
+              "episode": 0,
+              "reference_actions": 14,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 14,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 14,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 1,
+              "reference_actions": 13,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "place_small_electric_pole_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 2,
+              "reference_actions": 16,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "place_small_electric_pole_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 3,
+              "reference_actions": 17,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "place_small_electric_pole_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 4,
+              "reference_actions": 10,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "place_small_electric_pole_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "place_small_electric_pole_west",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 5,
+              "reference_actions": 19,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "place_small_electric_pole_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 14,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 19,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 14,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 19,
+                  "perturbed": true,
+                  "replaced": "place_small_electric_pole_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "repair_belt": {
+      "version": "1.6.0",
+      "splits": {
+        "train": {
+          "episodes": 6,
+          "trials": 30,
+          "recovered": 29,
+          "fragility": 0.0333,
+          "control_trials": 25,
+          "control_fragility": 0.0,
+          "excess_fragility": 0.0333,
+          "mean_reference_actions": 19.2,
+          "scenes": [
+            {
+              "episode": 0,
+              "reference_actions": 21,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 21,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 21,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 1,
+              "reference_actions": 18,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "place_transport_belt_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 18,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 18,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 2,
+              "reference_actions": 18,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "place_transport_belt_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "rotate_target",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 18,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "place_transport_belt_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 18,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 3,
+              "reference_actions": 20,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "place_transport_belt_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 15,
+                  "perturbed": true,
+                  "replaced": "rotate_target",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 20,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 15,
+                  "perturbed": true,
+                  "replaced": "rotate_target",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 20,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 4,
+              "reference_actions": 15,
+              "trials": 5,
+              "recovered": 4,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "place_transport_belt_north",
+                  "injected": "place_transport_belt_south",
+                  "recovered": false,
+                  "restarts": 2
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "place_transport_belt_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 15,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "place_transport_belt_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 15,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 5,
+              "reference_actions": 23,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "place_transport_belt_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 23,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "place_transport_belt_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 23,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            }
+          ]
+        },
+        "test": {
+          "episodes": 6,
+          "trials": 30,
+          "recovered": 29,
+          "fragility": 0.0333,
+          "control_trials": 24,
+          "control_fragility": 0.0,
+          "excess_fragility": 0.0333,
+          "mean_reference_actions": 21.7,
+          "scenes": [
+            {
+              "episode": 0,
+              "reference_actions": 25,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "place_transport_belt_north",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 19,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 25,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "rotate_target",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "place_transport_belt_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 19,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 25,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 1,
+              "reference_actions": 22,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "place_transport_belt_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "nudge_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 22,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "place_transport_belt_east",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 22,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 2,
+              "reference_actions": 22,
+              "trials": 5,
+              "recovered": 4,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "place_transport_belt_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "place_transport_belt_east",
+                  "recovered": false,
+                  "restarts": 2
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "place_transport_belt_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 22,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "place_transport_belt_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 22,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 3,
+              "reference_actions": 22,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "nudge_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "place_transport_belt_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 22,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 22,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 4,
+              "reference_actions": 16,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "place_transport_belt_north",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "place_transport_belt_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "place_transport_belt_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 5,
+              "reference_actions": 23,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 4,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "place_transport_belt_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "place_transport_belt_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "place_transport_belt_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 23,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "nudge_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "nudge_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 23,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "deliver": {
+      "version": "1.3.0",
+      "splits": {
+        "train": {
+          "episodes": 6,
+          "trials": 30,
+          "recovered": 29,
+          "fragility": 0.0333,
+          "control_trials": 30,
+          "control_fragility": 0.0,
+          "excess_fragility": 0.0333,
+          "mean_reference_actions": 15.2,
+          "scenes": [
+            {
+              "episode": 0,
+              "reference_actions": 16,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "take_iron-plate_5",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "take_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            },
+            {
+              "episode": 1,
+              "reference_actions": 12,
+              "trials": 5,
+              "recovered": 4,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "take_iron-plate_5",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "take_iron-plate_20",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "give_iron-plate_5",
+                  "recovered": false,
+                  "restarts": 2
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "take_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "take_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            },
+            {
+              "episode": 2,
+              "reference_actions": 21,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 21,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "take_iron-plate_5",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 16,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 21,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            },
+            {
+              "episode": 3,
+              "reference_actions": 15,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "take_iron-plate_5",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "give_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "take_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 15,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 15,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            },
+            {
+              "episode": 4,
+              "reference_actions": 14,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "give_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 14,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 14,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            },
+            {
+              "episode": 5,
+              "reference_actions": 13,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "give_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "take_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            }
+          ]
+        },
+        "test": {
+          "episodes": 5,
+          "trials": 25,
+          "recovered": 23,
+          "fragility": 0.08,
+          "control_trials": 25,
+          "control_fragility": 0.04,
+          "excess_fragility": 0.04,
+          "mean_reference_actions": 16.8,
+          "scenes": [
+            {
+              "episode": 0,
+              "reference_actions": 17,
+              "trials": 5,
+              "recovered": 4,
+              "control_trials": 5,
+              "control_recovered": 4,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "give_iron-plate_20",
+                  "recovered": false,
+                  "restarts": 2
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "give_iron-plate_5",
+                  "recovered": true,
+                  "restarts": 1
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": false,
+                  "restarts": 2
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            },
+            {
+              "episode": 1,
+              "reference_actions": 12,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "take_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "take_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "take_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "take_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            },
+            {
+              "episode": 2,
+              "reference_actions": 23,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "take_iron-plate_5",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 23,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "take_iron-plate_5",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 17,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 23,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            },
+            {
+              "episode": 3,
+              "reference_actions": 14,
+              "trials": 5,
+              "recovered": 4,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "take_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "give_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "give_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 14,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "give_iron-plate_5",
+                  "recovered": false,
+                  "restarts": 2
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 14,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            },
+            {
+              "episode": 4,
+              "skipped": "reference did not solve it"
+            },
+            {
+              "episode": 5,
+              "reference_actions": 18,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "take_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "take_iron-plate_20",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 18,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 13,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 18,
+                  "perturbed": true,
+                  "replaced": "give_iron-plate_20",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 1
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "navigate": {
+      "version": "1.2.0",
+      "splits": {
+        "train": {
+          "episodes": 6,
+          "trials": 30,
+          "recovered": 30,
+          "fragility": 0.0,
+          "control_trials": 30,
+          "control_fragility": 0.0,
+          "excess_fragility": 0.0,
+          "mean_reference_actions": 9.7,
+          "scenes": [
+            {
+              "episode": 0,
+              "reference_actions": 11,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 1,
+              "reference_actions": 10,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 2,
+              "reference_actions": 7,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 2,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 2,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 3,
+              "reference_actions": 11,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "step_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 4,
+              "reference_actions": 8,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 2,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 2,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 5,
+              "reference_actions": 11,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            }
+          ]
+        },
+        "test": {
+          "episodes": 6,
+          "trials": 30,
+          "recovered": 30,
+          "fragility": 0.0,
+          "control_trials": 30,
+          "control_fragility": 0.0,
+          "excess_fragility": 0.0,
+          "mean_reference_actions": 9.2,
+          "scenes": [
+            {
+              "episode": 0,
+              "reference_actions": 11,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 11,
+                  "perturbed": true,
+                  "replaced": "step_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 1,
+              "reference_actions": 10,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 10,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 2,
+              "reference_actions": 5,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 2,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 2,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_north",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 3,
+              "reference_actions": 9,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 5,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 7,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 4,
+              "reference_actions": 8,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 2,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 2,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 4,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 8,
+                  "perturbed": true,
+                  "replaced": "step_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 5,
+              "reference_actions": 12,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 5,
+              "control_recovered": 5,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 3,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 6,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 9,
+                  "perturbed": true,
+                  "replaced": "step_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 12,
+                  "perturbed": true,
+                  "replaced": "step_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "build_line": {
+      "version": "1.1.0",
+      "splits": {
+        "train": {
+          "episodes": 6,
+          "trials": 30,
+          "recovered": 27,
+          "fragility": 0.1,
+          "control_trials": 6,
+          "control_fragility": 0.0,
+          "excess_fragility": 0.1,
+          "mean_reference_actions": 240.0,
+          "scenes": [
+            {
+              "episode": 0,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "mine_at",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 1,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "give_to",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "mine_at",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 2,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 4,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "rotate_at_reverse",
+                  "recovered": false,
+                  "restarts": 2
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 3,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 4,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "place_at",
+                  "recovered": false,
+                  "restarts": 2
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_north",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 4,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_north",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_east",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 5,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 4,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "rotate_at_reverse",
+                  "recovered": false,
+                  "restarts": 2
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "set_recipe_at",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            }
+          ]
+        },
+        "test": {
+          "episodes": 5,
+          "trials": 25,
+          "recovered": 24,
+          "fragility": 0.04,
+          "control_trials": 5,
+          "control_fragility": 0.0,
+          "excess_fragility": 0.04,
+          "mean_reference_actions": 240.0,
+          "scenes": [
+            {
+              "episode": 0,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "take_from",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "rotate_at_reverse",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "rotate_at_reverse",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 1,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "rotate_at_reverse",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "rotate_at_reverse",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "rotate_at",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "step_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 2,
+              "skipped": "reference did not solve it"
+            },
+            {
+              "episode": 3,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 4,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "craft_recipe",
+                  "recovered": false,
+                  "restarts": 2
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "craft_recipe",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "mine_at",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "step_west",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 4,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "place_at",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_west",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_west",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            },
+            {
+              "episode": 5,
+              "reference_actions": 240,
+              "trials": 5,
+              "recovered": 5,
+              "control_trials": 1,
+              "control_recovered": 1,
+              "detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "step_east",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "move_south",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "set_recipe_at",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": true,
+                  "replaced": "wait",
+                  "injected": "nudge_south",
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ],
+              "control_detail": [
+                {
+                  "perturb_at": 1,
+                  "perturbed": true,
+                  "replaced": "move_south",
+                  "injected": "wait",
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 60,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 120,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 180,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                },
+                {
+                  "perturb_at": 240,
+                  "perturbed": false,
+                  "replaced": null,
+                  "injected": null,
+                  "recovered": true,
+                  "restarts": 0
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "wall_seconds": 422.6,
+  "finding": {
+    "question": "Factorion (github.com/beyarkay/factorion) separates disjunctive tasks -- many solutions, partial progress counts -- from conjunctive ones -- every component simultaneously right or no reward. Does that axis explain why behaviour cloning scores 1.00 on restore_power and 0.13-0.17 on repair_belt?",
+    "answer": "No. Not supported by this measurement.",
+    "why": "After the no-op control and the solver restart, excess fragility across five families spans 0.00 to 0.10 -- flat -- while the learning outcomes for those same families span 0.00 to 1.00. Every family measures disjunctive. A measure that does not vary cannot explain an outcome that does.",
+    "two_artefacts_this_had_to_survive_first": [
+      "Without a control, deliver measured the MOST fragile of four families (0.20-0.35) while being the one that learns best, and repair_belt the LEAST (0.00-0.05) while being the one BC fails hardest on. Backwards.",
+      "The control located it: every one of deliver's no-op failures was injected at the last action of the solve, always give_iron-plate_20 -- the delivery itself. Replacing the goal-achieving step of a straight-line plan means it is never taken. Re-invoking the solver on the perturbed state (--restarts) dropped deliver from 0.23-0.28 to 0.033-0.08 and its control from 0.20-0.32 to 0.00-0.04."
+    ],
+    "what_the_number_does_say": "The reference solvers are robust rather than brittle scripts: perturbed once with a mask-legal wrong action and re-invoked, they still reach the goal in 96-100% of trials across five families and both splits. That had not been measured before and is worth having on its own -- it is a property of the solvers used to generate every behaviour-cloning dataset in this repository.",
+    "an_observation_not_a_result": {
+      "claim": "The one ordering in this data that does track learning outcomes is reference solve length, not solution multiplicity: navigate 9.2 actions, restore_power 14.8, deliver 16.8, repair_belt 21.7, build_line 240.0 -- against outcomes that fall monotonically across the same order (restore_power BC 1.00, deliver PPO 0.89, repair_belt BC 0.15, build_line BC 0.00 on the seeds row).",
+      "why_it_is_not_being_claimed": "n=5, no controlled variation, and horizon is confounded with action-type count and with demonstrations-per-pair. Fitting a second hypothesis to the same five points that falsified the first is how this repository has previously talked itself into findings. Recorded so it can be tested, not asserted."
+    },
+    "limits_of_the_instrument": "It measures P(reference solver fails | one wrong action), not P(a policy can find any solution). A disjunctive task can still be unlearnable, which is precisely what repair_belt and build_line appear to be. Read beside the random floor from tools/solvability.py, not instead of it.",
+    "reproduce": "uv run python tools/solution_fragility.py --tasks restore_power,repair_belt,deliver,navigate,build_line --episodes 6 --perturbations 5",
+    "commit": "5af8af7",
+    "measured_on": "2026-09-10, desktop RTX 4060, engine build 83512"
+  }
+}

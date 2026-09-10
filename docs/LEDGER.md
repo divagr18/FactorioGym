@@ -1414,6 +1414,87 @@ does not exist.
 Ten scenes per arm per seed, v1.5.0 stack against holdout_v2. These are traces,
 not scored evaluations; no rate here is comparable to a published success rate.
 
+## An idea borrowed from Factorion that did not survive contact with our data
+
+`github.com/beyarkay/factorion` separates **disjunctive** tasks -- many
+solutions, so partial progress counts -- from **conjunctive** ones -- every
+component simultaneously right or no reward at all. Their conjunctive lessons
+score 0.11 at depth 1 and exactly 0 deeper.
+
+It looked like it explained our sharpest unexplained result: behaviour cloning
+scores **1.00** on `restore_power` and **0.13-0.17** on `repair_belt`, same
+method, same demonstration count, both replicated. `restore_power` asks for one
+placement at a published marker; `repair_belt` asks the solver to infer the
+belt's modal row, place, *and* fix rotation.
+
+**It does not explain it.** `docs/evidence/r5-solution-fragility.json`.
+
+### Measured rather than declared, and the first two numbers were artefacts
+
+A `conjunctive: true` field on `TaskSpec` would have been an assertion, and this
+repository keeps getting burned by assertions -- a `--holdout` flag never read,
+a docstring promising a disruption check that did not exist. So
+`tools/solution_fragility.py` measures it: inject one mask-legal wrong action
+into a reference solve, let the solver continue, and score
+`fragility = P(fail | one wrong action)`.
+
+The first run came back **backwards**. `deliver`, the family that learns best
+(0.89), measured the most fragile at 0.20-0.35; `repair_belt`, the family BC
+fails hardest on, measured the least at 0.00-0.05.
+
+A no-op control arm -- substitute `wait`, which changes nothing and costs one
+step -- located why. On `deliver` the control was 0.20-0.32 against a headline
+of 0.23-0.28: **essentially the whole number**. And every one of those control
+failures was injected at the *last* action of the solve, which for `deliver` is
+always `give_iron-plate_20`, the delivery itself. Replacing the goal-achieving
+step of a straight-line plan means it is never taken.
+
+So the measure was ranking **how each solver was written**. `solve_repair_belt`
+loops up to six times re-finding the gap and recovers from anything;
+`solve_deliver` walks its plan once. Re-invoking the solver on the perturbed
+state (`--restarts`) put them on the same footing and dropped `deliver` to
+0.033-0.08 with a control of 0.00-0.04.
+
+### The corrected result, and why it settles the question
+
+Excess fragility (headline minus no-op control), five families, test split:
+
+| family | reference actions | fragility | control | excess | learning outcome |
+|---|---|---|---|---|---|
+| `navigate` | 9.2 | 0.00 | 0.00 | **0.00** | -- |
+| `restore_power` | 14.8 | 0.00 | 0.00 | **0.00** | BC 1.00 |
+| `deliver` | 16.8 | 0.08 | 0.04 | **0.04** | PPO 0.89 |
+| `repair_belt` | 21.7 | 0.03 | 0.00 | **0.03** | BC 0.15, PPO 0.00 |
+| `build_line` | 240.0 | 0.04 | 0.00 | **0.04** | BC 0.00 |
+
+Excess fragility spans **0.00 to 0.04**. The outcomes span **0.00 to 1.00**. A
+measure that does not vary cannot explain an outcome that does. Every family
+here is disjunctive; the hard ones are hard for some other reason.
+
+### What the exercise did produce
+
+**The reference solvers are robust, not brittle scripts.** Perturbed once with a
+mask-legal wrong action and re-invoked, they still reach the goal in **96-100%**
+of trials across five families and both splits. That had never been measured,
+and it is a property of the solvers that generated every behaviour-cloning
+dataset in this repository.
+
+**An observation, held at arm's length.** The one ordering in this table that
+tracks the outcomes is the leftmost column -- reference solve length -- not
+fragility. It falls monotonically against learning: 14.8 actions to BC 1.00,
+16.8 to 0.89, 21.7 to 0.15, 240.0 to 0.00. It is **not** being claimed. n=5, no
+controlled variation, and horizon is confounded with action-type count and with
+demonstrations per pair. Fitting a second hypothesis to the same five points
+that just falsified the first is exactly how this repository has previously
+talked itself into a finding. Recorded so it can be tested.
+
+### What the measure cannot tell you
+
+It scores `P(reference solver fails | one wrong action)`, not `P(a policy finds
+any solution)`. A disjunctive task can still be unlearnable -- which is what
+`repair_belt` and `build_line` appear to be. Read it beside the random floor
+from `tools/solvability.py`, never instead of it.
+
 ## R5.3 - Demonstration learning: the optimiser destroys what the clone gives it
 
 Three arms on `repair_belt` v1.6.0, primitive action space, 25k steps per PPO
