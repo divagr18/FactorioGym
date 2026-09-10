@@ -510,6 +510,72 @@ class TestTheRecordStaysReadable:
         # the timeline from `action_key`: all three survive batching.
         assert env.catalog.keys()[3] in text
 
+    def test_replay_renders_every_member_of_a_batch_and_its_own_outcome(self, tmp_path):
+        """Gate A4: "replay reconstructs a mixed batch with partial failure."
+
+        The test above only asserted the page *builds* and contains the first
+        action's key -- which it did while rendering exactly one row per
+        decision and hiding the other seven members. This asserts the second
+        member is on the page, that the sequence's stop reason is on the page,
+        and that the counts are over actions rather than decisions.
+        """
+        env = SequencedEnv(fail_on=(1,))
+        adapter = ScriptedAdapter([batch(*([{"action": "wait"}] * 4))] * 8)
+        loop = loop_for(env, adapter, tmp_path, episodes=1, max_steps=4)
+        loop.run()
+
+        counted = loop.decisions[0].sequence
+        assert (counted["completed"], counted["failed"], counted["unexecuted"]) == (1, 1, 2)
+
+        page = replay.build(loop.run_dir, tmp_path / "replay.html")
+        text = page.read_text(encoding="utf-8")
+        # The renderer reads these; a page that carries the data and displays
+        # none of it is what this replaces.
+        for needed in ("function members(", "sequence (", "refused before execution"):
+            assert needed in text, needed
+        # And the record it reads from actually holds the members.
+        assert '"unexecuted"' in text
+        assert '"actions":' in text
+
+    def test_tool_events_are_written_one_line_per_action(self, tmp_path):
+        """A4.1 asks for a tool-event log. The data existed only nested inside
+        a decision, so every reader that did not know a decision may hold eight
+        actions under-reported by up to 8x -- and `tools/replay.py` was one."""
+        env = SequencedEnv()
+        adapter = ScriptedAdapter([batch({"action": 3}, {"action": 1})] * 8)
+        loop = loop_for(env, adapter, tmp_path, episodes=1, max_steps=4)
+        loop.run()
+
+        lines = (loop.run_dir / "tool_events.jsonl").read_text(encoding="utf-8").splitlines()
+        rows = [json.loads(line) for line in lines if line.strip()]
+
+        assert len(rows) > len(loop.decisions), "a batch is more actions than decisions"
+        assert {row["key"] for row in rows} == {env.catalog.keys()[3], env.catalog.keys()[1]}
+        assert all("decision" in row and "position" in row for row in rows)
+
+    def test_the_run_writes_the_artifacts_a4_1_asks_for(self, tmp_path):
+        env = SequencedEnv()
+        adapter = ScriptedAdapter([batch({"action": 3}, {"action": 1})] * 8)
+        loop = loop_for(env, adapter, tmp_path, episodes=1, max_steps=4)
+        loop.run()
+
+        for name in (
+            "config.json",
+            "manifest.json",
+            "status.json",
+            "decisions.jsonl",
+            "tool_events.jsonl",
+            "result.json",
+            "summary.json",
+        ):
+            assert (loop.run_dir / name).exists(), name
+
+        summary = json.loads((loop.run_dir / "summary.json").read_text(encoding="utf-8"))
+        # A decision is what the model was asked; an action is what the world
+        # was asked. Reporting one as the other is the defect this fixes.
+        assert summary["tool_actions"] > summary["decisions"]
+        assert summary["interventions"] == []
+
     def test_diagnose_run_still_reads_the_manifest_and_the_result(self, tmp_path):
         """It reads `result.json` and `manifest.json`, never `decisions.jsonl`,
         so the check that matters is that neither of those two changed shape."""

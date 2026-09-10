@@ -495,6 +495,12 @@ class AgentLoop:
         self.provenance = dict(provenance or {})
         self.brief = TaskBrief.from_spec(env.spec_)
         self.decisions: list[Decision] = []
+        #: Things a human did to this run, each with a reason. A5.2 permits an
+        #: intervention and requires it be labelled rather than presented as
+        #: part of the autonomous remainder, so there has to be somewhere to
+        #: put one -- and an empty list has to mean "none happened" rather than
+        #: "nobody was counting".
+        self.interventions: list[dict] = []
         self.memory = Memory()
         #: Failure signatures the agent has already been told about, so the
         #: open plan is closed once per stall rather than once per turn for the
@@ -1138,6 +1144,7 @@ class AgentLoop:
                 self.memory.compact()
             self.decisions.append(decision)
             self._append_decision(decision)
+            self._append_tool_events(decision)
 
             if not executed:
                 # `steps` did not move, so the `while` would spin. Unreachable
@@ -1220,6 +1227,7 @@ class AgentLoop:
         self.run_dir.mkdir(parents=True, exist_ok=True)
         self._write_json(self.run_dir / "status.json", {"run_id": self.run_id, "state": "running"})
         self._write_manifest()
+        self._write_config()
         status = {"run_id": self.run_id, "state": "running"}
         episodes: list[dict] = []
         try:
@@ -1254,6 +1262,7 @@ class AgentLoop:
             }
             self._write_json(self.run_dir / "result.json", result)
             self._write_json(self.run_dir / "status.json", status)
+            self._write_json(self.run_dir / "summary.json", self.summary(result))
         return result
 
     # ------------------------------------------------------------ recording
@@ -1299,6 +1308,84 @@ class AgentLoop:
             },
         }
 
+    def summary(self, result: dict) -> dict:
+        """The report A4.3 asks for, in one file.
+
+        Every number here already existed somewhere -- spread across
+        `result.json`, `manifest.json`'s amended `budgets_observed`, and a
+        `decisions.jsonl` a reader had to aggregate themselves. A4.3 lists what
+        a run must report; this is that list, computed once, so nobody has to
+        rediscover that a batch of eight is one decision and eight tool actions.
+        """
+        episodes = result.get("episodes") or []
+        by_key: dict[str, int] = {}
+        refused = 0
+        actions = 0
+        for decision in self.decisions:
+            for record in decision.outcomes:
+                key = str(record.get("key"))
+                by_key[key] = by_key.get(key, 0) + 1
+                actions += 1
+            refused += len(decision.refused)
+        return {
+            "run_id": self.run_id,
+            "task": self.config.task_id,
+            # Game time and wall time are different clocks and a run that
+            # reports one as the other is unreadable. Both, named.
+            "simulated_ticks": max((e.get("final_tick") or 0) for e in episodes) if episodes else 0,
+            "wall_seconds": result.get("wall_seconds"),
+            "decisions": len(self.decisions),
+            # A decision is what the model was asked; a tool action is what the
+            # world was asked. A batch of eight is one of the first and eight of
+            # the second, and conflating them under-reports by up to 8x.
+            "tool_actions": actions,
+            "tool_actions_by_key": dict(sorted(by_key.items())),
+            "refused_actions": refused,
+            "model_calls": result.get("model_calls"),
+            "fallback_decisions": result.get("fallback_decisions"),
+            "latency_ms": result.get("latency_ms"),
+            "usage_totals": result.get("usage_totals"),
+            "production": [e.get("production") for e in episodes],
+            "stalls": [d.stalled_on for d in self.decisions if d.stalled_on],
+            "plans": list(self.memory.plans),
+            # Anything a human did to the run. A5.2 requires an intervention be
+            # labelled rather than folded into the autonomous remainder, and an
+            # empty list is a claim -- that there were none -- rather than an
+            # absence of information.
+            "interventions": list(self.interventions),
+            "note": (
+                "spend and the run clock are added by the caller, which owns "
+                "the budget; see result.json's limits"
+            ),
+        }
+
+    def _write_config(self) -> None:
+        """Everything about this run that is not the world (roadmap A4.1).
+
+        It existed, split three ways -- `manifest.json`'s `extra.config`, its
+        `model` block, and `result.json`'s `limits`, which is written by the CLI
+        after the run and so is absent from an interrupted one. A4.1 asks for a
+        config artifact; this is one file, written before the first decision, so
+        a run that dies at decision two still says what it was.
+        """
+        self._write_json(
+            self.run_dir / "config.json",
+            {
+                "run_id": self.run_id,
+                "task": self.brief.to_dict(),
+                "agent": self.config.to_dict(),
+                "adapter": self.adapter.describe(),
+                "deliberation_profile": DELIBERATION_PROFILE,
+                "prompt_digest": _prompt_digest(),
+                "static_prefix_chars": len(self.transcript.static_prefix),
+                "provenance": self.provenance,
+                "note": (
+                    "written before the first decision, so an interrupted run "
+                    "still says what it was configured to do"
+                ),
+            },
+        )
+
     def _write_json(self, path: Path, payload: Any) -> None:
         """Serialise, redact, then write.
 
@@ -1309,6 +1396,59 @@ class AgentLoop:
         """
         text = json.dumps(payload, indent=2, default=str)
         path.write_text(self.adapter.redact(text), encoding="utf-8")
+
+    def _append_tool_events(self, decision: Decision) -> None:
+        """One line per *action*, not per decision (roadmap A4.1).
+
+        The data was already there -- `Decision.outcomes` carries every member
+        of a batch with its own status and clocks -- but it was nested inside a
+        decision record, so counting placements or refusals meant knowing that
+        a decision may hold up to eight of them. Every reader that did not know
+        that under-reported by up to 8x, and `tools/replay.py` was one.
+
+        A refused action gets a line too. It never reached the environment and
+        has no clocks, but the agent spent a decision on it, and a tool log that
+        shows only what the engine accepted cannot explain where a run's time
+        went.
+        """
+        rows = []
+        for record in decision.outcomes:
+            rows.append(
+                {
+                    "episode": decision.episode,
+                    "decision": decision.step,
+                    "position": record.get("position"),
+                    "key": record.get("key"),
+                    "target": record.get("target"),
+                    "arguments": record.get("arguments") or {},
+                    "status": record.get("status"),
+                    "action_status": record.get("action_status"),
+                    "error": record.get("action_error") or record.get("failure"),
+                    "observation_tick": record.get("observation_tick"),
+                    "execution_tick": record.get("execution_tick"),
+                    "elapsed_ms": record.get("elapsed_ms"),
+                    "resolution": decision.resolution,
+                }
+            )
+        for record in decision.refused:
+            rows.append(
+                {
+                    "episode": decision.episode,
+                    "decision": decision.step,
+                    "position": None,
+                    "key": record.get("key"),
+                    "target": record.get("target"),
+                    "arguments": record.get("arguments") or {},
+                    "status": "refused",
+                    "error": record.get("detail") or record.get("failure"),
+                    "resolution": decision.resolution,
+                }
+            )
+        if not rows:
+            return
+        with (self.run_dir / "tool_events.jsonl").open("a", encoding="utf-8") as handle:
+            for row in rows:
+                handle.write(self.adapter.redact(json.dumps(row, default=str)) + "\n")
 
     def _append_decision(self, decision: Decision) -> None:
         """One line per decision, appended as it happens.

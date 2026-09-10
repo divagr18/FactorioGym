@@ -560,6 +560,53 @@ only; worker launch and final snapshot excluded", and `clock.stop()` ran after
 the final save, the viewer teardown and `--hold-open`. Gameplay and finalization
 are now separate numbers -- 42.0s and 0.93s of a 64.7s wall on the probe.
 
+**A run's artifacts are now complete, and the replay shows a whole batch**
+(roadmap A4.1). A run writes `config.json`, `manifest.json`, `status.json`,
+`decisions.jsonl`, `tool_events.jsonl`, `production.jsonl`, `result.json` and
+`summary.json`, plus a verified initial and final save. `config.json` is written
+*before* the first decision, so a run that dies at decision two still says what
+it was configured to do -- previously the configuration was split across
+`manifest.json`'s `extra.config`, its `model` block, and a `result.json` `limits`
+key the CLI writes after the run, which an interrupted run therefore never had.
+
+*The replay showed one action per decision and a decision may hold eight.*
+`Decision.outcomes` has serialized as `actions` since A2, with every member's
+own status, error and three clocks. `tools/replay.py` read none of it: it read
+the four scalars, which name the *first* action and always did. So a batch of
+eight rendered as one row naming action #1, the placements filter could not see
+a `place_at` that happened to be third, and the episode summary under-reported
+placements and refusals by up to eight times. It now renders every member with
+its own outcome, shows the sequence's stop reason, colours a partially failed
+batch as neither ok nor bad, and counts over actions. A pre-A2 run with no
+`actions` key synthesizes the single member its scalars describe, so the 48
+files already on disk keep opening.
+
+*A tool action and a decision are different units.* A decision is what the model
+was asked; a tool action is what the world was asked. `summary.json` reports
+both and never one as the other.
+
+*Bundles shipped every prompt and every raw model reply.*
+`tools/package_release.py` copied `decisions.jsonl` into the export, and that
+file carries the full rendered user turn under `prompt` and the model's verbatim
+answer under `attempts[].text`. Secrets were already handled -- the redactor
+gates every write and the audit refuses to publish on a drive letter, hostname
+or `sk-` match -- but a transcript is not a secret and shipping it is still
+wrong. Bundles now carry `decisions.public.jsonl`, which keeps the action, its
+arguments, its outcome, the clocks, the model's short `reason`, its stated plan,
+latency and token counts, and drops the prompt, the observation and the reply
+text. Private chain of thought is not stripped because none is captured:
+`reasoning_content` is never read and Anthropic `thinking` blocks are dropped at
+the adapter.
+
+*The sampler feeds the windowing metrics, not just a file.* Writing dense
+samples to `production.jsonl` while `ProductionMetrics` still saw only the
+per-decision cadence would have left every 60-second window thrown out as
+unsampled -- the exact failure the sampler exists to prevent. `record` is now
+called from both threads and takes a lock, because two threads appending to one
+list is a race whose outcome is silent: a dropped sample is indistinguishable
+from a window nobody observed. Measured on the probe: 33 samples in the metrics
+against 8 written by the sampler and 25 from the environment's own steps.
+
 **Two engine tests fail and are not caused by this work.**
 `test_observation_profiles_decode_identically` for `navigate` and `deliver`
 asserts the `local-v2` profile sends fewer bytes than `local-v1`, and it now

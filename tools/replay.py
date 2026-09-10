@@ -151,18 +151,60 @@ const FILTERS = [
 function matches(d) {{
   const r = d.result || {{}};
   if (filter === 'addressed' && !d.target) return false;
-  if (filter === 'built' && d.action_key !== 'place_at') return false;
+  const ms = members(d);
+  if (filter === 'built' && !ms.some(m => m.key === 'place_at')) return false;
   if (filter === 'assisted' && !r.skill) return false;
-  if (filter === 'errors' && !r.action_error) return false;
+  // A batch that failed at member two but whose *last* info is clean was
+  // invisible to this filter, which read only the decision's final result.
+  if (filter === 'errors'
+      && !r.action_error
+      && !ms.some(m => m.status === 'failed' || m.action_error)
+      && !(d.refused || []).length) return false;
   if (filter === 'interventions' && (!d.resolution || d.resolution === 'model')) return false;
   if (filter === 'solved' && !r.success) return false;
   if (query) {{
-    const hay = [d.action_key, d.target, argsText(d),
+    const hay = [d.action_key, d.target, argsText(d), d.reason, d.plan, d.note,
+                 ms.map(m => [m.key, m.target, memberArgs(m), m.reason].join(' ')).join(' '),
                  (d.attempts || []).map(a => a.text).join(' ')]
       .join(' ').toLowerCase();
     if (!hay.includes(query)) return false;
   }}
   return true;
+}}
+
+function members(d) {{
+  // Every action a decision asked for, oldest format included.
+  //
+  // A2 made a reply able to carry up to eight actions, serialized as
+  // `actions`, but every reader here kept using the four scalars -- which name
+  // the *first* action and always did. So a batch of eight rendered as one row
+  // showing action #1, and the placements filter could not see a `place_at`
+  // that happened to be third. The 48 pre-A2 files on disk have no `actions`
+  // key at all, so a missing one synthesizes the single member it describes and
+  // old runs keep opening.
+  if (Array.isArray(d.actions) && d.actions.length) return d.actions;
+  return [{{
+    position: 0, key: d.action_key, index: d.action_index,
+    target: d.target, arguments: d.arguments,
+    status: (d.result || {{}}).action_error ? 'failed' : 'completed',
+    action_status: (d.result || {{}}).action_status,
+    action_error: (d.result || {{}}).action_error,
+  }}];
+}}
+
+function ran(m) {{ return m.status === 'completed'; }}
+
+function memberArgs(m) {{
+  const a = m.arguments || {{}};
+  const keys = Object.keys(a);
+  if (!keys.length) return '';
+  return keys.sort().map(function (k) {{
+    const v = a[k];
+    const shown = Array.isArray(v)
+      ? '(' + v.map(function (n) {{ return (+n).toFixed(1); }}).join(', ') + ')'
+      : String(v);
+    return k + '=' + shown;
+  }}).join(' ');
 }}
 
 function argsText(d) {{
@@ -197,13 +239,23 @@ function badge(d) {{
 }}
 
 function episodeSummary(rows) {{
+  // Counted over *actions*, not decisions. A decision is what the model was
+  // asked; an action is what the world was asked, and a batch of eight is one
+  // of the first and eight of the second. Counting decisions under-reported
+  // placements and refusals by up to eight times.
   const solved = rows.some(d => (d.result || {{}}).success);
-  const refused = rows.filter(d => (d.result || {{}}).action_error).length;
-  const addressed = rows.filter(d => d.target).length;
-  const built = rows.filter(d => d.action_key === 'place_at'
-                              && !(d.result || {{}}).action_error).length;
-  return `${{rows.length}} decisions &middot; ${{addressed}} addressed &middot; `
-       + `${{built}} placed &middot; `
+  let actions = 0, built = 0, refused = 0, addressed = 0;
+  rows.forEach(d => {{
+    members(d).forEach(m => {{
+      actions += 1;
+      if (m.target) addressed += 1;
+      if (m.key === 'place_at' && ran(m)) built += 1;
+      if (m.status === 'failed' || m.action_error) refused += 1;
+    }});
+    refused += (d.refused || []).length;
+  }});
+  return `${{rows.length}} decisions &middot; ${{actions}} actions &middot; `
+       + `${{addressed}} addressed &middot; ${{built}} placed &middot; `
        + `${{refused}} refused &middot; ${{solved ? 'solved' : 'unsolved'}}`;
 }}
 
@@ -230,16 +282,29 @@ function timeline() {{
     // One cell per decision, coloured by outcome: the shape of an episode at a
     // glance, and a click target for jumping into it.
     html += '<div class="strip">' + all.map(i => {{
-      const r = DECISIONS[i].result || {{}};
-      const colour = r.success ? 'var(--ok)' : r.action_error ? 'var(--bad)'
-                   : DECISIONS[i].target ? 'var(--addr)' : 'var(--line)';
-      const label = esc(DECISIONS[i].action_key);
+      const d = DECISIONS[i];
+      const r = d.result || {{}};
+      const ms = members(d);
+      const failed = ms.filter(m => m.status === 'failed').length + (d.refused || []).length;
+      const done = ms.filter(ran).length;
+      // A partially failed batch is neither ok nor bad, and colouring it either
+      // way loses the one thing about it worth seeing at a glance.
+      const colour = r.success ? 'var(--ok)'
+                   : (failed && done) ? 'var(--warn)'
+                   : (failed || r.action_error) ? 'var(--bad)'
+                   : d.target ? 'var(--addr)' : 'var(--line)';
+      const label = esc(ms.map(m => m.key).join(' > ')
+                        + (ms.length > 1 ? ` (${{done}}/${{ms.length}} ran)` : ''));
       return `<i data-i="${{i}}" style="background:${{colour}}" title="${{label}}"></i>`;
     }}).join('') + '</div>';
     html += shown.map(i => {{
       const d = DECISIONS[i];
+      const ms = members(d);
+      const name = ms.length > 1
+        ? `${{esc(d.action_key)}} <span class="n">+${{ms.length - 1}}</span>`
+        : esc(d.action_key);
       return `<div class="row" data-i="${{i}}"><span class="n">${{d.step}}</span>`
-           + `<span class="k">${{esc(d.action_key)}}</span>${{badge(d)}}</div>`;
+           + `<span class="k">${{name}}</span>${{badge(d)}}</div>`;
     }}).join('');
   }}
   host.innerHTML = html || '<div class="empty">nothing matches</div>';
@@ -353,6 +418,70 @@ function select(i) {{
     ['error', r.action_error ? '<span class="t-bad">' + esc(r.action_error) + '</span>' : 'none'],
     ['latency', esc(d.inference_ms) + ' ms'],
   ]);
+
+  // Every member of the batch, with its own outcome and its own clocks. The
+  // data was in the file all along -- `Decision.outcomes` serializes as
+  // `actions` -- and nothing displayed it, so a batch of eight showed as one
+  // row naming action #1. `skill_trace` below is the same shape and was the
+  // pattern to copy rather than invent.
+  const ms = members(d);
+  const seq = d.sequence || {{}};
+  if (ms.length > 1 || seq.stopped) {{
+    const done = ms.filter(ran).length;
+    right += '<h3>sequence (' + ms.length + ' requested, ' + done + ' ran)</h3>'
+      + (seq.stopped
+          ? '<p class="t-warn">stopped: ' + esc(seq.stopped) + '</p>'
+          : '<p class="empty">every requested action ran</p>')
+      + '<table>' + ms.map((m, n) => {{
+          const cls = m.status === 'completed' ? 't-ok'
+                    : m.status === 'failed' ? 't-bad' : 't-warn';
+          const args = memberArgs(m);
+          const ticks = (m.observation_tick != null && m.execution_tick != null)
+            ? ' <span class="n">obs ' + esc(m.observation_tick)
+              + ' &rarr; ran ' + esc(m.execution_tick)
+              + (m.elapsed_ms != null ? ' &middot; ' + esc(Math.round(m.elapsed_ms)) + ' ms' : '')
+              + '</span>'
+            : '';
+          return '<tr><td class="f">' + n + '</td><td>' + esc(m.key)
+            + (m.target ? ' <span class="t-addr">&rarr;' + esc(m.target) + '</span>' : '')
+            + (args ? ' <span class="t-arg">' + esc(args) + '</span>' : '')
+            + ' <span class="' + cls + '">' + esc(m.status || 'unknown') + '</span>'
+            + (m.action_error ? ' <span class="t-bad">' + esc(m.action_error) + '</span>' : '')
+            + (m.failure ? ' <span class="t-bad">' + esc(m.failure) + '</span>' : '')
+            + ticks + '</td></tr>';
+        }}).join('') + '</table>';
+  }}
+
+  // Actions the model asked for that never reached the environment. They have
+  // no outcome and no clocks, but the decision was spent on them, and a replay
+  // that shows only what the engine accepted cannot explain where time went.
+  const refused = d.refused || [];
+  if (refused.length) {{
+    right += '<h3>refused before execution (' + refused.length + ')</h3><table>'
+      + refused.map((m, n) =>
+          '<tr><td class="f">' + n + '</td><td>' + esc(m.key)
+          + (memberArgs(m) ? ' <span class="t-arg">' + esc(memberArgs(m)) + '</span>' : '')
+          + '<br><span class="t-bad">' + esc(m.detail || m.failure) + '</span></td></tr>'
+        ).join('') + '</table>';
+  }}
+
+  // What the model said it was doing, and what it is working toward. Recorded
+  // since A3 and displayed nowhere, while the search box offered to filter on
+  // "reason".
+  if (d.reason || d.plan || d.note) {{
+    right += '<h3>what the model said</h3>' + kv([
+      ['reason', d.reason ? esc(d.reason) : '<span class="empty">none given</span>'],
+      ['plan', d.plan ? esc(d.plan) : '<span class="empty">unchanged</span>'],
+      ['note', d.note
+        ? esc(d.note) + ' <span class="t-warn">(the model's claim, unverified)</span>'
+        : '<span class="empty">none</span>'],
+    ]);
+  }}
+  if (d.stalled_on) {{
+    right += '<p class="t-warn">repeated failure: <b>' + esc(d.stalled_on)
+      + '</b> crossed the stall threshold on this decision, and the agent was '
+      + 'told so and asked for a different plan.</p>';
+  }}
 
   const trace = r.skill_trace || [];
   if (r.skill) {{

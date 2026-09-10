@@ -16,6 +16,7 @@ recorder that returns no reward cannot.
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -67,6 +68,12 @@ class ProductionMetrics:
     #: for "time to first machine production", which is a different question and
     #: was not answerable before.
     _first_output: dict[str, int] = field(default_factory=dict)
+    #: `record` is called from the environment's own thread *and* from the
+    #: wall-clock sampler (roadmap A4.3), which is the only source dense enough
+    #: to fill a 60-second window in a realtime run. Two threads appending to
+    #: one list is a race with a silent outcome -- a dropped sample looks
+    #: exactly like a window nobody observed.
+    _lock: threading.Lock = field(default_factory=threading.Lock)
 
     @classmethod
     def for_task(cls, spec: TaskSpec) -> ProductionMetrics:
@@ -114,6 +121,10 @@ class ProductionMetrics:
         self._first_output = {}
 
     def record(self, observation: dict, truth: dict) -> None:
+        with self._lock:
+            self._record(observation, truth)
+
+    def _record(self, observation: dict, truth: dict) -> None:
         tick = int(observation.get("tick") or 0)
         counted = truth.get(self.source) or {}
         if self.discover:

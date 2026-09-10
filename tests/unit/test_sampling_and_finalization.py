@@ -134,6 +134,68 @@ def test_the_sampler_only_ever_reads(tmp_path):
     assert set(session.calls) == {"truth"}
 
 
+def test_the_sampler_feeds_the_windowing_metrics(tmp_path):
+    """The reason the sampler exists, not a side effect of it.
+
+    `ProductionMetrics` refuses a window it did not observe densely enough, and
+    in a realtime run the environment's own cadence is the model's latency. A
+    file full of samples that the windowing code never sees would leave every
+    60-second window thrown out as unsampled -- which is the state this fixes.
+    """
+    from factoriorl import worlds
+    from factoriorl.production import ProductionMetrics
+
+    metrics = ProductionMetrics.for_world(worlds.get("open_factory"))
+    session = FakeSession()
+    sampler = Sampler(
+        session=session,
+        destination=tmp_path / "production.jsonl",
+        metrics=metrics,
+        interval_seconds=0.02,
+    ).start()
+    time.sleep(0.2)
+    sampler.stop()
+
+    report = metrics.report()
+    assert report["samples"] >= 4
+    assert metrics.items == ("iron-plate",)
+    assert report["counts"] == "machine_produced"
+    assert sampler.to_dict()["feeds_metrics"] is True
+
+
+def test_metrics_survive_being_recorded_from_two_threads(tmp_path):
+    """The environment's own thread records too. Two threads appending to one
+    list is a race whose outcome is silent: a dropped sample is indistinguishable
+    from a window nobody observed."""
+    from factoriorl import worlds
+    from factoriorl.production import ProductionMetrics
+
+    metrics = ProductionMetrics.for_world(worlds.get("open_factory"))
+    stop = threading.Event()
+
+    def busy():
+        tick = 1
+        while not stop.is_set():
+            metrics.record({"tick": tick}, {"machine_produced": {"copper-plate": tick}})
+            tick += 60
+
+    other = threading.Thread(target=busy, daemon=True)
+    other.start()
+    sampler = Sampler(
+        session=FakeSession(),
+        destination=tmp_path / "p.jsonl",
+        metrics=metrics,
+        interval_seconds=0.01,
+    ).start()
+    time.sleep(0.3)
+    sampler.stop()
+    stop.set()
+    other.join(timeout=5)
+
+    assert set(metrics.items) == {"iron-plate", "copper-plate"}
+    assert metrics.report()["samples"] > 0
+
+
 # ------------------------------------------------------------- finalization
 
 

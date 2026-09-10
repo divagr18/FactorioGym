@@ -405,6 +405,7 @@ def run_world(
         sampler = Sampler(
             session=session,
             destination=manifest_module.runs_dir() / run_id / "production.jsonl",
+            metrics=env.metrics,
         ).start()
         result = loop.run(until=until, on_decision=checkpointer.maybe_save)
         # Gameplay is over here, and the clock has to say so *here*: everything

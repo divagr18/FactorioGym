@@ -45,6 +45,13 @@ class Sampler:
 
     session: Any
     destination: Path
+    #: The run's production metrics, fed from here as well as from the
+    #: environment's own steps. This is the point of the sampler rather than a
+    #: side effect: `ProductionMetrics` refuses a window it did not observe
+    #: densely enough, and in a realtime run the environment's own cadence is
+    #: the model's latency. Without this the file below would fill up while
+    #: every 60-second window was still thrown out as unsampled.
+    metrics: Any = None
     interval_seconds: float = DEFAULT_INTERVAL_SECONDS
     #: Counted rather than raised. A sampler that killed a thirty-minute run
     #: because one read timed out would be trading the thing being measured for
@@ -106,6 +113,11 @@ class Sampler:
         }
         with self.destination.open("a", encoding="utf-8") as stream:
             stream.write(json.dumps(row, default=str) + "\n")
+        if self.metrics is not None and row["tick"] is not None:
+            # The same reading the file just got, in the form the windowing
+            # code wants. `record` takes a lock, because the environment's
+            # own thread calls it too.
+            self.metrics.record({"tick": row["tick"]}, truth)
         self.samples += 1
 
     def to_dict(self) -> dict:
@@ -115,6 +127,7 @@ class Sampler:
             "failures": self.failures,
             "errors": list(self._errors),
             "path": str(self.destination),
+            "feeds_metrics": self.metrics is not None,
             "measures": (
                 "world truth read on a wall clock, independent of the agent's "
                 "decision rate; never acts and never advances a tick"

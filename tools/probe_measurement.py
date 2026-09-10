@@ -112,6 +112,30 @@ def main() -> int:
     finalization = result.get("finalization") or {}
     sampling = result.get("sampling") or {}
 
+    # A4.1's artifact set, checked on disk rather than in the return value: an
+    # interrupted run leaves the directory and not the dict, and the directory
+    # is what anyone reads later.
+    artifacts = {
+        name: (run_dir / name).exists()
+        for name in (
+            "config.json",
+            "manifest.json",
+            "status.json",
+            "decisions.jsonl",
+            "tool_events.jsonl",
+            "production.jsonl",
+            "result.json",
+            "summary.json",
+        )
+    }
+    tool_events = [
+        json.loads(line)
+        for line in (run_dir / "tool_events.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
+    saves = sorted(str(path.name) for path in (run_dir / "saves").glob("*.zip"))
+
     # A sample counts as "during a model call" if its wall clock falls inside
     # one of the intervals the adapter was asleep for. Both are measured, not
     # assumed: the adapter records when it started and stopped thinking.
@@ -144,6 +168,10 @@ def main() -> int:
         "checkpoints": result.get("checkpoints"),
         "reordered_replies": (result.get("viewer") or {}).get("reordered_replies"),
         "run_dir": str(run_dir),
+        "artifacts": artifacts,
+        "tool_events": len(tool_events),
+        "summary": summary,
+        "saves": saves,
     }
     report["verdict"] = {
         "samples_were_written": len(samples) >= 3,
@@ -166,6 +194,14 @@ def main() -> int:
             finalization.get("seconds") is not None
             and clock.elapsed_seconds > 0
             and clock.elapsed_seconds < wall
+        ),
+        "every_a4_1_artifact_was_written": all(artifacts.values()),
+        "tool_events_are_per_action": len(tool_events) >= summary["decisions"],
+        "the_summary_separates_decisions_from_actions": (
+            summary["tool_actions"] >= summary["decisions"]
+        ),
+        "an_initial_and_a_final_save_exist": (
+            any("initial" in name for name in saves) and any("final" in name for name in saves)
         ),
         "the_final_save_is_verified": any(
             entry.get("label") == "final" and entry.get("verified")

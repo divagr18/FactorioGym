@@ -64,6 +64,45 @@ DOCUMENTS = (
 )
 
 
+#: Keys dropped when a decision record is made public. Everything else about a
+#: decision -- what was chosen, what it did, what it cost, how long it took --
+#: stays, because that is what makes a run inspectable.
+PRIVATE_DECISION_KEYS = ("prompt", "observation", "legal_actions")
+
+#: Keys dropped from each recorded model attempt. The verbatim reply and any
+#: provider error body go; the accounting stays.
+PRIVATE_ATTEMPT_KEYS = ("text", "error", "detail")
+
+
+def public_decisions(source: Path, destination: Path) -> int:
+    """Rewrite `decisions.jsonl` without the transcript, and return the count.
+
+    What survives is everything a reader needs to reconstruct the run: the
+    action, its arguments, its outcome, the per-action clocks, the model's own
+    short `reason`, the plan it stated, latency and token counts. What goes is
+    the rendered prompt and the model's verbatim answers.
+
+    A4.1 also says private chain of thought must not be required or published.
+    None is captured anywhere -- `reasoning_content` is never read and Anthropic
+    `thinking` blocks are dropped at the adapter -- so there is nothing here to
+    strip; this only removes the ordinary reply text.
+    """
+    rows = 0
+    with destination.open("w", encoding="utf-8") as out:
+        for line in source.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            record = json.loads(line)
+            for key in PRIVATE_DECISION_KEYS:
+                record.pop(key, None)
+            for attempt in record.get("attempts") or []:
+                for key in PRIVATE_ATTEMPT_KEYS:
+                    attempt.pop(key, None)
+            out.write(json.dumps(record, default=str) + "\n")
+            rows += 1
+    return rows
+
+
 def redact(value, replacements: dict[str, str]):
     """Replace machine-specific strings anywhere in a JSON structure."""
     if isinstance(value, dict):
@@ -113,13 +152,34 @@ def collect_run(run_id: str, out_dir: Path) -> dict:
     destination = out_dir / "runs" / run_id
     destination.mkdir(parents=True, exist_ok=True)
 
+    private = source / "decisions.jsonl"
+    if private.exists():
+        public_decisions(private, source / "decisions.public.jsonl")
+
     manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
     engine = (manifest.get("engine") or {}).get("executable")
     cleaned = redact(manifest, replacements_for(engine))
     (destination / "manifest.json").write_text(json.dumps(cleaned, indent=2), encoding="utf-8")
 
     copied = ["manifest.json"]
-    for name in ("model.zip", "curve.csv", "result.json", "decisions.jsonl", "status.json"):
+    # `decisions.jsonl` is deliberately absent and `decisions.public.jsonl`
+    # takes its place. Roadmap A4.1: "Keep secrets and raw private transcripts
+    # out of export bundles." Every rendered prompt and every raw model reply
+    # is in the private file -- `attempts[].text` is the model's answer verbatim
+    # and `prompt` is the whole user turn -- and it was being copied into a
+    # bundle meant for sharing. Secrets were already handled by the redactor and
+    # the audit; a transcript is not a secret, and shipping it is still wrong.
+    for name in (
+        "model.zip",
+        "curve.csv",
+        "config.json",
+        "result.json",
+        "summary.json",
+        "decisions.public.jsonl",
+        "tool_events.jsonl",
+        "production.jsonl",
+        "status.json",
+    ):
         candidate = source / name
         if not candidate.exists():
             continue
