@@ -40,10 +40,29 @@ local function enabled_recipes()
     -- either client. Filtered on the property rather than the name prefix.
     local makes_something = recipe.products and #recipe.products > 0
     if recipe.enabled and not recipe.hidden and makes_something then
-      names[#names + 1] = name
+      -- Enabled is not affordable, and the domain was publishing the first
+      -- while the handler enforces the second. Measured on a live run: the
+      -- agent had no stone -- the nearest is 105 tiles away on this seed -- and
+      -- `stone-furnace` sat in its recipe list all the same, so it asked for
+      -- one, was told `requested: 1, craftable: 0`, and asked again. Fourth
+      -- instance of a domain offering what the runtime always refuses.
+      --
+      -- Craftable count rather than a filter, because "you cannot make this
+      -- yet" is more useful than the recipe vanishing: an agent that can see
+      -- `stone-furnace x0` knows what to go and find.
+      local ch = storage.frrl_character
+      local craftable = 0
+      if ch and ch.valid then
+        local ok, count = pcall(function() return ch.get_craftable_count(name) end)
+        if ok and count then craftable = count end
+      end
+      names[#names + 1] = { name = name, craftable = craftable }
     end
   end
-  table.sort(names)
+  -- Sorted by name, as before: the entries are tables now, so the comparator
+  -- has to say which field orders them or `table.sort` compares tables and
+  -- errors.
+  table.sort(names, function(a, b) return a.name < b.name end)
   if #names > RECIPE_CAP then
     local capped = {}
     for index = 1, RECIPE_CAP do capped[index] = names[index] end

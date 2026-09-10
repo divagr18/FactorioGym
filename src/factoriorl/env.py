@@ -240,7 +240,16 @@ class FactorioEnv(gym.Env):
             "amounts": list(TRANSFER_AMOUNTS),
             # Now observable (local-v2 v4), so `craft_recipe` and
             # `set_recipe_at` stop being permanently masked.
-            "recipes": list(observation.get("recipes") or []),
+            # Names only. The observation now carries `{name, craftable}` per
+            # recipe so the prompt can say how many you could actually make,
+            # but a *domain* is the set of legal argument values and a recipe
+            # you cannot afford is still a legal thing to ask for -- the
+            # refusal is `no_items`, which is a fact about your inventory, not
+            # about the argument.
+            "recipes": [
+                entry["name"] if isinstance(entry, dict) else entry
+                for entry in (observation.get("recipes") or [])
+            ],
             # Researchable *now*: prerequisites met, not already researched.
             # This was `[]` until an open world published the list, which made
             # `research` permanently masked -- an argument whose domain the

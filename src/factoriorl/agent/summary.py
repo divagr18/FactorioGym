@@ -674,6 +674,12 @@ class ObservationSummary:
     #: Every machine the agent has built, at any distance. Distinct from
     #: `entities`, which is what the sensor can currently see.
     built: list[dict] = field(default_factory=list)
+    #: How many of each recipe the character could craft right now, from what
+    #: it is holding. The recipe *domain* is every enabled recipe, because
+    #: asking for one you cannot afford is a legal request with an informative
+    #: refusal -- but "legal to ask for" and "will work" are different, and only
+    #: this says which is which.
+    craftable: dict = field(default_factory=dict)
     #: The resource tiles as the observation published them, kept because
     #: `resources` above is per-name aggregates and the *handles* live here.
     #: Rendered nowhere directly; used to say where an addressable tile is.
@@ -1055,10 +1061,26 @@ class ObservationSummary:
                 ("technologies", "technology"),
             ):
                 values = self.arguments.get(name)
-                if values:
-                    shown = ", ".join(str(v) for v in values[:24])
-                    more = "" if len(values) <= 24 else f" (+{len(values) - 24} more)"
+                if not values:
+                    continue
+                if name == "recipes" and self.craftable:
+                    # Affordable first, and every one carrying how many you
+                    # could make. A live run asked for a stone furnace it had
+                    # no stone for, was told `craftable: 0`, and asked again --
+                    # the list said the recipe was available and never said it
+                    # was out of reach.
+                    ordered = sorted(values, key=lambda v: (-self.craftable.get(v, 0), str(v)))
+                    shown = ", ".join(f"{v} x{self.craftable.get(v, 0)}" for v in ordered[:24])
+                    more = "" if len(ordered) <= 24 else f" (+{len(ordered) - 24} more)"
                     lines.append(f"  {label}: {shown}{more}")
+                    lines.append(
+                        "    xN is how many you can make right now from what you hold; "
+                        "x0 means you are missing ingredients"
+                    )
+                    continue
+                shown = ", ".join(str(v) for v in values[:24])
+                more = "" if len(values) <= 24 else f" (+{len(values) - 24} more)"
+                lines.append(f"  {label}: {shown}{more}")
             targets = self.arguments.get("targets")
             if targets:
                 # Enumerated, not described. "any handle in the ENTITIES list"
@@ -1133,6 +1155,11 @@ def summarise(
         raw_resources=dict(observation.get("resources") or {}),
         grid=dict(observation.get("grid") or {}),
         built=list(observation.get("built") or []),
+        craftable={
+            entry["name"]: entry.get("craftable", 0)
+            for entry in (observation.get("recipes") or [])
+            if isinstance(entry, dict)
+        },
         inspected=observation.get("inspected"),
         inflight=list(observation.get("inflight") or []),
         events=list(observation.get("events") or [])[-MAX_EVENTS_SHOWN:],
