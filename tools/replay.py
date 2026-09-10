@@ -505,16 +505,32 @@ def build(run_dir: Path, out: Path | None) -> Path:
     return destination
 
 
+def _resolve(reference: str) -> Path:
+    """A run id, a relative path, or an absolute one.
+
+    A bare run id is what every other command takes -- `runs show`,
+    `runs verify`, `evaluate --checkpoint` -- and passing one here used to
+    report "has no decisions.jsonl" about a directory that was never looked at.
+    """
+    direct = Path(reference)
+    if direct.is_absolute():
+        return direct
+    relative = ROOT / direct
+    if relative.exists():
+        return relative
+    from factoriorl.manifest import runs_dir
+
+    by_id = runs_dir() / reference
+    return by_id if by_id.exists() else direct
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("run", help="run directory under runtime/runs/")
+    parser.add_argument("run", help="a run id, or a path to a run directory")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
-    run_dir = Path(args.run)
-    if not run_dir.is_absolute():
-        candidate = ROOT / run_dir
-        run_dir = candidate if candidate.exists() else run_dir
+    run_dir = _resolve(args.run)
     destination = build(run_dir, Path(args.out) if args.out else None)
     size = destination.stat().st_size
     print(f"wrote {destination} ({size / 1024:.0f} KB, self-contained)")

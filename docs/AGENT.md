@@ -97,6 +97,52 @@ one in the manifest. Benchmark runs use `stepped`, the default.
 `--adapter anthropic` selects `AnthropicMessagesAdapter`, which was previously
 reachable only from Python.
 
+### Watching a run
+
+Two viewers, and they work together on the same artifacts.
+
+**Live, in a real Factorio window** — `--launch-client` starts a second Factorio
+and connects it to the worker, which is already a dedicated server:
+
+```
+uv run factoriorl agent --task open_factory --clock realtime --launch-client \
+    --client-warmup 30 --hold-open 60 --max-cost-usd 5 --max-wall-seconds 1800
+```
+
+The joiner is made a **spectator** with no character, on both
+`on_player_created` and `on_player_joined_game`, with the intro cutscene exited
+and the engine-given body destroyed — so it cannot reach, mine, build or
+transfer, and an identity guard means it can never destroy the agent's own body.
+
+`--client-warmup` exists because a join stalls the server while it transfers the
+map, and a stall *inside* a step is an infrastructure failure rather than a task
+outcome. `--hold-open` leaves the final state on screen after the run.
+
+**Watching is a perturbation, and the run says so.** A joined client creates a
+`LuaPlayer` no measured run has; the server settings let a connected client run
+console commands and pause the world; and a client reorders RCON replies —
+measured at 89 inversions across one watched run against 0 on every player-free
+one. So a watched run records `measurement: demonstration` and the observed
+inversion count, and is not comparable to a measured one.
+
+**Viewer presence is observed, not assumed.** The run artifact records whether a
+client was requested, whether it launched, whether it survived warmup, and
+whether it was alive at teardown. If the client cannot start, or starts and dies,
+the run **continues headless** and the reason is written into the result rather
+than printed and lost.
+
+**Afterwards, as a self-contained HTML page** — the replay works on any agent
+run, open worlds included, and takes a run id:
+
+```
+uv run factoriorl replay <run_id>
+```
+
+It writes `replay.html` beside the run: map, character, inventory, the prompt as
+sent, the chosen action with its status, the model's attempts, and the legal
+actions offered. **No network calls and no CDN**, asserted by a test — a replay
+can be inspected without contacting the model provider.
+
 ### Prompt caching, and why it decides whether a run is affordable
 
 For `deepseek-flash` an input token served from the provider's prefix cache

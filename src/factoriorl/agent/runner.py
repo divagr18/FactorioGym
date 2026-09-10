@@ -163,6 +163,9 @@ def run_world(
     until=None,
     checkpoint_seconds: float | None = None,
     resume_from: Path | None = None,
+    launch_client: bool = False,
+    client_warmup: float = 30.0,
+    hold_open: float = 0.0,
 ) -> dict[str, Any]:
     """Play an open generated world -- `factoriorl.worlds` -- rather than a task.
 
@@ -180,6 +183,7 @@ def run_world(
     """
     from factoriorl import manifest as manifest_module
     from factoriorl.agent.checkpoint import DEFAULT_INTERVAL_SECONDS, Checkpointer
+    from factoriorl.agent.viewer import Viewer
     from factoriorl.freeplay import starting_inventory
     from factoriorl.open_world import OpenWorldEnv
     from factoriorl.rcon import RCONClient
@@ -194,6 +198,7 @@ def run_world(
     # Read before the worker is launched: an unreadable freeplay definition
     # should fail in a second, not after a ninety-second map generation.
     freeplay = starting_inventory(manager.engine.executable)
+    viewer = None
     handle = manager.launch(
         f"world-{mode.id}-{run_id[-8:]}",
         map_seed=master_seed,
@@ -224,6 +229,17 @@ def run_world(
             seed=master_seed,
             fresh=not resuming,
         )
+        # Started before the first decision, because a join stalls the server
+        # while it transfers the map and a stall *inside* a step is an
+        # infrastructure failure rather than a task outcome.
+        viewer = Viewer.start(
+            requested=launch_client,
+            executable=handle.engine.executable,
+            address=f"127.0.0.1:{handle.spec.ports.game}",
+            mod_directory=handle.spec.mod_directory,
+            warmup_seconds=client_warmup,
+        )
+        viewer.wait_for_join()
         checkpointer = Checkpointer(
             session=session,
             write_data=handle.spec.write_data,
@@ -245,6 +261,7 @@ def run_world(
                 "world": mode.to_dict(),
                 "starting_inventory": None if resuming else freeplay,
                 "resumed_from": str(resume_from) if resuming else None,
+                "viewer": viewer.to_dict(),
                 "clock": {
                     "game_speed": speed,
                     "free_running": free_running,
@@ -264,8 +281,15 @@ def run_world(
         result = loop.run(until=until, on_decision=checkpointer.maybe_save)
         checkpointer.save("final")
         result["checkpoints"] = checkpointer.to_dict()
+        result["viewer"] = viewer.to_dict(
+            reordered_replies=getattr(session._client, "reordered_replies", None)
+        )
         return result
     finally:
+        # After the final checkpoint, so the last thing on screen is the world
+        # that was actually saved.
+        if viewer is not None:
+            viewer.stop(hold_open_seconds=hold_open)
         if session is not None:
             try:
                 session.close()

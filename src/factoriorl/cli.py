@@ -587,8 +587,18 @@ def cmd_agent(args) -> int:
             master_seed=args.seed,
             checkpoint_seconds=args.checkpoint_seconds,
             resume_from=resume_from,
+            launch_client=args.launch_client,
+            client_warmup=args.client_warmup,
+            hold_open=args.hold_open,
             **shared,
         )
+    elif args.launch_client:
+        print(
+            "--launch-client is wired for open worlds only so far. A benchmark "
+            "task can still be watched through tools/watch_agent.py",
+            file=sys.stderr,
+        )
+        return 2
     elif resume_from is not None:
         print(
             "--resume-from applies to open worlds only. A benchmark task's scene "
@@ -791,7 +801,16 @@ def _run_tool(name: str, argv: list[str]) -> int:
     try:
         runpy.run_path(str(script), run_name="__main__")
     except SystemExit as exit_code:
-        return int(exit_code.code or 0)
+        code = exit_code.code
+        # `SystemExit("message")` is the ordinary way a tool refuses something,
+        # and `int()` of that message raises -- so a clean refusal came back as a
+        # traceback with the actual explanation buried in a ValueError. Measured
+        # on `factoriorl replay <run id>`: the message said exactly what was
+        # wrong and the user saw a stack trace instead.
+        if isinstance(code, str):
+            print(code, file=sys.stderr)
+            return 1
+        return int(code or 0)
     finally:
         sys.argv = saved
     return 0
@@ -1040,6 +1059,28 @@ def main(argv: list[str] | None = None) -> int:
         type=float,
         default=1800.0,
         help="measured from the first gameplay observation, so engine launch does not consume it",
+    )
+    agent_cmd.add_argument(
+        "--launch-client",
+        action="store_true",
+        help="start a second Factorio and connect it, so the world can be "
+        "watched live. The joiner is made a spectator with no character, but it "
+        "still creates a LuaPlayer no measured run has -- a watched run is a "
+        "demonstration, and is recorded as one",
+    )
+    agent_cmd.add_argument(
+        "--client-warmup",
+        type=float,
+        default=30.0,
+        help="seconds to let the client join before the first decision. The join "
+        "stalls the server while it transfers the map, and a stall inside a step "
+        "is an infrastructure failure rather than a task outcome",
+    )
+    agent_cmd.add_argument(
+        "--hold-open",
+        type=float,
+        default=0.0,
+        help="seconds to leave the client open after the run, so the final state stays on screen",
     )
     agent_cmd.add_argument("--out", default=None)
 

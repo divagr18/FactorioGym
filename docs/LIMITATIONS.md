@@ -345,6 +345,19 @@ without numpy and gymnasium. **No such test exists.** The nearest one imports
 sb3-contrib did not leak in. The claim is withdrawn rather than backfilled,
 because the property it described was never checked.
 
+**A watched run is a demonstration, not a measurement.** `--launch-client`
+attaches a real Factorio client. The joiner is a spectator with no character, so
+it cannot act — but it still creates a `LuaPlayer` no measured run has, it can
+run console commands and pause the world (`allow_commands`,
+`only_admins_can_pause_the_game: False`), and it reorders RCON replies. The run
+records `measurement: demonstration` and the observed inversion count. Bind is
+`127.0.0.1`, so only a same-machine viewer can join.
+
+**`--launch-client` is wired for open worlds only.** A benchmark task can still
+be watched through `tools/watch_agent.py`, which has its own client handling —
+including the hardcoded `"watched": true` that the new path deliberately does
+not copy.
+
 **Replay does not cover trained policies.** `factoriorl replay` reads
 `decisions.jsonl`, which only the language-model loop writes, and refuses a
 training run with a message saying so. A trained policy's per-decision actions
