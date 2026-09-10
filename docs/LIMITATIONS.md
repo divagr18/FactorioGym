@@ -658,6 +658,52 @@ makes and the reason the wall-clock sampler exists.
 
 Total spent proving all of this: **$0.000143**, through the capped adapter.
 
+**Watching a run used to change the world it was run in, and that invalidates
+the first two paid attempts.** Counting `crash-site-*` entities across the whole
+surface: **0 wrecks and 0 items before a client connected, 34 wrecks holding 16
+items after.** The base scenario builds the introductory wreckage when a player
+appears, so a run watched through `--launch-client` was played on a different
+map from a headless one -- and the extra map came with sixteen free items in
+containers, which the agent found and looted.
+
+A1.2 requires that the viewing client "must not create a second productive
+participant or alter the agent's inventory". A1.1 requires the introductory
+wreck bonuses be disabled "so they cannot supply an accidental construction
+kit". The act of watching broke both, and the run artifacts show the agent
+spending decisions on `take_from` against wreckage that existed only because
+somebody was looking at it.
+
+Found by accident: the local map showed no debris on a headless probe while both
+paid runs were full of it, and the discrepancy was the tell. The join now sweeps
+crash-site entities by name prefix -- which cannot match anything the agent
+builds -- and the count is 0 before and 0 after. **Neither of the first two paid
+runs was playing the world the roadmap specifies, and no claim should be made
+from them about what the agent achieved.**
+
+**A machine's facing was a word, and a word is not a location.** "facing south"
+does not say which tile a burner drill's ore lands on, and a drill pointed at
+open ground produces into the ground however well fuelled it is. Both early runs
+built a drill and a furnace, left them five tiles apart, and never connected
+them. Machines now publish the tiles: `outputs onto (-31.5, -3.7)` and, for an
+inserter, `takes from (-32.5, -4.5)`. The inserter is the case that forced it --
+it takes from *behind* itself and puts in front, so `facing north` and "puts
+items to the south" are both true and only the tile is actionable.
+
+**A stopped machine was indistinguishable from a running one.** On a map of
+single characters a fuelled furnace and an empty one looked identical, and both
+early runs built three machines, fuelled none, and read the result as a
+finished factory. Case now carries it -- uppercase runs, lowercase is stopped --
+and the machine's own line says `NO FUEL`. The glyph alphabet excludes letters
+whose lowercase already means a resource or scenery, so case is free to mean
+this.
+
+**`mine` never said it removes things.** Its description was
+`mine <handle you choose> (1x)`, which reads as "extract ore from", so the agent
+used it only on resource tiles and cleared nothing out of its way: it emptied
+the crash-site wreckage with `take_from` and left the wreckage standing in its
+build area. The verb removes whatever it is pointed at -- entity or tile -- and
+that is now what it says.
+
 **Two engine tests fail and are not caused by this work.**
 `test_observation_profiles_decode_identically` for `navigate` and `deliver`
 asserts the `local-v2` profile sends fewer bytes than `local-v1`, and it now
