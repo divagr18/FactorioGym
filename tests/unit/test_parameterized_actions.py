@@ -125,7 +125,15 @@ class TestDomainsComeFromTheObservation:
         tiles = {tuple(p) for p in domains["placements"]}
         assert (4.5, 0.5) not in tiles, "a visible entity's tile is not a candidate"
         assert (1.5, 1.5) not in tiles, "a blocked tile is not a candidate"
-        assert (0.5, 0.5) in tiles
+        # The character stands at (0, 0) in this fixture, and its own tile is
+        # NOT a candidate. This assertion used to read `in tiles` and pinned the
+        # defect: `can_place_entity` on the character's own position is false,
+        # measured against the engine, so every placement there was refused
+        # `collision`. The sweep excludes the agent's own body from `entities`,
+        # so nothing else was going to catch it.
+        assert (0.5, 0.5) not in tiles, "you cannot build on the tile you stand on"
+        # Somewhere else nearby still is, so the domain is not simply empty.
+        assert (2.5, 0.5) in tiles
 
     def test_placements_are_bounded(self):
         domains = _Env(_observation()).argument_domains()

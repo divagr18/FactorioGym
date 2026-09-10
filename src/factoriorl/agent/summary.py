@@ -154,7 +154,27 @@ def describe_template(template: Any) -> str:
     if action == "move":
         return f"walk {payload.get('direction', '?')} for {payload.get('ticks', '?')} ticks"
     if action == "mine":
-        return f"mine {reference(payload.get('handle'))} ({payload.get('count', 1)}x)"
+        # Three things measured on live runs, none of which "mine <handle> (1x)"
+        # conveyed -- and one of which I had wrong until the engine corrected me.
+        #
+        # It removes standing entities, which is how trees, rocks and a machine
+        # you want back get cleared. But `item-on-ground` has `minable = true`
+        # and **no products**, so mining a loose pile does nothing at all;
+        # building over the pile works instead, and `can_place_entity` on a tile
+        # holding seven iron ore returned true for every build-check type.
+        #
+        # And it is *ongoing*. Several in one reply earns `busy` on the second,
+        # which one run did four times running -- including
+        # `wait+mine_at+wait+mine_at` and `wait_for+mine_at+...`, because a
+        # single wait is far shorter than a mine.
+        return (
+            f"mine {reference(payload.get('handle'))} ({payload.get('count', 1)}x) -- "
+            "a resource tile, or a standing entity (tree, rock, or a machine you "
+            "want back), which it REMOVES and hands you. It does NOT pick up "
+            "loose items lying on the ground. It runs across several decisions: "
+            "send ONE per reply and let it finish. A second one in the same "
+            "reply is refused as busy, and interleaving waits does not help"
+        )
     if action == "craft":
         return (
             f"craft {reference(payload.get('count', 1))}x {reference(payload.get('recipe', '?'))}"
@@ -325,9 +345,12 @@ def static_reference(env: Any) -> str:
             "One character per tile, north at the top, @ is you.",
             "  . open ground   ~ water   t tree   r rock   x debris",
             "  * loose items lying on the ground. A machine whose output tile is",
-            "    bare floor drops its work there, where nothing can use it -- and",
-            "    the pile then BLOCKS that tile, so the machine jams and you cannot",
-            "    build there either. mine_at on the pile picks it up and clears it.",
+            "    bare floor drops its work there, where nothing can use it, and then",
+            "    jams once the tile is full. A pile does NOT stop you building on",
+            "    that tile -- put the machine you wanted there and the drill has",
+            "    somewhere to put its next one.",
+            "  You cannot build on the tile you are standing on. @ is not a legal",
+            "  position; step aside first, or pick a position that is not under you.",
             "  A MACHINE IN CAPITALS IS RUNNING. a machine in lower case is stopped:",
             "    built, standing there, producing nothing. Its line says why.",
             "  > < ^ v  the tile a machine puts its output on. A drill whose output",

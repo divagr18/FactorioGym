@@ -22,6 +22,18 @@ local ENTITY_TYPES = {
   "inserter", "electric-pole", "boiler", "generator", "offshore-pump",
   "pipe", "pipe-to-ground", "lab", "lamp", "wall", "solar-panel",
   "accumulator", "roboport", "radar", "storage-tank", "pump", "character",
+  -- Loose items lying on the ground. Swept because they are *addressable
+  -- problems*, not scenery: a burner drill pointed at bare ground fills its
+  -- output tile with its own ore, jams on `waiting_for_space_in_destination`,
+  -- and the pile then blocks the placement of whatever was meant to go there.
+  --
+  -- Measured live: the map drew the pile and the key said `mine_at` clears it,
+  -- and the agent read that, reasoned "mine the loose ore pile on the drill's
+  -- output tile to clear it for the furnace" -- and had nothing to aim at,
+  -- because a type absent from this list is never swept and so never gets a
+  -- handle. It mined a nearby ore tile instead and the pile stayed. Advertising
+  -- an action whose target cannot be named is worse than not offering it.
+  "item-entity",
 }
 
 local INVENTORY_BY_TYPE = {
@@ -77,6 +89,16 @@ local function inventory_contents(entity, which)
 end
 
 local function contents_of(entity)
+  -- A loose pile has no inventory -- it *is* one item stack -- so it would
+  -- otherwise render as a bare "item-on-ground" and say nothing about what is
+  -- actually lying there, which is the only fact about it worth having.
+  if entity.type == "item-entity" then
+    local ok, stack = pcall(function() return entity.stack end)
+    if ok and stack and stack.valid_for_read then
+      return { [stack.name] = stack.count }
+    end
+    return nil
+  end
   return inventory_contents(entity, INVENTORY_BY_TYPE[entity.type])
 end
 

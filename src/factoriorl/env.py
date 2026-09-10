@@ -317,6 +317,21 @@ class FactorioEnv(gym.Env):
             for point in ((observation.get("terrain") or {}).get("blocked") or [])
         }
         here = (math.floor(origin[0]), math.floor(origin[1]))
+        # The character's own tile, which `can_place_entity` refuses and this
+        # domain was offering anyway.
+        #
+        # `here` was computed and never read. The sweep deliberately excludes
+        # the agent's own body from `entities` (`sensor.sweep` skips
+        # `storage.frrl_character`), so its tile never entered `occupied` and
+        # `dx = dy = 0` sat in the candidate list like any other.
+        #
+        # Measured: `can_place_entity` for a stone furnace on the character's
+        # position is **false**, and **true** four tiles away. Every paid run so
+        # far opened by walking to a tile and then trying to build on it, and
+        # every one of them was refused `collision` for a reason nothing in the
+        # prompt could explain -- the map even draws `@` there, which reads as
+        # "you are here", not as "this tile is unavailable".
+        occupied.add(here)
         candidates = []
         for dx in range(-PLACEMENT_RADIUS, PLACEMENT_RADIUS + 1):
             for dy in range(-PLACEMENT_RADIUS, PLACEMENT_RADIUS + 1):
