@@ -19,7 +19,7 @@
       "exit_code": 0,
       "ok": true,
       "tail": [
-        "212 files already formatted"
+        "213 files already formatted"
       ],
       "seconds": 0.1
     },
@@ -31,10 +31,10 @@
       "tail": [
         "\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m [ 93%]",
         "\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m [ 99%]",
-        "\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                  [100%]\u001b[0m",
-        "\u001b[32m\u001b[32m\u001b[1m1227 passed\u001b[0m, \u001b[33m4 skipped\u001b[0m\u001b[32m in 55.05s\u001b[0m\u001b[0m"
+        "\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                 [100%]\u001b[0m",
+        "\u001b[32m\u001b[32m\u001b[1m1228 passed\u001b[0m, \u001b[33m4 skipped\u001b[0m\u001b[32m in 54.76s\u001b[0m\u001b[0m"
       ],
-      "seconds": 57.1
+      "seconds": 56.2
     },
     {
       "check": "engine build",
@@ -52,7 +52,7 @@
         "}",
         "wrote D:\\FactorioRL\\docs\\evidence\\a1-world-lifecycle.json"
       ],
-      "seconds": 40.8
+      "seconds": 39.9
     },
     {
       "check": "probe_bootstrap",
@@ -65,7 +65,7 @@
         "}",
         "wrote D:\\FactorioRL\\docs\\evidence\\a2-bootstrap.json"
       ],
-      "seconds": 88.9
+      "seconds": 88.7
     },
     {
       "check": "probe_agency",
@@ -88,10 +88,10 @@
       "tail": [
         "  \"the_final_save_is_verified\": true",
         "}",
-        "8 samples, 7 during a model call; gameplay 42.0s, finalization 0.931s of 65.1s wall",
+        "8 samples, 4 during a model call; gameplay 42.0s, finalization 0.932s of 64.5s wall",
         "wrote D:\\FactorioRL\\docs\\evidence\\a4-measurement.json"
       ],
-      "seconds": 66.3
+      "seconds": 65.1
     },
     {
       "check": "pricing",
@@ -105,90 +105,12 @@
     },
     {
       "check": "live provider",
-      "attempted": true,
-      "ok": true,
-      "report": {
-        "class": "model_provider",
-        "base_url": "https://api.deepseek.com/v1",
-        "model": "deepseek-flash",
-        "adapter": "openai",
-        "env_file_supplied": [
-          "OPENROUTER_API_KEY",
-          "GEMINI_API_KEY",
-          "META_API_KEY",
-          "OPENAI_API_KEY"
-        ],
-        "credential": {
-          "variable": "DEEPSEEK_API_KEY",
-          "set": true,
-          "empty": false,
-          "length": 35
-        },
-        "price_per_million": {
-          "input_cache_hit": 0.006,
-          "input_cache_miss": 0.3,
-          "output": 1.2,
-          "retrieved": "2026-09-10"
-        },
-        "spend": {
-          "cap_usd": 0.05,
-          "model": "deepseek-flash",
-          "committed_usd": 0.000143,
-          "remaining_usd": 0.049857,
-          "calls": 1,
-          "uncertain_calls": 0,
-          "cache_hit_tokens": 640,
-          "cache_miss_tokens": 192,
-          "output_tokens": 68,
-          "cache_hit_rate": 0.7692,
-          "accounting": "conservative: peak rates from a snapshotted table, worst-case reservation before dispatch, unmeasured calls charged at their reservation. Not a provider invoice",
-          "ledger": [
-            {
-              "call": 1,
-              "reserved_usd": 0.001748,
-              "spend_usd": 0.000143,
-              "billed_from": "usage",
-              "cache_hit_tokens": 640,
-              "cache_miss_tokens": 192,
-              "input_tokens": 832,
-              "output_tokens": 68,
-              "reported": true,
-              "cache_split_reported": true,
-              "shape": "deepseek"
-            }
-          ]
-        },
-        "reachable": true,
-        "latency_ms": 1276.6,
-        "usage": {
-          "prompt_tokens": 832,
-          "completion_tokens": 68,
-          "total_tokens": 900,
-          "prompt_tokens_details": {
-            "cached_tokens": 640
-          },
-          "completion_tokens_details": {
-            "reasoning_tokens": 50
-          },
-          "prompt_cache_hit_tokens": 640,
-          "prompt_cache_miss_tokens": 192
-        },
-        "reply": "{\"action\": 0, \"reason\": \"Following the requested action index.\"}",
-        "cache_fields": {
-          "prompt_cache_hit_tokens": 640,
-          "prompt_cache_miss_tokens": 192,
-          "cache_read_input_tokens": null,
-          "cache_creation_input_tokens": null
-        },
-        "cache_split_reported": true,
-        "reasoning_tokens": 50,
-        "content_tokens": 18,
-        "probe_tokens": 1024,
-        "reply_is_empty": false
-      }
+      "attempted": false,
+      "ok": null,
+      "note": "not attempted; pass --live to make one capped call"
     }
   ],
-  "wall_seconds": 277.3,
+  "wall_seconds": 272.8,
   "go": true,
   "failed": []
 }

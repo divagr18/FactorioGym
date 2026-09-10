@@ -198,7 +198,15 @@ PLACEMENT_EXAMPLES = 8
 PLACEMENT_RULE_TILES = 5
 
 #: Handles listed in full before the list is truncated.
-MAX_TARGETS_SHOWN = 20
+#:
+#: Twelve rather than twenty since each one now carries its offset and
+#: distance. The annotation is what makes the list usable -- an agent standing
+#: on coal picked a handle 10.7 tiles away because a bare list said nothing
+#: about which was near -- but it triples the width of a row, and the list is
+#: sorted nearest first, so the tail was never the part worth reading. Measured:
+#: the annotated list at twenty pushed one prompt from 1,971 to 3,999
+#: characters, in a history that is re-sent in full on every later turn.
+MAX_TARGETS_SHOWN = 12
 
 #: Domains small enough to enumerate in full. `placements` is the exception
 #: above; `recipes` is capped by the observation profile already.
@@ -468,6 +476,21 @@ def _entity_rows(observation: dict, origin: list[float]) -> tuple[list[dict], in
     return rows[:MAX_ENTITIES_SHOWN], max(0, len(rows) - MAX_ENTITIES_SHOWN)
 
 
+#: Factorio's direction enum, as the mod publishes it. Rendered as words
+#: because "facing 4" is not something a reader can act on, and which way a
+#: burner drill faces decides which tile its output lands on.
+_DIRECTION_NAMES = {
+    0: "north",
+    2: "northeast",
+    4: "east",
+    6: "southeast",
+    8: "south",
+    10: "southwest",
+    12: "west",
+    14: "northwest",
+}
+
+
 def _resource_rows(observation: dict, origin: list[float]) -> list[dict]:
     """Per-name aggregates, because a 32-tile ore patch is hundreds of tiles.
 
@@ -494,6 +517,14 @@ def _resource_rows(observation: dict, origin: list[float]) -> list[dict]:
             row["nearest_offset"] = [round(dx, 1), round(dy, 1)]
             row["bearing"] = _compass(dx, dy)
             row["amount"] = tile.get("amount")
+            # The handle of *this* tile. It was computed here and dropped, so
+            # the prompt could say "coal, nearest 0.5 tiles, here" while the
+            # only addressable handles were an unordered list with no
+            # positions -- and an agent that picked one got a tile 10.7 tiles
+            # away and `out_of_reach`. Measured on the first paid run, five
+            # times in a row, with the model insisting the coal was "beneath
+            # me". It was. It just could not name it.
+            row["handle"] = tile.get("h") or tile.get("handle")
     for row in grouped.values():
         row["distance"] = round(row["distance"], 1)
 
@@ -557,6 +588,13 @@ class ObservationSummary:
     resources: list[dict]
     inflight: list[dict]
     events: list[dict]
+    #: A tile-by-tile picture of the immediate surroundings, for a world whose
+    #: profile publishes one. Empty for every benchmark task.
+    grid: dict = field(default_factory=dict)
+    #: The resource tiles as the observation published them, kept because
+    #: `resources` above is per-name aggregates and the *handles* live here.
+    #: Rendered nowhere directly; used to say where an addressable tile is.
+    raw_resources: dict = field(default_factory=dict)
     actions: tuple[LegalAction, ...] = ()
     counters: dict = field(default_factory=dict)
     #: Positions of the markers the objective names. `deliver` publishes
@@ -593,6 +631,67 @@ class ObservationSummary:
             "arguments": self.arguments,
             "requires": {k: list(v) for k, v in self.requires.items()},
         }
+
+    def _map_lines(self) -> list[str]:
+        """The local map, drawn.
+
+        The rest of the observation gives distances and compass bearings, which
+        answer "how far" and never answer "what is next to what". A burner
+        drill drops its ore onto one adjacent tile; an agent that cannot see
+        adjacency cannot connect one to a furnace, and on the first paid run it
+        built both, left them five tiles apart, and never noticed.
+        """
+        rows = (self.grid or {}).get("rows") or []
+        if not rows:
+            return []
+        origin = (self.grid or {}).get("origin") or [0, 0]
+        lines = [
+            "",
+            "LOCAL MAP -- one character per tile, north at the top, @ is you.",
+            f"  the top-left cell is world ({origin[0]}, {origin[1]}); "
+            "x grows east (right), y grows south (down)",
+        ]
+        lines += [f"  {row}" for row in rows]
+        legend = (self.grid or {}).get("legend") or []
+        if legend:
+            lines.append("  key:")
+            lines.append("    . open ground   ~ water   t tree   r rock")
+            for entry in legend:
+                if entry.get("kind") == "resource":
+                    lines.append(f"    {entry['glyph']} {entry['name']} (minable)")
+                    continue
+                where = entry.get("position") or [0, 0]
+                facing = entry.get("direction")
+                facing_text = f", facing {_DIRECTION_NAMES.get(facing, facing)}" if facing else ""
+                lines.append(
+                    f"    {entry['glyph']} {entry.get('name')} [{entry.get('handle')}] "
+                    f"at ({where[0]:.1f}, {where[1]:.1f}){facing_text}"
+                )
+        return lines
+
+    def _handle_offsets(self) -> dict[str, tuple[float, float, float]]:
+        """Where each addressable handle is, relative to the character.
+
+        Built from the two places a handle can come from: the entity rows and
+        the resource tiles. Both carry a position; only the entity rows were
+        ever rendered with one.
+        """
+        origin = (self.character.get("position") or [0.0, 0.0]) if self.character else [0.0, 0.0]
+        found: dict[str, tuple[float, float, float]] = {}
+        for row in self.entities:
+            handle = row.get("handle") or row.get("h")
+            offset = row.get("offset")
+            if handle and offset:
+                found[str(handle)] = (_distance(offset[0], offset[1]), offset[0], offset[1])
+        for tile in (self.raw_resources or {}).get("tiles") or []:
+            handle = tile.get("h") or tile.get("handle")
+            position = tile.get("p")
+            if not handle or not position:
+                continue
+            dx = float(position[0]) - float(origin[0])
+            dy = float(position[1]) - float(origin[1])
+            found[str(handle)] = (_distance(dx, dy), dx, dy)
+        return found
 
     def render(self) -> str:
         """The concise text a model is actually shown."""
@@ -644,6 +743,7 @@ class ObservationSummary:
                     f"  {name} at offset ({dx:+.1f}, {dy:+.1f}), "
                     f"{_distance(dx, dy):.1f} tiles {_compass(dx, dy)}"
                 )
+        lines += self._map_lines()
         lines.append("")
         if self.inventory:
             lines.append("INVENTORY")
@@ -704,8 +804,13 @@ class ObservationSummary:
             # first. Saying so beats letting the model discover it by having an
             # action rejected.
             note = " (too far to address; walk closer)" if row.get("aggregate") else ""
+            # The handle of the nearest tile, named. Without it this line
+            # described a tile the model had no way to address: it could read
+            # "coal, nearest 0.5 tiles, here" and still have nothing to pass to
+            # `mine_at` but an unordered list of handles with no positions.
+            named = f" [{row['handle']}]" if row.get("handle") else ""
             lines.append(
-                f"  {row['name']}: {row['tiles']} tiles, nearest at offset "
+                f"  {row['name']}: {row['tiles']} tiles, nearest{named} at offset "
                 f"({offset[0]:+.1f}, {offset[1]:+.1f}), "
                 f"{row['distance']} tiles {row.get('bearing')}{note}"
             )
@@ -787,13 +892,36 @@ class ObservationSummary:
                 # which are listed under RESOURCES without handles -- so at the
                 # first decision of `build_line` the model was told to name a
                 # handle from an empty list while 31 were legal.
-                shown = ", ".join(str(t) for t in targets[:MAX_TARGETS_SHOWN])
+                # Annotated and ordered by distance. A bare list of handles is
+                # unusable for resource tiles: they are not in the ENTITIES
+                # block, they arrive in the engine's own order rather than by
+                # distance, and `mine` refuses anything past 2.7 tiles. An
+                # agent standing *on* coal picked a handle 10.7 tiles away and
+                # was refused five times running, because nothing here said
+                # which handle was the near one.
+                placed = self._handle_offsets()
+                ordered = sorted(
+                    (str(t) for t in targets),
+                    key=lambda handle: placed.get(handle, (float("inf"), 0.0, 0.0))[0],
+                )
+                rendered = []
+                for handle in ordered[:MAX_TARGETS_SHOWN]:
+                    found = placed.get(handle)
+                    if found is None:
+                        rendered.append(handle)
+                        continue
+                    distance, dx, dy = found
+                    rendered.append(f"{handle}@({dx:+.1f},{dy:+.1f}) {distance:.1f}t")
                 more = (
                     ""
-                    if len(targets) <= MAX_TARGETS_SHOWN
-                    else f" (+{len(targets) - MAX_TARGETS_SHOWN} more)"
+                    if len(ordered) <= MAX_TARGETS_SHOWN
+                    else f" (+{len(ordered) - MAX_TARGETS_SHOWN} more, further away)"
                 )
-                lines.append(f"  handle / from / to: {shown}{more}")
+                lines.append(f"  handle / from / to: {', '.join(rendered)}{more}")
+                lines.append(
+                    "    nearest first; @(dx,dy) is the offset from you and the "
+                    "number is the distance in tiles"
+                )
         return "\n".join(lines)
 
 
@@ -828,6 +956,8 @@ def summarise(
         entities=entities,
         entities_omitted=omitted,
         resources=_resource_rows(observation, origin),
+        raw_resources=dict(observation.get("resources") or {}),
+        grid=dict(observation.get("grid") or {}),
         inspected=observation.get("inspected"),
         inflight=list(observation.get("inflight") or []),
         events=list(observation.get("events") or [])[-MAX_EVENTS_SHOWN:],

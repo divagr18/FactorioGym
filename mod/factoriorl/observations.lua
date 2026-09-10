@@ -144,6 +144,13 @@ function observations.snapshot(state)
     and memory.update(swept.entities, origin, observation_profile.radius)
     or {}
 
+  -- Built only for a profile that declares it, so a benchmark observation is
+  -- byte-for-byte what it was.
+  local grid = nil
+  if profiles.declares(observation_profile, "grid") and ch and ch.valid then
+    grid = sensor.grid(surface, origin, observation_profile.grid_radius or 8)
+  end
+
   local task = storage.frrl_task or { transfers = 0, items_moved = 0 }
   local force_declared = profiles.declares(observation_profile, "force")
 
@@ -184,6 +191,7 @@ function observations.snapshot(state)
     tick = game.tick - state.episode_start_tick,
     absolute_tick = game.tick,
     profiles = profiles.metadata(state.observation_profile, state.action_profile),
+    grid = grid,
     character = character_state(ch, observation_profile),
     inventory = inventory_contents(
       ch and ch.valid and ch.get_inventory(defines.inventory.character_main) or nil

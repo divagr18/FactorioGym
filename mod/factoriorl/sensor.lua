@@ -118,6 +118,119 @@ function sensor.entity_record(entity)
   return record
 end
 
+--- A tile-by-tile picture of the immediate surroundings.
+--
+-- The observation could already say "stone-furnace 26.6 tiles northwest" and
+-- "coal, nearest 0.5 tiles". What it could not say is what occupies which
+-- tile -- so an agent could not tell that its drill and its furnace were five
+-- tiles apart rather than touching, and a burner drill drops its ore on one
+-- adjacent tile. Measured on the first paid run: the agent built both, never
+-- connected them, and spent the rest of the run looking for fuel for a loop
+-- that could not have run anyway.
+--
+-- This is observation, not instruction. It describes the world the way a
+-- player sees it on screen; it prescribes no placement and no ordering.
+--
+-- Bounded on purpose. One `find_entities_filtered` over the box, one
+-- `get_tile` per cell: at radius 8 that is 289 cells, and it runs once per
+-- decision rather than once per tick.
+function sensor.grid(surface, origin, radius)
+  local cx = math.floor(origin.x)
+  local cy = math.floor(origin.y)
+  local cells = {}
+  local legend = {}
+  for row = 0, 2 * radius do
+    local line = {}
+    for column = 0, 2 * radius do
+      line[column + 1] = "."
+      local tile = surface.get_tile(cx - radius + column, cy - radius + row)
+      if tile and tile.valid then
+        local name = tile.name or ""
+        if string.find(name, "water", 1, true) then line[column + 1] = "~" end
+      end
+    end
+    cells[row + 1] = line
+  end
+
+  local function put(x, y, glyph)
+    local column = math.floor(x) - (cx - radius) + 1
+    local row = math.floor(y) - (cy - radius) + 1
+    if row >= 1 and row <= 2 * radius + 1 and column >= 1 and column <= 2 * radius + 1 then
+      cells[row][column] = glyph
+    end
+  end
+
+  -- Resources first, so a machine standing on ore hides the ore rather than
+  -- the other way round: what the agent needs to know is what it would
+  -- collide with.
+  local RESOURCE_GLYPH = {
+    ["iron-ore"] = "i", ["copper-ore"] = "c", ["coal"] = "k",
+    ["stone"] = "s", ["uranium-ore"] = "u", ["crude-oil"] = "o",
+  }
+  local seen_resources = {}
+  for _, entity in pairs(surface.find_entities_filtered({
+    area = { { cx - radius, cy - radius }, { cx + radius + 1, cy + radius + 1 } },
+    type = "resource",
+  })) do
+    if entity.valid then
+      local glyph = RESOURCE_GLYPH[entity.name] or "?"
+      put(entity.position.x, entity.position.y, glyph)
+      if not seen_resources[entity.name] then
+        seen_resources[entity.name] = true
+        legend[#legend + 1] = { glyph = glyph, name = entity.name, kind = "resource" }
+      end
+    end
+  end
+
+  -- Then everything solid, over the top, marking every tile of its footprint
+  -- so a 2x2 machine reads as 2x2.
+  local GLYPHS = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+  local next_glyph = 1
+  for _, entity in pairs(surface.find_entities_filtered({
+    area = { { cx - radius, cy - radius }, { cx + radius + 1, cy + radius + 1 } },
+  })) do
+    if entity.valid and entity.type ~= "resource" and entity ~= storage.frrl_character then
+      local glyph
+      if entity.type == "tree" then
+        glyph = "t"
+      elseif entity.type == "simple-entity" then
+        glyph = "r"
+      elseif next_glyph <= #GLYPHS then
+        glyph = string.sub(GLYPHS, next_glyph, next_glyph)
+        next_glyph = next_glyph + 1
+        legend[#legend + 1] = {
+          glyph = glyph,
+          name = entity.name,
+          handle = handles.mint(entity),
+          direction = entity.supports_direction and entity.direction or nil,
+          position = { entity.position.x, entity.position.y },
+        }
+      else
+        glyph = "+"
+      end
+      local box = entity.bounding_box
+      for x = math.floor(box.left_top.x), math.ceil(box.right_bottom.x) - 1 do
+        for y = math.floor(box.left_top.y), math.ceil(box.right_bottom.y) - 1 do
+          put(x, y, glyph)
+        end
+      end
+    end
+  end
+
+  put(origin.x, origin.y, "@")
+
+  local rows = {}
+  for index, line in ipairs(cells) do rows[index] = table.concat(line) end
+  return {
+    radius = radius,
+    -- The world coordinate of the top-left cell, so a reader can turn a cell
+    -- into a position without counting from the character.
+    origin = { cx - radius, cy - radius },
+    rows = rows,
+    legend = legend,
+  }
+end
+
 --- Sweep the region around `origin`.
 -- Returns entities, per-tile resources, aggregated resource patches, blocked
 -- tiles, and whether any cap truncated the result.

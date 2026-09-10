@@ -20,44 +20,44 @@
     "note": "an open world has no success predicate and no layout families; it is not a benchmark task and no rate measured on it is comparable to one"
   },
   "provider": "scripted, 7.0s per call -- no key, no cost",
-  "wall_seconds": 65.1,
+  "wall_seconds": 64.5,
   "gameplay_seconds": 42.0,
-  "finalization_seconds": 0.931,
+  "finalization_seconds": 0.932,
   "decisions": 4,
   "sampling": {
     "interval_seconds": 5.0,
     "samples": 8,
     "failures": 0,
     "errors": [],
-    "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T220552-577fcf75\\production.jsonl",
+    "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T222758-d029b2ff\\production.jsonl",
     "feeds_metrics": true,
     "measures": "world truth read on a wall clock, independent of the agent's decision rate; never acts and never advances a tick"
   },
   "samples": 8,
-  "samples_during_a_model_call": 7,
+  "samples_during_a_model_call": 4,
   "sample_gaps_seconds": [
-    5.01,
     5.02,
     5.01,
     5.02,
-    5.01,
     5.02,
-    5.02
+    5.02,
+    5.02,
+    5.01
   ],
   "read_ms": [
-    2.2,
-    6.4,
-    7.1,
-    8.9,
-    4.1,
-    8.0,
-    9.8,
-    11.8
+    14.9,
+    13.7,
+    16.8,
+    12.5,
+    6.0,
+    5.4,
+    3.3,
+    11.1
   ],
   "first_sample": {
-    "wall_seconds": 5.009,
-    "read_ms": 2.2,
-    "tick": 359,
+    "wall_seconds": 5.013,
+    "read_ms": 14.9,
+    "tick": 362,
     "produced": {},
     "machine_produced": {},
     "handcrafted": {},
@@ -68,9 +68,9 @@
     "working_counts": {}
   },
   "last_sample": {
-    "wall_seconds": 40.116,
-    "read_ms": 11.8,
-    "tick": 2466,
+    "wall_seconds": 40.133,
+    "read_ms": 11.1,
+    "tick": 2469,
     "produced": {},
     "machine_produced": {},
     "handcrafted": {},
@@ -98,26 +98,26 @@
         "step": "save",
         "result": {
           "label": "final",
-          "name": "frrl-final-20260910T220641",
+          "name": "frrl-final-20260910T222846",
           "verified": true,
-          "issued_tick": 2516,
+          "issued_tick": 2518,
           "world_was_paused": true,
           "advanced_a_tick": true,
-          "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T220552-577fcf75\\saves\\frrl-final-20260910T220641.zip",
-          "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-577fcf75\\write-data\\saves\\frrl-final-20260910T220641.zip",
-          "bytes": 439988,
-          "sha256": "e5d92f14ae6ba728ea7df092f4026b13e632cfc6c6a94dc295d649e8c373e0af",
+          "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T222758-d029b2ff\\saves\\frrl-final-20260910T222846.zip",
+          "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-d029b2ff\\write-data\\saves\\frrl-final-20260910T222846.zip",
+          "bytes": 440360,
+          "sha256": "ebce3d6c99c6dbb821e46171b61eb605a33b1aa753fb69863865e742b4c8d502",
           "wall_seconds": 0.887
         },
         "seconds": 0.887
       }
     ],
     "cancelled": [],
-    "tick_before_save": 2516,
-    "tick_after_save": 2517,
+    "tick_before_save": 2518,
+    "tick_after_save": 2519,
     "ticks_across_the_save": 1,
     "world_was_still_for_the_save": true,
-    "seconds": 0.931,
+    "seconds": 0.932,
     "failed_steps": []
   },
   "checkpoints": {
@@ -125,27 +125,27 @@
     "saves": [
       {
         "label": "initial",
-        "name": "frrl-initial-20260910T220559",
+        "name": "frrl-initial-20260910T222804",
         "verified": true,
-        "issued_tick": 1,
+        "issued_tick": 3,
         "world_was_paused": false,
-        "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T220552-577fcf75\\saves\\frrl-initial-20260910T220559.zip",
-        "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-577fcf75\\write-data\\saves\\frrl-initial-20260910T220559.zip",
-        "bytes": 432795,
-        "sha256": "9aed6fda63289eda8aae1cd7f91414754608dce5e7268b06dcdc1f4f65faa2ac",
-        "wall_seconds": 1.007
+        "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T222758-d029b2ff\\saves\\frrl-initial-20260910T222804.zip",
+        "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-d029b2ff\\write-data\\saves\\frrl-initial-20260910T222804.zip",
+        "bytes": 432858,
+        "sha256": "925bb11d8c1b4d232f5f326d68778f63744cb6f3a8a76f8a17baf7368f878d85",
+        "wall_seconds": 1.009
       },
       {
         "label": "final",
-        "name": "frrl-final-20260910T220641",
+        "name": "frrl-final-20260910T222846",
         "verified": true,
-        "issued_tick": 2516,
+        "issued_tick": 2518,
         "world_was_paused": true,
         "advanced_a_tick": true,
-        "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T220552-577fcf75\\saves\\frrl-final-20260910T220641.zip",
-        "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-577fcf75\\write-data\\saves\\frrl-final-20260910T220641.zip",
-        "bytes": 439988,
-        "sha256": "e5d92f14ae6ba728ea7df092f4026b13e632cfc6c6a94dc295d649e8c373e0af",
+        "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T222758-d029b2ff\\saves\\frrl-final-20260910T222846.zip",
+        "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-d029b2ff\\write-data\\saves\\frrl-final-20260910T222846.zip",
+        "bytes": 440360,
+        "sha256": "ebce3d6c99c6dbb821e46171b61eb605a33b1aa753fb69863865e742b4c8d502",
         "wall_seconds": 0.887
       }
     ],
@@ -153,21 +153,21 @@
     "failed": 0,
     "latest_verified": {
       "label": "final",
-      "name": "frrl-final-20260910T220641",
+      "name": "frrl-final-20260910T222846",
       "verified": true,
-      "issued_tick": 2516,
+      "issued_tick": 2518,
       "world_was_paused": true,
       "advanced_a_tick": true,
-      "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T220552-577fcf75\\saves\\frrl-final-20260910T220641.zip",
-      "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-577fcf75\\write-data\\saves\\frrl-final-20260910T220641.zip",
-      "bytes": 439988,
-      "sha256": "e5d92f14ae6ba728ea7df092f4026b13e632cfc6c6a94dc295d649e8c373e0af",
+      "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T222758-d029b2ff\\saves\\frrl-final-20260910T222846.zip",
+      "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-d029b2ff\\write-data\\saves\\frrl-final-20260910T222846.zip",
+      "bytes": 440360,
+      "sha256": "ebce3d6c99c6dbb821e46171b61eb605a33b1aa753fb69863865e742b4c8d502",
       "wall_seconds": 0.887
     },
     "accounting": "a checkpoint is reported only after its file appeared, stopped growing and was copied out of the worker directory"
   },
   "reordered_replies": null,
-  "run_dir": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T220552-577fcf75",
+  "run_dir": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T222758-d029b2ff",
   "artifacts": {
     "config.json": true,
     "manifest.json": true,
@@ -180,7 +180,7 @@
   },
   "tool_events": 4,
   "summary": {
-    "run_id": "agent-20260910T220552-577fcf75",
+    "run_id": "agent-20260910T222758-d029b2ff",
     "task": "open_factory",
     "simulated_ticks": 2449,
     "wall_seconds": 40.95,
@@ -195,7 +195,7 @@
     "latency_ms": {
       "total": 0.03,
       "mean": 0.01,
-      "p50": 0.0,
+      "p50": 0.01,
       "p95": 0.01,
       "max": 0.01
     },
@@ -219,8 +219,8 @@
     "note": "spend and the run clock are added by the caller, which owns the budget; see result.json's limits"
   },
   "saves": [
-    "frrl-final-20260910T220641.zip",
-    "frrl-initial-20260910T220559.zip"
+    "frrl-final-20260910T222846.zip",
+    "frrl-initial-20260910T222804.zip"
   ],
   "verdict": {
     "samples_were_written": true,

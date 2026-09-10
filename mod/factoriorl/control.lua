@@ -83,6 +83,31 @@ end
 -- wins. `on_player_joined_game` fires after all of that has settled, and the
 -- function is idempotent -- it returns early if the player is already a
 -- spectator.
+-- Keep a watching spectator's camera on the agent.
+--
+-- A spectator has no character, so the engine parks its camera wherever the
+-- player was when they joined and leaves it there. On the first watched run
+-- the agent walked 80 tiles west and the window kept showing the crash site,
+-- which makes a "watchable" run watchable in name only.
+--
+-- Teleporting a spectator moves its camera and nothing else -- there is no
+-- body to move -- so this cannot touch the world the agent is playing in. It
+-- runs on a slow tick because a camera that updates twice a second is smooth
+-- enough to watch and costs nothing.
+local FOLLOW_INTERVAL = 30
+
+local function follow_the_agent()
+  local character = storage.frrl_character
+  if not (character and character.valid) then return end
+  for _, player in pairs(game.connected_players) do
+    if player.controller_type == defines.controllers.spectator then
+      pcall(function() player.teleport(character.position) end)
+    end
+  end
+end
+
+script.on_nth_tick(FOLLOW_INTERVAL, follow_the_agent)
+
 script.on_event(defines.events.on_player_created, make_spectator)
 script.on_event(defines.events.on_player_joined_game, make_spectator)
 

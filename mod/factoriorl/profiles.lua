@@ -171,7 +171,14 @@ profiles.OBSERVATION = {
       -- and an argument whose values the policy cannot see is not selectable.
       "remembered", "task", "inflight", "goal", "events", "recipes",
       "researchable",
+      -- A tile-by-tile picture of the immediate surroundings. Open worlds
+      -- only: it is the observation that lets an agent see that two machines
+      -- are five tiles apart rather than touching, and no benchmark profile
+      -- carries it because adding a key to one would change what every
+      -- existing result was measured against.
+      "grid",
     },
+    grid_radius = 8,
   },
 }
 

@@ -110,14 +110,14 @@
   },
   "checkpoint": {
     "label": "probe",
-    "name": "frrl-probe-20260910T220327",
+    "name": "frrl-probe-20260910T222534",
     "verified": true,
     "issued_tick": 136,
     "world_was_paused": false,
-    "path": "D:\\FactorioRL\\runtime\\runs\\probe-a1\\saves\\frrl-probe-20260910T220327.zip",
-    "engine_path": "D:\\FactorioRL\\runtime\\workers\\probe-a1\\write-data\\saves\\frrl-probe-20260910T220327.zip",
+    "path": "D:\\FactorioRL\\runtime\\runs\\probe-a1\\saves\\frrl-probe-20260910T222534.zip",
+    "engine_path": "D:\\FactorioRL\\runtime\\workers\\probe-a1\\write-data\\saves\\frrl-probe-20260910T222534.zip",
     "bytes": 501963,
-    "sha256": "b6fd05d0d3f243c464ab2c2c183b0a857cf6fd0d5eeb79b30562cef619940f7e",
+    "sha256": "2b3b2911ad58556d59849bd77430bf454bba60d554c71d235ca6c32e5e308f13",
     "wall_seconds": 1.022
   },
   "worker_directory_removed": true,
@@ -155,7 +155,7 @@
     "total_recipes": 217,
     "researched": 0
   },
-  "wall_seconds": 40.4,
+  "wall_seconds": 39.4,
   "verdict": {
     "natural_deposits_present": true,
     "trees_present": true,
