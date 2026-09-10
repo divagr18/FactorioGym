@@ -1,5 +1,10 @@
 # FactorioRL current status
 
+**Development priority update (2026-09-10):** Follow the
+[agent-first roadmap](AGENTIC_ROADMAP-2026-09-10.md) for the next implementation
+sequence: a bounded DeepSeek fresh-map factory attempt, then agent capabilities
+and adoption. This is a plan, not a completed run; historical evidence below is unchanged.
+
 **Maintained entrypoint.** `docs/LEDGER.md` is history; `HANDOFF.md` is a 2026-09-07 snapshot
 and carries its own staleness banner. Direction comes from
 [`docs/DEVELOPMENT_REDIRECTION.md`](DEVELOPMENT_REDIRECTION.md); this file is day-to-day
