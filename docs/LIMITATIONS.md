@@ -632,11 +632,31 @@ hand across six terminals is a go/no-go nobody re-runs. A5.2 forbids editing
 anything once the paid attempt starts, so this is the last moment a problem can
 be found. First full run: GO in 275 seconds, `docs/evidence/a5-preflight.json`.
 
-**No live provider call has ever been made from this repository.** There is no
-DeepSeek evidence under `docs/evidence/`, and the whole integration -- thinking
-mode, prefix caching, the usage shape, the cache-split field names -- is written
-against documentation alone. `preflight --live` is where that stops being true,
-and it is the first thing A5 does.
+**The DeepSeek integration has now been checked against the live API**, and
+until this point every part of it -- thinking mode, prefix caching, the usage
+shape, the cache-split field names -- was written against documentation alone.
+Three things came back that a document could not have settled:
+
+*Prefix caching is real and automatic.* A second call carrying the same system
+prompt reported `prompt_cache_hit_tokens: 640` against
+`prompt_cache_miss_tokens: 192` -- 77% of the input served from cache with
+nothing asked for and no cache-control field sent. The split is reported, which
+is what the accounting depends on: an unreported split is priced as all-miss,
+and hit against miss is $0.006 versus $0.30 per million.
+
+*Reasoning is billed as output and consumes the output budget.* A 64-token
+probe came back **reachable with an empty reply** and `reasoning_tokens: 64` --
+the model spent the entire allowance thinking and never wrote a character. A
+diagnostic that reported that as "the provider returned nothing" would be
+blaming the wrong thing, so the probe budget is now 1,024 and the report states
+the reasoning/content split. At `--reasoning-effort low` the same prompt used 50
+reasoning tokens and 18 of content.
+
+*Latency is around 1.3 seconds for a trivial prompt.* In a realtime run that is
+game time the agent does not get back, which is the trade `--clock realtime`
+makes and the reason the wall-clock sampler exists.
+
+Total spent proving all of this: **$0.000143**, through the capped adapter.
 
 **Two engine tests fail and are not caused by this work.**
 `test_observation_profiles_decode_identically` for `navigate` and `deliver`

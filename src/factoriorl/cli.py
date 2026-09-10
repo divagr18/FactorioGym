@@ -24,6 +24,16 @@ from factoriorl.paths import evidence_dir, workspace_root
 
 PHASE1_EVIDENCE_NAME = "phase1-engine-suite.txt"
 
+#: Output budget for the provider probe. Not 64, and not tight: reasoning
+#: tokens are billed as output *and* consume the output budget, so a reasoning
+#: model can spend an entire small allowance before writing a character.
+#: Measured on `deepseek-flash`: a 64-token probe came back reachable with an
+#: empty reply and `reasoning_tokens: 64`, which reads as a broken provider and
+#: is not one. At 256 the same prompt produced 241 reasoning tokens and 15 of
+#: content -- so the answer only just fitted, and a diagnostic that only just
+#: fits is not measuring the thing a run will do.
+PROBE_TOKENS = 1024
+
 
 def cmd_doctor(_args) -> int:
     """Probe the engine and enforce the pinned build.
@@ -681,7 +691,7 @@ def cmd_doctor_train(_args) -> int:
     return 0
 
 
-def cmd_doctor_agent(args) -> int:
+def cmd_doctor_agent(args, collect: list | None = None) -> int:
     """The fourth diagnostic PLAN 6.1 asks for, and the one that was missing.
 
     6.1 requires diagnostics that distinguish game setup, connection, dependency
@@ -720,6 +730,8 @@ def cmd_doctor_agent(args) -> int:
         "length": len(raw) if raw else 0,
     }
     if args.api_key_env and not raw:
+        if collect is not None:
+            collect.append(report)
         print(json.dumps(report, indent=2))
         print(
             f"{args.api_key_env} is not set in this process. A local endpoint usually "
@@ -744,6 +756,8 @@ def cmd_doctor_agent(args) -> int:
         }
     except pricing.UnknownModelPrice as failure:
         report["price_error"] = str(failure)
+        if collect is not None:
+            collect.append(report)
         print(json.dumps(report, indent=2))
         print(
             "no snapshotted price for this model, so a run could not account for "
@@ -762,14 +776,20 @@ def cmd_doctor_agent(args) -> int:
         temperature=None if args.no_temperature else 0.0,
         token_parameter=args.token_parameter,
         thinking=args.thinking or None,
-        max_tokens=64,
+        reasoning_effort=getattr(args, "reasoning_effort", None),
+        max_tokens=int(getattr(args, "probe_tokens", PROBE_TOKENS) or PROBE_TOKENS),
         max_cost_usd=args.max_cost_usd,
         max_wall_seconds=args.timeout * 2,
     )
     adapter = provider.adapter
     provider.clock.start()
+    probe_tokens = int(getattr(args, "probe_tokens", PROBE_TOKENS) or PROBE_TOKENS)
     reply = adapter.complete(
-        ModelRequest(system=SYSTEM_PROMPT, user='Reply with {"action": 0}.', max_tokens=64)
+        ModelRequest(
+            system=SYSTEM_PROMPT,
+            user='Reply with {"action": 0}.',
+            max_tokens=probe_tokens,
+        )
     )
     provider.clock.stop()
     report["spend"] = provider.budget.to_dict()
@@ -781,6 +801,8 @@ def cmd_doctor_agent(args) -> int:
         # header into a 401 body would otherwise print the key to a terminal.
         report["error_kind"] = reply.error_kind
         report["error"] = adapter.redact(str(reply.error))[:400]
+        if collect is not None:
+            collect.append(report)
         print(json.dumps(report, indent=2))
         print(
             "the provider did not answer; this is a model-provider fault, not an "
@@ -806,6 +828,29 @@ def cmd_doctor_agent(args) -> int:
     report["cache_split_reported"] = any(
         value is not None for value in report["cache_fields"].values()
     )
+    # Reasoning tokens are billed as output *and* consume the output budget, so
+    # a model that reasons can spend an entire `max_tokens` before writing a
+    # character. Measured on `deepseek-flash`: a 64-token probe came back
+    # reachable with an empty reply and `reasoning_tokens: 64`. A run that read
+    # that as "the model returned nothing" would be blaming the wrong thing.
+    details = usage.get("completion_tokens_details") or {}
+    report["reasoning_tokens"] = details.get("reasoning_tokens")
+    report["content_tokens"] = (
+        usage.get("completion_tokens", 0) - (details.get("reasoning_tokens") or 0)
+        if usage.get("completion_tokens") is not None
+        else None
+    )
+    report["probe_tokens"] = probe_tokens
+    report["reply_is_empty"] = not (reply.text or "").strip()
+    if report["reply_is_empty"] and report["reasoning_tokens"]:
+        report["warning"] = (
+            f"the model spent all {report['reasoning_tokens']} output tokens on "
+            f"reasoning and wrote no content within {probe_tokens}. Reasoning is "
+            "billed as output and consumes the output budget; a run needs enough "
+            "max_tokens for the reasoning *and* the answer"
+        )
+    if collect is not None:
+        collect.append(report)
     print(json.dumps(report, indent=2))
     return 0
 
@@ -891,6 +936,7 @@ def cmd_preflight(args) -> int:
 
     live: dict = {"check": "live provider", "attempted": bool(args.live)}
     if args.live:
+        measured: list[dict] = []
         code = cmd_doctor_agent(
             argparse.Namespace(
                 base_url=args.base_url,
@@ -902,10 +948,18 @@ def cmd_preflight(args) -> int:
                 no_temperature=False,
                 adapter=args.adapter,
                 thinking=args.thinking,
+                probe_tokens=args.probe_tokens,
+                reasoning_effort=args.reasoning_effort,
                 max_cost_usd=args.live_cost_usd,
-            )
+            ),
+            collect=measured,
         )
         live["ok"] = code == 0
+        # The measurement, not just the verdict. What the provider actually
+        # returned -- the usage shape, the cache split, how much of the output
+        # budget went to reasoning -- is the whole reason to make the call.
+        if measured:
+            live["report"] = measured[0]
     else:
         live["ok"] = None
         live["note"] = "not attempted; pass --live to make one capped call"
@@ -1184,6 +1238,15 @@ def main(argv: list[str] | None = None) -> int:
     # supported both since A0.
     agent_doctor.add_argument("--adapter", default="openai", choices=("openai", "anthropic"))
     agent_doctor.add_argument(
+        "--probe-tokens",
+        type=int,
+        default=PROBE_TOKENS,
+        help="output budget for the probe call. Deliberately generous: a "
+        "reasoning model can spend a small allowance entirely on reasoning and "
+        "return an empty reply, which reads as a broken provider and is not one",
+    )
+    agent_doctor.add_argument("--reasoning-effort", default=None, choices=("low", "high", "max"))
+    agent_doctor.add_argument(
         "--thinking",
         action="store_true",
         help="send the provider's thinking-mode flag, as a paid run would",
@@ -1214,6 +1277,15 @@ def main(argv: list[str] | None = None) -> int:
         "preflight that spends anything, and it is a fraction of a cent",
     )
     pre.add_argument("--live-cost-usd", type=float, default=0.05)
+    pre.add_argument("--probe-tokens", type=int, default=PROBE_TOKENS)
+    pre.add_argument(
+        "--reasoning-effort",
+        default="low",
+        choices=("low", "high", "max"),
+        help="how hard the model thinks per decision. Low by default: reasoning "
+        "is billed as output at the same rate as the answer, and a Factorio "
+        "decision is a short choice from an enumerated list",
+    )
     pre.add_argument(
         "--skip-engine",
         action="store_true",
