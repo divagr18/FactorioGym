@@ -195,7 +195,19 @@ def describe_template(template: Any) -> str:
             f"from {reference(payload.get('from'))} to {reference(payload.get('to'))}"
         )
     if action == "rotate":
-        return f"rotate {reference(payload.get('handle'))}"
+        # Which way it turns, and -- the part that matters -- what turning it
+        # actually changes. A drill that faces the wrong way produces onto bare
+        # ground, and "rotate <handle>" said nothing about the connection
+        # between facing and the output tile. There is no absolute "face east":
+        # this steps by 90 degrees, so getting a specific facing means up to
+        # three of these, checking the printed output tile between them.
+        way = "anticlockwise" if payload.get("reverse") else "clockwise"
+        return (
+            f"turn {reference(payload.get('handle'))} 90 degrees {way} -- this "
+            "MOVES THE TILE IT OUTPUTS ONTO, which is how you point a drill at "
+            "a furnace or an inserter at a machine. The new output tile is "
+            "shown next to that machine afterwards, so turn, look, turn again"
+        )
     if action == "wait":
         return "do nothing this decision interval"
     # A catalog entry this function has never seen still gets a description,
