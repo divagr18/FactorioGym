@@ -53,6 +53,7 @@ from factoriorl.agent.summary import (
     argument_domains,
     argument_requirements,
     legal_actions,
+    static_reference,
     summarise,
     targetable_actions,
     visible_handles,
@@ -449,7 +450,11 @@ class AgentLoop:
         entry to re-send bytes that were already correct. The *turns* are what
         must not cross a boundary, and they do not.
         """
-        return Transcript(system=SYSTEM_PROMPT, static_prefix=self.static_knowledge)
+        # Two invariant blocks: what the game's recipes cost, and what each verb
+        # does. Both are the same on every turn, so both belong in the prefix
+        # rather than in a message that is re-sent for the rest of the run.
+        blocks = [block for block in (self.static_knowledge, static_reference(self.env)) if block]
+        return Transcript(system=SYSTEM_PROMPT, static_prefix="\n\n".join(blocks))
 
     def _world_signature(self) -> tuple:
         """What must change before the model is asked again during a wait.

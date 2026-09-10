@@ -193,6 +193,10 @@ def describe_template(template: Any) -> str:
 #: back as a named decision failure with the domain's size, not as a crash.
 PLACEMENT_EXAMPLES = 8
 
+#: Repeated in the static reference's wording of the placement rule. Mirrors
+#: `env.PLACEMENT_RADIUS`, stated here because the prompt says it in prose.
+PLACEMENT_RULE_TILES = 5
+
 #: Handles listed in full before the list is truncated.
 MAX_TARGETS_SHOWN = 20
 
@@ -256,6 +260,57 @@ def argument_domains(env: Any) -> dict:
         if values:
             rendered[name] = values
     return rendered
+
+
+def static_reference(env: Any) -> str:
+    """The half of the action surface that never changes, rendered once.
+
+    Every request carries the whole conversation, so a line repeated in each
+    turn is a line paid for on every later turn too. Measured on a real
+    `open_factory` prompt: of 2,731 characters, 1,440 were invariant -- verb
+    descriptions, the coordinate rules, and the fixed enumerations. Over a
+    300-turn run that is most of the accumulated input.
+
+    Moving them here costs one cache miss and nothing afterwards, and it is the
+    same argument the static game knowledge already makes. It also matters for
+    reasons other than money: a history that grows at 722 tokens a turn reaches
+    660k tokens over a 30-minute realtime run, and the context window is 1M.
+    """
+    vocabulary = action_vocabulary(env)
+    requires = argument_requirements(env)
+    lines = [
+        "=== ACTION REFERENCE ===",
+        "What each verb does. Which of them are legal *right now* changes every",
+        "turn and is listed under LEGAL ACTIONS in the observation.",
+        "",
+    ]
+    for index, (key, description) in enumerate(vocabulary):
+        needed = requires.get(key) or ()
+        suffix = f"  [needs: {', '.join(needed)}]" if needed else ""
+        lines.append(f"  {index}: {key} -- {description}{suffix}")
+
+    domains = env.argument_domains() if hasattr(env, "argument_domains") else {}
+    lines += [
+        "",
+        "ARGUMENT RULES -- an action marked [needs: ...] must be answered with an",
+        '"arguments" object supplying exactly those names.',
+        "  position: an ABSOLUTE world coordinate, not an offset -- a tile centre",
+        f"    within {PLACEMENT_RULE_TILES} tiles of you with nothing standing on it,",
+        "    written [x.5, y.5]. Your own position is under CHARACTER.",
+        "  destination: an ABSOLUTE world coordinate to walk to -- somewhere you",
+        "    have seen. Unlike a placement it may be far outside arm's reach.",
+        "  handle / from / to: an entity handle, listed under ENTITIES, or a",
+        "    resource tile handle.",
+    ]
+    for name, label in (
+        ("directions", "direction"),
+        ("conditions", "until"),
+        ("durations", "seconds"),
+    ):
+        values = list(domains.get(name) or [])
+        if values:
+            lines.append(f"  {label}: {', '.join(str(v) for v in values)}")
+    return "\n".join(lines)
 
 
 def argument_requirements(env: Any) -> dict[str, tuple[str, ...]]:
@@ -651,11 +706,13 @@ class ObservationSummary:
                 )
 
         lines.append("")
+        # Index and key only. What each verb *does*, and which arguments it
+        # needs, is the same on every turn and lives in the static prefix --
+        # measured at 769 characters of description repeated into a history that
+        # is re-sent in full on every request. The legal *set* is what changes,
+        # so the set is what is sent.
         lines.append(f"LEGAL ACTIONS ({len(self.actions)}); anything else will be rejected")
-        for action in self.actions:
-            needed = self.requires.get(action.key) or ()
-            suffix = f"  [needs: {', '.join(needed)}]" if needed else ""
-            lines.append(f"  {action.index}: {action.key} -- {action.description}{suffix}")
+        lines.append("  " + ", ".join(f"{a.index}: {a.key}" for a in self.actions))
         if self.arguments:
             lines.append("")
             lines.append(
@@ -667,10 +724,9 @@ class ObservationSummary:
                 examples = ", ".join(
                     f"[{p[0]:.1f}, {p[1]:.1f}]" for p in placements.get("examples") or ()
                 )
-                lines.append(
-                    f"  position: {placements.get('rule')} "
-                    f"({placements.get('count')} legal now, e.g. {examples})"
-                )
+                # The rule is in the static reference; only the count and a
+                # few live examples change.
+                lines.append(f"  position: {placements.get('count')} legal now, e.g. {examples}")
             destinations = self.arguments.get("destinations") or {}
             if destinations:
                 # Listed in full rather than sampled like `placements`: a
@@ -680,9 +736,11 @@ class ObservationSummary:
                 # tiles away -- omitting it would leave the agent nothing to
                 # walk to at all.
                 shown = ", ".join(f"[{p[0]:.1f}, {p[1]:.1f}]" for p in destinations.get("values"))
-                lines.append(f"  destination: {destinations.get('rule')} ({shown})")
+                lines.append(f"  destination: {shown}")
+            # `directions`, `conditions` and `durations` are fixed lists and
+            # live in the static reference; only what actually varies with the
+            # world is repeated here.
             for name, label in (
-                ("directions", "direction"),
                 ("items", "item"),
                 ("amounts", "count"),
                 ("recipes", "recipe"),
@@ -690,11 +748,6 @@ class ObservationSummary:
                 # researched. Empty until a profile publishes the frontier,
                 # which is what kept `research` unreachable.
                 ("technologies", "technology"),
-                # `wait_for`'s two arguments. Short fixed lists, and enumerating
-                # them is the difference between a domain the model can choose
-                # from and one it has to guess at.
-                ("conditions", "until"),
-                ("durations", "seconds"),
             ):
                 values = self.arguments.get(name)
                 if values:
@@ -715,10 +768,6 @@ class ObservationSummary:
                     else f" (+{len(targets) - MAX_TARGETS_SHOWN} more)"
                 )
                 lines.append(f"  handle / from / to: {shown}{more}")
-                lines.append(
-                    "    entities carry their handle in the ENTITIES list; the rest "
-                    "are resource tiles"
-                )
         return "\n".join(lines)
 
 
