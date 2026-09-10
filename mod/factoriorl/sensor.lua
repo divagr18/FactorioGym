@@ -126,7 +126,14 @@ function sensor.entity_record(entity)
     record.st = status_name(status)
     record.working = status == defines.entity_status.working
   end
-  local fuel = inventory_contents(entity, FUEL_BY_TYPE[entity.type])
+  local fuel_slot = FUEL_BY_TYPE[entity.type]
+  if fuel_slot then
+    -- Declared by prototype type, not inferred from whether the slot happens
+    -- to hold something: "burns nothing" and "burns something and is empty"
+    -- are different facts and only the second is a problem.
+    record.burns = true
+  end
+  local fuel = inventory_contents(entity, fuel_slot)
   if fuel then record.fuel = fuel end
   local output = inventory_contents(entity, OUTPUT_BY_TYPE[entity.type])
   if output then record.output = output end
@@ -286,7 +293,17 @@ function sensor.grid(surface, origin, radius)
         -- block and neither was on the map, so a machine could sit there
         -- looking built while being empty.
         local ok_status, status = pcall(function() return entity.status end)
-        if ok_status and status then entry.status = status end
+        if ok_status and status then
+          entry.status = status
+          -- The engine's own name for the code, from a reverse lookup of
+          -- `defines.entity_status`. The Python renderer had a second,
+          -- hand-written table that disagreed with this one -- it called 18
+          -- "waiting for space in destination" when 18 is `no_ingredients` and
+          -- 34 is the waiting one -- so a single prompt could describe one
+          -- furnace two different ways in two blocks. One source, and it is the
+          -- engine.
+          entry.st = status_name(status)
+        end
         local ok_fuel, fuel = pcall(function()
           local inv = entity.get_fuel_inventory()
           if not inv then return nil end
@@ -294,7 +311,14 @@ function sensor.grid(surface, origin, radius)
           for _, stack in pairs(inv.get_contents()) do total = total + stack.count end
           return total
         end)
-        if ok_fuel and fuel ~= nil then entry.fuel = fuel end
+        if ok_fuel and fuel ~= nil then
+          entry.fuel = fuel
+          -- Whether this thing burns fuel at all. Without it an *absent* fuel
+          -- inventory and an *empty* one are the same value, and a chest or an
+          -- electric drill got told it had no fuel -- a blocker invented for a
+          -- machine that was working.
+          entry.burns = true
+        end
         -- Lowercase means stopped. The letter still identifies the machine, so
         -- the legend needs no second entry and the map needs no second layer.
         -- Empty fuel is definitive on a burner, whatever `status` happens to

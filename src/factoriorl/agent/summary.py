@@ -582,22 +582,6 @@ def _entity_rows(observation: dict, origin: list[float]) -> tuple[list[dict], in
     return rows[:MAX_ENTITIES_SHOWN], max(0, len(rows) - MAX_ENTITIES_SHOWN)
 
 
-#: The few entity statuses worth a word on the map. The full list is long and
-#: mostly irrelevant to an agent; these are the ones that explain why a machine
-#: that looks built is doing nothing.
-_STATUS_NAMES = {
-    1: "working",
-    12: "no power",
-    15: "no fuel",
-    16: "no ingredients",
-    18: "waiting for space in destination",
-    21: "no minable resources left under it",
-    22: "waiting for source items",
-    37: "not plugged in",
-    53: "no ingredients",
-}
-
-
 #: Factorio's direction enum, as the mod publishes it. Rendered as words
 #: because "facing 4" is not something a reader can act on, and which way a
 #: burner drill faces decides which tile its output lands on.
@@ -808,18 +792,27 @@ class ObservationSummary:
                 if pickup:
                     parts.append(f"takes from ({pickup[0]:.1f}, {pickup[1]:.1f})")
                 fuel = entry.get("fuel")
-                if fuel == 0:
+                if fuel == 0 and entry.get("burns"):
                     # Loud, because a machine with no fuel looks exactly like a
                     # working one on the map and the run before this one built
                     # two and never fuelled either.
-                    parts.append("NO FUEL -- it will not run until you give it some")
+                    # The status line below now carries the engine's own
+                    # diagnosis, so this says only the thing the status cannot:
+                    # the slot is empty and that is fixable by the agent.
+                    parts.append("FUEL SLOT EMPTY -- give it some")
                 elif fuel:
                     parts.append(f"fuel {fuel}")
-                status = entry.get("status")
-                if status is not None:
-                    named = _STATUS_NAMES.get(status)
-                    if named:
-                        parts.append(named)
+                # The engine's own name, never a second table. A hand-written
+                # one here called 18 "waiting for space in destination" when 18
+                # is `no_ingredients` and 34 is the waiting one, so a single
+                # prompt described one furnace two different ways in two blocks
+                # -- and a report was then written off the wrong half. An
+                # unrecognised code stays a code rather than becoming a guess.
+                named = entry.get("st")
+                if named:
+                    parts.append(str(named).replace("_", " "))
+                elif entry.get("status") is not None:
+                    parts.append(f"status {entry['status']}")
                 if entry.get("stopped"):
                     parts.append("STOPPED")
                 lines.append(", ".join(parts))
@@ -874,17 +867,25 @@ class ObservationSummary:
             pickup = record.get("pickup")
             if pickup:
                 parts.append(f"takes from ({pickup[0]:.1f}, {pickup[1]:.1f})")
+            # An *absent* fuel inventory is not an empty one. `sensor` returns
+            # `fuel` only for entities that burn something, so a chest and an
+            # electric drill both arrive with none -- and both were being
+            # rendered "NO FUEL", which is a fabricated blocker on a machine
+            # that was working fine. Only a burner that reports an empty
+            # inventory earns the warning.
             fuel = record.get("fuel")
-            if not fuel:
-                parts.append("NO FUEL")
-            else:
+            if fuel:
                 parts.append("fuel " + ", ".join(f"{k} x{v}" for k, v in sorted(fuel.items())))
+            elif record.get("burns"):
+                parts.append("fuel inventory empty")
             contents = record.get("contents")
             if contents:
                 parts.append("holds " + ", ".join(f"{k} x{v}" for k, v in sorted(contents.items())))
-            status = record.get("st") or _STATUS_NAMES.get(record.get("status"))
+            status = record.get("st")
             if status:
-                parts.append(str(status))
+                parts.append(str(status).replace("_", " "))
+            elif record.get("status") is not None:
+                parts.append(f"status {record['status']}")
             lines.append(", ".join(parts))
         if len(self.built) > MAX_BUILT_SHOWN:
             lines.append(f"  (+{len(self.built) - MAX_BUILT_SHOWN} more, further away)")
