@@ -6,13 +6,16 @@ works, so partial progress counts -- while crafting is **conjunctive** -- every
 component must be simultaneously right for *any* reward. Their TRIAL lessons,
 the conjunctive ones, score 0.11 at depth 1 and exactly 0 deeper.
 
-It explains two of our results better than anything we had written. Behaviour
-cloning scores **1.00** on `restore_power` and **0.17/0.13** on `repair_belt`,
-same method, same demonstration count, both replicated across seeds. We had
-been calling that "a property of the tasks" without naming the property.
-`restore_power` asks for one placement at a published marker; `repair_belt`
-asks the solver to infer the belt's modal row, place, *and* fix rotation, and
-being right about two of three pays nothing.
+The hypothesis it suggested here: behaviour cloning scores **1.00** on
+`restore_power` and **0.17/0.13** on `repair_belt`, same method, same
+demonstration count, both replicated across seeds, and perhaps `repair_belt` is
+conjunctive -- infer the modal row, place, *and* fix rotation, with two of three
+paying nothing.
+
+**That hypothesis is not supported by what this tool measures.** See
+`docs/evidence/r5-solution-fragility.json` and the ledger entry. Kept anyway,
+because the number it produces turned out to be about something real (budget
+slack) and because a negative belongs in the repository as much as a positive.
 
 Measuring it rather than labelling it
 -------------------------------------
@@ -29,15 +32,31 @@ produces, and see whether it still reaches success.
 
     fragility = P(reference solve fails | one wrong action injected)
 
-Near 0 is disjunctive, near 1 is conjunctive. The reference solvers are the
-right instrument because several already re-scan rather than replaying a fixed
-plan -- `solve_repair_belt` loops up to six times re-finding the gap -- so a
-recoverable task genuinely gets recovered rather than failing on a stale plan.
+Near 0 would be disjunctive, near 1 conjunctive.
 
-What this does not measure: whether a *policy* can find any of those solutions.
-A disjunctive task can still be unlearnable. This is a property of the task, in
-the same family as the random floor `tools/solvability.py` reports, and it is
-worth reading beside that number rather than instead of it.
+The control, and why it is not optional
+---------------------------------------
+The first run had no control and the result was uninterpretable. Injecting
+`wait` -- legal, changes nothing about the world, costs one step -- failed a
+`deliver` episode. A no-op cannot make a task conjunctive; it can only spend
+budget. So a second arm now re-runs every injection point substituting `wait`,
+and `excess_fragility = fragility - control` is the part *not* explained by
+having spent a step.
+
+What this does not measure
+--------------------------
+Two things, both load-bearing.
+
+**Whether a policy can find any of those solutions.** A disjunctive task can
+still be unlearnable. Read this beside the random floor `tools/solvability.py`
+reports, not instead of it.
+
+**Task structure independent of the solver.** The instrument is the reference
+solver, and several of them re-scan rather than replaying a fixed plan --
+`solve_repair_belt` loops up to six times re-finding the gap. A solver that
+recovers from anything makes its task look disjunctive whatever the task is.
+This is the leading explanation for the measured ordering and it is a defect of
+the instrument, not a property of the families.
 
 Run:
   uv run python tools/solution_fragility.py --tasks restore_power,repair_belt
@@ -75,10 +94,13 @@ class PerturbingDriver(Driver):
     task. The solver then continues from whatever state that produced.
     """
 
-    def __init__(self, env, trace, perturb_at: int, rng) -> None:
+    def __init__(self, env, trace, perturb_at: int, rng, forced: str | None = None) -> None:
         super().__init__(env, trace)
         self.perturb_at = perturb_at
         self.rng = rng
+        # The control arm forces a specific substitute -- `wait`, a legal action
+        # that changes nothing about the world except that a step was spent.
+        self.forced = forced
         self.calls = 0
         self.injected: str | None = None
         self.replaced: str | None = None
@@ -93,6 +115,8 @@ class PerturbingDriver(Driver):
             for i, template in enumerate(self.env.catalog.templates)
             if i < len(mask) and mask[i] and template.key != key
         ]
+        if self.forced is not None:
+            legal = [k for k in legal if k == self.forced]
         if not legal:
             # Nothing else was legal here, so this step admits no perturbation
             # and the trial is not evidence either way. Recorded by the caller.
@@ -120,12 +144,12 @@ def solve_length(task, session, plan, split: str, index: int) -> tuple[int, bool
     return trace.steps, driver.success
 
 
-def trial(task, session, plan, split: str, index: int, perturb_at: int, rng) -> dict:
+def trial(task, session, plan, split, index, perturb_at, rng, forced=None) -> dict:
     env = FactorioEnv(task, session, plan, branch=Branch.TRAIN, split=split)
     env._episode_index = index - 1
     env.reset()
     trace = SolveTrace(task=task.spec.id, budget=task.spec.max_decision_steps)
-    driver = PerturbingDriver(env, trace, perturb_at, rng)
+    driver = PerturbingDriver(env, trace, perturb_at, rng, forced=forced)
     solver = _solver_for(task.spec.id)
     try:
         solver(driver)
@@ -156,24 +180,46 @@ def measure(task, session, plan, split: str, episodes: int, per_episode: int, rn
         # the start: a task can be forgiving early and unforgiving late.
         points = sorted({int(p) for p in np.linspace(1, length, per_episode, dtype=int)})
         trials = [trial(task, session, plan, split, index, p, rng) for p in points]
+        # The control arm: same scene, same injection points, but the substitute
+        # is always `wait`. It leaves the world alone and spends one step, so
+        # whatever it costs is the cost of *spending a step*, not of being
+        # wrong. Without it the headline number cannot tell a task with one
+        # solution from a task with a tight budget.
+        controls = [trial(task, session, plan, split, index, p, rng, forced="wait") for p in points]
         usable = [t for t in trials if t["perturbed"]]
+        used_control = [t for t in controls if t["perturbed"]]
         scenes.append(
             {
                 "episode": index,
                 "reference_actions": length,
                 "trials": len(usable),
                 "recovered": sum(1 for t in usable if t["recovered"]),
+                "control_trials": len(used_control),
+                "control_recovered": sum(1 for t in used_control if t["recovered"]),
                 "detail": trials,
+                "control_detail": controls,
             }
         )
     usable = [s for s in scenes if s.get("trials")]
     total = sum(s["trials"] for s in usable)
     recovered = sum(s["recovered"] for s in usable)
+    control_total = sum(s.get("control_trials", 0) for s in usable)
+    control_recovered = sum(s.get("control_recovered", 0) for s in usable)
+    fragility = round(1 - recovered / total, 4) if total else None
+    control = round(1 - control_recovered / control_total, 4) if control_total else None
     return {
         "episodes": len(usable),
         "trials": total,
         "recovered": recovered,
-        "fragility": round(1 - recovered / total, 4) if total else None,
+        "fragility": fragility,
+        "control_trials": control_total,
+        "control_fragility": control,
+        # What survives the control is the part attributable to the action being
+        # wrong. Negative means the wrong actions were *cheaper* than a no-op,
+        # which would say the arms differ by noise at this sample size.
+        "excess_fragility": (
+            round(fragility - control, 4) if fragility is not None and control is not None else None
+        ),
         "mean_reference_actions": (
             round(sum(s["reference_actions"] for s in usable) / len(usable), 1) if usable else None
         ),
@@ -205,6 +251,11 @@ def main() -> int:
     started = time.perf_counter()
     report: dict = {
         "measures": "P(reference solve fails | one legal-but-wrong action injected)",
+        "control": (
+            "same injection points with `wait` substituted -- legal, changes nothing, "
+            "spends one step. `excess_fragility` is fragility minus control, and is "
+            "the part not explained by simply having spent a step"
+        ),
         "reading": (
             "near 0 is disjunctive -- many solutions, a wrong move is recoverable. "
             "near 1 is conjunctive -- one solution, any deviation is fatal"
@@ -234,6 +285,8 @@ def main() -> int:
                 entry["splits"][split] = result
                 print(
                     f"{task_id:16s} {split:6s} fragility={result['fragility']} "
+                    f"control={result['control_fragility']} "
+                    f"excess={result['excess_fragility']} "
                     f"({result['recovered']}/{result['trials']} recovered, "
                     f"ref={result['mean_reference_actions']} actions)",
                     flush=True,
