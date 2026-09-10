@@ -70,6 +70,20 @@ ARGUMENT_DOMAINS: dict[str, str] = {
     "destination": "destinations",
 }
 
+#: Argument domains that depend on which *action* is asking, keyed by catalog
+#: key and then by argument name. Overrides `ARGUMENT_DOMAINS`.
+#:
+#: `item` is the case that forced this. Both `give_to` and `take_from` send an
+#: `item` field, and both were validated against the character's inventory --
+#: correct for giving and wrong for taking. Collecting the *first* iron plate
+#: out of a furnace was therefore impossible through the advertised tool: the
+#: agent holds no plates, so `iron-plate` is not in `items`, so the request is
+#: refused before the game sees it. It also handed an arbitrary advantage to
+#: whatever the character happened to still be carrying.
+ARGUMENT_DOMAINS_BY_KEY: dict[str, dict[str, str]] = {
+    "take_from": {"item": "source_items"},
+}
+
 #: What `wait_for` will wait on. Deliberately a short enumerated list rather
 #: than an expression language: a domain the model can see is a domain it can
 #: choose from, and an argument whose values are unguessable is one that gets

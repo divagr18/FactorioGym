@@ -109,7 +109,12 @@ DELIBERATION_PROFILE = "language-model-v1"
 SYSTEM_PROMPT = """\
 You are controlling a single character in Factorio through a bounded action \
 catalog. Each turn you receive the character's local observation and the exact \
-list of actions the environment will currently accept, then choose one.
+list of commands available to you, then choose one.
+
+An available command can still fail. Availability is about the verb; whether a \
+particular target, position or quantity works is decided when it runs, against \
+a world that may have moved. Positions offered to you are candidates, not \
+guarantees.
 
 Rules:
 - Choose an action by its numeric index from the LEGAL ACTIONS list -- one, or \
@@ -120,11 +125,17 @@ tiles. The x axis grows east and the y axis grows south.
 - Argument values under ARGUMENT VALUES are ABSOLUTE world coordinates, not \
 offsets. Your own absolute position is the one under CHARACTER. To act on a \
 tile you can see at offset (dx, dy), add that offset to your own position.
-- One decision advances the world by a fixed interval, so movement, mining and \
-crafting take several decisions to finish. Actions still in progress are listed \
-under "in flight".
-- You cannot see beyond the sensor radius. Entities marked REMEMBERED are what \
-was there when you last saw them, not what is there now.
+- Movement, mining and crafting are ONGOING: they start when you ask and \
+finish over the following decisions. Anything still going is listed under \
+"in flight". Asking for a second one while the first runs is refused as busy.
+- The clock rule for this run is stated under CLOCK in each observation. Read \
+it: in real time the world keeps running while you think, so what you were \
+shown may already be stale by the time your reply arrives.
+- You see the world four ways and they are not the same thing. Your SENSOR \
+shows what is near you now. REMEMBERED is what was there when you last looked. \
+YOUR FACTORY is live state for machines you built, at any distance. THE \
+CHARTED MAP is a one-time survey from when the world was made: it says where \
+resources are, not what is there now.
 
 Some actions act on an entity. Those say "the nearest entity" in their \
 description, and by default that is what they do. To act on a *particular* one \
@@ -458,7 +469,14 @@ class Decision:
             "note": self.note,
         }
         if self.record_summary:
-            body["prompt"] = self.summary.render()
+            # NOT the request. This is the observation half only; the sent body
+            # additionally carries the static prefix, the memory block, retry
+            # corrections and the whole conversation. An external review read
+            # 235 of these looking for `YOUR FACTORY`, correctly did not find
+            # it, and could not tell whether the feature was absent or merely
+            # unlogged. Named for what it is, and `messages.jsonl` holds what
+            # was actually sent.
+            body["observation_block"] = self.summary.render()
             body["observation"] = self.summary.to_dict()
         return body
 
@@ -502,6 +520,11 @@ class AgentLoop:
         #: put one -- and an empty list has to mean "none happened" rather than
         #: "nobody was counting".
         self.interventions: list[dict] = []
+        #: Supplies `{realtime, remaining_seconds, remaining_usd}` for the CLOCK
+        #: block. A callable rather than a snapshot: both numbers fall as the
+        #: run proceeds, and a value captured at construction would be a lie by
+        #: decision two.
+        self.clock_reader: Any = None
         self.memory = Memory()
         #: Failure signatures the agent has already been told about, so the
         #: open plan is closed once per stall rather than once per turn for the
@@ -544,6 +567,16 @@ class AgentLoop:
             if block
         ]
         return Transcript(system=SYSTEM_PROMPT, static_prefix="\n\n".join(blocks))
+
+    def clock_state(self) -> dict:
+        """What the run's clock is doing and how much of it is left.
+
+        Set by whoever owns the budget -- the CLI holds the `RunClock` and the
+        `Budget`, not the loop -- so this reads a callback rather than inventing
+        numbers it cannot see. Empty when nobody supplied one, and the CLOCK
+        block then renders nothing rather than guessing.
+        """
+        return dict(self.clock_reader() or {}) if self.clock_reader else {}
 
     def _world_signature(self) -> tuple:
         """What must change before the model is asked again during a wait.
@@ -769,6 +802,14 @@ class AgentLoop:
         for a log -- still sees the current turn.
         """
         messages = self.transcript.record_sent()
+        # Logged before dispatch, so a request that never came back is still on
+        # disk. `decisions.jsonl` carries the observation block; this carries
+        # what was sent.
+        self._append_sent(
+            "request",
+            messages,
+            {"turns": len(self.transcript.turns), "decision": len(self.decisions)},
+        )
         request = ModelRequest(
             system=messages[0]["content"],
             user=messages[-1]["content"],
@@ -1006,6 +1047,17 @@ class AgentLoop:
                 step=first_step + steps,
                 arguments=argument_domains(self.env),
                 requires=argument_requirements(self.env),
+                clock=self.clock_state(),
+                # What became of the previous reply. Recorded since A2 and
+                # never shown back to the model.
+                receipt=(
+                    {
+                        "actions": self.decisions[-1].outcomes,
+                        "stopped": self.decisions[-1].sequence_stopped,
+                    }
+                    if self.decisions
+                    else {}
+                ),
             )
             targetable, handles = self._addressing(observation)
             decision = self.decide(
@@ -1398,6 +1450,26 @@ class AgentLoop:
         """
         text = json.dumps(payload, indent=2, default=str)
         path.write_text(self.adapter.redact(text), encoding="utf-8")
+
+    def _append_sent(self, kind: str, body: list[dict], meta: dict) -> None:
+        """Append what was actually put on the wire.
+
+        The decision record's observation block is one part of a request. This
+        is the request: system message, static prefix, every turn, and the retry
+        corrections that only exist inside a decision's second and third
+        attempts. Append-only and separate from `decisions.jsonl` so a reader
+        never has to reconstruct a prompt from the code that built it -- which
+        is unsafe precisely when that code is changing.
+        """
+        row = {
+            "kind": kind,
+            "at": time.time(),
+            "messages": body,
+            "digest": manifest_module.config_digest(json.dumps(body, sort_keys=True, default=str)),
+            **meta,
+        }
+        with (self.run_dir / "messages.jsonl").open("a", encoding="utf-8") as handle:
+            handle.write(self.adapter.redact(json.dumps(row, default=str)) + "\n")
 
     def _append_tool_events(self, decision: Decision) -> None:
         """One line per *action*, not per decision (roadmap A4.1).

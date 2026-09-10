@@ -217,6 +217,19 @@ def test_the_summary_reads_the_observation_and_nothing_else():
         "step",
         "arguments",
         "requires",
+        # The run's own clock and spending allowance. Not evaluator truth and
+        # not task state: it is how much wall time and money the *controller*
+        # will allow before it stops, which is the agent's own situation and
+        # nothing about the world or the answer. The prompt previously asserted
+        # a fixed decision interval while every open-world run was continuous
+        # time, and offered "decision 503 of 100000" as planning guidance to a
+        # run about to hit a thirty-minute wall.
+        "clock",
+        # The previous reply's per-action outcome. Recorded by the executor
+        # since A2 and never shown back, so the model had to reconstruct its
+        # own last move from a bounded engine event log that can omit most of
+        # an eight-action batch.
+        "receipt",
     }
     env = StubEnv()
     assert TRUTH_SENTINEL not in summary_for(env).render()
@@ -477,7 +490,19 @@ def test_a_run_writes_the_same_artifact_shape_as_a_training_run(tmp_path):
     lines = (run_dir / "decisions.jsonl").read_text(encoding="utf-8").strip().splitlines()
     assert len(lines) == 2
     first = json.loads(lines[0])
-    assert first["prompt"], "the prompt actually sent is part of the record"
+    # Renamed from `prompt`, which claimed to be "the prompt actually sent" and
+    # was not: the request also carries the static prefix, the memory block and
+    # any retry corrections. An external review read 235 of these looking for a
+    # feature and could not tell whether it was missing or merely unlogged.
+    assert first["observation_block"], "the observation half is part of the record"
+    # And what was really sent lives beside it, appended before dispatch so a
+    # request that never came back is still on disk.
+    sent = (run_dir / "messages.jsonl").read_text(encoding="utf-8").strip().splitlines()
+    assert sent, "the sent request stream is recorded"
+    request = json.loads(sent[0])
+    assert request["kind"] == "request"
+    assert request["messages"][0]["role"] == "system"
+    assert request["digest"], "a canonical digest, so a replay can prove it matches"
     assert first["attempts"][0]["text"], "the raw model response is part of the record"
     assert "latency_ms" in first["attempts"][0]
     assert first["result"]["action_status"] == "completed"

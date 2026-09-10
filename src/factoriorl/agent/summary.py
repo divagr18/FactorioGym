@@ -706,6 +706,16 @@ class ObservationSummary:
     #: refusal -- but "legal to ask for" and "will work" are different, and only
     #: this says which is which.
     craftable: dict = field(default_factory=dict)
+    #: How this run's clock works and how much of it is left. "Decision 503 of
+    #: 100000" is not planning guidance for a run about to hit a 30-minute
+    #: wall, and the system prompt used to assert a fixed decision interval
+    #: while the selected mode was continuous time.
+    clock: dict = field(default_factory=dict)
+    #: What became of the previous reply, member by member. The executor has
+    #: always recorded this; the next turn got a bounded engine event log
+    #: instead, which can omit most of an eight-action batch -- so the model had
+    #: to reconstruct its own last move from someone else's summary.
+    receipt: dict = field(default_factory=dict)
     #: The resource tiles as the observation published them, kept because
     #: `resources` above is per-name aggregates and the *handles* live here.
     #: Rendered nowhere directly; used to say where an addressable tile is.
@@ -746,6 +756,71 @@ class ObservationSummary:
             "arguments": self.arguments,
             "requires": {k: list(v) for k, v in self.requires.items()},
         }
+
+    def _receipt_lines(self) -> list[str]:
+        """What happened to the reply before this one.
+
+        A2.3 promises the model is told "which ones ran, which one failed and
+        which never started". The executor recorded exactly that and the next
+        prompt did not carry it.
+        """
+        members = (self.receipt or {}).get("actions") or []
+        if not members:
+            return []
+        lines = ["", "YOUR LAST REPLY, ACTION BY ACTION"]
+        for member in members:
+            status = str(member.get("status") or "unknown")
+            detail = member.get("action_error") or member.get("detail") or member.get("failure")
+            args = member.get("arguments") or {}
+            shown = " ".join(f"{k}={v}" for k, v in sorted(args.items())) if args else ""
+            line = f"  {member.get('position')}: {member.get('key')}"
+            if member.get("target"):
+                line += f" -> {member['target']}"
+            if shown:
+                line += f" ({shown})"
+            line += f" -- {status}"
+            if detail:
+                line += f": {detail}"
+            lines.append(line)
+        stopped = (self.receipt or {}).get("stopped")
+        if stopped:
+            lines.append(f"  the rest never started, because the sequence stopped: {stopped}")
+        return lines
+
+    def _clock_lines(self) -> list[str]:
+        """The clock rule and what is left of it.
+
+        The system prompt points here rather than asserting a rule of its own,
+        because the rule differs by run: exactly-stepped play pauses the world
+        between decisions and real-time play does not. It asserted the stepped
+        rule unconditionally while every open-world run has been real time.
+        """
+        if not self.clock:
+            return []
+        lines = []
+        if self.clock.get("realtime"):
+            lines.append(
+                "  CLOCK: REAL TIME. The world keeps running while you think, so "
+                "this observation ages"
+            )
+            lines.append("    as you read it. Time you spend deciding is time your machines run.")
+        else:
+            lines.append(
+                "  CLOCK: STEPPED. The world is paused between decisions and advances a "
+                "fixed interval"
+            )
+            lines.append("    each time you act, so thinking costs you no game time.")
+        remaining = self.clock.get("remaining_seconds")
+        if remaining is not None:
+            minutes, seconds = divmod(max(0, int(remaining)), 60)
+            lines.append(
+                f"    {minutes}m {seconds}s of run time left. When it runs out the run "
+                "stops where it is."
+            )
+        budget = self.clock.get("remaining_usd")
+        if budget is not None:
+            lines.append(f"    ${budget:.2f} of spending allowance left.")
+        return lines
 
     def _map_lines(self) -> list[str]:
         """The local map, drawn.
@@ -921,7 +996,8 @@ class ObservationSummary:
         lines: list[str] = [
             f"TASK {task.get('id')} v{task.get('version')}",
             f"  {task.get('description')}",
-            f"  decision {self.step} of {task.get('max_decision_steps')}; game tick {self.tick}",
+            f"  decision {self.step}; game tick {self.tick}",
+            *self._clock_lines(),
             "",
             "CHARACTER",
         ]
@@ -965,6 +1041,7 @@ class ObservationSummary:
                     f"  {name} at offset ({dx:+.1f}, {dy:+.1f}), "
                     f"{_distance(dx, dy):.1f} tiles {_compass(dx, dy)}"
                 )
+        lines += self._receipt_lines()
         lines += self._map_lines()
         lines += self._factory_lines()
         lines.append("")
@@ -1093,7 +1170,12 @@ class ObservationSummary:
             # live in the static reference; only what actually varies with the
             # world is repeated here.
             for name, label in (
-                ("items", "item"),
+                ("items", "item (to give away)"),
+                # What is inside something else, which is what `take_from`
+                # accepts. Rendered separately because the two `item` domains
+                # genuinely differ and showing only the first made collecting a
+                # new product look impossible.
+                ("source_items", "item (to take from a machine or chest)"),
                 ("amounts", "count"),
                 ("recipes", "recipe"),
                 # Empty whenever nothing is running, which is most turns.
@@ -1172,6 +1254,8 @@ def summarise(
     step: int,
     arguments: dict | None = None,
     requires: dict | None = None,
+    clock: dict | None = None,
+    receipt: dict | None = None,
 ) -> ObservationSummary:
     """Render one wire observation for a model.
 
@@ -1198,6 +1282,8 @@ def summarise(
         raw_resources=dict(observation.get("resources") or {}),
         grid=dict(observation.get("grid") or {}),
         built=list(observation.get("built") or []),
+        clock=dict(clock or {}),
+        receipt=dict(receipt or {}),
         craftable={
             entry["name"]: entry.get("craftable", 0)
             for entry in (observation.get("recipes") or [])

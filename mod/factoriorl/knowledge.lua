@@ -202,6 +202,14 @@ function knowledge.technologies()
       unit_ingredients = stack_list(tech.research_unit_ingredients),
       unlocks = unlocks,
       trigger = trigger and trigger.type or nil,
+      -- *What* satisfies the trigger, not merely that one exists. The type
+      -- alone rendered as `trigger:craft-item`, which tells an agent it cannot
+      -- research the thing and nothing about how to get it. Removing trigger
+      -- technologies from the selectable frontier stopped the invalid calls; it
+      -- did not tell anyone what action unlocks them.
+      trigger_item = trigger and trigger.item and trigger.item.name or nil,
+      trigger_count = trigger and trigger.count or nil,
+      trigger_entity = trigger and trigger.entity or nil,
       -- Force state, like `recipes[].enabled`. See the header.
       researched = tech.researched,
     }

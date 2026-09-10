@@ -135,6 +135,42 @@ class TestDomainsComeFromTheObservation:
         # Somewhere else nearby still is, so the domain is not simply empty.
         assert (2.5, 0.5) in tiles
 
+    def test_taking_an_item_you_do_not_hold_is_legal(self):
+        """The first plate out of a furnace has to be collectable.
+
+        `give_to` and `take_from` both send an `item`, and both were validated
+        against the character's inventory -- correct for giving, wrong for
+        taking. An agent holding no iron plate could not ask a furnace for one,
+        so collecting the first unit of any new product was impossible through
+        the advertised tool, and whatever the character happened to still be
+        carrying got an arbitrary advantage.
+        """
+        observation = _observation(
+            entities=[
+                {
+                    "h": "f1",
+                    "name": "stone-furnace",
+                    "type": "furnace",
+                    "p": [2.5, 0.5],
+                    "output": {"iron-plate": 10},
+                }
+            ],
+            inventory={"coal": 3},
+        )
+        domains = _Env(observation).argument_domains()
+
+        # What you hold, and what the world holds, are different sets.
+        assert domains["items"] == ["coal"]
+        assert domains["source_items"] == ["iron-plate"]
+
+    def test_the_two_item_domains_are_selected_by_action(self):
+        from factoriorl.agent.parsing import _domain_of
+
+        assert _domain_of("item", "give_to") == "items"
+        assert _domain_of("item", "take_from") == "source_items"
+        # An action with no override falls back to the shared table.
+        assert _domain_of("position", "place_at") == "placements"
+
     def test_placements_are_bounded(self):
         domains = _Env(_observation()).argument_domains()
         span = 2 * PLACEMENT_RADIUS + 1

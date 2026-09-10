@@ -56,6 +56,12 @@ PLACEMENT_RADIUS = 5
 #: nearest few dozen are what an agent can act on anyway.
 DESTINATION_CAP = 24
 
+#: How many tiles of the *same* resource may enter the destination list. One
+#: deposit under the character otherwise fills the cap with twenty-four ways of
+#: saying "the ore next to you", crowding out the charted patches and the
+#: agent's own machines -- the destinations it actually needs to travel to.
+PER_RESOURCE_DESTINATIONS = 3
+
 #: The transfer counts a policy may name. Unbounded counts would make the
 #: argument domain unbounded; the runtime accepts 1..10000.
 TRANSFER_AMOUNTS = (1, 5, 20)
@@ -237,6 +243,20 @@ class FactorioEnv(gym.Env):
             "items": sorted(
                 item for item, count in (observation.get("inventory") or {}).items() if count
             ),
+            # What could be taken *out* of something else. Every item held by
+            # any entity the sensor can see, in any of its inventories -- which
+            # is the set `take_from` can actually succeed on. Validating it
+            # against the character's own inventory made collecting the first
+            # unit of a new product impossible through the advertised tool.
+            "source_items": sorted(
+                {
+                    item
+                    for record in (observation.get("entities") or [])
+                    for source in (record.get("contents"), record.get("output"))
+                    for item, count in (source or {}).items()
+                    if count
+                }
+            ),
             "amounts": list(TRANSFER_AMOUNTS),
             # Now observable (local-v2 v4), so `craft_recipe` and
             # `set_recipe_at` stop being permanently masked.
@@ -266,46 +286,94 @@ class FactorioEnv(gym.Env):
         }
 
     def _destinations(self, origin, observation) -> list[list[float]]:
-        """Somewhere worth walking to, from what the agent can currently see.
+        """Somewhere worth walking to.
 
         Separate from `placements` because the two want opposite things: a
         placement must be inside build distance or it is refused, and a
-        destination is only interesting when it is *outside* arm's reach. The
-        generated map this serves puts the nearest iron ore 28 tiles from spawn,
-        so a domain capped at `PLACEMENT_RADIUS` could not name it.
+        destination is only interesting when it is *outside* arm's reach.
 
-        Everything here comes from the observation -- resource patches the
-        sensor aggregated, visible entities, remembered ones -- so it proposes
-        no destination the agent has not seen. Unexplored ground stays
-        unnameable, which is what keeps navigation assistance rather than
-        knowledge.
+        Three sources, in priority order, because the cap used to be spent
+        badly:
+
+        **Landmarks** -- the charted survey's patch centres and every machine
+        the agent has built. These are always kept. Without them an agent could
+        be told in its prompt that coal is 89 tiles northwest and then have
+        `walk_to_position` refuse that coordinate as out of domain, which is
+        what happened: the survey was published and navigation never read it.
+        Returning to an out-of-sensor factory was impossible for the same
+        reason.
+
+        **Local sightings** -- resource tiles and visible entities, but at most
+        `PER_RESOURCE_DESTINATIONS` per resource name. Twenty-four adjacent ore
+        tiles are twenty-four ways of saying "the ore next to you", and they
+        filled the whole list.
+
+        **Remembered** -- what was seen and has since left the sensor.
+
+        Nothing here proposes a destination the agent has not been told about,
+        so unexplored ground stays unnameable and navigation stays assistance
+        rather than knowledge.
         """
-        seen: list[list[float]] = []
+
+        def tile_of(point) -> tuple[float, float]:
+            return (math.floor(float(point[0])) + 0.5, math.floor(float(point[1])) + 0.5)
+
+        landmarks: dict[tuple[float, float], list[float]] = {}
+        for patch in getattr(self, "survey", None) or []:
+            position = patch.get("position")
+            if position:
+                key = tile_of(position)
+                landmarks.setdefault(key, [key[0], key[1]])
+        for record in observation.get("built") or []:
+            if record.get("p"):
+                key = tile_of(record["p"])
+                landmarks.setdefault(key, [key[0], key[1]])
+
+        local: dict[tuple[float, float], list[float]] = {}
+        per_name: dict[str, int] = {}
         resources = observation.get("resources") or {}
-        for tile in resources.get("tiles") or []:
-            if tile.get("p"):
-                seen.append([float(tile["p"][0]), float(tile["p"][1])])
+        tiles = sorted(
+            (t for t in (resources.get("tiles") or []) if t.get("p")),
+            key=lambda t: (
+                (float(t["p"][0]) - float(origin[0])) ** 2
+                + (float(t["p"][1]) - float(origin[1])) ** 2
+            ),
+        )
+        for tile in tiles:
+            name = str(tile.get("name") or "?")
+            if per_name.get(name, 0) >= PER_RESOURCE_DESTINATIONS:
+                continue
+            key = tile_of(tile["p"])
+            if key in local or key in landmarks:
+                continue
+            local[key] = [key[0], key[1]]
+            per_name[name] = per_name.get(name, 0) + 1
+
         patches = resources.get("patches") or {}
         rows = patches.values() if isinstance(patches, dict) else patches
         for patch in rows:
             nearest = isinstance(patch, dict) and patch.get("nearest")
             if nearest:
-                seen.append([float(nearest[0]), float(nearest[1])])
+                key = tile_of(nearest)
+                landmarks.setdefault(key, [key[0], key[1]])
+
         for record in (observation.get("entities") or []) + (observation.get("remembered") or []):
             if record.get("p"):
-                seen.append([float(record["p"][0]), float(record["p"][1])])
+                key = tile_of(record["p"])
+                if key not in landmarks:
+                    local.setdefault(key, [key[0], key[1]])
 
-        # Rounded to tile centres and de-duplicated, because a route ends on one
-        # and two destinations inside the same tile are the same destination.
-        unique: dict[tuple[float, float], list[float]] = {}
-        for point in seen:
-            tile = (math.floor(point[0]) + 0.5, math.floor(point[1]) + 0.5)
-            unique.setdefault(tile, [tile[0], tile[1]])
-        ordered = sorted(
-            unique.values(),
-            key=lambda p: (p[0] - float(origin[0])) ** 2 + (p[1] - float(origin[1])) ** 2,
-        )
-        return ordered[:DESTINATION_CAP]
+        def by_distance(points):
+            return sorted(
+                points,
+                key=lambda p: (p[0] - float(origin[0])) ** 2 + (p[1] - float(origin[1])) ** 2,
+            )
+
+        # Landmarks first and never truncated away: a destination the prompt
+        # named has to be one the domain accepts.
+        kept = by_distance(landmarks.values())[:DESTINATION_CAP]
+        room = max(0, DESTINATION_CAP - len(kept))
+        return kept + by_distance(local.values())[:room]
 
     def _placement_candidates(self, origin, observation) -> list[list[float]]:
         """Tile centres near the character with nothing visible standing there.
@@ -362,7 +430,9 @@ class FactorioEnv(gym.Env):
         for name in template.arguments:
             if name not in arguments:
                 raise ValueError(f"{template.key} needs argument {name!r}")
-            domain_name = catalog_module.ARGUMENT_DOMAINS.get(name)
+            domain_name = catalog_module.ARGUMENT_DOMAINS_BY_KEY.get(template.key, {}).get(
+                name
+            ) or catalog_module.ARGUMENT_DOMAINS.get(name)
             legal = domains.get(domain_name) if domain_name else None
             if legal is not None and arguments[name] not in legal:
                 raise ValueError(

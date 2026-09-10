@@ -107,7 +107,7 @@ def _decision_line() -> str:
             "plan": "smelt iron",
             "result": {"action_status": "completed"},
             "actions": [{"position": 0, "key": "place_at", "status": "completed"}],
-            "prompt": "TASK open_factory ... the whole rendered user turn",
+            "observation_block": "TASK open_factory ... the whole rendered user turn",
             "observation": {"entities": [{"h": "h1"}]},
             "legal_actions": [{"index": 7, "key": "place_at"}],
             "attempts": [
@@ -141,7 +141,7 @@ def test_the_public_decision_record_drops_the_transcript(tmp_path):
     record = json.loads(destination.read_text(encoding="utf-8").strip())
 
     # Gone: the prompt, the observation, and the model's verbatim answer.
-    assert "prompt" not in record
+    assert "observation_block" not in record
     assert "observation" not in record
     assert "legal_actions" not in record
     assert "text" not in record["attempts"][0]

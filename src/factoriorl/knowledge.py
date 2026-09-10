@@ -262,7 +262,18 @@ def _research_cost(row: dict) -> str:
     """
     trigger = row.get("trigger")
     if trigger:
-        return f"trigger:{trigger}"
+        # What actually satisfies it. `trigger:craft-item` told an agent it
+        # could not research the thing and nothing about how to obtain it, which
+        # is the half that matters -- these unlock by *doing* something, and the
+        # something is knowable.
+        subject = row.get("trigger_item") or row.get("trigger_entity")
+        count = row.get("trigger_count")
+        verb = str(trigger).replace("-", " ")
+        if subject and count:
+            return f"no science: {verb} {_number(count)}x {subject}"
+        if subject:
+            return f"no science: {verb} {subject}"
+        return f"no science: completes by {verb}"
     count = row.get("unit_count")
     ingredients = _list(row.get("unit_ingredients"))
     if not ingredients:

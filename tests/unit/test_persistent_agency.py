@@ -289,3 +289,59 @@ def test_a_stall_closes_the_open_plan_exactly_once(tmp_path):
     stalls = memory.repeated_failures()
     assert len(stalls) == 1
     assert stalls[0]["count"] == STALL_THRESHOLD + 4
+
+
+# --------------------------------- R5: failures are conditions, not verdicts
+
+
+def test_a_success_clears_the_repeated_failure_warning():
+    """A three-strike rule that never resets turns a temporary condition into a
+    permanent prohibition. Measured case: three failed furnace crafts for want
+    of stone, then stone arrives and one succeeds -- and the agent was still
+    being told it would fail again."""
+    memory = Memory()
+    for step in range(STALL_THRESHOLD):
+        memory.record_action(
+            step,
+            "craft_recipe",
+            error="no_items",
+            arguments={"recipe": "stone-furnace", "count": 1},
+        )
+    assert memory.repeated_failures(), "three identical failures should warn"
+
+    memory.record_action(
+        9, "craft_recipe", status="completed", arguments={"recipe": "stone-furnace", "count": 1}
+    )
+
+    assert memory.repeated_failures() == []
+    assert "REPEATED FAILURE" not in memory.render()
+
+
+def test_a_success_clears_only_its_own_signature():
+    memory = Memory()
+    for step in range(STALL_THRESHOLD):
+        memory.record_action(
+            step, "place_at", error="collision", arguments={"position": [1.5, 2.5]}
+        )
+        memory.record_action(
+            step, "craft_recipe", error="no_items", arguments={"recipe": "stone-furnace"}
+        )
+    memory.record_action(
+        9, "craft_recipe", status="completed", arguments={"recipe": "stone-furnace"}
+    )
+
+    stuck = memory.repeated_failures()
+    assert [entry["action"] for entry in stuck] == ["place_at"]
+
+
+def test_an_ongoing_action_is_not_a_failure():
+    """A walk, a mine and a craft all answer `running` and finish later. Calling
+    that refused work filled the record with imaginary failures and pushed the
+    real ones out of a bounded list."""
+    memory = Memory()
+    for step in range(STALL_THRESHOLD + 2):
+        memory.record_action(step, "mine_at", status="running", arguments={"handle": "h7"})
+
+    assert memory.failures() == []
+    assert memory.repeated_failures() == []
+    assert "REPEATED FAILURE" not in memory.render()

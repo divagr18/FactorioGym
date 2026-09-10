@@ -346,10 +346,17 @@ def _extract(text: str) -> tuple[Any, str, str | None, dict] | None:
 #: Which observation-derived domain each argument name draws from. Mirrors
 #: `factoriorl.catalog.ARGUMENT_DOMAINS`, imported rather than restated so the
 #: agent and the environment cannot disagree about what a name means.
-def _domain_of(argument: str) -> str | None:
-    from factoriorl.catalog import ARGUMENT_DOMAINS
+def _domain_of(argument: str, key: str = "") -> str | None:
+    """Which domain an argument draws from, for the action that is asking.
 
-    return ARGUMENT_DOMAINS.get(argument)
+    `item` means different things to `give_to` and `take_from` -- what you hold
+    versus what the source holds -- and validating both against the character's
+    inventory made collecting the first unit of a new product impossible.
+    """
+    from factoriorl.catalog import ARGUMENT_DOMAINS, ARGUMENT_DOMAINS_BY_KEY
+
+    override = ARGUMENT_DOMAINS_BY_KEY.get(key, {}).get(argument)
+    return override or ARGUMENT_DOMAINS.get(argument)
 
 
 def _validate_arguments(
@@ -383,7 +390,7 @@ def _validate_arguments(
     cleaned: dict = {}
     for name in required:
         value = supplied[name]
-        domain_name = _domain_of(name)
+        domain_name = _domain_of(name, key)
         legal_values = domains.get(domain_name) if domain_name else None
         if isinstance(value, list):
             # A position arrives as a JSON array and the domain holds lists.

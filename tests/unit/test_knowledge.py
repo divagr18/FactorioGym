@@ -104,6 +104,8 @@ def a_knowledge_reply() -> dict:
                 "unit_ingredients": [],
                 "unlocks": ["boiler", "steam-engine"],
                 "trigger": "craft-item",
+                "trigger_item": "offshore-pump",
+                "trigger_count": 1,
                 "researched": True,
             },
         ],
@@ -240,7 +242,13 @@ def test_a_trigger_technology_reports_its_trigger_rather_than_a_cost() -> None:
     would finish the research.
     """
     rendered = render(a_knowledge_reply())
-    assert "steam-power: trigger:craft-item -> boiler, steam-engine" in rendered
+    # It has to name the thing that finishes it, which is what this test's own
+    # docstring asked for and what `trigger:craft-item` never delivered: that
+    # string says the technology cannot be queued and nothing about how to
+    # obtain it. The mod kept only `trigger.type` and discarded the subject and
+    # the count.
+    assert "steam-power: no science: craft item 1x offshore-pump" in rendered
+    assert "-> boiler, steam-engine" in rendered
     assert "automation: 10x automation-science-pack ->" in rendered
 
 

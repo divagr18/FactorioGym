@@ -246,6 +246,7 @@ def run_world(
     free_running: bool = True,
     on_ready=None,
     on_finished=None,
+    clock_reader=None,
     until=None,
     checkpoint_seconds: float | None = None,
     resume_from: Path | None = None,
@@ -394,6 +395,11 @@ def run_world(
                 },
             },
         )
+        if clock_reader is not None:
+            # So the prompt can state how much run time and allowance are left.
+            # "decision 503 of 100000" is not planning guidance for a run about
+            # to hit a thirty-minute wall.
+            loop.clock_reader = clock_reader
         if on_ready is not None:
             on_ready()
         # Before the first action, per A1.3: a world that dies on decision one

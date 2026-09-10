@@ -67,7 +67,7 @@ DOCUMENTS = (
 #: Keys dropped when a decision record is made public. Everything else about a
 #: decision -- what was chosen, what it did, what it cost, how long it took --
 #: stays, because that is what makes a run inspectable.
-PRIVATE_DECISION_KEYS = ("prompt", "observation", "legal_actions")
+PRIVATE_DECISION_KEYS = ("observation_block", "prompt", "observation", "legal_actions")
 
 #: Keys dropped from each recorded model attempt. The verbatim reply and any
 #: provider error body go; the accounting stays.
@@ -176,6 +176,8 @@ def collect_run(run_id: str, out_dir: Path) -> dict:
         "result.json",
         "summary.json",
         "decisions.public.jsonl",
+        # Deliberately NOT `messages.jsonl`: that is the verbatim request
+        # stream, which is the raw transcript A4.1 keeps out of bundles.
         "tool_events.jsonl",
         "production.jsonl",
         "status.json",

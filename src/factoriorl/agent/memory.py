@@ -72,6 +72,10 @@ ATTEMPTS_KEPT = 4
 #: on every later turn.
 NOTES_KEPT = 8
 
+#: Statuses that mean "started and still going". The environment reports these
+#: for every ongoing action, and they are outcomes rather than failures.
+_ONGOING = frozenset({"running", "started", "accepted"})
+
 #: How many times the *same* action, at the same target, with the same
 #: arguments, may fail before the agent is told plainly that it is stuck
 #: (roadmap A3.3). Three, because two is a coincidence and a fourth identical
@@ -146,6 +150,16 @@ class Attempt:
 
     @property
     def failed(self) -> bool:
+        """Did this attempt *not happen*?
+
+        `running` is deliberately not a failure. A walk, a mine and a craft all
+        answer `running` and finish over the following decisions -- that is the
+        normal shape of an ongoing action, and counting it as refused work
+        filled the agent's own record with imaginary failures and pushed real
+        ones out of the bounded list.
+        """
+        if self.status in _ONGOING:
+            return False
         return bool(self.error) or (self.status not in (None, "completed"))
 
     @property
@@ -283,9 +297,17 @@ class Memory:
         that works instead: that would make the run a measurement of this code
         rather than of the model, and the trace would not show it had happened.
         """
+        # Counted *since the last success* for each signature. A three-strike
+        # rule that never resets turns a temporary condition into a permanent
+        # prohibition: an agent that failed to craft a furnace three times for
+        # want of stone, then found stone and crafted one, was still being told
+        # "sending it again will fail again".
         counted: dict[str, dict] = {}
         for attempt in self.attempts:
             if not attempt.failed:
+                # A success clears the count for that exact signature, and only
+                # that one.
+                counted.pop(attempt.signature, None)
                 continue
             entry = counted.setdefault(
                 attempt.signature,
@@ -364,7 +386,8 @@ class Memory:
                     f"  {entry['action']}{where} has failed {entry['count']} times: "
                     f"{_clip(entry['error'])}"
                 )
-            lines.append("  Sending it again will fail again. Do something different,")
+            lines.append("  Nothing has changed since, so it will fail the same way.")
+            lines.append("  Do something different, or change what it depends on first,")
             lines.append('  and say what in "plan".')
 
         # Anything already named above is not repeated here. The block above

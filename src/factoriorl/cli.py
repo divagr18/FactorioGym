@@ -597,6 +597,13 @@ def cmd_agent(args) -> int:
     # ran after `save("final")`, the viewer teardown and `--hold-open`.
     if is_world:
         shared["on_finished"] = clock.stop
+        # Read live on every decision, because both numbers fall as the run
+        # proceeds and a snapshot would be wrong by decision two.
+        shared["clock_reader"] = lambda: {
+            "realtime": realtime,
+            "remaining_seconds": clock.remaining_seconds,
+            "remaining_usd": budget.remaining_usd,
+        }
     if is_world:
         result = run_world(
             worlds.get(args.task),
