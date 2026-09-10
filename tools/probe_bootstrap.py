@@ -34,6 +34,7 @@ from factoriorl import worlds  # noqa: E402
 from factoriorl.agent.adapters import ScriptedAdapter  # noqa: E402
 from factoriorl.agent.loop import AgentConfig, AgentLoop, Decision  # noqa: E402
 from factoriorl.agent.parsing import ParsedAction  # noqa: E402
+from factoriorl.env import TRANSFER_AMOUNTS  # noqa: E402
 from factoriorl.freeplay import starting_inventory  # noqa: E402
 from factoriorl.open_world import OpenWorldEnv  # noqa: E402
 from factoriorl.protocol import Request, RequestType  # noqa: E402
@@ -98,6 +99,19 @@ class Tools:
                     record[extra] = info[extra]
         except Exception as failure:  # noqa: BLE001 - a refusal is a result here
             record["refused"] = f"{type(failure).__name__}: {failure}"
+            # A refusal from the game is a result. A `ValueError` from
+            # `step_arguments` is not: it means this probe asked for something
+            # the catalog does not accept -- a missing argument or a value
+            # outside its domain -- which is a bug in the caller, not a fact
+            # about the world.
+            #
+            # Both used to land in `refused` together and be read as "the game
+            # said no". When `mine_at` gained a required `count` this helper
+            # stopped passing one, every mine call raised, the probe gathered
+            # nothing, and the failure surfaced eight steps later as an empty
+            # furnace. Separated so a caller can tell the two apart and stop.
+            if isinstance(failure, ValueError):
+                record["client_error"] = str(failure)
         record["ms"] = round((time.perf_counter() - started) * 1000, 1)
         self.log.append(record)
         return record
@@ -240,6 +254,16 @@ def walk_to(tools: Tools, resource: str, report: dict, label: str) -> bool:
 
 def mine(tools: Tools, resource: str, want: int, report: dict, label: str) -> bool:
     held = tools.inventory(resource)
+    # The whole amount in one request. `mine` has always accepted a count -- the
+    # primitive catalog's `mine_nearest_5` passes 5 -- and the open catalog now
+    # exposes it, so this asks once for what it wants instead of once per tile.
+    #
+    # It is also the reason this helper must pass one at all: `mine_at` gained a
+    # required `count`, and `Tools.do` never raises, so the missing argument was
+    # swallowed silently. The probe gathered nothing, fed an empty furnace, and
+    # failed eight steps later on a domain check with no plates in it. A
+    # required argument that goes missing must be loud.
+    amount = min((a for a in TRANSFER_AMOUNTS if a >= want), default=max(TRANSFER_AMOUNTS))
     for _ in range(MINE_ATTEMPTS):
         if tools.inventory(resource) - held >= want:
             break
@@ -251,7 +275,10 @@ def mine(tools: Tools, resource: str, want: int, report: dict, label: str) -> bo
             handle = tools.handle_for(resource)
             if handle is None:
                 break
-        tools.do("mine_at", handle=handle)
+        outcome = tools.do("mine_at", handle=handle, count=amount)
+        if outcome.get("client_error"):
+            report[f"{label}_mine_error"] = outcome["client_error"]
+            break
     report[f"{label}_mined"] = tools.inventory(resource) - held
     return tools.inventory(resource) - held >= want
 

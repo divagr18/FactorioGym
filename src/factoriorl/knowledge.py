@@ -214,15 +214,57 @@ def _recipe_section(knowledge: dict) -> list[str]:
     return lines
 
 
+def _offsets(box: object) -> str | None:
+    """``x+0..+1, y+0..+1`` for a footprint given as offsets from the named tile."""
+    values = _list(box)
+    if len(values) != 4:
+        return None
+    try:
+        x0, y0, x1, y1 = (int(v) for v in values)
+    except (TypeError, ValueError):
+        return None
+    span = lambda lo, hi: f"{lo:+d}" if lo == hi else f"{lo:+d}..{hi:+d}"  # noqa: E731
+    return f"x{span(x0, x1)}, y{span(y0, y1)}"
+
+
 def _placeable_section(knowledge: dict) -> list[str]:
     rows = _rows(knowledge, "placeable")
     lines = [
-        f"PLACEABLE ENTITIES ({len(rows)}) -- item: tiles wide x tall, "
-        f"footprint centred on the placement position"
+        f"PLACEABLE ENTITIES ({len(rows)}) -- item: tiles wide x tall, then which",
+        'tiles it ends up on, as offsets from the tile you name in "position".',
+        "  This is NOT always centred on the tile you name. An even-sized machine",
+        "  extends east and south of it: name [-28.5, 0.5] for a 2x2 drill and you",
+        "  get the tiles (-29,0) (-28,0) (-29,1) (-28,1). An odd-sized one is",
+        "  centred. Check the ore under ALL of them on the LOCAL MAP before you",
+        '  place -- a drill mines only the tiles listed after "mines", and one',
+        "  standing on the edge of a patch runs out in seconds.",
+        "  BURNER means the machine has its own fuel slot: give it coal or wood",
+        "  and it runs. ELECTRIC means it has no fuel slot and does NOTHING on",
+        "  its own -- it runs only while something marked GENERATES is producing",
+        "  power and electric poles carry that power to it. Nothing generates",
+        "  power at the start of a run, so an ELECTRIC machine placed before you",
+        "  have built a generator and wired it up is an ornament, and its line in",
+        '  YOUR FACTORY will say "no power" forever.',
+        '  "consumes" is what the machine eats. A lab with power and no science',
+        "  packs is exactly as idle as a lab with no power.",
     ]
     for row in rows:
         name = str(row.get("name", ""))
         line = f"{name}: {_number(row.get('width', 1))}x{_number(row.get('height', 1))}"
+        covers = _offsets(row.get("covers"))
+        if covers:
+            line += f", covers {covers}"
+        mines = _offsets(row.get("mines"))
+        if mines:
+            line += f", mines {mines}"
+        power = row.get("power")
+        if power in ("electric", "burner"):
+            line += f", {str(power).upper()}"
+        if row.get("generates"):
+            line += ", GENERATES power"
+        consumes = sorted(str(entry) for entry in _list(row.get("consumes")))
+        if consumes:
+            line += ", consumes " + ", ".join(consumes)
         entity = row.get("entity")
         # Named only when it differs. `place` takes the item name, so repeating
         # an identical entity name on every line would be noise the agent has to

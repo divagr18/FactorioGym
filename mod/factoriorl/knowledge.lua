@@ -137,6 +137,68 @@ end
 -- PLAN 2.1's "placement cannot bypass technology restrictions" is directly
 -- testable. An agent cannot predict that refusal without knowing which item
 -- names have a recipe behind them.
+--- The tiles a placement covers, as offsets from the tile the agent names.
+--
+-- "Centred on the placement position" is what this table used to say, and it is
+-- false for every even-sized machine. Measured against the engine
+-- (`tools/probe_footprints.py`, `docs/evidence/footprints.json`): a 2x2 stone
+-- furnace asked for at [10.5, 10.5] covers x 10..11, y 10..11 -- the named tile
+-- is its north-WEST corner -- while a 3x3 lab asked for at the same place
+-- covers x 9..11 and genuinely is centred. Two rules, by parity, plus each
+-- item's size: an agent cannot infer that, and run 7 did not. It put a burner
+-- drill where one of the four tiles under it held ore and got
+-- `no_minable_resources` in seconds.
+--
+-- So the conclusion is published instead of the ingredients, per item, and it
+-- is derived from `collision_box` rather than from `tile_width`. They disagree:
+-- an offshore pump reports 1x1 and occupies 3x2, and a rule built on tile size
+-- would have shipped a second false statement to fix the first.
+local function footprint(entity)
+  -- Where the engine puts the entity when tile (0, 0) is named: an odd-sized
+  -- machine lands on the tile centre, an even-sized one on its south-east
+  -- corner. This reproduces all 22 measured placements, offshore pump included.
+  local ox = (entity.tile_width % 2 == 1) and 0.5 or 1.0
+  local oy = (entity.tile_height % 2 == 1) and 0.5 or 1.0
+  local ok, box = pcall(function() return entity.collision_box end)
+  if not ok or not box then return nil, ox, oy end
+  return {
+    math.floor(ox + box.left_top.x), math.floor(oy + box.left_top.y),
+    math.ceil(ox + box.right_bottom.x) - 1, math.ceil(oy + box.right_bottom.y) - 1,
+  }, ox, oy
+end
+
+--- What a machine needs before it will do anything, and what it makes.
+--
+-- A run placed a lab, and the lab sat there. The observation said `no power`,
+-- which is the engine's own diagnosis and is true, and nothing anywhere said
+-- what "power" is or where it comes from. A burner gets `FUEL SLOT EMPTY --
+-- give it some`, which names the remedy; an electric machine got a symptom.
+--
+-- Worse, nothing said a lab consumes science packs, so even a powered one would
+-- have stood idle for a second unstated reason. Both facts are on the
+-- prototype and both are what the game shows a player in the entity tooltip:
+-- the electricity bar, and the pack icons in the lab's input slots.
+local function needs(entity)
+  local row = {}
+  local ok_electric, electric = pcall(function()
+    return entity.electric_energy_source_prototype
+  end)
+  local ok_burner, burner = pcall(function() return entity.burner_prototype end)
+  if ok_electric and electric then
+    row.power = "electric"
+  elseif ok_burner and burner then
+    row.power = "burner"
+  end
+  -- A generator is the answer to `no power`, and it is only findable if it is
+  -- labelled: a steam engine produces 15000, a solar panel 1000, and everything
+  -- else in the early game produces nothing.
+  local ok_out, produced = pcall(function() return entity.get_max_energy_production() end)
+  if ok_out and produced and produced > 0 then row.generates = produced end
+  local ok_lab, inputs = pcall(function() return entity.lab_inputs end)
+  if ok_lab and inputs and #inputs > 0 then row.consumes = inputs end
+  return row
+end
+
 function knowledge.placeable()
   local force = player_force()
   local out = {}
@@ -145,11 +207,30 @@ function knowledge.placeable()
     local entity = item.place_result
     if entity then
       local gate = force and force.recipes[name] or nil
+      local covers, ox, oy = footprint(entity)
+      local mines = nil
+      local ok_radius, radius = pcall(function() return entity.mining_drill_radius end)
+      if ok_radius and radius and radius > 0 then
+        mines = {
+          math.floor(ox - radius), math.floor(oy - radius),
+          math.ceil(ox + radius) - 1, math.ceil(oy + radius) - 1,
+        }
+      end
+      local wants = needs(entity)
       out[#out + 1] = {
         name = name,
         entity = entity.name,
         width = entity.tile_width,
         height = entity.tile_height,
+        covers = covers,
+        power = wants.power,
+        generates = wants.generates,
+        consumes = wants.consumes,
+        -- What a mining drill actually harvests. A burner drill searches
+        -- exactly its own four tiles (radius 0.99) and an electric one a 5x5
+        -- square (radius 2.49), so "stand it on ore" is true for neither
+        -- without knowing which tiles are under it.
+        mines = mines,
         -- Named rather than boolean: an agent that is refused a placement needs
         -- to know which recipe to research, and the item name is not always the
         -- recipe name for other prototypes.

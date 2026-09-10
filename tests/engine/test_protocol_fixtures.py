@@ -224,7 +224,15 @@ def test_reconnected_session_ids_do_not_collide(module_worker, module_session):
 
 
 def test_rejected_mutation_is_recorded_and_not_reexecuted(module_session):
-    """A resent request id returns the stored rejection instead of re-running."""
+    """A resent request id returns the stored rejection instead of re-running.
+
+    The rejection is an item the source does not hold at all. It used to be
+    9999 iron plates out of a chest holding 50, which stopped being a rejection
+    when `transfer` began clamping to what is available -- the domain offers
+    only 1, 5 and 20, so an agent watching three plates accumulate could not
+    name 3 and was refused 5. `no_items` now means the source has none, which
+    is what this fixture needs and is the same error code and code path.
+    """
     module_session.reset()
     request = Request(
         request_id="reject-once-1",
@@ -234,7 +242,7 @@ def test_rejected_mutation_is_recorded_and_not_reexecuted(module_session):
             "action": "transfer",
             "from": "src",
             "to": "character",
-            "item": "iron-plate",
+            "item": "copper-plate",
             "count": 9999,
         },
     )

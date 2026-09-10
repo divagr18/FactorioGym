@@ -56,7 +56,35 @@ local function enabled_recipes()
         local ok, count = pcall(function() return ch.get_craftable_count(name) end)
         if ok and count then craftable = count end
       end
-      names[#names + 1] = { name = name, craftable = craftable }
+      -- Which ingredient is actually short, and by how much.
+      --
+      -- "An agent that can see `stone-furnace x0` knows what to go and find" is
+      -- what the paragraph above claimed, and a live run disproved it: it read
+      -- `stone-furnace x0`, wrote the plan "practical maximum without stone",
+      -- and spent its remaining two hundred decisions hauling coal by hand. It
+      -- was never told that the missing ingredient was stone. `x0` says only
+      -- that something is missing, and the ingredient list lives in a 61,000
+      -- character static block the turn does not repeat.
+      --
+      -- Only for recipes that cannot be crafted, so the common case costs
+      -- nothing, and the recipe list is already capped by `RECIPE_CAP`.
+      local missing = nil
+      if craftable == 0 and ch and ch.valid then
+        for _, ingredient in ipairs(recipe.ingredients or {}) do
+          if ingredient.type == "item" then
+            local held = ch.get_item_count(ingredient.name)
+            if held < ingredient.amount then
+              missing = missing or {}
+              missing[#missing + 1] = {
+                name = ingredient.name,
+                need = ingredient.amount,
+                have = held,
+              }
+            end
+          end
+        end
+      end
+      names[#names + 1] = { name = name, craftable = craftable, missing = missing }
     end
   end
   -- Sorted by name, as before: the entries are tables now, so the comparator

@@ -69,28 +69,28 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 567.5
+      "ms": 568.1
     },
     "inflight": [
       {
-        "request_id": "step-9ea86cbc-6:act",
+        "request_id": "step-a4929e72-6:act",
         "action": "navigate",
         "started_tick": 7,
         "progress": 0.026129792431719666
       }
     ],
-    "identity": "step-9ea86cbc-6:act",
+    "identity": "step-a4929e72-6:act",
     "published_in_domain": true,
     "cancel": {
       "action": "cancel_request",
       "arguments": {
-        "target_request_id": "step-9ea86cbc-6:act"
+        "target_request_id": "step-a4929e72-6:act"
       },
       "status": "completed",
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 532.7
+      "ms": 532.5
     },
     "still_in_flight": [],
     "moved_after_cancel": 0.59
@@ -115,7 +115,7 @@
     "error": null,
     "terminated": false,
     "truncated": false,
-    "ms": 534.6
+    "ms": 533.0
   },
   "crafted_a_gear": true,
   "placed_furnace": true,
@@ -134,7 +134,7 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.2
+      "ms": 534.2
     }
   ],
   "furnace_handle": "h103",
@@ -150,7 +150,7 @@
     "error": null,
     "terminated": false,
     "truncated": false,
-    "ms": 533.5
+    "ms": 533.1
   },
   "fed": {
     "action": "give_to",
@@ -163,7 +163,7 @@
     "error": null,
     "terminated": false,
     "truncated": false,
-    "ms": 533.8
+    "ms": 533.4
   },
   "waited": [
     {
@@ -178,7 +178,7 @@
       "truncated": false,
       "condition_met": true,
       "waited_steps": 30,
-      "ms": 16000.0
+      "ms": 16002.4
     },
     {
       "action": "wait_for",
@@ -192,7 +192,7 @@
       "truncated": false,
       "condition_met": false,
       "waited_steps": 60,
-      "ms": 32001.5
+      "ms": 31999.8
     }
   ],
   "inspected": {
@@ -220,9 +220,9 @@
       "output": {
         "iron-plate": 5
       },
-      "at_step": 125
+      "at_step": 130
     },
-    "ms": 533.6
+    "ms": 533.7
   },
   "furnace_output": "plates:5 status:18",
   "produced_plates": true,
@@ -243,8 +243,8 @@
       "ticks_advanced": 30,
       "observation": {
         "episode_id": "ep-2",
-        "tick": 4039,
-        "absolute_tick": 4040,
+        "tick": 4199,
+        "absolute_tick": 4200,
         "profiles": {
           "observation": "open-v1",
           "observation_version": 1,
@@ -348,6 +348,7 @@
         },
         "inventory": {
           "burner-mining-drill": 1,
+          "iron-ore": 2,
           "iron-plate": 7,
           "iron-gear-wheel": 1,
           "pistol": 1,
@@ -1024,7 +1025,7 @@
                 -28.5,
                 -0.5
               ],
-              "amount": 83
+              "amount": 81
             },
             {
               "h": "h91",
@@ -1211,7 +1212,7 @@
             {
               "name": "iron-ore",
               "count": 513,
-              "total": 322909,
+              "total": 322907,
               "nearest": [
                 -28.5,
                 -0.5
@@ -1246,7 +1247,7 @@
         "events": [
           {
             "seq": 1,
-            "request_id": "step-9ea86cbc-6",
+            "request_id": "step-a4929e72-6",
             "action": {
               "status": "cancelled",
               "action": "navigate",
@@ -1406,18 +1407,18 @@
           },
           {
             "seq": 2,
-            "request_id": "step-9ea86cbc-6:act",
+            "request_id": "step-a4929e72-6:act",
             "action": "navigate",
             "status": "cancelled",
             "tick": 40
           },
           {
             "seq": 3,
-            "request_id": "step-9ea86cbc-8",
+            "request_id": "step-a4929e72-8",
             "action": {
               "status": "completed",
               "action": "cancel",
-              "target_request_id": "step-9ea86cbc-6:act",
+              "target_request_id": "step-a4929e72-6:act",
               "cancelled_action": "navigate",
               "result": {
                 "action": "navigate",
@@ -1442,7 +1443,7 @@
           },
           {
             "seq": 4,
-            "request_id": "step-9ea86cbc-10",
+            "request_id": "step-a4929e72-10",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1452,7 +1453,7 @@
           },
           {
             "seq": 5,
-            "request_id": "step-9ea86cbc-12",
+            "request_id": "step-a4929e72-12",
             "action": {
               "status": "completed",
               "action": "navigate",
@@ -1500,7 +1501,7 @@
           },
           {
             "seq": 6,
-            "request_id": "step-9ea86cbc-14",
+            "request_id": "step-a4929e72-14",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1510,7 +1511,7 @@
           },
           {
             "seq": 7,
-            "request_id": "step-9ea86cbc-16",
+            "request_id": "step-a4929e72-16",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1520,7 +1521,7 @@
           },
           {
             "seq": 8,
-            "request_id": "step-9ea86cbc-18",
+            "request_id": "step-a4929e72-18",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1530,7 +1531,7 @@
           },
           {
             "seq": 9,
-            "request_id": "step-9ea86cbc-20",
+            "request_id": "step-a4929e72-20",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1540,14 +1541,14 @@
           },
           {
             "seq": 10,
-            "request_id": "step-9ea86cbc-12:act",
+            "request_id": "step-a4929e72-12:act",
             "action": "navigate",
             "status": "completed",
             "tick": 263
           },
           {
             "seq": 11,
-            "request_id": "step-9ea86cbc-22",
+            "request_id": "step-a4929e72-22",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1557,22 +1558,23 @@
           },
           {
             "seq": 12,
-            "request_id": "step-9ea86cbc-24",
+            "request_id": "step-a4929e72-24",
             "action": {
-              "status": "completed",
+              "status": "failed",
               "action": "mine",
               "target": "h5",
               "item": "iron-ore",
-              "count": 1,
+              "count": 5,
               "mining_time": 1,
-              "mined": 1
+              "mined": 2,
+              "requested": 5
             },
             "status": "completed",
             "tick": 326
           },
           {
             "seq": 13,
-            "request_id": "step-9ea86cbc-26",
+            "request_id": "step-a4929e72-26",
             "action": {
               "status": "rejected",
               "error": {
@@ -1585,7 +1587,7 @@
           },
           {
             "seq": 14,
-            "request_id": "step-9ea86cbc-28",
+            "request_id": "step-a4929e72-28",
             "action": {
               "status": "rejected",
               "error": {
@@ -1598,14 +1600,7 @@
           },
           {
             "seq": 15,
-            "request_id": "step-9ea86cbc-24:act",
-            "action": "mine",
-            "status": "completed",
-            "tick": 417
-          },
-          {
-            "seq": 16,
-            "request_id": "step-9ea86cbc-30",
+            "request_id": "step-a4929e72-30",
             "action": {
               "status": "rejected",
               "error": {
@@ -1617,23 +1612,21 @@
             "tick": 422
           },
           {
-            "seq": 17,
-            "request_id": "step-9ea86cbc-32",
+            "seq": 16,
+            "request_id": "step-a4929e72-32",
             "action": {
-              "status": "completed",
-              "action": "mine",
-              "target": "h5",
-              "item": "iron-ore",
-              "count": 1,
-              "mining_time": 1,
-              "mined": 1
+              "status": "rejected",
+              "error": {
+                "code": "busy",
+                "message": "a mining operation is already running"
+              }
             },
             "status": "completed",
             "tick": 454
           },
           {
-            "seq": 18,
-            "request_id": "step-9ea86cbc-34",
+            "seq": 17,
+            "request_id": "step-a4929e72-34",
             "action": {
               "status": "rejected",
               "error": {
@@ -1645,8 +1638,8 @@
             "tick": 486
           },
           {
-            "seq": 19,
-            "request_id": "step-9ea86cbc-36",
+            "seq": 18,
+            "request_id": "step-a4929e72-36",
             "action": {
               "status": "rejected",
               "error": {
@@ -1658,15 +1651,15 @@
             "tick": 518
           },
           {
-            "seq": 20,
-            "request_id": "step-9ea86cbc-32:act",
+            "seq": 19,
+            "request_id": "step-a4929e72-24:act",
             "action": "mine",
-            "status": "completed",
-            "tick": 545
+            "status": "failed",
+            "tick": 538
           },
           {
-            "seq": 21,
-            "request_id": "step-9ea86cbc-38",
+            "seq": 20,
+            "request_id": "step-a4929e72-38",
             "action": {
               "status": "rejected",
               "error": {
@@ -1678,23 +1671,23 @@
             "tick": 550
           },
           {
-            "seq": 22,
-            "request_id": "step-9ea86cbc-40",
+            "seq": 21,
+            "request_id": "step-a4929e72-40",
             "action": {
               "status": "completed",
               "action": "mine",
               "target": "h3",
               "item": "iron-ore",
-              "count": 1,
+              "count": 5,
               "mining_time": 1,
-              "mined": 1
+              "mined": 5
             },
             "status": "completed",
             "tick": 582
           },
           {
-            "seq": 23,
-            "request_id": "step-9ea86cbc-42",
+            "seq": 22,
+            "request_id": "step-a4929e72-42",
             "action": {
               "status": "rejected",
               "error": {
@@ -1706,8 +1699,8 @@
             "tick": 614
           },
           {
-            "seq": 24,
-            "request_id": "step-9ea86cbc-44",
+            "seq": 23,
+            "request_id": "step-a4929e72-44",
             "action": {
               "status": "rejected",
               "error": {
@@ -1719,15 +1712,8 @@
             "tick": 646
           },
           {
-            "seq": 25,
-            "request_id": "step-9ea86cbc-40:act",
-            "action": "mine",
-            "status": "completed",
-            "tick": 673
-          },
-          {
-            "seq": 26,
-            "request_id": "step-9ea86cbc-46",
+            "seq": 24,
+            "request_id": "step-a4929e72-46",
             "action": {
               "status": "rejected",
               "error": {
@@ -1739,23 +1725,21 @@
             "tick": 678
           },
           {
-            "seq": 27,
-            "request_id": "step-9ea86cbc-48",
+            "seq": 25,
+            "request_id": "step-a4929e72-48",
             "action": {
-              "status": "completed",
-              "action": "mine",
-              "target": "h3",
-              "item": "iron-ore",
-              "count": 1,
-              "mining_time": 1,
-              "mined": 1
+              "status": "rejected",
+              "error": {
+                "code": "busy",
+                "message": "a mining operation is already running"
+              }
             },
             "status": "completed",
             "tick": 710
           },
           {
-            "seq": 28,
-            "request_id": "step-9ea86cbc-50",
+            "seq": 26,
+            "request_id": "step-a4929e72-50",
             "action": {
               "status": "rejected",
               "error": {
@@ -1767,8 +1751,8 @@
             "tick": 742
           },
           {
-            "seq": 29,
-            "request_id": "step-9ea86cbc-52",
+            "seq": 27,
+            "request_id": "step-a4929e72-52",
             "action": {
               "status": "rejected",
               "error": {
@@ -1780,15 +1764,8 @@
             "tick": 774
           },
           {
-            "seq": 30,
-            "request_id": "step-9ea86cbc-48:act",
-            "action": "mine",
-            "status": "completed",
-            "tick": 801
-          },
-          {
-            "seq": 31,
-            "request_id": "step-9ea86cbc-54",
+            "seq": 28,
+            "request_id": "step-a4929e72-54",
             "action": {
               "status": "rejected",
               "error": {
@@ -1800,23 +1777,21 @@
             "tick": 806
           },
           {
-            "seq": 32,
-            "request_id": "step-9ea86cbc-56",
+            "seq": 29,
+            "request_id": "step-a4929e72-56",
             "action": {
-              "status": "completed",
-              "action": "mine",
-              "target": "h3",
-              "item": "iron-ore",
-              "count": 1,
-              "mining_time": 1,
-              "mined": 1
+              "status": "rejected",
+              "error": {
+                "code": "busy",
+                "message": "a mining operation is already running"
+              }
             },
             "status": "completed",
             "tick": 838
           },
           {
-            "seq": 33,
-            "request_id": "step-9ea86cbc-58",
+            "seq": 30,
+            "request_id": "step-a4929e72-58",
             "action": {
               "status": "rejected",
               "error": {
@@ -1828,8 +1803,8 @@
             "tick": 870
           },
           {
-            "seq": 34,
-            "request_id": "step-9ea86cbc-60",
+            "seq": 31,
+            "request_id": "step-a4929e72-60",
             "action": {
               "status": "rejected",
               "error": {
@@ -1841,15 +1816,8 @@
             "tick": 902
           },
           {
-            "seq": 35,
-            "request_id": "step-9ea86cbc-56:act",
-            "action": "mine",
-            "status": "completed",
-            "tick": 929
-          },
-          {
-            "seq": 36,
-            "request_id": "step-9ea86cbc-62",
+            "seq": 32,
+            "request_id": "step-a4929e72-62",
             "action": {
               "status": "rejected",
               "error": {
@@ -1861,8 +1829,8 @@
             "tick": 934
           },
           {
-            "seq": 37,
-            "request_id": "step-9ea86cbc-64",
+            "seq": 33,
+            "request_id": "step-a4929e72-64",
             "action": {
               "status": "completed",
               "action": "craft",
@@ -1875,15 +1843,15 @@
             "tick": 966
           },
           {
-            "seq": 38,
-            "request_id": "step-9ea86cbc-64:act",
+            "seq": 34,
+            "request_id": "step-a4929e72-64:act",
             "action": "craft",
             "status": "completed",
             "tick": 967
           },
           {
-            "seq": 39,
-            "request_id": "step-9ea86cbc-66",
+            "seq": 35,
+            "request_id": "step-a4929e72-66",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1892,8 +1860,65 @@
             "tick": 998
           },
           {
+            "seq": 36,
+            "request_id": "step-a4929e72-68",
+            "action": {
+              "status": "completed",
+              "action": "wait"
+            },
+            "status": "completed",
+            "tick": 1030
+          },
+          {
+            "seq": 37,
+            "request_id": "step-a4929e72-70",
+            "action": {
+              "status": "completed",
+              "action": "wait"
+            },
+            "status": "completed",
+            "tick": 1062
+          },
+          {
+            "seq": 38,
+            "request_id": "step-a4929e72-72",
+            "action": {
+              "status": "completed",
+              "action": "wait"
+            },
+            "status": "completed",
+            "tick": 1094
+          },
+          {
+            "seq": 39,
+            "request_id": "step-a4929e72-74",
+            "action": {
+              "status": "completed",
+              "action": "wait"
+            },
+            "status": "completed",
+            "tick": 1126
+          },
+          {
             "seq": 40,
-            "request_id": "step-9ea86cbc-68",
+            "request_id": "step-a4929e72-40:act",
+            "action": "mine",
+            "status": "completed",
+            "tick": 1157
+          },
+          {
+            "seq": 41,
+            "request_id": "step-a4929e72-76",
+            "action": {
+              "status": "completed",
+              "action": "wait"
+            },
+            "status": "completed",
+            "tick": 1158
+          },
+          {
+            "seq": 42,
+            "request_id": "step-a4929e72-78",
             "action": {
               "status": "completed",
               "action": "place",
@@ -1905,11 +1930,11 @@
               ]
             },
             "status": "completed",
-            "tick": 1030
+            "tick": 1190
           },
           {
-            "seq": 41,
-            "request_id": "step-9ea86cbc-70",
+            "seq": 43,
+            "request_id": "step-a4929e72-80",
             "action": {
               "status": "completed",
               "action": "transfer",
@@ -1919,11 +1944,11 @@
               "to": "h103"
             },
             "status": "completed",
-            "tick": 1062
+            "tick": 1222
           },
           {
-            "seq": 42,
-            "request_id": "step-9ea86cbc-72",
+            "seq": 44,
+            "request_id": "step-a4929e72-82",
             "action": {
               "status": "completed",
               "action": "transfer",
@@ -1933,61 +1958,11 @@
               "to": "h103"
             },
             "status": "completed",
-            "tick": 1094
-          },
-          {
-            "seq": 43,
-            "request_id": "step-9ea86cbc-74",
-            "action": {
-              "status": "completed",
-              "action": "wait"
-            },
-            "status": "completed",
-            "tick": 1126
-          },
-          {
-            "seq": 44,
-            "request_id": "step-9ea86cbc-76",
-            "action": {
-              "status": "completed",
-              "action": "wait"
-            },
-            "status": "completed",
-            "tick": 1158
-          },
-          {
-            "seq": 45,
-            "request_id": "step-9ea86cbc-78",
-            "action": {
-              "status": "completed",
-              "action": "wait"
-            },
-            "status": "completed",
-            "tick": 1190
-          },
-          {
-            "seq": 46,
-            "request_id": "step-9ea86cbc-80",
-            "action": {
-              "status": "completed",
-              "action": "wait"
-            },
-            "status": "completed",
-            "tick": 1222
-          },
-          {
-            "seq": 47,
-            "request_id": "step-9ea86cbc-82",
-            "action": {
-              "status": "completed",
-              "action": "wait"
-            },
-            "status": "completed",
             "tick": 1254
           },
           {
-            "seq": 48,
-            "request_id": "step-9ea86cbc-84",
+            "seq": 45,
+            "request_id": "step-a4929e72-84",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1996,8 +1971,8 @@
             "tick": 1286
           },
           {
-            "seq": 49,
-            "request_id": "step-9ea86cbc-86",
+            "seq": 46,
+            "request_id": "step-a4929e72-86",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2006,8 +1981,8 @@
             "tick": 1318
           },
           {
-            "seq": 50,
-            "request_id": "step-9ea86cbc-88",
+            "seq": 47,
+            "request_id": "step-a4929e72-88",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2016,8 +1991,8 @@
             "tick": 1350
           },
           {
-            "seq": 51,
-            "request_id": "step-9ea86cbc-90",
+            "seq": 48,
+            "request_id": "step-a4929e72-90",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2026,8 +2001,8 @@
             "tick": 1382
           },
           {
-            "seq": 52,
-            "request_id": "step-9ea86cbc-92",
+            "seq": 49,
+            "request_id": "step-a4929e72-92",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2036,8 +2011,8 @@
             "tick": 1414
           },
           {
-            "seq": 53,
-            "request_id": "step-9ea86cbc-94",
+            "seq": 50,
+            "request_id": "step-a4929e72-94",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2046,8 +2021,8 @@
             "tick": 1446
           },
           {
-            "seq": 54,
-            "request_id": "step-9ea86cbc-96",
+            "seq": 51,
+            "request_id": "step-a4929e72-96",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2056,8 +2031,8 @@
             "tick": 1478
           },
           {
-            "seq": 55,
-            "request_id": "step-9ea86cbc-98",
+            "seq": 52,
+            "request_id": "step-a4929e72-98",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2066,8 +2041,8 @@
             "tick": 1510
           },
           {
-            "seq": 56,
-            "request_id": "step-9ea86cbc-100",
+            "seq": 53,
+            "request_id": "step-a4929e72-100",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2076,8 +2051,8 @@
             "tick": 1542
           },
           {
-            "seq": 57,
-            "request_id": "step-9ea86cbc-102",
+            "seq": 54,
+            "request_id": "step-a4929e72-102",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2086,8 +2061,8 @@
             "tick": 1574
           },
           {
-            "seq": 58,
-            "request_id": "step-9ea86cbc-104",
+            "seq": 55,
+            "request_id": "step-a4929e72-104",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2096,8 +2071,8 @@
             "tick": 1606
           },
           {
-            "seq": 59,
-            "request_id": "step-9ea86cbc-106",
+            "seq": 56,
+            "request_id": "step-a4929e72-106",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2106,8 +2081,8 @@
             "tick": 1638
           },
           {
-            "seq": 60,
-            "request_id": "step-9ea86cbc-108",
+            "seq": 57,
+            "request_id": "step-a4929e72-108",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2116,8 +2091,8 @@
             "tick": 1670
           },
           {
-            "seq": 61,
-            "request_id": "step-9ea86cbc-110",
+            "seq": 58,
+            "request_id": "step-a4929e72-110",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2126,8 +2101,8 @@
             "tick": 1702
           },
           {
-            "seq": 62,
-            "request_id": "step-9ea86cbc-112",
+            "seq": 59,
+            "request_id": "step-a4929e72-112",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2136,8 +2111,8 @@
             "tick": 1734
           },
           {
-            "seq": 63,
-            "request_id": "step-9ea86cbc-114",
+            "seq": 60,
+            "request_id": "step-a4929e72-114",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2146,8 +2121,8 @@
             "tick": 1766
           },
           {
-            "seq": 64,
-            "request_id": "step-9ea86cbc-116",
+            "seq": 61,
+            "request_id": "step-a4929e72-116",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2156,8 +2131,8 @@
             "tick": 1798
           },
           {
-            "seq": 65,
-            "request_id": "step-9ea86cbc-118",
+            "seq": 62,
+            "request_id": "step-a4929e72-118",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2166,8 +2141,8 @@
             "tick": 1830
           },
           {
-            "seq": 66,
-            "request_id": "step-9ea86cbc-120",
+            "seq": 63,
+            "request_id": "step-a4929e72-120",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2176,8 +2151,8 @@
             "tick": 1862
           },
           {
-            "seq": 67,
-            "request_id": "step-9ea86cbc-122",
+            "seq": 64,
+            "request_id": "step-a4929e72-122",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2186,8 +2161,8 @@
             "tick": 1894
           },
           {
-            "seq": 68,
-            "request_id": "step-9ea86cbc-124",
+            "seq": 65,
+            "request_id": "step-a4929e72-124",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2196,8 +2171,8 @@
             "tick": 1926
           },
           {
-            "seq": 69,
-            "request_id": "step-9ea86cbc-126",
+            "seq": 66,
+            "request_id": "step-a4929e72-126",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2206,8 +2181,8 @@
             "tick": 1958
           },
           {
-            "seq": 70,
-            "request_id": "step-9ea86cbc-128",
+            "seq": 67,
+            "request_id": "step-a4929e72-128",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2216,8 +2191,8 @@
             "tick": 1990
           },
           {
-            "seq": 71,
-            "request_id": "step-9ea86cbc-130",
+            "seq": 68,
+            "request_id": "step-a4929e72-130",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2226,8 +2201,8 @@
             "tick": 2022
           },
           {
-            "seq": 72,
-            "request_id": "step-9ea86cbc-132",
+            "seq": 69,
+            "request_id": "step-a4929e72-132",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2236,8 +2211,8 @@
             "tick": 2054
           },
           {
-            "seq": 73,
-            "request_id": "step-9ea86cbc-134",
+            "seq": 70,
+            "request_id": "step-a4929e72-134",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2246,8 +2221,8 @@
             "tick": 2086
           },
           {
-            "seq": 74,
-            "request_id": "step-9ea86cbc-136",
+            "seq": 71,
+            "request_id": "step-a4929e72-136",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2256,8 +2231,8 @@
             "tick": 2118
           },
           {
-            "seq": 75,
-            "request_id": "step-9ea86cbc-138",
+            "seq": 72,
+            "request_id": "step-a4929e72-138",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2266,8 +2241,8 @@
             "tick": 2150
           },
           {
-            "seq": 76,
-            "request_id": "step-9ea86cbc-140",
+            "seq": 73,
+            "request_id": "step-a4929e72-140",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2276,8 +2251,8 @@
             "tick": 2182
           },
           {
-            "seq": 77,
-            "request_id": "step-9ea86cbc-142",
+            "seq": 74,
+            "request_id": "step-a4929e72-142",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2286,8 +2261,8 @@
             "tick": 2214
           },
           {
-            "seq": 78,
-            "request_id": "step-9ea86cbc-144",
+            "seq": 75,
+            "request_id": "step-a4929e72-144",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2296,8 +2271,8 @@
             "tick": 2246
           },
           {
-            "seq": 79,
-            "request_id": "step-9ea86cbc-146",
+            "seq": 76,
+            "request_id": "step-a4929e72-146",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2306,8 +2281,8 @@
             "tick": 2278
           },
           {
-            "seq": 80,
-            "request_id": "step-9ea86cbc-148",
+            "seq": 77,
+            "request_id": "step-a4929e72-148",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2316,8 +2291,8 @@
             "tick": 2310
           },
           {
-            "seq": 81,
-            "request_id": "step-9ea86cbc-150",
+            "seq": 78,
+            "request_id": "step-a4929e72-150",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2326,8 +2301,8 @@
             "tick": 2342
           },
           {
-            "seq": 82,
-            "request_id": "step-9ea86cbc-152",
+            "seq": 79,
+            "request_id": "step-a4929e72-152",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2336,8 +2311,8 @@
             "tick": 2374
           },
           {
-            "seq": 83,
-            "request_id": "step-9ea86cbc-154",
+            "seq": 80,
+            "request_id": "step-a4929e72-154",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2346,8 +2321,8 @@
             "tick": 2406
           },
           {
-            "seq": 84,
-            "request_id": "step-9ea86cbc-156",
+            "seq": 81,
+            "request_id": "step-a4929e72-156",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2356,8 +2331,8 @@
             "tick": 2438
           },
           {
-            "seq": 85,
-            "request_id": "step-9ea86cbc-158",
+            "seq": 82,
+            "request_id": "step-a4929e72-158",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2366,8 +2341,8 @@
             "tick": 2470
           },
           {
-            "seq": 86,
-            "request_id": "step-9ea86cbc-160",
+            "seq": 83,
+            "request_id": "step-a4929e72-160",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2376,8 +2351,8 @@
             "tick": 2502
           },
           {
-            "seq": 87,
-            "request_id": "step-9ea86cbc-162",
+            "seq": 84,
+            "request_id": "step-a4929e72-162",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2386,8 +2361,8 @@
             "tick": 2534
           },
           {
-            "seq": 88,
-            "request_id": "step-9ea86cbc-164",
+            "seq": 85,
+            "request_id": "step-a4929e72-164",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2396,8 +2371,8 @@
             "tick": 2566
           },
           {
-            "seq": 89,
-            "request_id": "step-9ea86cbc-166",
+            "seq": 86,
+            "request_id": "step-a4929e72-166",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2406,8 +2381,8 @@
             "tick": 2598
           },
           {
-            "seq": 90,
-            "request_id": "step-9ea86cbc-168",
+            "seq": 87,
+            "request_id": "step-a4929e72-168",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2416,8 +2391,8 @@
             "tick": 2630
           },
           {
-            "seq": 91,
-            "request_id": "step-9ea86cbc-170",
+            "seq": 88,
+            "request_id": "step-a4929e72-170",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2426,8 +2401,8 @@
             "tick": 2662
           },
           {
-            "seq": 92,
-            "request_id": "step-9ea86cbc-172",
+            "seq": 89,
+            "request_id": "step-a4929e72-172",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2436,8 +2411,8 @@
             "tick": 2694
           },
           {
-            "seq": 93,
-            "request_id": "step-9ea86cbc-174",
+            "seq": 90,
+            "request_id": "step-a4929e72-174",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2446,8 +2421,8 @@
             "tick": 2726
           },
           {
-            "seq": 94,
-            "request_id": "step-9ea86cbc-176",
+            "seq": 91,
+            "request_id": "step-a4929e72-176",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2456,8 +2431,8 @@
             "tick": 2758
           },
           {
-            "seq": 95,
-            "request_id": "step-9ea86cbc-178",
+            "seq": 92,
+            "request_id": "step-a4929e72-178",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2466,8 +2441,8 @@
             "tick": 2790
           },
           {
-            "seq": 96,
-            "request_id": "step-9ea86cbc-180",
+            "seq": 93,
+            "request_id": "step-a4929e72-180",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2476,8 +2451,8 @@
             "tick": 2822
           },
           {
-            "seq": 97,
-            "request_id": "step-9ea86cbc-182",
+            "seq": 94,
+            "request_id": "step-a4929e72-182",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2486,8 +2461,8 @@
             "tick": 2854
           },
           {
-            "seq": 98,
-            "request_id": "step-9ea86cbc-184",
+            "seq": 95,
+            "request_id": "step-a4929e72-184",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2496,8 +2471,8 @@
             "tick": 2886
           },
           {
-            "seq": 99,
-            "request_id": "step-9ea86cbc-186",
+            "seq": 96,
+            "request_id": "step-a4929e72-186",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2506,8 +2481,8 @@
             "tick": 2918
           },
           {
-            "seq": 100,
-            "request_id": "step-9ea86cbc-188",
+            "seq": 97,
+            "request_id": "step-a4929e72-188",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2516,8 +2491,8 @@
             "tick": 2950
           },
           {
-            "seq": 101,
-            "request_id": "step-9ea86cbc-190",
+            "seq": 98,
+            "request_id": "step-a4929e72-190",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2526,8 +2501,8 @@
             "tick": 2982
           },
           {
-            "seq": 102,
-            "request_id": "step-9ea86cbc-192",
+            "seq": 99,
+            "request_id": "step-a4929e72-192",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2536,8 +2511,8 @@
             "tick": 3014
           },
           {
-            "seq": 103,
-            "request_id": "step-9ea86cbc-194",
+            "seq": 100,
+            "request_id": "step-a4929e72-194",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2546,8 +2521,8 @@
             "tick": 3046
           },
           {
-            "seq": 104,
-            "request_id": "step-9ea86cbc-196",
+            "seq": 101,
+            "request_id": "step-a4929e72-196",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2556,8 +2531,8 @@
             "tick": 3078
           },
           {
-            "seq": 105,
-            "request_id": "step-9ea86cbc-198",
+            "seq": 102,
+            "request_id": "step-a4929e72-198",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2566,8 +2541,8 @@
             "tick": 3110
           },
           {
-            "seq": 106,
-            "request_id": "step-9ea86cbc-200",
+            "seq": 103,
+            "request_id": "step-a4929e72-200",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2576,8 +2551,8 @@
             "tick": 3142
           },
           {
-            "seq": 107,
-            "request_id": "step-9ea86cbc-202",
+            "seq": 104,
+            "request_id": "step-a4929e72-202",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2586,8 +2561,8 @@
             "tick": 3174
           },
           {
-            "seq": 108,
-            "request_id": "step-9ea86cbc-204",
+            "seq": 105,
+            "request_id": "step-a4929e72-204",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2596,8 +2571,8 @@
             "tick": 3206
           },
           {
-            "seq": 109,
-            "request_id": "step-9ea86cbc-206",
+            "seq": 106,
+            "request_id": "step-a4929e72-206",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2606,8 +2581,8 @@
             "tick": 3238
           },
           {
-            "seq": 110,
-            "request_id": "step-9ea86cbc-208",
+            "seq": 107,
+            "request_id": "step-a4929e72-208",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2616,8 +2591,8 @@
             "tick": 3270
           },
           {
-            "seq": 111,
-            "request_id": "step-9ea86cbc-210",
+            "seq": 108,
+            "request_id": "step-a4929e72-210",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2626,8 +2601,8 @@
             "tick": 3302
           },
           {
-            "seq": 112,
-            "request_id": "step-9ea86cbc-212",
+            "seq": 109,
+            "request_id": "step-a4929e72-212",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2636,8 +2611,8 @@
             "tick": 3334
           },
           {
-            "seq": 113,
-            "request_id": "step-9ea86cbc-214",
+            "seq": 110,
+            "request_id": "step-a4929e72-214",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2646,8 +2621,8 @@
             "tick": 3366
           },
           {
-            "seq": 114,
-            "request_id": "step-9ea86cbc-216",
+            "seq": 111,
+            "request_id": "step-a4929e72-216",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2656,8 +2631,8 @@
             "tick": 3398
           },
           {
-            "seq": 115,
-            "request_id": "step-9ea86cbc-218",
+            "seq": 112,
+            "request_id": "step-a4929e72-218",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2666,8 +2641,8 @@
             "tick": 3430
           },
           {
-            "seq": 116,
-            "request_id": "step-9ea86cbc-220",
+            "seq": 113,
+            "request_id": "step-a4929e72-220",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2676,8 +2651,8 @@
             "tick": 3462
           },
           {
-            "seq": 117,
-            "request_id": "step-9ea86cbc-222",
+            "seq": 114,
+            "request_id": "step-a4929e72-222",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2686,8 +2661,8 @@
             "tick": 3494
           },
           {
-            "seq": 118,
-            "request_id": "step-9ea86cbc-224",
+            "seq": 115,
+            "request_id": "step-a4929e72-224",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2696,8 +2671,8 @@
             "tick": 3526
           },
           {
-            "seq": 119,
-            "request_id": "step-9ea86cbc-226",
+            "seq": 116,
+            "request_id": "step-a4929e72-226",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2706,8 +2681,8 @@
             "tick": 3558
           },
           {
-            "seq": 120,
-            "request_id": "step-9ea86cbc-228",
+            "seq": 117,
+            "request_id": "step-a4929e72-228",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2716,8 +2691,8 @@
             "tick": 3590
           },
           {
-            "seq": 121,
-            "request_id": "step-9ea86cbc-230",
+            "seq": 118,
+            "request_id": "step-a4929e72-230",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2726,8 +2701,8 @@
             "tick": 3622
           },
           {
-            "seq": 122,
-            "request_id": "step-9ea86cbc-232",
+            "seq": 119,
+            "request_id": "step-a4929e72-232",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2736,8 +2711,8 @@
             "tick": 3654
           },
           {
-            "seq": 123,
-            "request_id": "step-9ea86cbc-234",
+            "seq": 120,
+            "request_id": "step-a4929e72-234",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2746,8 +2721,8 @@
             "tick": 3686
           },
           {
-            "seq": 124,
-            "request_id": "step-9ea86cbc-236",
+            "seq": 121,
+            "request_id": "step-a4929e72-236",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2756,8 +2731,8 @@
             "tick": 3718
           },
           {
-            "seq": 125,
-            "request_id": "step-9ea86cbc-238",
+            "seq": 122,
+            "request_id": "step-a4929e72-238",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2766,8 +2741,8 @@
             "tick": 3750
           },
           {
-            "seq": 126,
-            "request_id": "step-9ea86cbc-240",
+            "seq": 123,
+            "request_id": "step-a4929e72-240",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2776,8 +2751,8 @@
             "tick": 3782
           },
           {
-            "seq": 127,
-            "request_id": "step-9ea86cbc-242",
+            "seq": 124,
+            "request_id": "step-a4929e72-242",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2786,8 +2761,8 @@
             "tick": 3814
           },
           {
-            "seq": 128,
-            "request_id": "step-9ea86cbc-244",
+            "seq": 125,
+            "request_id": "step-a4929e72-244",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2796,8 +2771,8 @@
             "tick": 3846
           },
           {
-            "seq": 129,
-            "request_id": "step-9ea86cbc-246",
+            "seq": 126,
+            "request_id": "step-a4929e72-246",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2806,8 +2781,8 @@
             "tick": 3878
           },
           {
-            "seq": 130,
-            "request_id": "step-9ea86cbc-248",
+            "seq": 127,
+            "request_id": "step-a4929e72-248",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2816,8 +2791,8 @@
             "tick": 3910
           },
           {
-            "seq": 131,
-            "request_id": "step-9ea86cbc-250",
+            "seq": 128,
+            "request_id": "step-a4929e72-250",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2826,8 +2801,8 @@
             "tick": 3942
           },
           {
-            "seq": 132,
-            "request_id": "step-9ea86cbc-252",
+            "seq": 129,
+            "request_id": "step-a4929e72-252",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2836,8 +2811,8 @@
             "tick": 3974
           },
           {
-            "seq": 133,
-            "request_id": "step-9ea86cbc-254",
+            "seq": 130,
+            "request_id": "step-a4929e72-254",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2846,7 +2821,57 @@
             "tick": 4006
           },
           {
+            "seq": 131,
+            "request_id": "step-a4929e72-256",
+            "action": {
+              "status": "completed",
+              "action": "wait"
+            },
+            "status": "completed",
+            "tick": 4038
+          },
+          {
+            "seq": 132,
+            "request_id": "step-a4929e72-258",
+            "action": {
+              "status": "completed",
+              "action": "wait"
+            },
+            "status": "completed",
+            "tick": 4070
+          },
+          {
+            "seq": 133,
+            "request_id": "step-a4929e72-260",
+            "action": {
+              "status": "completed",
+              "action": "wait"
+            },
+            "status": "completed",
+            "tick": 4102
+          },
+          {
             "seq": 134,
+            "request_id": "step-a4929e72-262",
+            "action": {
+              "status": "completed",
+              "action": "wait"
+            },
+            "status": "completed",
+            "tick": 4134
+          },
+          {
+            "seq": 135,
+            "request_id": "step-a4929e72-264",
+            "action": {
+              "status": "completed",
+              "action": "wait"
+            },
+            "status": "completed",
+            "tick": 4166
+          },
+          {
+            "seq": 136,
             "request_id": "probe-lost-reply",
             "action": {
               "status": "completed",
@@ -2857,17 +2882,17 @@
               "to": "character"
             },
             "status": "completed",
-            "tick": 4039
+            "tick": 4199
           },
           {
-            "seq": 135,
-            "request_id": "step-9ea86cbc-287",
+            "seq": 137,
+            "request_id": "step-a4929e72-294",
             "action": {
               "status": "completed",
               "action": "wait"
             },
             "status": "completed",
-            "tick": 4071
+            "tick": 4231
           }
         ],
         "recipes": [
@@ -2877,11 +2902,30 @@
           },
           {
             "name": "burner-mining-drill",
-            "craftable": 0
+            "craftable": 0,
+            "missing": [
+              {
+                "name": "iron-gear-wheel",
+                "need": 3,
+                "have": 1
+              },
+              {
+                "name": "stone-furnace",
+                "need": 1,
+                "have": 0
+              }
+            ]
           },
           {
             "name": "copper-plate",
-            "craftable": 0
+            "craftable": 0,
+            "missing": [
+              {
+                "name": "copper-ore",
+                "need": 1,
+                "have": 0
+              }
+            ]
           },
           {
             "name": "firearm-magazine",
@@ -2889,7 +2933,14 @@
           },
           {
             "name": "iron-chest",
-            "craftable": 0
+            "craftable": 0,
+            "missing": [
+              {
+                "name": "iron-plate",
+                "need": 8,
+                "have": 7
+              }
+            ]
           },
           {
             "name": "iron-gear-wheel",
@@ -2901,15 +2952,36 @@
           },
           {
             "name": "light-armor",
-            "craftable": 0
+            "craftable": 0,
+            "missing": [
+              {
+                "name": "iron-plate",
+                "need": 40,
+                "have": 7
+              }
+            ]
           },
           {
             "name": "stone-brick",
-            "craftable": 0
+            "craftable": 0,
+            "missing": [
+              {
+                "name": "stone",
+                "need": 2,
+                "have": 0
+              }
+            ]
           },
           {
             "name": "stone-furnace",
-            "craftable": 0
+            "craftable": 0,
+            "missing": [
+              {
+                "name": "stone",
+                "need": 5,
+                "have": 0
+              }
+            ]
           },
           {
             "name": "transport-belt",
@@ -2917,19 +2989,26 @@
           },
           {
             "name": "wooden-chest",
-            "craftable": 0
+            "craftable": 0,
+            "missing": [
+              {
+                "name": "wood",
+                "need": 2,
+                "have": 0
+              }
+            ]
           }
         ],
         "researchable": {}
       },
       "truth": {
-        "tick": 4040,
+        "tick": 4200,
         "markers": {},
         "containers": {},
         "working": {},
         "produced": {
           "iron-plate": 5,
-          "iron-ore": 5
+          "iron-ore": 7
         },
         "working_counts": {},
         "placed_counts": {
@@ -2952,7 +3031,7 @@
           "iron-gear-wheel": 1
         },
         "mined_by_hand": {
-          "iron-ore": 5
+          "iron-ore": 7
         },
         "by_hand_source": "mod_actions",
         "tracked_item_set": "live",
@@ -2989,9 +3068,9 @@
         },
         "reason": "",
         "status": "completed",
-        "observation_tick": 4104,
-        "execution_tick": 4136,
-        "elapsed_ms": 533.406,
+        "observation_tick": 4264,
+        "execution_tick": 4296,
+        "elapsed_ms": 532.33,
         "reward": 0.0,
         "action_status": "completed",
         "action_error": null
@@ -3006,9 +3085,9 @@
         },
         "reason": "",
         "status": "failed",
-        "observation_tick": 4136,
-        "failure": "bad_argument",
-        "detail": "handle='h9999' is not one of the 94 legal values for targets (e.g. ['h103', 'h101', 'h50', 'h51', 'h102', 'h52'])"
+        "observation_tick": 4296,
+        "failure": "missing_argument",
+        "detail": "mine_at needs handle, count; missing count"
       },
       {
         "position": 2,
@@ -3037,6 +3116,7 @@
         "handle": "h9999"
       },
       "refused": "ValueError: mine_at: handle='h9999' is not in domain 'targets' (94 values)",
+      "client_error": "mine_at: handle='h9999' is not in domain 'targets' (94 values)",
       "ms": 0.1
     },
     "blocked_placement": {
@@ -3049,7 +3129,8 @@
         ],
         "direction": "north"
       },
-      "refused": "ValueError: place_at: item='stone-furnace' is not in domain 'items' (5 values)",
+      "refused": "ValueError: place_at: item='stone-furnace' is not in domain 'items' (6 values)",
+      "client_error": "place_at: item='stone-furnace' is not in domain 'items' (6 values)",
       "ms": 0.1
     },
     "insufficient_ingredients": {
@@ -3059,6 +3140,7 @@
         "count": 1
       },
       "refused": "ValueError: craft_recipe: recipe='electronic-circuit' is not in domain 'recipes' (12 values)",
+      "client_error": "craft_recipe: recipe='electronic-circuit' is not in domain 'recipes' (12 values)",
       "ms": 0.1
     },
     "out_of_domain_argument": {
@@ -3069,7 +3151,8 @@
           9999.5
         ]
       },
-      "refused": "ValueError: walk_to_position: destination=[9999.5, 9999.5] is not in domain 'destinations' (18 values)",
+      "refused": "ValueError: walk_to_position: destination=[9999.5, 9999.5] is not in domain 'destinations' (19 values)",
+      "client_error": "walk_to_position: destination=[9999.5, 9999.5] is not in domain 'destinations' (19 values)",
       "ms": 0.1
     },
     "unavailable_research": {
@@ -3078,6 +3161,7 @@
         "technology": "rocket-silo"
       },
       "refused": "ValueError: research_technology: technology='rocket-silo' is not in domain 'technologies' (0 values)",
+      "client_error": "research_technology: technology='rocket-silo' is not in domain 'technologies' (0 values)",
       "ms": 0.1
     },
     "deposit_emptied_by_evaluator": 3837,
@@ -3086,11 +3170,9 @@
       "arguments": {
         "handle": "h1"
       },
-      "status": "rejected",
-      "error": "target_missing",
-      "terminated": false,
-      "truncated": false,
-      "ms": 532.8
+      "refused": "ValueError: mine_at needs argument 'count'",
+      "client_error": "mine_at needs argument 'count'",
+      "ms": 0.4
     }
   },
   "actions": [
@@ -3106,18 +3188,18 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 567.5
+      "ms": 568.1
     },
     {
       "action": "cancel_request",
       "arguments": {
-        "target_request_id": "step-9ea86cbc-6:act"
+        "target_request_id": "step-a4929e72-6:act"
       },
       "status": "completed",
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 532.7
+      "ms": 532.5
     },
     {
       "action": "wait_for",
@@ -3131,7 +3213,7 @@
       "truncated": false,
       "condition_met": true,
       "waited_steps": 1,
-      "ms": 533.9
+      "ms": 533.6
     },
     {
       "action": "walk_to_position",
@@ -3145,7 +3227,7 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.2
+      "ms": 532.9
     },
     {
       "action": "wait_for",
@@ -3159,15 +3241,40 @@
       "truncated": false,
       "condition_met": true,
       "waited_steps": 5,
-      "ms": 2669.8
+      "ms": 2670.0
     },
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h5"
+        "handle": "h5",
+        "count": 5
       },
       "status": "running",
       "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h5",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 534.1
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h5",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
       "terminated": false,
       "truncated": false,
       "ms": 533.2
@@ -3175,87 +3282,11 @@
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h5"
+        "handle": "h5",
+        "count": 5
       },
       "status": "rejected",
       "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 532.7
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5"
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.7
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5"
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 532.9
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5"
-      },
-      "status": "running",
-      "error": null,
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.4
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5"
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.8
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5"
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 532.7
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5"
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.7
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3"
-      },
-      "status": "running",
-      "error": null,
       "terminated": false,
       "truncated": false,
       "ms": 533.0
@@ -3263,7 +3294,20 @@
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h3"
+        "handle": "h5",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.7
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h5",
+        "count": 5
       },
       "status": "rejected",
       "error": "busy",
@@ -3274,18 +3318,8 @@
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h3"
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.8
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3"
+        "handle": "h5",
+        "count": 5
       },
       "status": "rejected",
       "error": "busy",
@@ -3296,40 +3330,68 @@
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h3"
+        "handle": "h5",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 534.1
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h3",
+        "count": 5
       },
       "status": "running",
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.5
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3"
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
       "ms": 533.0
     },
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h3"
+        "handle": "h3",
+        "count": 5
       },
       "status": "rejected",
       "error": "busy",
       "terminated": false,
       "truncated": false,
-      "ms": 532.9
+      "ms": 533.1
     },
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h3"
+        "handle": "h3",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 534.0
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h3",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h3",
+        "count": 5
       },
       "status": "rejected",
       "error": "busy",
@@ -3340,10 +3402,35 @@
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h3"
+        "handle": "h3",
+        "count": 5
       },
-      "status": "running",
-      "error": null,
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h3",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.6
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h3",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
       "terminated": false,
       "truncated": false,
       "ms": 533.2
@@ -3351,35 +3438,50 @@
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h3"
+        "handle": "h3",
+        "count": 5
       },
       "status": "rejected",
       "error": "busy",
       "terminated": false,
       "truncated": false,
-      "ms": 534.2
+      "ms": 533.6
     },
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h3"
+        "handle": "h3",
+        "count": 5
       },
       "status": "rejected",
       "error": "busy",
       "terminated": false,
       "truncated": false,
-      "ms": 532.7
+      "ms": 533.0
     },
     {
       "action": "mine_at",
       "arguments": {
-        "handle": "h3"
+        "handle": "h3",
+        "count": 5
       },
       "status": "rejected",
       "error": "busy",
       "terminated": false,
       "truncated": false,
-      "ms": 532.9
+      "ms": 533.2
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h3",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.7
     },
     {
       "action": "craft_recipe",
@@ -3391,7 +3493,7 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 534.6
+      "ms": 533.0
     },
     {
       "action": "wait_for",
@@ -3404,8 +3506,8 @@
       "terminated": false,
       "truncated": false,
       "condition_met": true,
-      "waited_steps": 1,
-      "ms": 532.4
+      "waited_steps": 6,
+      "ms": 3200.0
     },
     {
       "action": "place_at",
@@ -3421,7 +3523,7 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.2
+      "ms": 534.2
     },
     {
       "action": "give_to",
@@ -3434,7 +3536,7 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.5
+      "ms": 533.1
     },
     {
       "action": "give_to",
@@ -3447,7 +3549,7 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.8
+      "ms": 533.4
     },
     {
       "action": "wait_for",
@@ -3461,7 +3563,7 @@
       "truncated": false,
       "condition_met": true,
       "waited_steps": 30,
-      "ms": 16000.0
+      "ms": 16002.4
     },
     {
       "action": "wait_for",
@@ -3475,7 +3577,7 @@
       "truncated": false,
       "condition_met": false,
       "waited_steps": 60,
-      "ms": 32001.5
+      "ms": 31999.8
     },
     {
       "action": "inspect",
@@ -3502,9 +3604,9 @@
         "output": {
           "iron-plate": 5
         },
-        "at_step": 125
+        "at_step": 130
       },
-      "ms": 533.6
+      "ms": 533.7
     },
     {
       "action": "wait_for",
@@ -3517,8 +3619,8 @@
       "terminated": false,
       "truncated": false,
       "condition_met": true,
-      "waited_steps": 11,
-      "ms": 1040.2
+      "waited_steps": 10,
+      "ms": 1041.0
     },
     {
       "action": "wait_for",
@@ -3540,6 +3642,7 @@
         "handle": "h9999"
       },
       "refused": "ValueError: mine_at: handle='h9999' is not in domain 'targets' (94 values)",
+      "client_error": "mine_at: handle='h9999' is not in domain 'targets' (94 values)",
       "ms": 0.1
     },
     {
@@ -3552,7 +3655,8 @@
         ],
         "direction": "north"
       },
-      "refused": "ValueError: place_at: item='stone-furnace' is not in domain 'items' (5 values)",
+      "refused": "ValueError: place_at: item='stone-furnace' is not in domain 'items' (6 values)",
+      "client_error": "place_at: item='stone-furnace' is not in domain 'items' (6 values)",
       "ms": 0.1
     },
     {
@@ -3562,6 +3666,7 @@
         "count": 1
       },
       "refused": "ValueError: craft_recipe: recipe='electronic-circuit' is not in domain 'recipes' (12 values)",
+      "client_error": "craft_recipe: recipe='electronic-circuit' is not in domain 'recipes' (12 values)",
       "ms": 0.1
     },
     {
@@ -3572,7 +3677,8 @@
           9999.5
         ]
       },
-      "refused": "ValueError: walk_to_position: destination=[9999.5, 9999.5] is not in domain 'destinations' (18 values)",
+      "refused": "ValueError: walk_to_position: destination=[9999.5, 9999.5] is not in domain 'destinations' (19 values)",
+      "client_error": "walk_to_position: destination=[9999.5, 9999.5] is not in domain 'destinations' (19 values)",
       "ms": 0.1
     },
     {
@@ -3581,6 +3687,7 @@
         "technology": "rocket-silo"
       },
       "refused": "ValueError: research_technology: technology='rocket-silo' is not in domain 'technologies' (0 values)",
+      "client_error": "research_technology: technology='rocket-silo' is not in domain 'technologies' (0 values)",
       "ms": 0.1
     },
     {
@@ -3588,14 +3695,12 @@
       "arguments": {
         "handle": "h1"
       },
-      "status": "rejected",
-      "error": "target_missing",
-      "terminated": false,
-      "truncated": false,
-      "ms": 532.8
+      "refused": "ValueError: mine_at needs argument 'count'",
+      "client_error": "mine_at needs argument 'count'",
+      "ms": 0.4
     }
   ],
-  "wall_seconds": 88.9,
+  "wall_seconds": 91.2,
   "verdict": {
     "walked_to_ore_by_tool": true,
     "gathered_ore": true,

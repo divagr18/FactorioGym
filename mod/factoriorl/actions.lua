@@ -529,19 +529,32 @@ H.transfer = function(state, request, payload, respond, err)
       err(ERR.PRECONDITION, "an endpoint has no accessible inventory"))
   end
   local available = from_inv.get_item_count(payload.item)
-  if available < payload.count then
+  if available <= 0 then
     return respond(request, CODE.REJECTED, nil,
-      err(ERR.NO_ITEMS, "source holds " .. available .. " of " .. payload.item,
+      err(ERR.NO_ITEMS, "source holds no " .. payload.item,
         { item = payload.item, requested = payload.count, available = available }))
   end
-  if not to_inv.can_insert({ name = payload.item, count = payload.count }) then
+  -- Take what is there, up to what was asked for.
+  --
+  -- This used to refuse outright whenever `available < count`, and that rule and
+  -- the argument domain are each defensible on their own and broken together:
+  -- `TRANSFER_AMOUNTS` offers 1, 5 and 20, so the exact number of plates in a
+  -- furnace is usually not a number the agent is allowed to say. A run watched
+  -- three plates accumulate, asked for 3, was told 3 is not a legal value, asked
+  -- for 5, was told the source holds 3, and settled for 1 -- three decisions and
+  -- two model calls to collect what one ctrl-click gives a player, who gets
+  -- exactly this clamping behaviour from the real game.
+  --
+  -- Atomicity, which is what the "all or nothing" below was really protecting,
+  -- is untouched: the removal is still put back if the destination will not take
+  -- it, so no item is ever destroyed by a partial move.
+  local wanted = math.min(payload.count, available)
+  if not to_inv.can_insert({ name = payload.item, count = wanted }) then
     return respond(request, CODE.REJECTED, nil,
-      err(ERR.NO_SPACE, "destination cannot accept " .. payload.count))
+      err(ERR.NO_SPACE, "destination cannot accept " .. wanted))
   end
-  -- All or nothing: probe, remove, insert, and put back what did not fit.
-  local removed = from_inv.remove({ name = payload.item, count = payload.count })
-  if removed < payload.count then
-    from_inv.insert({ name = payload.item, count = removed })
+  local removed = from_inv.remove({ name = payload.item, count = wanted })
+  if removed <= 0 then
     return respond(request, CODE.REJECTED, nil,
       err(ERR.NO_ITEMS, "source changed during transfer"))
   end
@@ -559,6 +572,11 @@ H.transfer = function(state, request, payload, respond, err)
     action = "transfer",
     item = payload.item,
     count = inserted,
+    -- Published whenever the move was smaller than the ask, so "I asked for 20
+    -- and got 3" is a fact in the outcome rather than something the agent has
+    -- to infer from its inventory two turns later.
+    requested = payload.count ~= inserted and payload.count or nil,
+    available = payload.count ~= inserted and available or nil,
     from = payload.from,
     to = payload.to,
   })

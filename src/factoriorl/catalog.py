@@ -80,8 +80,16 @@ ARGUMENT_DOMAINS: dict[str, str] = {
 #: agent holds no plates, so `iron-plate` is not in `items`, so the request is
 #: refused before the game sees it. It also handed an arbitrary advantage to
 #: whatever the character happened to still be carrying.
+#: `set_recipe_at` is the other case. A stone furnace picks its recipe from
+#: whatever you put in it and has no settable recipe at all -- `set_recipe`
+#: raises on one, and the handler turns that into `invalid_target`. The domain
+#: offered every handle in sight regardless, so a run with one furnace and no
+#: assembling machine could see `set_recipe_at` in its legal actions for its
+#: whole length, and spent a decision discovering it was never real. Sixth
+#: instance of a domain advertising what the runtime always refuses.
 ARGUMENT_DOMAINS_BY_KEY: dict[str, dict[str, str]] = {
     "take_from": {"item": "source_items"},
+    "set_recipe_at": {"handle": "recipe_targets"},
 }
 
 #: What `wait_for` will wait on. Deliberately a short enumerated list rather
@@ -267,7 +275,11 @@ PARAMETERIZED_V1: tuple[ActionTemplate, ...] = tuple(
             "place",
             {"item": "?item", "position": "?position", "direction": "?direction"},
         ),
-        # A chosen resource, not merely the nearest one.
+        # A chosen resource, not merely the nearest one. `count` is pinned at 1
+        # and stays pinned: `build_line`'s published numbers were measured
+        # against this catalog's digest, so the open world overrides it in
+        # `OPEN_V1` rather than editing a frozen benchmark out from under its
+        # own results.
         ActionTemplate("mine_at", "mine", {"handle": "?handle", "count": 1}),
         ActionTemplate("rotate_at", "rotate", {"handle": "?handle"}),
         ActionTemplate("rotate_at_reverse", "rotate", {"handle": "?handle", "reverse": True}),
@@ -305,6 +317,7 @@ WALK_TOLERANCE = 1.5
 #: pathological route rather than shaping ordinary ones.
 WALK_MAX_TICKS = 3600
 
+
 #: The verbs an open world needs and the benchmark catalogs do not have.
 #:
 #: `parameterized-v1` is what `build_line` was measured against, and
@@ -315,9 +328,38 @@ WALK_MAX_TICKS = 3600
 #:
 #: Everything reused from `parameterized-v1` is reused *by reference*, so the
 #: two cannot drift apart in the six verbs they share.
+def _with_batched_mining(templates: tuple[ActionTemplate, ...]) -> list[ActionTemplate]:
+    """`mine_at` with a chosen count, in the position the pinned one held.
+
+    The primitive catalog has shipped `mine_nearest_5` since it was written, so
+    a fixed count of 5 was always within what the mod does -- and yet the
+    *parameterized* `mine_at` was pinned at 1, which made the richer profile the
+    weaker one for the verb a run spends most of its early decisions on. Run 7
+    mined coal one tile per reply: three decisions and three model calls for
+    what a single `count` could have asked for.
+
+    Batching is safe rather than hopeful. `inflight.lua`'s `POLLS.mine`
+    completes with `mined` and `requested` when the tile empties underneath it,
+    so asking for 20 from a tile holding 5 returns 5 and says so; it does not
+    hang on an exhausted deposit.
+
+    Substituted in place rather than appended because a catalog's order is its
+    action indices, and it is substituted *here* rather than edited in
+    `PARAMETERIZED_V1` because that catalog is frozen: `build_line`'s recorded
+    `catalog_digest` is checked by `manifest.verify`, and moving it would
+    invalidate every committed result for that task.
+    """
+    return [
+        ActionTemplate("mine_at", "mine", {"handle": "?handle", "count": "?count"})
+        if template.key == "mine_at"
+        else template
+        for template in templates
+    ]
+
+
 OPEN_V1: tuple[ActionTemplate, ...] = tuple(
     [
-        *PARAMETERIZED_V1,
+        *_with_batched_mining(PARAMETERIZED_V1),
         # Walking, plural, because the mod's `navigate` takes a position *or* a
         # handle and the template system fills every declared argument -- one
         # template with an optional slot would be a template that sometimes

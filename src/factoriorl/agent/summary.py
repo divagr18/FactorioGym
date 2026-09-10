@@ -173,7 +173,11 @@ def describe_template(template: Any) -> str:
             "want back), which it REMOVES and hands you. It does NOT pick up "
             "loose items lying on the ground. It runs across several decisions: "
             "send ONE per reply and let it finish. A second one in the same "
-            "reply is refused as busy, and interleaving waits does not help"
+            "reply is refused as busy, and interleaving waits does not help. "
+            "USE A LARGE count -- one mine_at with count 20 keeps mining until "
+            "it has 20, across as many decisions as that takes, and costs you "
+            "one reply instead of twenty. If the tile runs out first it stops "
+            "and tells you how many it got"
         )
     if action == "craft":
         return (
@@ -295,14 +299,25 @@ def argument_domains(env: Any) -> dict:
         # Listed in full rather than sampled like `placements`, because a
         # destination the prompt omits is somewhere the agent cannot go. The
         # domain is capped at the source (`env.DESTINATION_CAP`).
+        # Labelled, because a column of bare coordinates is unreadable and the
+        # names were already known when the coordinates were chosen. A run had
+        # `[-9.5, -111.5]` in this list for its whole length -- the stone patch
+        # it needed to build another furnace -- and never went, having written
+        # off expansion in its own plan as "practical maximum without stone".
+        labels = getattr(env, "_destination_labels", None) or {}
+        values = []
+        for point in destinations:
+            name = labels.get((float(point[0]), float(point[1])))
+            values.append(f"[{point[0]}, {point[1]}]" + (f" {name}" if name else ""))
         rendered["destinations"] = {
             "rule": (
                 "an ABSOLUTE world coordinate to walk to -- somewhere you have "
                 "seen, which may be far outside arm's reach. Unlike placements "
-                "these are not limited to 5 tiles"
+                "these are not limited to 5 tiles. The name after each one says "
+                "what is there: if you are short of something, walk to it"
             ),
             "count": len(destinations),
-            "values": [list(p) for p in destinations],
+            "values": values,
         }
     for name in ENUMERATED_DOMAINS:
         values = list(domains.get(name) or [])
@@ -597,6 +612,45 @@ _DIRECTION_NAMES = {
 }
 
 
+#: The engine's own status word, plus what to do about it.
+#:
+#: This is deliberately NOT a second table of status names. An earlier version of
+#: this file mapped the numeric codes to names invented from memory, got 18
+#: wrong, and told a run its furnace was "waiting for space in destination" when
+#: the engine meant `no_ingredients` -- so the names come from the engine's
+#: reverse lookup of `defines.entity_status` and are only ever passed through.
+#: Each key is echoed verbatim at the front of its own value; if a key is ever
+#: wrong the line falls back to the engine's word untouched.
+#:
+#: The remedies exist because a diagnosis with no remedy is a dead end. A burner
+#: already got one -- `FUEL SLOT EMPTY -- give it some`. A run placed a lab, was
+#: told `no power`, and left it standing there for the rest of the run: it had
+#: never seen electricity, nothing said where power comes from, and the word
+#: alone named no action.
+_STATUS_REMEDY: dict[str, str] = {
+    "no_power": (
+        "no power -- this machine is ELECTRIC and nothing on the map is generating "
+        "electricity. It will never start on its own: it needs a generator built "
+        "and electric poles carrying power to it. It has no fuel slot, so giving "
+        "it coal does nothing"
+    ),
+    "no_fuel": "no fuel -- put coal or wood in its fuel slot",
+    "no_ingredients": "no ingredients -- it has nothing to work on; put its input in",
+    "no_minable_resources": (
+        "no minable resources -- there is no ore left under it. Mine it to pick it "
+        "back up and place it where ore is under every tile it covers"
+    ),
+    "waiting_for_space_in_destination": (
+        "waiting for space in destination -- its output tile is full and nothing is "
+        "taking the output away"
+    ),
+    "waiting_for_source_items": "waiting for source items -- nothing is arriving for it to move",
+    "item_ingredient_shortage": (
+        "item ingredient shortage -- it is missing one of the items its recipe needs"
+    ),
+}
+
+
 def _resource_rows(observation: dict, origin: list[float]) -> list[dict]:
     """Per-name aggregates, because a 32-tile ore patch is hundreds of tiles.
 
@@ -706,6 +760,13 @@ class ObservationSummary:
     #: refusal -- but "legal to ask for" and "will work" are different, and only
     #: this says which is which.
     craftable: dict = field(default_factory=dict)
+    #: For each recipe that cannot be crafted, which ingredients are short and
+    #: by how much. `x0` alone says only that *something* is missing, and the
+    #: ingredient lists live in a static block the turn does not repeat -- a run
+    #: read `stone-furnace x0`, concluded "practical maximum without stone" in
+    #: its own plan, and spent its remaining two hundred decisions hauling coal
+    #: by hand rather than walking to the stone the survey had charted for it.
+    shortfalls: dict = field(default_factory=dict)
     #: How this run's clock works and how much of it is left. "Decision 503 of
     #: 100000" is not planning guidance for a run about to hit a 30-minute
     #: wall, and the system prompt used to assert a fixed decision interval
@@ -977,7 +1038,7 @@ class ObservationSummary:
                 parts.append("holds " + ", ".join(f"{k} x{v}" for k, v in sorted(contents.items())))
             status = record.get("st")
             if status:
-                parts.append(str(status).replace("_", " "))
+                parts.append(_STATUS_REMEDY.get(str(status), str(status).replace("_", " ")))
             elif record.get("status") is not None:
                 parts.append(f"status {record['status']}")
             lines.append(", ".join(parts))
@@ -1008,6 +1069,41 @@ class ObservationSummary:
             dy = float(position[1]) - float(origin[1])
             found[str(handle)] = (_distance(dx, dy), dx, dy)
         return found
+
+    def _shortfall(self, recipe: str) -> str:
+        """`` (need 5 stone, have 0)`` for a recipe the character cannot afford."""
+        missing = (self.shortfalls or {}).get(recipe)
+        if not missing:
+            return ""
+        parts = []
+        for entry in missing:
+            if not isinstance(entry, dict) or not entry.get("name"):
+                continue
+            need, have = entry.get("need", "?"), entry.get("have", 0)
+            parts.append(f"need {need} {entry['name']}, have {have}")
+        return f" ({'; '.join(parts)})" if parts else ""
+
+    def _handle_amounts(self) -> dict[str, int]:
+        """How much ore each addressable resource tile still holds.
+
+        The mod has measured this per tile since the sensor was written and
+        nothing rendered it, so every ore tile looked alike in the prompt. They
+        are not alike: a tile at the edge of a patch holds a fraction of one at
+        its centre, and a burner drill mines only the four tiles beneath it. Run
+        7 put its drill where one tile had ore, reported `no_minable_resources`
+        within seconds, and had to pick the drill back up and start again.
+        """
+        amounts: dict[str, int] = {}
+        for tile in (self.raw_resources or {}).get("tiles") or []:
+            handle = tile.get("h") or tile.get("handle")
+            amount = tile.get("amount")
+            if handle is None or amount is None:
+                continue
+            try:
+                amounts[str(handle)] = int(amount)
+            except (TypeError, ValueError):
+                continue
+        return amounts
 
     def render(self) -> str:
         """The concise text a model is actually shown."""
@@ -1128,8 +1224,13 @@ class ObservationSummary:
             # "coal, nearest 0.5 tiles, here" and still have nothing to pass to
             # `mine_at` but an unordered list of handles with no positions.
             named = f" [{row['handle']}]" if row.get("handle") else ""
+            # How much is actually there. "100 tiles" says nothing about whether
+            # the patch is worth a drill; a patch total and the nearest tile's
+            # own stock do, and both were already measured and discarded.
+            total = row.get("patch_amount") if row.get("patch_amount") else row.get("amount")
+            stock = f", {int(total):,} ore" if isinstance(total, int | float) and total else ""
             lines.append(
-                f"  {row['name']}: {row['tiles']} tiles, nearest{named} at offset "
+                f"  {row['name']}: {row['tiles']} tiles{stock}, nearest{named} at offset "
                 f"({offset[0]:+.1f}, {offset[1]:+.1f}), "
                 f"{row['distance']} tiles {row.get('bearing')}{note}"
             )
@@ -1183,7 +1284,11 @@ class ObservationSummary:
                 # this exists for, the only entry at spawn is the iron ore 28
                 # tiles away -- omitting it would leave the agent nothing to
                 # walk to at all.
-                shown = ", ".join(f"[{p[0]:.1f}, {p[1]:.1f}]" for p in destinations.get("values"))
+                # Already rendered, label and all, by `argument_domains`. This
+                # used to format the pair itself, which meant two places decided
+                # what a destination looks like -- and when the labels were
+                # added here it raised on the first turn of a live world.
+                shown = ", ".join(str(value) for value in destinations.get("values") or ())
                 lines.append(f"  destination: {shown}")
             # `directions`, `conditions` and `durations` are fixed lists and
             # live in the static reference; only what actually varies with the
@@ -1214,12 +1319,16 @@ class ObservationSummary:
                     # the list said the recipe was available and never said it
                     # was out of reach.
                     ordered = sorted(values, key=lambda v: (-self.craftable.get(v, 0), str(v)))
-                    shown = ", ".join(f"{v} x{self.craftable.get(v, 0)}" for v in ordered[:24])
+                    shown = ", ".join(
+                        f"{v} x{self.craftable.get(v, 0)}{self._shortfall(str(v))}"
+                        for v in ordered[:24]
+                    )
                     more = "" if len(ordered) <= 24 else f" (+{len(ordered) - 24} more)"
                     lines.append(f"  {label}: {shown}{more}")
                     lines.append(
                         "    xN is how many you can make right now from what you hold; "
-                        "x0 means you are missing ingredients"
+                        "x0 means you are missing ingredients, and the bracket after "
+                        "it names them -- go and get them"
                     )
                     continue
                 shown = ", ".join(str(v) for v in values[:24])
@@ -1240,6 +1349,7 @@ class ObservationSummary:
                 # was refused five times running, because nothing here said
                 # which handle was the near one.
                 placed = self._handle_offsets()
+                amounts = self._handle_amounts()
                 ordered = sorted(
                     (str(t) for t in targets),
                     key=lambda handle: placed.get(handle, (float("inf"), 0.0, 0.0))[0],
@@ -1251,7 +1361,13 @@ class ObservationSummary:
                         rendered.append(handle)
                         continue
                     distance, dx, dy = found
-                    rendered.append(f"{handle}@({dx:+.1f},{dy:+.1f}) {distance:.1f}t")
+                    # `x312` is how much ore is left in that tile. Without it
+                    # every tile in the list looks equally worth mining or
+                    # standing a drill on, and the thin ones at a patch edge
+                    # look exactly like the rich ones at its centre.
+                    held = amounts.get(handle)
+                    stock = f" x{held}" if held is not None else ""
+                    rendered.append(f"{handle}@({dx:+.1f},{dy:+.1f}) {distance:.1f}t{stock}")
                 more = (
                     ""
                     if len(ordered) <= MAX_TARGETS_SHOWN
@@ -1259,8 +1375,9 @@ class ObservationSummary:
                 )
                 lines.append(f"  handle / from / to: {', '.join(rendered)}{more}")
                 lines.append(
-                    "    nearest first; @(dx,dy) is the offset from you and the "
-                    "number is the distance in tiles"
+                    "    nearest first; @(dx,dy) is the offset from you, the "
+                    "number is the distance in tiles, and xN is how much ore "
+                    "that tile still holds"
                 )
         return "\n".join(lines)
 
@@ -1307,6 +1424,11 @@ def summarise(
             entry["name"]: entry.get("craftable", 0)
             for entry in (observation.get("recipes") or [])
             if isinstance(entry, dict)
+        },
+        shortfalls={
+            entry["name"]: entry["missing"]
+            for entry in (observation.get("recipes") or [])
+            if isinstance(entry, dict) and entry.get("missing")
         },
         inspected=observation.get("inspected"),
         inflight=list(observation.get("inflight") or []),

@@ -102,3 +102,61 @@ class TestWhatItRefusesToClaim:
         """A status the engine has no name for must not vanish from the prompt."""
         text = _summary(_drill()).render()
         assert "status 12" in text
+
+
+class TestADiagnosisNamesARemedy:
+    """`no power` is true, and on its own it is a dead end.
+
+    A run crafted a lab, placed it, was told `no power` every turn for the rest
+    of the run, and never did anything about it. It had never seen electricity:
+    nothing in the prompt said what power is, where it comes from, or that a lab
+    has no fuel slot to put coal in. A burner already got a remedy with its
+    diagnosis -- `FUEL SLOT EMPTY -- give it some` -- and an electric machine got
+    only the symptom.
+
+    The engine's own word stays at the front of every line: these tests pin that
+    the remedy is *added to* the status, never substituted for it, because a
+    previous version of this file's neighbouring table invented status names and
+    told a run its furnace was out of output space when it was out of ore.
+    """
+
+    def _factory(self, record: dict) -> str:
+        observation = {
+            "tick": 3600,
+            "character": {"present": True, "position": [0.0, 0.0]},
+            "inventory": {},
+            "entities": [],
+            "built": [record],
+        }
+        return summarise(observation, brief=BRIEF, actions=(), step=0).render()
+
+    def test_an_unpowered_machine_is_told_it_needs_a_generator(self):
+        text = self._factory(
+            {"h": "h9", "name": "lab", "type": "lab", "p": [4.0, 4.0], "st": "no_power"}
+        )
+        assert "no power" in text
+        assert "generator" in text
+        # The specific wrong move it would otherwise reach for, having only ever
+        # fuelled burners: a lab has no fuel slot at all.
+        assert "no fuel slot" in text
+
+    def test_an_exhausted_drill_is_told_to_pick_it_up_and_move_it(self):
+        text = self._factory(
+            {
+                "h": "h1",
+                "name": "burner-mining-drill",
+                "type": "mining-drill",
+                "p": [0.0, 0.0],
+                "st": "no_minable_resources",
+            }
+        )
+        assert "no minable resources" in text
+        assert "place it where ore is under every tile it covers" in text
+
+    def test_an_unknown_status_falls_back_to_the_engines_own_word(self):
+        """The remedies are keyed on engine names. A key that is ever wrong must
+        degrade to the engine's word rather than to silence or to a guess."""
+        text = self._factory(
+            {"h": "h1", "name": "boiler", "type": "boiler", "p": [0.0, 0.0], "st": "some_new_code"}
+        )
+        assert "some new code" in text

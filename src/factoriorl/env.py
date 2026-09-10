@@ -235,6 +235,8 @@ class FactorioEnv(gym.Env):
         return {
             "targets": targets,
             "placements": self._placement_candidates(origin, observation),
+            # Built before the label map is read, because `_destinations`
+            # populates it as a side effect of choosing the coordinates.
             "destinations": self._destinations(origin, observation),
             "directions": list(catalog_module.DIRECTIONS),
             # Only what the agent is holding: proposing an item it does not
@@ -257,6 +259,17 @@ class FactorioEnv(gym.Env):
                     if count
                 }
             ),
+            # Only machines that actually have a settable recipe. In Factorio a
+            # furnace selects its own from what you feed it and `set_recipe`
+            # raises on one; `assembling-machine` is the type that accepts one,
+            # and it covers chemical plants, refineries and centrifuges too.
+            # An empty list here masks the verb, which is the honest answer for
+            # a run that has not built an assembler yet.
+            "recipe_targets": [
+                str(record["h"])
+                for record in (observation.get("entities") or [])
+                if record.get("h") and record.get("type") == "assembling-machine"
+            ],
             "amounts": list(TRANSFER_AMOUNTS),
             # Now observable (local-v2 v4), so `craft_recipe` and
             # `set_recipe_at` stop being permanently masked.
@@ -318,16 +331,46 @@ class FactorioEnv(gym.Env):
         def tile_of(point) -> tuple[float, float]:
             return (math.floor(float(point[0])) + 0.5, math.floor(float(point[1])) + 0.5)
 
+        # What each destination *is*. Every name here is known at the moment the
+        # coordinate is chosen and was thrown away, so the prompt rendered a
+        # column of bare numbers.
+        #
+        # That is how a run stalled. The survey had charted `stone: 182 tiles
+        # centred on (-9, -112)`, `_destinations` duly kept `[-9.5, -111.5]`, and
+        # the agent read an unlabelled coordinate among sixteen others while its
+        # live RESOURCES block said "iron-ore" and nothing else. It wrote the
+        # plan "practical maximum without stone" and hand-hauled coal for its
+        # remaining two hundred decisions. The answer was in the prompt with its
+        # name removed.
+        self._destination_labels: dict[tuple[float, float], str] = {}
+
+        def label(key: tuple[float, float], text: str) -> None:
+            self._destination_labels.setdefault(key, text)
+
         landmarks: dict[tuple[float, float], list[float]] = {}
         for patch in getattr(self, "survey", None) or []:
             position = patch.get("position")
             if position:
                 key = tile_of(position)
                 landmarks.setdefault(key, [key[0], key[1]])
+                tiles_in_patch = patch.get("tiles")
+                sized = f" ({tiles_in_patch} tiles)" if tiles_in_patch else ""
+                label(key, f"{patch.get('name')} patch{sized}")
         for record in observation.get("built") or []:
-            if record.get("p"):
+            if not record.get("p"):
+                continue
+            # Beside the machine, never on it. A character cannot stand inside a
+            # building, so the machine's own tile is a destination that can only
+            # ever be refused -- a run walked back to its base, named the lab it
+            # had just placed, and got `collision`. Interacting needs you next to
+            # the thing anyway, so the adjacent tile is the one worth offering.
+            covers = record.get("covers")
+            if covers and len(covers) == 4:
+                key = (float(covers[0]) + 0.5, float(covers[3]) + 1.5)
+            else:
                 key = tile_of(record["p"])
-                landmarks.setdefault(key, [key[0], key[1]])
+            landmarks.setdefault(key, [key[0], key[1]])
+            label(key, f"beside your {record.get('name')}")
 
         local: dict[tuple[float, float], list[float]] = {}
         per_name: dict[str, int] = {}
@@ -347,6 +390,7 @@ class FactorioEnv(gym.Env):
             if key in local or key in landmarks:
                 continue
             local[key] = [key[0], key[1]]
+            label(key, name)
             per_name[name] = per_name.get(name, 0) + 1
 
         patches = resources.get("patches") or {}
@@ -356,12 +400,14 @@ class FactorioEnv(gym.Env):
             if nearest:
                 key = tile_of(nearest)
                 landmarks.setdefault(key, [key[0], key[1]])
+                label(key, str(patch.get("name") or "resource"))
 
         for record in (observation.get("entities") or []) + (observation.get("remembered") or []):
             if record.get("p"):
                 key = tile_of(record["p"])
                 if key not in landmarks:
                     local.setdefault(key, [key[0], key[1]])
+                    label(key, str(record.get("name") or ""))
 
         def by_distance(points):
             return sorted(
