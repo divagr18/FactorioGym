@@ -105,7 +105,15 @@ end
 local function researchable(force)
   local names = {}
   for name, tech in pairs(force.technologies) do
-    if tech.enabled and not tech.researched then
+    -- A trigger technology completes by crafting or mining something, not by
+    -- being selected, and `H.research` refuses one with `tech_not_selectable`.
+    -- Publishing it here offered the agent a value the handler could never
+    -- accept: a live run picked `steam-power` and `electronics` off this list
+    -- and was refused, repeatedly, with the reason arriving only as an error.
+    -- Seven of 196 technologies are like this in 2.0. The handler already knew;
+    -- the domain did not.
+    local triggered = tech.prototype and tech.prototype.research_trigger
+    if tech.enabled and not tech.researched and not triggered then
       local ready = true
       for _, prerequisite in pairs(tech.prerequisites) do
         if not prerequisite.researched then
