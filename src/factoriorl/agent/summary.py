@@ -671,11 +671,30 @@ class ObservationSummary:
                     f"  position: {placements.get('rule')} "
                     f"({placements.get('count')} legal now, e.g. {examples})"
                 )
+            destinations = self.arguments.get("destinations") or {}
+            if destinations:
+                # Listed in full rather than sampled like `placements`: a
+                # destination the prompt omits is somewhere the agent cannot go,
+                # and the domain is already capped at its source. On the map
+                # this exists for, the only entry at spawn is the iron ore 28
+                # tiles away -- omitting it would leave the agent nothing to
+                # walk to at all.
+                shown = ", ".join(f"[{p[0]:.1f}, {p[1]:.1f}]" for p in destinations.get("values"))
+                lines.append(f"  destination: {destinations.get('rule')} ({shown})")
             for name, label in (
                 ("directions", "direction"),
                 ("items", "item"),
                 ("amounts", "count"),
                 ("recipes", "recipe"),
+                # Research the force can start now: prerequisites met, not yet
+                # researched. Empty until a profile publishes the frontier,
+                # which is what kept `research` unreachable.
+                ("technologies", "technology"),
+                # `wait_for`'s two arguments. Short fixed lists, and enumerating
+                # them is the difference between a domain the model can choose
+                # from and one it has to guess at.
+                ("conditions", "until"),
+                ("durations", "seconds"),
             ):
                 values = self.arguments.get(name)
                 if values:

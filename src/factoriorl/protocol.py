@@ -84,6 +84,13 @@ class RequestType(StrEnum):
     # file itself. Until this existed there was no mid-run save anywhere in the
     # project: the only save on disk was the `--create` output.
     SAVE = "save"
+    # Static game data -- the recipe graph, placeable footprints, the technology
+    # tree -- read out of the loaded prototypes. Read-only, and the only request
+    # that describes the *game* rather than this world. The mod had this data in
+    # reach from the start and never returned any of it, so a client could only
+    # learn a recipe by attempting it, and `tasks/spec.py` hardcodes four entity
+    # footprints because the size of a stone furnace was not askable.
+    KNOWLEDGE = "knowledge"
 
 
 class ActionType(StrEnum):

@@ -493,6 +493,29 @@ class WorkerSession:
         )
         return self._request(request)
 
+    def knowledge(self) -> TimedResponse:
+        """Static game data: the recipe graph, footprints and technology tree.
+
+        Read-only and world-independent, so it can be asked before an episode
+        exists and its answer reused across a whole run --
+        `factoriorl.knowledge.cached` does exactly that, keyed on the engine
+        build and the mod source digest.
+
+        The largest reply the protocol produces, by roughly an order of
+        magnitude. That is safe over this transport for a measured reason:
+        `rcon.py` records that the engine never split a reply at 4096, 65536,
+        200000, 1000000 bytes, so the reassembly loop is not being relied on
+        here to do something it has never been seen to do.
+        """
+        request = Request(
+            request_id=self._next_request_id("knowledge"),
+            # Not in the mod's MUTATING set, so the episode id is never checked
+            # and an empty one is fine before the first reset.
+            episode_id=self.episode_id or "",
+            type=RequestType.KNOWLEDGE,
+        )
+        return self._request(request)
+
     def request_status(self, request_id: str) -> TimedResponse:
         request = Request(
             request_id=self._next_request_id("reqstat"),

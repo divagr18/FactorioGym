@@ -181,6 +181,7 @@ def run_world(
     paused between decisions; an open world is played in real time and a paused
     world would misrepresent what the agent was doing with its thirty minutes.
     """
+    from factoriorl import knowledge as knowledge_module
     from factoriorl import manifest as manifest_module
     from factoriorl.agent.checkpoint import DEFAULT_INTERVAL_SECONDS, Checkpointer
     from factoriorl.agent.viewer import Viewer
@@ -248,11 +249,29 @@ def run_world(
                 DEFAULT_INTERVAL_SECONDS if checkpoint_seconds is None else checkpoint_seconds
             ),
         )
+        # Fetched once, after the world exists and before the first decision.
+        # Cached on disk by engine build and mod digest, so a second run on the
+        # same machine pays nothing for it. A failure here is recorded and the
+        # run continues: an agent without the recipe book is worse off, not
+        # stopped, and losing a thirty-minute run to a missing lookup table
+        # would be the wrong trade.
+        knowledge, knowledge_error = {}, None
+        try:
+            knowledge = knowledge_module.cached(
+                session,
+                engine_build=str(handle.engine.build),
+                mod_digest=manifest_module.mod_source_digest(),
+            )
+        except Exception as failure:  # noqa: BLE001 - recorded, never fatal
+            knowledge_error = f"{type(failure).__name__}: {failure}"
+        rendered_knowledge = knowledge_module.render(knowledge) if knowledge else ""
+
         loop = AgentLoop(
             env,
             adapter,
             config,
             run_id=run_id,
+            static_knowledge=rendered_knowledge,
             provenance={
                 "engine": handle.engine.to_dict(),
                 "workers": [handle.spec.manifest()],
@@ -266,6 +285,15 @@ def run_world(
                 ),
                 "world": mode.to_dict(),
                 "starting_inventory": None if resuming else freeplay,
+                "knowledge": {
+                    "counts": (knowledge or {}).get("counts"),
+                    "rendered_chars": len(rendered_knowledge),
+                    "error": knowledge_error,
+                    "placement": (
+                        "the transcript's static prefix, so it is sent once and "
+                        "served from the provider's cache thereafter"
+                    ),
+                },
                 "resumed_from": str(resume_from) if resuming else None,
                 "viewer": viewer.to_dict(),
                 "clock": {

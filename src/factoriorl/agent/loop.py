@@ -35,7 +35,15 @@ from factoriorl import assistance as assistance_module
 from factoriorl import manifest as manifest_module
 from factoriorl.agent.adapters import DEFAULT_MAX_TOKENS, ModelAdapter, ModelReply, ModelRequest
 from factoriorl.agent.memory import Memory
-from factoriorl.agent.parsing import DecisionFailure, ParsedAction, ParseFailure, parse_action
+from factoriorl.agent.parsing import (
+    MAX_ACTIONS_PER_SEQUENCE,
+    DecisionFailure,
+    ParsedAction,
+    ParsedSequence,
+    ParseFailure,
+    check_against_state,
+    parse_sequence,
+)
 from factoriorl.agent.summary import (
     SUMMARY_ENCODING_VERSION,
     LegalAction,
@@ -70,12 +78,31 @@ MAX_ATTEMPTS_PER_DECISION = 3
 #: 600-step episode of waiting that looks like a played episode in the results.
 MAX_CONSECUTIVE_FALLBACKS = 5
 
+#: Roadmap A2.3's ceiling on one batch, in wall-clock seconds. A batch is not
+#: an escape from the run's own deadline: whichever of the two expires first
+#: stops it, and the actions after that point are recorded as unexecuted rather
+#: than dropped. Thirty seconds is generous against a measured decision -- each
+#: action is one `step`/`step_arguments` round trip -- and small enough that a
+#: worker which has stopped answering is noticed within one decision.
+SEQUENCE_WALL_SECONDS = 30.0
+
+#: Action statuses the environment reports for something that did not happen.
+#: `running` is deliberately absent: a walk or a mine spans several decisions,
+#: so an in-flight action is the normal case and stopping the batch on it would
+#: make every movement plan a one-action plan.
+_FAILED_STATUSES = frozenset({"failed", "rejected", "cancelled"})
+
 #: Names the deliberation layer in a published manifest, the way
 #: ``learn/train.py`` names ``skills-v1``. A result produced by a language model
 #: over the primitive catalog is not comparable to one produced by a trained
 #: policy, and a run that does not say which it was cannot be interpreted later.
 DELIBERATION_PROFILE = "language-model-v1"
 
+#: `$MAX` is substituted from `MAX_ACTIONS_PER_SEQUENCE` rather than typed here
+#: as a digit: a prompt that invites nine actions and a parser that refuses them
+#: is a rejection the model cannot act on, and the two numbers would drift the
+#: first time the cap moved. An f-string cannot do it -- the format examples
+#: below are full of braces.
 SYSTEM_PROMPT = """\
 You are controlling a single character in Factorio through a bounded action \
 catalog. Each turn you receive the character's local observation and the exact \
@@ -108,8 +135,22 @@ Reply with a single JSON object and nothing else:
 or, to choose which entity it acts on:
 {"action": <index>, "target": "<hN>", "reason": "<one short sentence>"}
 or, for an action marked [needs: ...]:
-{"action": <index>, "arguments": {"<name>": <value>}, "reason": "<why>"}\
-"""
+{"action": <index>, "arguments": {"<name>": <value>}, "reason": "<why>"}
+
+When you already know the next few moves, you may send up to $MAX of them to \
+run in order, using the same fields for each one:
+{"actions": [{"action": <index>}, {"action": <index>, "target": "<hN>"}], \
+"reason": "<why this sequence>"}
+- They run one at a time, and each is checked again against the world the one \
+before it left. The first one that is refused or fails stops the rest, and you \
+will be told which ones ran, which one failed and which never started.
+- Anything that already happened stays happened; nothing is undone.
+- Only the first action is checked against the LEGAL ACTIONS list above. Later \
+ones are checked when their turn comes, so a sequence that assumes a move has \
+finished may stop early.
+- Send one action when you are unsure, and a sequence when the steps do not \
+depend on anything you cannot predict.\
+""".replace("$MAX", str(MAX_ACTIONS_PER_SEQUENCE))
 
 #: What the prompt above must **not** contain, asserted by a test. R3.2
 #: requires that the reference build sequence is not embedded in runtime
@@ -241,12 +282,20 @@ class Attempt:
 
     attempt: int
     reply: ModelReply
-    outcome: ParsedAction | ParseFailure | None
+    outcome: ParsedAction | ParsedSequence | ParseFailure | None
 
     def to_dict(self) -> dict:
         body: dict[str, Any] = {"attempt": self.attempt, **self.reply.to_dict()}
-        if isinstance(self.outcome, ParsedAction):
-            body["parsed"] = self.outcome.to_dict()
+        if isinstance(self.outcome, (ParsedAction, ParsedSequence)):
+            actions = (
+                list(self.outcome.actions)
+                if isinstance(self.outcome, ParsedSequence)
+                else [self.outcome]
+            )
+            # `parsed` keeps meaning one action, because that is what every
+            # decisions.jsonl written before batching existed means by it.
+            body["parsed"] = actions[0].to_dict()
+            body["parsed_actions"] = [action.to_dict() for action in actions]
             body["failure"] = None
         elif isinstance(self.outcome, ParseFailure):
             body["parsed"] = None
@@ -263,7 +312,17 @@ class Attempt:
 
 @dataclass
 class Decision:
-    """One decision: the prompt, every attempt at it, and what was executed."""
+    """One decision: the prompt, every attempt at it, and what was executed.
+
+    ``action_index``/``action_key``/``target``/``arguments`` name the **first**
+    action of the sequence, and keep doing so now that a reply may carry up to
+    eight (roadmap A2.3). They are scalars in every `decisions.jsonl` written so
+    far, and `tools/replay.py` reads all four positionally -- it colours a
+    timeline cell by `action_key`, filters on `place_at`, and prints
+    `action_key #action_index` as "chosen". Redefining them as lists would leave
+    every existing run unreadable by the same tool, so the sequence is *added*
+    beside them in `requested` and `sequence` rather than folded into them.
+    """
 
     episode: int
     step: int
@@ -279,10 +338,35 @@ class Decision:
     arguments: dict = field(default_factory=dict)
     record_summary: bool = True
     result: dict = field(default_factory=dict)
+    #: Every action the reply asked for, first included. Empty for a fallback,
+    #: where no action was chosen at all.
+    requested: list[ParsedAction] = field(default_factory=list)
+    #: One record per requested action, in order, filled in by execution: what
+    #: it was, whether it ran, and A2.4's three clocks. Written even for the
+    #: actions that never started, because "requested but not executed" is the
+    #: half of a partial failure that a count of completions cannot express.
+    outcomes: list[dict] = field(default_factory=list)
+    #: Why the sequence ended early, or None if every action ran.
+    sequence_stopped: str | None = None
 
     @property
     def inference_ms(self) -> float:
         return sum(a.reply.latency_ms for a in self.attempts)
+
+    @property
+    def sequence(self) -> dict:
+        """Completed, failed and unexecuted -- and they add up to the request.
+
+        A2.3 asks for exactly this triple. It is derived from `outcomes` rather
+        than counted during execution so the three can never drift apart from
+        the per-action records they summarise.
+        """
+        counted = {"completed": 0, "failed": 0, "unexecuted": 0}
+        for outcome in self.outcomes:
+            status = outcome.get("status")
+            if status in counted:
+                counted[status] += 1
+        return {"requested": len(self.outcomes), **counted, "stopped": self.sequence_stopped}
 
     def to_dict(self) -> dict:
         body = {
@@ -302,6 +386,10 @@ class Decision:
             "attempts": [a.to_dict() for a in self.attempts],
             "legal_actions": [a.to_dict() for a in self.summary.actions],
             "result": self.result,
+            # The four scalars above are the first of these. A reader that only
+            # knows the one-action contract sees exactly what it always did.
+            "actions": list(self.outcomes),
+            "sequence": self.sequence,
         }
         if self.record_summary:
             body["prompt"] = self.summary.render()
@@ -329,6 +417,7 @@ class AgentLoop:
         run_id: str | None = None,
         run_dir: Path | None = None,
         provenance: dict | None = None,
+        static_knowledge: str = "",
     ) -> None:
         self.env = env
         self.adapter = adapter
@@ -342,7 +431,25 @@ class AgentLoop:
         self.brief = TaskBrief.from_spec(env.spec_)
         self.decisions: list[Decision] = []
         self.memory = Memory()
-        self.transcript = Transcript(system=SYSTEM_PROMPT)
+        #: Prototype data -- what things cost, what they make, how big they are.
+        #: It goes in the transcript's static prefix rather than into each turn
+        #: because it never changes, which makes it one cache miss and then a
+        #: cache hit for the rest of the run. Measured on `deepseek-flash`, the
+        #: whole block is ~12k tokens: about $0.004 the first time and $0.00007
+        #: a turn afterwards. A single decision spent looking a recipe up costs
+        #: more than that.
+        self.static_knowledge = static_knowledge
+        self.transcript = self._new_transcript()
+
+    def _new_transcript(self) -> Transcript:
+        """A fresh history that keeps the static prefix.
+
+        The prefix survives an episode boundary deliberately: it is prototype
+        data, identical in every world, so dropping it would throw away a cache
+        entry to re-send bytes that were already correct. The *turns* are what
+        must not cross a boundary, and they do not.
+        """
+        return Transcript(system=SYSTEM_PROMPT, static_prefix=self.static_knowledge)
 
     def _world_signature(self) -> tuple:
         """What must change before the model is asked again during a wait.
@@ -382,7 +489,11 @@ class AgentLoop:
         return targetable_actions(self.env), visible_handles(observation)
 
     def _execute(self, decision: Decision):
-        """Run the decision, addressed if the model named a target.
+        """Run the decision's first action. The one-action entry point."""
+        return self._dispatch(decision.action_index, decision.target, decision.arguments)
+
+    def _dispatch(self, index: int, target: str | None, arguments: dict):
+        """Run one action, addressed if the model named a target.
 
         Rebinding the catalog's own template is what keeps addressing from
         becoming a new capability: the verb, its item and its count are the
@@ -393,22 +504,148 @@ class AgentLoop:
         A `parameterized-v1` action goes through `env.step_arguments`, which is
         the *same* entry point the RL adapter uses -- so R2.2's property that
         both clients issue equivalent semantic actions from matched states is
-        not re-implemented here, it is shared.
+        not re-implemented here, it is shared. It is also what makes A2.3's
+        "validate again before every action" free rather than something the
+        batch has to arrange: `step_arguments` re-derives `argument_domains()`
+        and `_context()` on the call, so action 2 of a sequence is bound and
+        checked against the world action 1 left behind, never against the one
+        the model was shown.
         """
         catalog = self.env.catalog
-        if decision.action_index < len(catalog.templates):
-            template = catalog.templates[decision.action_index]
+        if index < len(catalog.templates):
+            template = catalog.templates[index]
             if getattr(template, "arguments", ()):
-                return self.env.step_arguments(decision.action_index, dict(decision.arguments))
-        if not decision.target:
-            return self.env.step(decision.action_index)
-        if decision.action_index >= len(catalog.templates):
+                return self.env.step_arguments(index, dict(arguments))
+        if not target:
+            return self.env.step(index)
+        if index >= len(catalog.templates):
             # A skill, not a catalog template: skills resolve their own targets
             # and have no `$target` to rebind.
-            return self.env.step(decision.action_index)
-        template = catalog.templates[decision.action_index]
-        context = {**self.env.unwrapped._context(), "target": decision.target}
+            return self.env.step(index)
+        template = catalog.templates[index]
+        context = {**self.env.unwrapped._context(), "target": target}
         return self.env.step_payload(template.bind(context), action_key=template.key)
+
+    def _tick(self) -> int:
+        """The observation clock, for A2.4's per-action freshness record."""
+        return int((self.env._observation or {}).get("tick") or 0)
+
+    def _revalidate(self, action: ParsedAction) -> ParsedAction | ParseFailure:
+        """Check an action against the world it is about to be dispatched into.
+
+        A2.3 requires this before *every* action of a batch, not only the first.
+        The mask, the visible handles and the argument domains are all rederived
+        from `self.env` here, so an action planned against the observation the
+        model was shown is refused if the actions before it moved the world out
+        from under it -- which is the only honest way to run a plan the model
+        made without seeing the states it would run in.
+        """
+        observation = self.env._observation
+        vocabulary = action_vocabulary(self.env)
+        legal = legal_actions(vocabulary, self.env.action_masks())
+        targetable, handles = self._addressing(observation)
+        return check_against_state(
+            action,
+            legal,
+            targetable=targetable,
+            handles=handles,
+            requires=argument_requirements(self.env),
+            domains=self._domains(),
+        )
+
+    def _execute_sequence(
+        self,
+        decision: Decision,
+        *,
+        remaining: int,
+        until: Callable[[], bool] | None = None,
+    ) -> tuple[int, float, bool, bool, dict]:
+        """Run the requested actions serially and record what became of each.
+
+        Returns the number of actions the environment actually ran, the reward
+        summed over them, the terminal flags, and the last `info` -- which is
+        what the caller needs to keep accounting in decisions *and* in
+        environment steps, since a batch of six is one decision and six steps.
+
+        Three things stop it, and A2.3 names all three: the first action that is
+        refused or fails, `SEQUENCE_WALL_SECONDS`, and the run's own `until`
+        deadline. Nothing that already ran is undone -- there is no rollback in
+        this environment and inventing one would mean issuing *more* game
+        actions to reverse the agent's, which is not the same world state and
+        would be recorded as the agent's own doing.
+        """
+        deadline = time.perf_counter() + SEQUENCE_WALL_SECONDS
+        executed, total_reward = 0, 0.0
+        terminated = truncated = False
+        info: dict = {}
+        for position, action in enumerate(decision.requested):
+            record: dict[str, Any] = {
+                "position": position,
+                "index": action.index,
+                "key": action.key,
+                "target": action.target,
+                "arguments": dict(action.arguments),
+                "reason": action.reason,
+            }
+            decision.outcomes.append(record)
+            if decision.sequence_stopped is not None:
+                record["status"] = "unexecuted"
+                continue
+            if position >= remaining:
+                # The task's own decision budget. Spending past it would let a
+                # batch buy the episode steps it does not have.
+                decision.sequence_stopped = "step_budget"
+            elif position and time.perf_counter() >= deadline:
+                decision.sequence_stopped = "sequence_deadline"
+            elif position and until is not None and until():
+                # Whichever comes first: the run's deadline is checked between
+                # the actions of a batch as well as between decisions, so a
+                # batch cannot run past the wall clock the run was given.
+                decision.sequence_stopped = "run_deadline"
+            if decision.sequence_stopped is not None:
+                record["status"] = "unexecuted"
+                continue
+            if position:
+                # Action 1 was already checked against this state by the parser.
+                checked = self._revalidate(action)
+                if isinstance(checked, ParseFailure):
+                    decision.sequence_stopped = "refused"
+                    record.update(
+                        status="failed",
+                        observation_tick=self._tick(),
+                        failure=checked.failure.value,
+                        detail=checked.detail,
+                    )
+                    continue
+                action = checked
+                record["arguments"] = dict(action.arguments)
+            observation_tick = self._tick()
+            at = time.perf_counter()
+            _, reward, terminated, truncated, info = self._dispatch(
+                action.index, action.target, action.arguments
+            )
+            executed += 1
+            total_reward += float(reward)
+            status = info.get("action_status")
+            failed = status in _FAILED_STATUSES or bool(info.get("action_error"))
+            record.update(
+                status="failed" if failed else "completed",
+                # A2.4: the tick the action was chosen against, the tick it
+                # landed on, and the real time in between. Two of the three are
+                # game clocks and the third is not, and a record carrying only
+                # one of them cannot tell a slow provider from a slow world.
+                observation_tick=observation_tick,
+                execution_tick=self._tick(),
+                elapsed_ms=round((time.perf_counter() - at) * 1000.0, 3),
+                reward=round(float(reward), 4),
+                action_status=status,
+                action_error=info.get("action_error"),
+            )
+            if failed:
+                decision.sequence_stopped = "action_failed"
+            elif terminated or truncated:
+                decision.sequence_stopped = "terminated" if terminated else "truncated"
+        return executed, total_reward, terminated, truncated, info
 
     # ------------------------------------------------------------- deciding
 
@@ -488,7 +725,7 @@ class AgentLoop:
                 usage=reply.usage,
                 meta=reply.meta,
             )
-            outcome = parse_action(
+            outcome = parse_sequence(
                 reply.text,
                 legal,
                 vocabulary,
@@ -498,20 +735,24 @@ class AgentLoop:
                 domains=self._domains(),
             )
             attempts.append(Attempt(number, reply, outcome))
-            if isinstance(outcome, ParsedAction):
+            if isinstance(outcome, ParsedSequence):
                 # The accepted answer joins the history, so the next
                 # decision's observation is appended after it and the cached
                 # prefix keeps growing.
                 self.transcript.append_assistant(reply.text)
+                first = outcome.first
                 return Decision(
                     episode=episode,
                     step=step,
                     summary=summary,
                     attempts=attempts,
-                    action_index=outcome.index,
-                    action_key=outcome.key,
-                    target=outcome.target,
-                    arguments=outcome.arguments,
+                    # The first action, and it stays the first action: see the
+                    # class docstring for what reads these four.
+                    action_index=first.index,
+                    action_key=first.key,
+                    target=first.target,
+                    arguments=first.arguments,
+                    requested=list(outcome.actions),
                     resolution="model",
                     record_summary=self.config.record_summaries,
                 )
@@ -533,13 +774,17 @@ class AgentLoop:
         # catalog guarantees a legal no-op exists in every state, so the loop
         # waits rather than crashing the episode -- but the decision is recorded
         # as a fallback, so it can never be read back as a choice the model made.
+        fallback = ParsedAction(index=fallback_index, key=vocabulary[fallback_index][0])
         return Decision(
             episode=episode,
             step=step,
             summary=summary,
             attempts=attempts,
-            action_index=fallback_index,
-            action_key=vocabulary[fallback_index][0],
+            action_index=fallback.index,
+            action_key=fallback.key,
+            # A sequence of one, so the executor has a single path. The
+            # `resolution` is what says nobody chose it.
+            requested=[fallback],
             resolution="fallback_wait",
             record_summary=self.config.record_summaries,
         )
@@ -627,7 +872,7 @@ class AgentLoop:
             # the previous scene's observations into this one's prompt, which
             # is contamination rather than competence. A single continuous
             # episode pays this once.
-            self.transcript = Transcript(system=SYSTEM_PROMPT)
+            self.transcript = self._new_transcript()
         while steps < budget:
             observation = self.env._observation
             if self.config.memory:
@@ -654,12 +899,22 @@ class AgentLoop:
                 targetable=targetable,
                 handles=handles,
             )
-            _, reward, terminated, truncated, info = self._execute(decision)
-            steps += 1
+            executed, reward, terminated, truncated, info = self._execute_sequence(
+                decision, remaining=budget - steps, until=until
+            )
+            # In decisions the model made this is one; in environment steps it
+            # is however many actions actually ran. Counting it as one would let
+            # a batch of eight spend eight times the task's tick budget while
+            # the segment believed it had used a single step.
+            steps += executed
             total_reward += float(reward)
             batched = 0
             if (
                 self.config.wait_batch
+                # Only a bare `wait`. A batch that happens to start with one is
+                # a plan the model wrote, and repeating its first action would
+                # displace the rest of it.
+                and len(decision.requested) == 1
                 and decision.action_key == "wait"
                 and decision.resolution == "model"
                 and not (terminated or truncated)
@@ -682,7 +937,13 @@ class AgentLoop:
                         # repeating and give it back the decision.
                         break
             decision.result = {
+                # Summed over the actions the sequence actually ran, so the
+                # number still answers "what did this decision earn". For the
+                # one-action case, which is still most of them, it is unchanged.
                 "reward": round(float(reward), 4),
+                # Environment steps this decision spent, which is the length of
+                # the sequence minus whatever never ran.
+                "steps": executed,
                 # Waits the loop repeated without asking again, so a replay can
                 # tell one decision from the game time it covered.
                 "batched_waits": batched,
@@ -705,20 +966,41 @@ class AgentLoop:
                 "skill_trace": info.get("skill_trace"),
             }
             if self.config.memory:
-                # Status and error only. `reward` and `success` sit two lines
-                # above and are deliberately not passed: memory is rendered back
-                # into the prompt, so anything it reads, the model sees.
-                self.memory.record_action(
-                    first_step + steps - 1,
-                    decision.action_key,
-                    target=_target_of(decision.action_key, observation),
-                    status=info.get("action_status"),
-                    error=info.get("action_error"),
-                )
+                # Status and error only. `reward` and `success` sit above and
+                # are deliberately not passed: memory is rendered back into the
+                # prompt, so anything it reads, the model sees.
+                #
+                # One record per action that reached the environment, not one
+                # per decision: a batch of six that stopped at the fourth is six
+                # things the model asked for and four things that happened, and
+                # a memory that says only "place_at" would tell it it had built
+                # a line it did not build.
+                ran = 0
+                for outcome in decision.outcomes:
+                    if outcome.get("status") not in ("completed", "failed"):
+                        continue
+                    self.memory.record_action(
+                        first_step + steps - executed + ran,
+                        outcome["key"],
+                        # The addressee the model named, or -- for the catalog's
+                        # nearest-entity default -- the one the observation this
+                        # sequence was planned against resolves to.
+                        target=outcome.get("target") or _target_of(outcome["key"], observation),
+                        status=outcome.get("action_status"),
+                        error=outcome.get("action_error") or outcome.get("failure"),
+                    )
+                    ran += 1
                 self.memory.compact()
             self.decisions.append(decision)
             self._append_decision(decision)
 
+            if not executed:
+                # `steps` did not move, so the `while` would spin. Unreachable
+                # while a decision carries at least one action -- the first is
+                # exempt from every early stop -- and a spin is not a failure
+                # mode worth discovering on a paid provider at decision 400.
+                stopped = "model_failure"
+                break
             if decision.resolution == "model":
                 consecutive_fallbacks = 0
             else:

@@ -24,6 +24,7 @@ local handles = require("handles")
 local memory = require("memory")
 local inflight = require("inflight")
 local profiles = require("profiles")
+local knowledge = require("knowledge")
 
 local CODE, STATUS, ERR = protocol.CODE, protocol.STATUS, protocol.ERR
 
@@ -326,7 +327,7 @@ local function handle_describe(request)
       "status", "observe", "reset", "advance", "act",
       "request_status", "step", "collect", "describe", "configure",
       "scenario_define", "truth", "world_digest", "disrupt", "open_world",
-      "save",
+      "save", "knowledge",
     },
   })
 end
@@ -593,6 +594,28 @@ local function handle_save(request)
   })
 end
 
+-- Static game data: recipes, placeable footprints and the technology tree.
+--
+-- Read-only, and the only request in the protocol that answers a question about
+-- the *game* rather than about this world. Everything it returns was already
+-- reachable from Lua and was never returned: `actions.lua` looks up a recipe's
+-- first product and an item's `place_result` on every craft and place, and
+-- discards both. A client wanting to plan therefore had to learn the recipe
+-- graph by attempting crafts, and `tasks/spec.py` carries a hardcoded table of
+-- four entity footprints because the size of a stone furnace was not askable.
+--
+-- Deliberately **not** in `MUTATING`. That table confers deduplication, and a
+-- deduplicated read would answer a later call with an earlier snapshot -- which
+-- is exactly wrong here, because the enabled/researched fields are force state
+-- that research moves.
+--
+-- Takes no payload. A section filter was the obvious parameter and is not worth
+-- it: the whole reply is fetched once per world and cached on disk by the
+-- caller, so the cost of the parts nobody reads is paid once.
+local function handle_knowledge(request)
+  return respond(request, CODE.OK, knowledge.snapshot())
+end
+
 local HANDLERS = {
   status = handle_status,
   observe = handle_observe,
@@ -612,6 +635,7 @@ local HANDLERS = {
   disrupt = handle_disrupt,
   open_world = handle_open_world,
   save = handle_save,
+  knowledge = handle_knowledge,
 }
 
 -- `disrupt` mutates the scene, so it belongs here: whatever gating a
