@@ -604,7 +604,13 @@ class ObservationSummary:
                 lines.append(f"  crafting {queued}")
         for entry in self.inflight:
             progress = float(entry.get("progress") or 0.0)
-            lines.append(f"  in flight: {entry.get('action')} (progress {progress:.2f})")
+            # The request id is the operation's identity and the only thing
+            # `cancel_request` accepts. It was published in the `requests`
+            # argument domain and rendered nowhere, which left the verb legal
+            # and unusable -- there was no way to learn a value for it.
+            identity = entry.get("request_id")
+            named = f" [{identity}]" if identity else ""
+            lines.append(f"  in flight: {entry.get('action')}{named} (progress {progress:.2f})")
 
         lines.append("")
         if self.goal:
@@ -744,6 +750,8 @@ class ObservationSummary:
                 ("items", "item"),
                 ("amounts", "count"),
                 ("recipes", "recipe"),
+                # Empty whenever nothing is running, which is most turns.
+                ("requests", "target_request_id"),
                 # Research the force can start now: prerequisites met, not yet
                 # researched. Empty until a profile publishes the frontier,
                 # which is what kept `research` unreachable.

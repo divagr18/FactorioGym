@@ -428,6 +428,79 @@ clears the dedup ledger, so `request_status` for a request issued before the
 save answers `unknown`. It has never mattered because nothing produced a save;
 it can now.
 
+**The bootstrapping tools are sufficient, and that is a claim about the tools,
+not about any agent** (roadmap A2). `tools/probe_bootstrap.py` drives the whole
+chain -- walk to ore, mine it, handcraft, place a furnace, fuel it, take
+machine-made plates -- through nothing but the public `open-v1` catalog, and
+writes `docs/evidence/a2-bootstrap.json`. It is a scripted solver. It shows the
+verbs compose into a working factory; it shows nothing about whether a model can
+find that sequence, which is what A5 is for.
+
+Four things the probe measured that are worth carrying forward:
+
+*Walking is an ongoing action and a handle is not reach.* `navigate` answers
+`running`, not `completed`: at 0.1484 tiles/tick a 28-tile route is about 190
+ticks and one step advances 30. The first version of the probe issued a walk,
+mined immediately, and was refused `out_of_reach` 38 times in a row. A resource
+tile also gets a handle at `resource_detail_radius` -- 12 tiles -- while mining
+needs about 2.7, so "it is addressable" and "I can act on it" are different
+questions. Any agent will meet both facts; `wait_for(nothing_in_flight)` is the
+answer to the first.
+
+*`resources.tiles` is not sorted by distance.* The probe's first target was
+11.9 tiles away when a tile 1.4 tiles away was in the same list. That was the
+probe's bug rather than the environment's, but the ordering is unspecified and
+now relied on nowhere.
+
+*The furnace burned wood, not coal.* No coal was within the 32-tile sensor at
+this spawn, so "gathering resources" is demonstrated on iron ore only, and
+fuelling on freeplay's single starting wood -- 2 MJ, about 22 seconds against a
+stone furnace's 90 kW. Five ore in, five plates out. A second seed with coal in
+range has not been run, so the coal path is untested rather than known-good.
+
+*All seven failure modes the gate names were provoked against the engine*,
+plus two more. Six are refusals carrying a reason -- a stale target, a blocked
+placement, insufficient ingredients, an out-of-domain argument, unavailable
+research, and an exhausted deposit. The other three are protocol properties
+that had only ever been checked against a stub:
+
+- **A running action can be cancelled by name.** A 28-tile walk was started,
+  its request id read out of the observation's in-flight entries, and handed
+  back to `cancel_request`; the walk cleared and the character covered 0.3
+  further tiles while the cancel settled. This exposed a real defect: the id
+  was published in the `requests` argument domain and rendered nowhere in the
+  prompt, so `cancel_request` was permanently legal and permanently unusable --
+  there was no way to learn a value for it. The in-flight line now names it.
+  The same probe run from beside the ore reported nothing to cancel, because a
+  route under 4.45 tiles finishes inside the 30-tick step that starts it.
+- **A lost reply is recovered, not re-executed.** The identical mutating
+  request was sent twice; the second came back `duplicate` with the stored
+  result and the world moved once -- one plate, not two.
+- **A sequence stops at the first failure and keeps what already ran.** Three
+  actions, the middle one impossible, executed through the loop's own
+  `_execute_sequence` against the live world: `completed`, `failed`,
+  `unexecuted`, one action executed, and the transfer the first action made
+  still standing. The two deadlines remain covered offline in
+  `tests/unit/test_sequences.py`.
+
+**Static game knowledge is captured once and then never updated.** The recipe,
+placeable and technology tables go into the transcript's static prefix, which is
+what makes them one cache miss instead of a per-turn cost. That also means
+nothing in that block may depend on force state: the `[locked]` markers an
+earlier revision emitted came off `game.forces["player"]` and would have been
+quietly wrong for the rest of a run the moment a research finished. Current
+availability is published every turn in the observation instead, and the block
+says so in its own header.
+
+**Sequences are executed by Python, not by the mod's `batch`.** `batch` accepts
+only instantaneous operations, and by its own documentation refuses ongoing ones
+-- move, navigate, mine, craft -- because it could not say whether later
+operations ran before or after such an action landed. Those four are exactly the
+bootstrapping verbs, so `AgentLoop` runs sequences serially through `env.step`,
+bounded at eight actions and 30 wall-clock seconds, re-deriving the legal
+domains before each one. The cost is that a sequence is several round trips to
+the worker rather than one.
+
 **Autosaves remain off.** Their interval is *game* time, so at `game.speed 90`
 a 60-minute interval fires roughly every 40 seconds of wall clock. Checkpoints
 are driven from Python's wall clock instead.
