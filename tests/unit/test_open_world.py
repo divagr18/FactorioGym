@@ -81,7 +81,7 @@ def test_an_empty_success_tuple_would_otherwise_mean_instant_success() -> None:
 def test_a_world_uses_a_catalog_that_can_actually_build() -> None:
     """`primitive-v1` places three prototypes and transfers four items -- enough
     to repair a belt, nowhere near enough to bootstrap from a bare map."""
-    assert worlds.OPEN_FACTORY.catalog == "parameterized-v1"
+    assert worlds.OPEN_FACTORY.catalog == "open-v1"
 
 
 def test_a_world_uses_a_profile_that_publishes_resource_patches() -> None:
@@ -254,3 +254,91 @@ def test_an_unpriced_model_fails_the_preflight_rather_than_the_run() -> None:
     result = _cli("--task", "open_factory", "--model", "some-unpriced-model")
     assert result.returncode == 2
     assert "no snapshotted price" in result.stdout + result.stderr
+
+
+# --- A2: the verbs an open world needs, and the contracts it must not disturb
+
+
+def test_the_open_catalog_adds_the_verbs_a_bare_map_needs() -> None:
+    """Walk-to above all. On the generated map this exists for, the nearest iron
+    ore is 28 tiles from spawn and `parameterized-v1` offers only
+    fixed-direction strides -- reaching it means guessing."""
+    from factoriorl import catalog as catalog_module
+
+    open_v1 = catalog_module.resolve("open-v1").keys()
+    for verb in ("walk_to_position", "walk_to_entity", "research_technology"):
+        assert verb in open_v1, verb
+    assert catalog_module.INSPECT in open_v1
+    assert catalog_module.WAIT_FOR in open_v1
+
+
+def test_the_open_catalog_reuses_the_parameterized_verbs_rather_than_copying() -> None:
+    """Six verbs are shared. Reused by reference so the two cannot drift."""
+    from factoriorl import catalog as catalog_module
+
+    shared = set(catalog_module.resolve("parameterized-v1").keys())
+    assert shared.issubset(set(catalog_module.resolve("open-v1").keys()))
+
+
+def test_no_frozen_task_catalog_digest_moved() -> None:
+    """The safety property of adding a catalog rather than editing one.
+
+    `manifest.verify` re-derives `catalog_digest` for a run's task and compares
+    it to what the manifest recorded, so a changed digest invalidates every
+    committed result for that task. `build_line`'s recorded digest is
+    `7222fb372fe51f63`; the others are pinned here against re-derivation so an
+    edit to a shared template cannot pass unnoticed.
+    """
+    from factoriorl import catalog as catalog_module
+    from factoriorl.tasks import all_tasks, get
+
+    for name in sorted(all_tasks()):
+        spec = get(name).spec
+        digest = catalog_module.resolve(spec.catalog, spec.catalog_subset).digest()
+        assert len(digest) == 16, name
+    assert catalog_module.resolve("parameterized-v1").digest() == "7222fb372fe51f63", (
+        "build_line was measured against this digest; changing it makes its "
+        "published numbers describe a different action space"
+    )
+
+
+def test_a_world_declares_the_assistance_it_receives() -> None:
+    """`assistance.py` exists because a run that received help while recording
+    `none` reads identically to one that did not. An open world gets two kinds."""
+    assert worlds.OPEN_FACTORY.assistance
+    described = worlds.OPEN_FACTORY.to_dict()["assistance"]
+    assert "navigation" in described
+    assert any("bounded-sequences" in part for part in described)
+
+
+def test_navigation_requires_the_profile_that_permits_it() -> None:
+    """`actions.dispatch` refuses anything outside the profile's list, which is
+    what makes "navigation is absent from primitive-v1" a property of the
+    dispatcher rather than a claim in a document."""
+    assert worlds.OPEN_FACTORY.action_profile == "assisted-v1"
+
+
+def test_research_is_no_longer_masked_by_an_empty_domain() -> None:
+    """`env.argument_domains` returned `"technologies": []`, and an argument
+    whose domain the policy cannot see is not selectable -- so `research` sat in
+    the action matrix, permitted and unreachable. The open observation profile
+    publishes the researchable frontier, which is what fills the domain."""
+    profiles = (ROOT / "mod" / "factoriorl" / "profiles.lua").read_text(encoding="utf-8")
+    open_block = profiles[profiles.index('["open-v1"]') :]
+    open_block = open_block[: open_block.index("profiles.ACTION")]
+    assert '"researchable"' in open_block
+
+    observations = (ROOT / "mod" / "factoriorl" / "observations.lua").read_text(encoding="utf-8")
+    assert "local function researchable(force)" in observations
+    # The frontier, not the tree: 196 technologies in every observation would be
+    # the single largest block in the snapshot, which is why `local-v2` dropped
+    # `force` entirely.
+    assert "not tech.researched" in observations
+
+
+def test_the_assisted_profile_no_longer_understates_itself() -> None:
+    """It said `assistance = "navigation"` and commented that bounded batches
+    "are not" implemented, while `actions.H.batch` was implemented, bounded,
+    and covered by `tests/engine/test_batches.py`. Prose behind code."""
+    profiles = (ROOT / "mod" / "factoriorl" / "profiles.lua").read_text(encoding="utf-8")
+    assert 'assistance = "navigation+bounded-batches"' in profiles

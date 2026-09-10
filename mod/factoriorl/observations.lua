@@ -89,6 +89,37 @@ local function character_state(ch, observation_profile)
   return record
 end
 
+--- Technologies that can be started *right now*.
+--
+-- Not the whole tree, which is 196 entries and the single largest block the
+-- snapshot could carry -- `local-v2` dropped `force` entirely for that reason.
+-- This is the researchable frontier: prerequisites all met, not already
+-- researched, and enabled. Early game that is a handful of names.
+--
+-- Sent because `research` was permanently masked without it.
+-- `env.argument_domains` returned an empty `technologies` list, and an argument
+-- whose domain the policy cannot see is not selectable, so the verb sat in the
+-- action matrix unreachable. A frontier is also the honest amount to publish:
+-- the full tree is static knowledge the agent is given separately, while *what
+-- is available now* is world state.
+local function researchable(force)
+  local names = {}
+  for name, tech in pairs(force.technologies) do
+    if tech.enabled and not tech.researched then
+      local ready = true
+      for _, prerequisite in pairs(tech.prerequisites) do
+        if not prerequisite.researched then
+          ready = false
+          break
+        end
+      end
+      if ready then names[#names + 1] = name end
+    end
+  end
+  table.sort(names)
+  return names
+end
+
 local function force_state(force)
   local researched = {}
   for name, tech in pairs(force.technologies) do
@@ -182,6 +213,11 @@ function observations.snapshot(state)
     -- legal value for either. Enabled recipes only, so this states a
     -- capability rather than leaking the tech tree.
     recipes = enabled_recipes(),
+    -- The researchable frontier, when the profile declares it. Filtered out
+    -- for every benchmark profile, which neither declares nor needs it.
+    researchable = profiles.declares(observation_profile, "researchable")
+      and researchable(ch and ch.force or game.forces["player"])
+      or nil,
   }
   return profiles.filter(snapshot, observation_profile)
 end

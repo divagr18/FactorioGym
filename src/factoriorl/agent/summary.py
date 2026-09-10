@@ -198,7 +198,21 @@ MAX_TARGETS_SHOWN = 20
 
 #: Domains small enough to enumerate in full. `placements` is the exception
 #: above; `recipes` is capped by the observation profile already.
-ENUMERATED_DOMAINS = ("directions", "amounts", "items", "recipes", "targets")
+ENUMERATED_DOMAINS = (
+    "directions",
+    "amounts",
+    "items",
+    "recipes",
+    "targets",
+    # What `research` may name. Empty until a profile publishes the researchable
+    # frontier, which is why the verb was unreachable for so long.
+    "technologies",
+    # `wait_for`'s two arguments. Both are short fixed lists, and enumerating
+    # them is the difference between a domain the model can choose from and one
+    # it has to guess at.
+    "conditions",
+    "durations",
+)
 
 
 def argument_domains(env: Any) -> dict:
@@ -223,6 +237,20 @@ def argument_domains(env: Any) -> dict:
             "examples": [list(p) for p in placements[:PLACEMENT_EXAMPLES]],
         }
     }
+    destinations = list(domains.get("destinations") or [])
+    if destinations:
+        # Listed in full rather than sampled like `placements`, because a
+        # destination the prompt omits is somewhere the agent cannot go. The
+        # domain is capped at the source (`env.DESTINATION_CAP`).
+        rendered["destinations"] = {
+            "rule": (
+                "an ABSOLUTE world coordinate to walk to -- somewhere you have "
+                "seen, which may be far outside arm's reach. Unlike placements "
+                "these are not limited to 5 tiles"
+            ),
+            "count": len(destinations),
+            "values": [list(p) for p in destinations],
+        }
     for name in ENUMERATED_DOMAINS:
         values = list(domains.get(name) or [])
         if values:
@@ -467,6 +495,11 @@ class ObservationSummary:
     arguments: dict = field(default_factory=dict)
     #: Which arguments each action key requires.
     requires: dict = field(default_factory=dict)
+    #: The most recent `inspect`, carried forward with the step it was taken at.
+    #: The observation shows the twelve nearest entities, so on a built-up map
+    #: most of what exists is not in the prompt, and this is how the agent reads
+    #: the rest.
+    inspected: dict | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -479,6 +512,7 @@ class ObservationSummary:
             "goal": self.goal,
             "entities_omitted": self.entities_omitted,
             "resources": self.resources,
+            "inspected": self.inspected,
             "inflight": self.inflight,
             "events": self.events,
             "counters": self.counters,
@@ -597,6 +631,17 @@ class ObservationSummary:
                 f"{row['distance']} tiles {row.get('bearing')}{note}"
             )
 
+        if self.inspected:
+            lines.append("")
+            age = self.step - int(self.inspected.get("at_step") or self.step)
+            seen = self.inspected.get("seen")
+            when = "this step" if age <= 0 else f"{age} steps ago"
+            lines.append(f"INSPECTED ({when}, {seen})")
+            for key, value in sorted(self.inspected.items()):
+                if key in ("at_step", "seen"):
+                    continue
+                lines.append(f"  {key}: {value}")
+
         if self.events:
             lines.append("")
             lines.append("RECENT ACTION OUTCOMES (oldest first)")
@@ -689,6 +734,7 @@ def summarise(
         entities=entities,
         entities_omitted=omitted,
         resources=_resource_rows(observation, origin),
+        inspected=observation.get("inspected"),
         inflight=list(observation.get("inflight") or []),
         events=list(observation.get("events") or [])[-MAX_EVENTS_SHOWN:],
         actions=actions,

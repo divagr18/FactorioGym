@@ -23,6 +23,17 @@ from typing import Any
 
 WAIT = "wait"
 
+#: Two verbs the environment answers itself rather than forwarding to a mod
+#: action. Both consume the step they are given -- looking around and waiting
+#: are things that take time -- but neither changes the world, so both ride on
+#: the mod's `wait`, which is precisely a no-op that consumes the step.
+#:
+#: Named here rather than matched on a string in three places, because the
+#: environment has to recognise them before it binds a payload.
+INSPECT = "inspect"
+WAIT_FOR = "wait_for"
+ENV_HANDLED = (INSPECT, WAIT_FOR)
+
 #: Payload values beginning with this are *arguments*: the caller supplies them.
 #: Values beginning with "$" are bound from the observation-derived context
 #: instead, which is the older, fully-bound form.
@@ -47,7 +58,28 @@ ARGUMENT_DOMAINS: dict[str, str] = {
     "recipe": "recipes",
     "technology": "technologies",
     "target_request_id": "requests",
+    "until": "conditions",
+    "seconds": "durations",
+    # Deliberately not `position`, which draws from `placements` -- tile centres
+    # within `PLACEMENT_RADIUS` of the character, because a placement further
+    # than build distance would only be refused. A destination is the opposite
+    # problem: the whole point of walking is to reach something *out* of reach,
+    # and on the generated map this exists for the nearest ore is 28 tiles away.
+    # One argument name, one domain; sharing `position` would have made
+    # `walk_to_position` unable to name anywhere worth walking to.
+    "destination": "destinations",
 }
+
+#: What `wait_for` will wait on. Deliberately a short enumerated list rather
+#: than an expression language: a domain the model can see is a domain it can
+#: choose from, and an argument whose values are unguessable is one that gets
+#: guessed wrong. Each is cheap to evaluate from the observation alone.
+WAIT_CONDITIONS = ("world_changes", "inventory_grows", "nothing_in_flight")
+
+#: Seconds `wait_for` may spend. The ceiling matters: a condition that never
+#: becomes true would otherwise consume the whole run, and a stone furnace
+#: takes 3.2 seconds per plate so the useful range is small.
+WAIT_SECONDS = (1, 3, 10, 30)
 
 
 @dataclass(frozen=True)
@@ -246,9 +278,74 @@ PARAMETERIZED_V1: tuple[ActionTemplate, ...] = tuple(
     ]
 )
 
+#: How close `walk_to` has to get. The mod refuses anything under 1.0 tile and
+#: the derivation is worth repeating: a route ends on a tile centre, an
+#: arbitrary requested point can be a tile corner 0.7072 away from the nearest
+#: centre, and the per-tick walker leaves ~0.25 of residual error. Demanding
+#: tighter than a tile is asking the walker for a promise it cannot keep;
+#: sub-tile positioning is what the `nudge_*` strides are for.
+WALK_TOLERANCE = 1.5
+
+#: Ceiling on one navigation, in ticks. At 0.1484 tiles/tick a 3,600-tick walk
+#: covers ~534 tiles, far past anything in sensor range, so this bounds a
+#: pathological route rather than shaping ordinary ones.
+WALK_MAX_TICKS = 3600
+
+#: The verbs an open world needs and the benchmark catalogs do not have.
+#:
+#: `parameterized-v1` is what `build_line` was measured against, and
+#: `manifest.verify` re-derives its digest, so adding to it would change what an
+#: existing result means. This is a separate catalog for the same reason
+#: `open-v1` is a separate *observation* profile: a frozen contract is not
+#: edited for the benefit of a mode no frozen task uses.
+#:
+#: Everything reused from `parameterized-v1` is reused *by reference*, so the
+#: two cannot drift apart in the six verbs they share.
+OPEN_V1: tuple[ActionTemplate, ...] = tuple(
+    [
+        *PARAMETERIZED_V1,
+        # Walking, plural, because the mod's `navigate` takes a position *or* a
+        # handle and the template system fills every declared argument -- one
+        # template with an optional slot would be a template that sometimes
+        # sends a hole. Measured on the natural map this exists for: the nearest
+        # iron ore sits 28 tiles from spawn, and a catalog of fixed-direction
+        # strides reaches it only by guessing.
+        ActionTemplate(
+            "walk_to_position",
+            "navigate",
+            {
+                "position": "?destination",
+                "tolerance": WALK_TOLERANCE,
+                "max_ticks": WALK_MAX_TICKS,
+            },
+        ),
+        ActionTemplate(
+            "walk_to_entity",
+            "navigate",
+            {"handle": "?handle", "tolerance": WALK_TOLERANCE, "max_ticks": WALK_MAX_TICKS},
+        ),
+        # Permitted by the mod since the action matrix was written and never
+        # templated, because `env.argument_domains` returned an empty
+        # `technologies` list and an argument whose domain the policy cannot see
+        # is not selectable. The open world publishes researchable technologies,
+        # which is what makes this reachable rather than decorative.
+        ActionTemplate("research_technology", "research", {"technology": "?technology"}),
+        # Look at one entity in detail. The observation shows the twelve nearest
+        # (`summary.MAX_ENTITIES_SHOWN`), so on a map with anything built on it
+        # most of what exists is not in the prompt.
+        ActionTemplate(INSPECT, "wait", {"handle": "?handle"}),
+        # A bounded wait on a stated condition. One plain `wait` buys the
+        # step's 30 ticks -- half a second -- and a stone furnace takes 3.2
+        # seconds to smelt one plate, so waiting for a plate the honest way
+        # costs six decisions and six model calls.
+        ActionTemplate(WAIT_FOR, "wait", {"until": "?until", "seconds": "?seconds"}),
+    ]
+)
+
 CATALOGS: dict[str, tuple[ActionTemplate, ...]] = {
     "primitive-v1": PRIMITIVE_V1,
     "parameterized-v1": PARAMETERIZED_V1,
+    "open-v1": OPEN_V1,
 }
 
 

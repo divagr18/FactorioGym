@@ -257,7 +257,13 @@ def run_world(
                 "engine": handle.engine.to_dict(),
                 "workers": [handle.spec.manifest()],
                 "seeds": {"master": master_seed, "seeded": seeded, "map_seed": master_seed},
-                "assistance": assistance_module.STATIC,
+                # Composed, not asserted. An open world is given navigation
+                # and bounded sequences, and a run that received help while
+                # recording `none` is exactly what `factoriorl.assistance`
+                # exists to stop.
+                "assistance": (
+                    "+".join(mode.assistance) if mode.assistance else assistance_module.STATIC
+                ),
                 "world": mode.to_dict(),
                 "starting_inventory": None if resuming else freeplay,
                 "resumed_from": str(resume_from) if resuming else None,

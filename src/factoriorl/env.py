@@ -51,6 +51,11 @@ def blueprint_digest(payload: dict) -> str:
 #: be refused for range. The runtime still enforces the real distance.
 PLACEMENT_RADIUS = 5
 
+#: How many destinations to offer. An enumerated domain is rendered into the
+#: prompt, so an unbounded one would bury the rest of the observation; the
+#: nearest few dozen are what an agent can act on anyway.
+DESTINATION_CAP = 24
+
 #: The transfer counts a policy may name. Unbounded counts would make the
 #: argument domain unbounded; the runtime accepts 1..10000.
 TRANSFER_AMOUNTS = (1, 5, 20)
@@ -224,6 +229,7 @@ class FactorioEnv(gym.Env):
         return {
             "targets": targets,
             "placements": self._placement_candidates(origin, observation),
+            "destinations": self._destinations(origin, observation),
             "directions": list(catalog_module.DIRECTIONS),
             # Only what the agent is holding: proposing an item it does not
             # have would be refused by the runtime for `no_items`, and the
@@ -235,13 +241,62 @@ class FactorioEnv(gym.Env):
             # Now observable (local-v2 v4), so `craft_recipe` and
             # `set_recipe_at` stop being permanently masked.
             "recipes": list(observation.get("recipes") or []),
-            "technologies": [],
+            # Researchable *now*: prerequisites met, not already researched.
+            # This was `[]` until an open world published the list, which made
+            # `research` permanently masked -- an argument whose domain the
+            # policy cannot see is not selectable, so the verb existed in the
+            # mod's action matrix and could never be chosen.
+            "technologies": list(observation.get("researchable") or []),
+            "conditions": list(catalog_module.WAIT_CONDITIONS),
+            "durations": list(catalog_module.WAIT_SECONDS),
             "requests": [
                 str(entry["request_id"])
                 for entry in (observation.get("inflight") or [])
                 if isinstance(entry, dict) and entry.get("request_id")
             ],
         }
+
+    def _destinations(self, origin, observation) -> list[list[float]]:
+        """Somewhere worth walking to, from what the agent can currently see.
+
+        Separate from `placements` because the two want opposite things: a
+        placement must be inside build distance or it is refused, and a
+        destination is only interesting when it is *outside* arm's reach. The
+        generated map this serves puts the nearest iron ore 28 tiles from spawn,
+        so a domain capped at `PLACEMENT_RADIUS` could not name it.
+
+        Everything here comes from the observation -- resource patches the
+        sensor aggregated, visible entities, remembered ones -- so it proposes
+        no destination the agent has not seen. Unexplored ground stays
+        unnameable, which is what keeps navigation assistance rather than
+        knowledge.
+        """
+        seen: list[list[float]] = []
+        resources = observation.get("resources") or {}
+        for tile in resources.get("tiles") or []:
+            if tile.get("p"):
+                seen.append([float(tile["p"][0]), float(tile["p"][1])])
+        patches = resources.get("patches") or {}
+        rows = patches.values() if isinstance(patches, dict) else patches
+        for patch in rows:
+            nearest = isinstance(patch, dict) and patch.get("nearest")
+            if nearest:
+                seen.append([float(nearest[0]), float(nearest[1])])
+        for record in (observation.get("entities") or []) + (observation.get("remembered") or []):
+            if record.get("p"):
+                seen.append([float(record["p"][0]), float(record["p"][1])])
+
+        # Rounded to tile centres and de-duplicated, because a route ends on one
+        # and two destinations inside the same tile are the same destination.
+        unique: dict[tuple[float, float], list[float]] = {}
+        for point in seen:
+            tile = (math.floor(point[0]) + 0.5, math.floor(point[1]) + 0.5)
+            unique.setdefault(tile, [tile[0], tile[1]])
+        ordered = sorted(
+            unique.values(),
+            key=lambda p: (p[0] - float(origin[0])) ** 2 + (p[1] - float(origin[1])) ** 2,
+        )
+        return ordered[:DESTINATION_CAP]
 
     def _placement_candidates(self, origin, observation) -> list[list[float]]:
         """Tile centres near the character with nothing visible standing there.
@@ -290,8 +345,125 @@ class FactorioEnv(gym.Env):
                     f"{template.key}: {name}={arguments[name]!r} is not in "
                     f"domain {domain_name!r} ({len(legal)} values)"
                 )
+        if template.key in catalog_module.ENV_HANDLED:
+            # Answered here rather than forwarded. Both verbs consume the step
+            # they are given -- looking around and waiting take time -- but
+            # neither changes the world, so both ride on the mod's `wait`, which
+            # is exactly a no-op that consumes a step. Their arguments are
+            # validated above like any other, and then never reach the wire: the
+            # mod declares `wait` with an empty payload and would refuse them.
+            return self._env_action(template, arguments)
         payload = template.bind(self._context(), arguments)
         return self.step_payload(payload, action_key=template.key)
+
+    def _wait_once(self, action_key: str):
+        """One `wait`, which is a no-op that spends the step's game time."""
+        index = self.catalog.wait_index
+        return self.step_payload(
+            self.catalog.templates[index].bind(self._context()), action_key=action_key
+        )
+
+    def _inventory_total(self) -> int:
+        return sum((self._observation.get("inventory") or {}).values())
+
+    def _coarse_signature(self) -> tuple:
+        """What must change before `world_changes` is satisfied.
+
+        Observation-only and deliberately coarse: entity identity and working
+        state plus the inventory. A finer signature would fire on the tick
+        counter and make the condition meaningless.
+        """
+        entities = tuple(
+            sorted(
+                (str(e.get("h")), str(e.get("st")), bool(e.get("working")))
+                for e in (self._observation.get("entities") or [])
+            )
+        )
+        return entities, tuple(sorted((self._observation.get("inventory") or {}).items()))
+
+    def _condition_met(self, until: str, before: tuple, before_items: int) -> bool:
+        if until == "inventory_grows":
+            return self._inventory_total() > before_items
+        if until == "nothing_in_flight":
+            return not (self._observation.get("inflight") or [])
+        return self._coarse_signature() != before
+
+    def _env_action(self, template, arguments: dict):
+        """`inspect` and `wait_for`, neither of which the mod implements.
+
+        `wait_for` repeats the underlying `wait` until its condition holds or
+        its bound is spent. One plain `wait` buys `decision_ticks` of game time
+        -- half a second at the default -- and a stone furnace needs 3.2 seconds
+        per plate, so waiting for a plate one decision at a time costs six model
+        calls. This spends game time without spending decisions.
+        """
+        if template.key == catalog_module.INSPECT:
+            result = self._wait_once(template.key)
+            observation, reward, terminated, truncated, info = result
+            record = {
+                **self._describe_handle(str(arguments["handle"])),
+                # Stamped with the step it was taken at, because the summary
+                # carries it forward into later prompts and an inspection from
+                # forty steps ago must not read as a current sighting.
+                "at_step": self._steps,
+            }
+            # Kept on the observation as well as in `info` so the *next* prompt
+            # can show it. An inspection the model cannot read afterwards is a
+            # step spent on nothing.
+            self._observation["inspected"] = record
+            info = {**info, "inspected": record}
+            return observation, reward, terminated, truncated, info
+
+        until = str(arguments["until"])
+        seconds = float(arguments["seconds"])
+        # Ticks are the unit the environment actually spends, and one step is
+        # `decision_ticks` of them. Rounded up so a one-second wait is never
+        # zero steps, which would make the verb a silent no-op.
+        per_step = max(self.spec_.decision_ticks, 1) / 60.0
+        steps = max(int(math.ceil(seconds / per_step)), 1)
+
+        before, before_items = self._coarse_signature(), self._inventory_total()
+        waited, met = 0, False
+        result = None
+        for _ in range(steps):
+            result = self._wait_once(template.key)
+            waited += 1
+            if result[2] or result[3]:
+                break
+            if self._condition_met(until, before, before_items):
+                met = True
+                break
+        observation, reward, terminated, truncated, info = result
+        info = {
+            **info,
+            "waited_steps": waited,
+            "waited_condition": until,
+            # Reported either way: a wait that timed out looks identical to one
+            # that succeeded unless the record says which it was, and an agent
+            # that cannot tell will wait again.
+            "condition_met": met,
+        }
+        return observation, reward, terminated, truncated, info
+
+    def _describe_handle(self, handle: str) -> dict:
+        """Everything the observation holds about one entity.
+
+        The prompt shows the twelve nearest (`summary.MAX_ENTITIES_SHOWN`), so
+        on a map with anything built on it most of what exists is not in the
+        prompt. Remembered entities are searched too, and are returned with the
+        `age` the observation gave them -- a remembered entity is not a current
+        sighting and must not be presented as one.
+        """
+        for entity in self._observation.get("entities") or []:
+            if str(entity.get("h")) == handle:
+                return {"seen": "now", **entity}
+        for tile in (self._observation.get("resources") or {}).get("tiles") or []:
+            if str(tile.get("h")) == handle:
+                return {"seen": "now", "kind": "resource", **tile}
+        for entity in self._observation.get("remembered") or []:
+            if str(entity.get("h")) == handle:
+                return {"seen": "remembered", **entity}
+        return {"seen": "unknown", "handle": handle, "detail": "no such handle in view or memory"}
 
     def action_masks(self) -> np.ndarray:
         """sb3-contrib's masking protocol.

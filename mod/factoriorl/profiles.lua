@@ -166,7 +166,11 @@ profiles.OBSERVATION = {
     keys = {
       "episode_id", "tick", "absolute_tick", "profiles", "character",
       "inventory", "sensor", "terrain", "resources", "entities",
+      -- The researchable frontier, which no benchmark profile carries. It is
+      -- what makes `research` selectable at all: the argument domain was empty
+      -- and an argument whose values the policy cannot see is not selectable.
       "remembered", "task", "inflight", "goal", "events", "recipes",
+      "researchable",
     },
   },
 }
@@ -196,15 +200,21 @@ profiles.ACTION = {
     -- before navigation existed.
     terrain_memory = false,
   },
-  -- Available from Phase 5.1. The capability list is deliberately narrow:
-  -- known-terrain navigation is implemented, bounded batches (PLAN.md 5.2) are
-  -- not, and PLAN.md 6.4 forbids advertising deferred functionality as
-  -- available -- so `assistance` names what this profile actually does today
-  -- and gains "+bounded-batches" when 5.2 lands.
+  -- Available from Phase 5.1. `assistance` names what this profile actually
+  -- does, which is the point of the field: PLAN.md 6.4 forbids advertising
+  -- deferred functionality as available.
+  --
+  -- It said "navigation" alone, with a comment that bounded batches "are not"
+  -- implemented and that the profile "gains +bounded-batches when 5.2 lands".
+  -- `actions.H.batch` is implemented, enforces `BATCH_LIMIT`, validates each
+  -- operation, stops at the first failure and reports the completed prefix --
+  -- and `tests/engine/test_batches.py` covers it. The prose was behind the
+  -- code, which is the same defect class as a docstring promising a check that
+  -- does not exist; corrected rather than left to mislead the next reader.
   ["assisted-v1"] = {
     name = "assisted-v1",
     version = 1,
-    assistance = "navigation",
+    assistance = "navigation+bounded-batches",
     available = true,
     drivers = {
       mining = "native",

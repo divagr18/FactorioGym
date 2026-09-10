@@ -44,7 +44,7 @@ from factoriorl.worker_config import TERRAIN_NATURAL
 #: Bumped when a change would make two runs of the same id incomparable --
 #: different terrain, profiles, catalog or starting inventory. Same contract as
 #: `TaskSpec.version`, for the same reason.
-OPEN_FACTORY_VERSION = "0.1.0"
+OPEN_FACTORY_VERSION = "0.2.0"
 
 
 @dataclass(frozen=True)
@@ -64,6 +64,11 @@ class WorldMode:
     #: with a broken deadline would run until the machine was turned off.
     max_decision_steps: int
     chart_radius: int
+    #: What this world hands the agent beyond the bare observation, composed the
+    #: way `factoriorl.assistance` composes a task's. A run that receives help
+    #: and records `none` is the failure that module exists to prevent, and an
+    #: open world receives two kinds.
+    assistance: tuple[str, ...] = ()
 
     def to_dict(self) -> dict:
         return {
@@ -77,6 +82,7 @@ class WorldMode:
             "decision_ticks": self.decision_ticks,
             "max_decision_steps": self.max_decision_steps,
             "chart_radius": self.chart_radius,
+            "assistance": list(self.assistance),
             "scored": False,
             "note": (
                 "an open world has no success predicate and no layout families; "
@@ -101,14 +107,20 @@ OPEN_FACTORY = WorldMode(
     observation_profile="open-v1",
     # These two names look like they should match and do not, which is worth
     # stating once: `action_profile` is the *mod's* capability gate
-    # (`mod/factoriorl/profiles.lua` knows `primitive-v1` and `assisted-v1`),
-    # while `catalog` is the Python-side list of addressable actions. `build_line`
-    # pairs them the same way. The primitive catalog can place three prototypes
-    # and transfer four items -- enough to repair a belt, nowhere near enough to
-    # bootstrap a factory from a bare map -- so the parameterized catalog is the
-    # only workable choice here.
-    action_profile="primitive-v1",
-    catalog="parameterized-v1",
+    # (`mod/factoriorl/profiles.lua`), while `catalog` is the Python-side list of
+    # addressable actions.
+    #
+    # `assisted-v1` is what permits `navigate` at all -- `actions.dispatch`
+    # refuses anything outside the profile's list, which is what makes
+    # "navigation is absent from primitive-v1" a property of the dispatcher
+    # rather than a claim in a document. On a map whose nearest ore is 28 tiles
+    # away, a catalog of fixed-direction strides reaches it only by guessing.
+    action_profile="assisted-v1",
+    # `open-v1`, not `parameterized-v1`: the latter is what `build_line` was
+    # measured against and `manifest.verify` re-derives its digest, so adding
+    # verbs to it would change what an existing result means.
+    catalog="open-v1",
+    assistance=("navigation", "bounded-sequences:8"),
     decision_ticks=30,
     max_decision_steps=100_000,
     chart_radius=96,
