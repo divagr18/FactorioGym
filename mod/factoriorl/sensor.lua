@@ -201,6 +201,11 @@ function sensor.grid(surface, origin, radius)
     [defines.entity_status.no_ingredients] = true,
     [defines.entity_status.no_minable_resources] = true,
     [defines.entity_status.waiting_for_source_items] = true,
+    -- Its output tile is full. A burner drill pointed at bare ground fills that
+    -- tile with its own ore and then jams -- and the pile also blocks the
+    -- placement of whatever the agent meant to put there, which is how a run
+    -- ends up unable to build the furnace it correctly decided it needed.
+    [defines.entity_status.waiting_for_space_in_destination] = true,
     [defines.entity_status.item_ingredient_shortage] = true,
     [defines.entity_status.missing_required_fluid] = true,
   }
@@ -214,6 +219,12 @@ function sensor.grid(surface, origin, radius)
         glyph = "t"
       elseif entity.type == "simple-entity" then
         glyph = "r"
+      elseif entity.type == "item-entity" then
+        -- Loose items lying on the ground. Not a machine, and giving each one a
+        -- machine letter pushed the actual machines down the alphabet -- which
+        -- matters because a drill dropping its ore onto the floor produces a
+        -- fresh one of these every few seconds, and seeing *that* is the point.
+        glyph = "*"
       elseif string.sub(entity.name, 1, 11) == "crash-site-" then
         -- The spawn wreckage is nine entities spread over a dozen tiles. Giving
         -- each its own letter consumed most of the alphabet and pushed the
@@ -264,7 +275,12 @@ function sensor.grid(surface, origin, radius)
         if ok_fuel and fuel ~= nil then entry.fuel = fuel end
         -- Lowercase means stopped. The letter still identifies the machine, so
         -- the legend needs no second entry and the map needs no second layer.
-        if entry.status and STOPPED[entry.status] then
+        -- Empty fuel is definitive on a burner, whatever `status` happens to
+        -- report at the tick it was read: a burner drill with nothing in its
+        -- fuel slot is not running. Measured live, a fuel-less drill still drew
+        -- as an uppercase (running) glyph because its status was not one of the
+        -- names below.
+        if (entry.fuel ~= nil and entry.fuel == 0) or (entry.status and STOPPED[entry.status]) then
           glyph = string.lower(glyph)
           entry.glyph = glyph
           entry.stopped = true
