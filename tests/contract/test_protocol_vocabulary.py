@@ -115,6 +115,12 @@ def test_mutating_request_types_are_the_ones_python_expects(runtime_lua):
         # check: a disruption declared for the previous episode must be refused
         # rather than applied to this one.
         RequestType.DISRUPT.value,
+        # `open_world` destroys player-force entities, moves the character and
+        # inserts a starting inventory, so it needs both properties for the same
+        # reasons `reset` does. Deduplication in particular: a retried
+        # initialisation must return the stored reply rather than insert a second
+        # copy of freeplay's items.
+        RequestType.OPEN_WORLD.value,
     }
 
 

@@ -149,6 +149,75 @@ MAP_SETTINGS = {
 }
 
 
+#: The benchmark surface: every resource, tree and body of water switched off,
+#: because the scene box is painted by Lua from a declared blueprint and anything
+#: the generator adds is an *undeclared* obstacle.
+TERRAIN_BENCHMARK = "benchmark"
+
+#: An ordinary Factorio map: natural ore, trees, water and cliffs, enemies off.
+#: Required by the roadmap's `open_factory` mode, where the agent has to find its
+#: own resources rather than be handed a scene. Kept as a separate surface rather
+#: than as flags on the benchmark one, so no frozen task can accidentally acquire
+#: generated terrain and quietly change what its scenes mean.
+TERRAIN_NATURAL = "natural"
+
+TERRAINS = (TERRAIN_BENCHMARK, TERRAIN_NATURAL)
+
+
+def _autoplace_controls(terrain: str) -> dict:
+    """The generator switches, which differ almost entirely between surfaces.
+
+    One rule survives both and is the reason this is a function rather than two
+    literals: **`water.frequency` must stay non-zero.** The ore probability noise
+    expressions divide by the water frequency term, and a zero there fails map
+    generation outright with `error compiling entity:coal:probability`. The
+    benchmark surface removes water with `size 0` for exactly that reason.
+    """
+    if terrain == TERRAIN_NATURAL:
+        return {
+            # Base-game defaults: finite deposits the agent has to find, reach
+            # and eventually exhaust. Handing it richer patches would make the
+            # first run easier in a way nothing later could correct for.
+            "coal": {"frequency": 1, "size": 1, "richness": 1},
+            "stone": {"frequency": 1, "size": 1, "richness": 1},
+            "copper-ore": {"frequency": 1, "size": 1, "richness": 1},
+            "iron-ore": {"frequency": 1, "size": 1, "richness": 1},
+            "uranium-ore": {"frequency": 1, "size": 1, "richness": 1},
+            "crude-oil": {"frequency": 1, "size": 1, "richness": 1},
+            "water": {"frequency": 1, "size": 1},
+            "trees": {"frequency": 1, "size": 1},
+            # The one thing that is *not* base-game default. The roadmap
+            # disables enemies for the first attempt; combat is not in the
+            # action matrix, so leaving them on would end runs for a reason the
+            # agent has no verb to address.
+            "enemy-base": {"frequency": 0, "size": 0},
+        }
+    return {
+        "coal": {"frequency": 0, "size": 0, "richness": 0},
+        "stone": {"frequency": 0, "size": 0, "richness": 0},
+        "copper-ore": {"frequency": 0, "size": 0, "richness": 0},
+        "iron-ore": {"frequency": 0, "size": 0, "richness": 0},
+        "uranium-ore": {"frequency": 0, "size": 0, "richness": 0},
+        "crude-oil": {"frequency": 0, "size": 0, "richness": 0},
+        # Off, like every other autoplace control. The scene box is
+        # painted by Lua from a declared blueprint, so generated water
+        # is an *undeclared* obstacle: the engine-free structural
+        # validators run their reachability BFS over blueprint entities
+        # and cannot see it, so an episode can pass validation as
+        # solvable and then be blocked by terrain no generator chose.
+        # It was also the largest block on the wire -- the water sweep
+        # dominated a ~32 KB observation on tasks that place no
+        # resources at all.
+        # size 0 removes the water; frequency stays 1 because the ore
+        # probability noise expressions divide by the water frequency
+        # term, and a zero there fails map generation outright with
+        # 'error compiling entity:coal:probability'.
+        "water": {"frequency": 1, "size": 0},
+        "trees": {"frequency": 0, "size": 0},
+        "enemy-base": {"frequency": 0, "size": 0},
+    }
+
+
 @dataclass(frozen=True)
 class WorkerPorts:
     game: int
@@ -163,6 +232,13 @@ class WorkerSpec:
     ports: WorkerPorts
     map_seed: int = 424242
     rcon_password: str = field(default_factory=lambda: secrets.token_hex(16))
+    #: Which generator surface to create. Defaults to the benchmark one so every
+    #: existing caller keeps the world it has always had.
+    terrain: str = TERRAIN_BENCHMARK
+
+    def __post_init__(self) -> None:
+        if self.terrain not in TERRAINS:
+            raise ValueError(f"unknown terrain {self.terrain!r}; expected one of {TERRAINS}")
 
     @property
     def directory(self) -> Path:
@@ -259,41 +335,21 @@ class WorkerSpec:
         }
         self.server_settings.write_text(json.dumps(server_settings, indent=2), encoding="utf-8")
 
+        natural = self.terrain == TERRAIN_NATURAL
         map_gen_settings = {
             "width": 0,
             "height": 0,
             "starting_area": 1,
             # Peaceful base-game target; no biters in Phase 0/1 proofs.
             "peaceful_mode": True,
-            "autoplace_controls": {
-                "coal": {"frequency": 0, "size": 0, "richness": 0},
-                "stone": {"frequency": 0, "size": 0, "richness": 0},
-                "copper-ore": {"frequency": 0, "size": 0, "richness": 0},
-                "iron-ore": {"frequency": 0, "size": 0, "richness": 0},
-                "uranium-ore": {"frequency": 0, "size": 0, "richness": 0},
-                "crude-oil": {"frequency": 0, "size": 0, "richness": 0},
-                # Off, like every other autoplace control. The scene box is
-                # painted by Lua from a declared blueprint, so generated water
-                # is an *undeclared* obstacle: the engine-free structural
-                # validators run their reachability BFS over blueprint entities
-                # and cannot see it, so an episode can pass validation as
-                # solvable and then be blocked by terrain no generator chose.
-                # It was also the largest block on the wire -- the water sweep
-                # dominated a ~32 KB observation on tasks that place no
-                # resources at all.
-                # size 0 removes the water; frequency stays 1 because the ore
-                # probability noise expressions divide by the water frequency
-                # term, and a zero there fails map generation outright with
-                # 'error compiling entity:coal:probability'.
-                "water": {"frequency": 1, "size": 0},
-                "trees": {"frequency": 0, "size": 0},
-                "enemy-base": {"frequency": 0, "size": 0},
-            },
+            "autoplace_controls": _autoplace_controls(self.terrain),
             "cliff_settings": {
                 "name": "cliff",
                 "cliff_elevation_0": 10,
                 "cliff_elevation_interval": 40,
-                "richness": 0,
+                # Cliffs are terrain the agent has to route around; the benchmark
+                # surface has no use for them because its scenes are painted.
+                "richness": 1 if natural else 0,
             },
             "property_expression_names": {},
             "starting_points": [{"x": 0, "y": 0}],
@@ -310,4 +366,8 @@ class WorkerSpec:
             "map_seed": self.map_seed,
             "ports": {"game": self.ports.game, "rcon": self.ports.rcon},
             "directory": str(self.directory),
+            # Which generator surface this worker was created on. Two runs with
+            # the same map seed and different terrain are different worlds, and a
+            # manifest that recorded only the seed would say they were the same.
+            "terrain": self.terrain,
         }

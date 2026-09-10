@@ -443,6 +443,156 @@ def cmd_evaluate(args) -> int:
     return 0
 
 
+def cmd_agent(args) -> int:
+    """Run a language-model agent on a task or an open world.
+
+    Until this existed there was no supported way to run an agent on anything:
+    `demo` is hardwired to `plate_line`, to the OpenAI-compatible adapter and to
+    a tracked output path, and everything else meant calling
+    `agent.runner.run_task` from Python. `docs/LIMITATIONS.md` recorded the gap.
+
+    Two things this command owns that no earlier entrypoint did, both from
+    `docs/AGENTIC_ROADMAP-2026-09-10.md` A0.3: a spend cap that refuses to
+    dispatch a request it cannot afford, and a wall clock that starts at the
+    first gameplay observation rather than at process start.
+    """
+    import json as _json
+    from pathlib import Path
+
+    from factoriorl import manifest as manifest_module
+    from factoriorl import worlds
+    from factoriorl.agent.adapters import (
+        AnthropicMessagesAdapter,
+        OpenAICompatibleAdapter,
+    )
+    from factoriorl.agent.budget import Budget, RunClock
+    from factoriorl.agent.credentials import load_env_file
+    from factoriorl.agent.guarded import BudgetedAdapter
+    from factoriorl.agent.loop import AgentConfig
+    from factoriorl.agent.runner import REALTIME_SPEED, default_speed, run_task, run_world
+    from factoriorl.pricing import UnknownModelPrice
+
+    env_file_supplied = load_env_file(args.env_file or None)
+
+    # Worlds are resolved before tasks and are deliberately not in the task
+    # registry -- see `factoriorl.worlds` for why registering one would break
+    # `validate_all` and both holdout tests.
+    is_world = worlds.is_world(args.task)
+    if not is_world:
+        from factoriorl import tasks as tasks_module
+
+        if args.task not in tasks_module.all_tasks():
+            known = ", ".join(sorted(list(tasks_module.all_tasks()) + list(worlds.MODES)))
+            print(f"unknown task or world {args.task!r}; known: {known}", file=sys.stderr)
+            return 2
+
+    # Constructed before anything is launched. An unpriced model is a preflight
+    # failure, not something to discover after a ninety-second map generation --
+    # A0.3: "fail the paid preflight instead of guessing".
+    try:
+        budget = Budget(
+            cap_usd=args.max_cost_usd,
+            model=args.model,
+            max_output_tokens=args.max_tokens,
+        )
+    except UnknownModelPrice as unpriced:
+        print(str(unpriced), file=sys.stderr)
+        return 2
+    clock = RunClock(limit_seconds=args.max_wall_seconds)
+
+    if args.adapter == "anthropic":
+        provider = AnthropicMessagesAdapter(
+            model=args.model,
+            api_key_env=args.api_key_env or "ANTHROPIC_API_KEY",
+            timeout=args.timeout,
+        )
+    else:
+        provider = OpenAICompatibleAdapter(
+            base_url=args.base_url,
+            model=args.model,
+            api_key_env=args.api_key_env or None,
+            timeout=args.timeout,
+            temperature=None if args.no_temperature else 0.0,
+            token_parameter=args.token_parameter,
+            thinking=True if args.thinking else None,
+            reasoning_effort=args.reasoning_effort,
+        )
+    adapter = BudgetedAdapter(provider, budget, clock)
+
+    config = AgentConfig(
+        task_id=args.task,
+        episodes=args.episodes,
+        max_steps=args.max_steps,
+        max_tokens=args.max_tokens,
+        split=args.split,
+        skills=args.skills,
+        wait_batch=args.wait_batch,
+        run_prefix=args.prefix,
+        extra={
+            "limits": {
+                "max_cost_usd": args.max_cost_usd,
+                "max_wall_seconds": args.max_wall_seconds,
+                "clock": args.clock,
+            }
+        },
+    )
+
+    realtime = args.clock == "realtime"
+    speed = REALTIME_SPEED if realtime else default_speed()
+    shared = {
+        "game_speed": speed,
+        "free_running": realtime,
+        # The clock starts at the first gameplay observation, and the same
+        # predicate stops the loop -- `run_segment` already had `until` as an
+        # evaluator-side stop hook, so the deadline needed no new machinery.
+        "on_ready": clock.start,
+        "until": clock.expired,
+    }
+    if is_world:
+        result = run_world(worlds.get(args.task), config, adapter, master_seed=args.seed, **shared)
+    else:
+        result = run_task(config, adapter, master_seed=args.seed, **shared)
+    clock.stop()
+
+    result["limits"] = {
+        "budget": budget.to_dict(),
+        "clock": clock.to_dict(),
+        "refusals": list(adapter.refusals),
+        "env_file_supplied": env_file_supplied,
+    }
+    # `loop.run()` writes `result.json` before returning, so the limits computed
+    # here would exist only on stdout -- the run directory, which is what anyone
+    # actually reads later, would say nothing about what the run cost or why it
+    # stopped. Rewritten rather than amended because the loop owns the file's
+    # shape and this only adds a key.
+    run_dir = result.get("run_dir")
+    if run_dir:
+        artifact = Path(run_dir) / "result.json"
+        artifact.write_text(
+            provider.redact(_json.dumps(result, indent=2, default=str)) + "\n",
+            encoding="utf-8",
+        )
+    manifest_module.amend(
+        result["run_id"],
+        {"budgets_observed": {"spend": budget.to_dict(), "clock": clock.to_dict()}},
+    )
+    # Through the provider's own redactor, because it is the only object holding
+    # the credential and an endpoint that echoes its auth header would otherwise
+    # land verbatim in a file people share.
+    rendered = provider.redact(_json.dumps(result, indent=2, default=str))
+    if args.out:
+        Path(args.out).write_text(rendered + "\n", encoding="utf-8")
+        print(f"wrote {args.out}")
+    else:
+        print(rendered)
+    print(
+        f"spent ${budget.committed_usd:.4f} of ${args.max_cost_usd:.2f} over "
+        f"{budget.calls} calls; cache hit rate {budget.cache_hit_rate}",
+        file=sys.stderr,
+    )
+    return 0
+
+
 def cmd_doctor_train(_args) -> int:
     """Fail loudly on a CPU-only wheel: the commonest Windows setup failure."""
     try:
@@ -750,6 +900,58 @@ def main(argv: list[str] | None = None) -> int:
     agent_doctor.add_argument("--token-parameter", default="max_tokens")
     agent_doctor.add_argument("--no-temperature", action="store_true")
 
+    agent_cmd = sub.add_parser("agent", help="run a language-model agent on a task or world")
+    agent_cmd.add_argument(
+        "--task",
+        required=True,
+        help="a registered task id, or an open world such as 'open_factory'",
+    )
+    agent_cmd.add_argument("--adapter", default="openai", choices=("openai", "anthropic"))
+    agent_cmd.add_argument("--base-url", default="http://127.0.0.1:8080/v1")
+    agent_cmd.add_argument("--model", default="local-model")
+    agent_cmd.add_argument("--api-key-env", default="")
+    agent_cmd.add_argument("--timeout", type=float, default=60.0)
+    agent_cmd.add_argument("--env-file", default=None)
+    agent_cmd.add_argument("--token-parameter", default="max_tokens")
+    agent_cmd.add_argument("--no-temperature", action="store_true")
+    agent_cmd.add_argument(
+        "--thinking",
+        action="store_true",
+        help="enable the provider thinking mode. Note this makes the run "
+        "non-deterministic: temperature is accepted and then ignored",
+    )
+    agent_cmd.add_argument("--reasoning-effort", default=None, choices=("low", "high", "max"))
+    agent_cmd.add_argument("--max-tokens", type=int, default=4096)
+    agent_cmd.add_argument(
+        "--clock",
+        default="stepped",
+        choices=("stepped", "realtime"),
+        help="'stepped' pauses the world between decisions, which is what every "
+        "measured run uses. 'realtime' runs at speed 1.0 and does not pause, so "
+        "the world moves while the model thinks -- a demonstration, not a "
+        "measurement",
+    )
+    agent_cmd.add_argument("--episodes", type=int, default=1)
+    agent_cmd.add_argument("--split", default="val", choices=("train", "val", "test"))
+    agent_cmd.add_argument("--max-steps", type=int, default=None)
+    agent_cmd.add_argument("--skills", action="store_true")
+    agent_cmd.add_argument("--wait-batch", type=int, default=0)
+    agent_cmd.add_argument("--seed", type=int, default=20260910)
+    agent_cmd.add_argument("--prefix", default="agent")
+    agent_cmd.add_argument(
+        "--max-cost-usd",
+        type=float,
+        default=5.0,
+        help="hard cap. A request whose worst case would exceed what is left is not sent at all",
+    )
+    agent_cmd.add_argument(
+        "--max-wall-seconds",
+        type=float,
+        default=1800.0,
+        help="measured from the first gameplay observation, so engine launch does not consume it",
+    )
+    agent_cmd.add_argument("--out", default=None)
+
     demo_cmd = sub.add_parser("demo", help="run the agent demonstration (PLAN 5.7)")
     demo_cmd.add_argument("rest", nargs=argparse.REMAINDER)
 
@@ -851,6 +1053,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_doctor_train(args)
     if args.command == "doctor-agent":
         return cmd_doctor_agent(args)
+    if args.command == "agent":
+        return cmd_agent(args)
     if args.command == "demo":
         return cmd_demo(args)
     if args.command == "replay":

@@ -353,12 +353,45 @@ for named scenes, deliberately outside the evaluation path, and in an aggregate
 shape replay cannot read. So of R6's five gate clauses, replay serves the agent
 half and not the learning half.
 
-**There is no `factoriorl agent` subcommand.** `factoriorl demo` is hardwired to
-`plate_line`, to the OpenAI-compatible adapter, and to a fixed output path
-under `docs/evidence/`. Running an agent on any other task means calling
-`agent.runner.run_task` from Python or invoking `tools/watch_agent.py`
-directly. `AnthropicMessagesAdapter` is implemented, tested and reachable only
-from Python -- no CLI surface constructs it.
+**`factoriorl agent` now exists** (roadmap A0). It runs a registered task or an
+open world, selects either adapter with `--adapter`, enforces a spend cap and a
+wall clock, and writes run-local artifacts. What remains true: `factoriorl demo`
+is still hardwired to `plate_line` and still overwrites the tracked
+`docs/evidence/phase5-demonstration.json`; wrapping it over the new command is
+A0-4's remaining item.
+
+**An open world is not a benchmark task, and nothing measured on it is
+comparable to one.** `open_factory` has no success predicate, no layout
+families and no reward components. It is deliberately outside the task registry
+-- see `src/factoriorl/worlds.py` for why registering it would break
+`validate_all` and both holdout tests, and why freezing it would orphan every
+piece of evidence citing `holdout_v3`'s content hash.
+
+**Resource patches were computed, transmitted and read by nothing.** Anything
+further from the character than `resource_detail_radius` (12 tiles) reaches the
+observation only as a per-name aggregate under `resources.patches`, and the
+mod's own comment recorded that "`encoders.encode` and every task predicate read
+`resources.tiles`; nothing reads `patches`". On a painted benchmark scene this
+was invisible, because a declared scene puts its ore within a few tiles. On a
+generated map it was fatal: measured on a natural spawn, the nearest iron ore
+was 28 tiles away and 29 resource entities sat inside the sensor radius while
+the agent's prompt said "RESOURCES: none in sensor range". The prompt now
+renders the aggregate, marked as too far to address directly. **The RL encoder
+still reads only `resources.tiles`**, so a trained policy remains blind to
+anything beyond 12 tiles -- unchanged, and now written down.
+
+**The open world has no save or resume.** There is no mid-run save anywhere in
+the project: no `game.server_save`, no `--mp-load-game`, and autosaves are
+disabled in two places. `session.open_world(fresh=False)` exists and is the
+shape a resume would use, but nothing produces the file it would resume from.
+That is roadmap A1.3.
+
+**A run's cost is conservative accounting, not an invoice.** Token counts come
+from the provider's own `usage` block and prices from a table snapshotted on a
+recorded date (`src/factoriorl/pricing.py`). Every rate is the peak rate, an
+unreported cache split is priced as all-miss, and a call whose usage never
+arrives is charged at its worst-case reservation and flagged. The number is an
+upper bound this repository can defend.
 
 **The engine build is pinned exactly and cannot be relaxed.** 2.0.60 build
 83512, refused otherwise by `factoriorl doctor` and again at worker launch.

@@ -492,6 +492,67 @@ local function handle_reset(request)
   })
 end
 
+-- Initialise a generated map, as opposed to installing a painted scene.
+--
+-- A separate request rather than a flag on `reset`, because the two differ in
+-- almost everything they do: `reset` clears the surface, rebuilds a declared
+-- blueprint and un-researches the force, and every one of those is wrong for a
+-- world the agent is meant to explore and keep. Sharing a handler would mean one
+-- more branch in the most load-bearing function in this file.
+--
+-- `fresh = false` leaves the character and its inventory alone, which is what a
+-- resumed world needs: the save already holds what the agent had.
+local function handle_open_world(request)
+  local payload = request.payload or {}
+  if payload.observation_profile then
+    if not profiles.observation(payload.observation_profile) then
+      return respond(request, CODE.REJECTED, nil,
+        err(ERR.INVALID_TARGET, "unknown observation profile"))
+    end
+    state.observation_profile = payload.observation_profile
+  else
+    state.observation_profile = profiles.DEFAULT_OBSERVATION
+  end
+  if payload.action_profile then
+    local action_profile = profiles.action(payload.action_profile)
+    if not action_profile or not action_profile.available then
+      return respond(request, CODE.REJECTED, nil,
+        err(ERR.INVALID_TARGET, "unknown or unavailable action profile"))
+    end
+    state.action_profile = payload.action_profile
+  else
+    state.action_profile = profiles.DEFAULT_ACTION
+  end
+
+  local fresh = payload.fresh ~= false
+  if fresh then
+    -- Clears the character's inventory and any in-flight operation, before the
+    -- starting items are inserted -- the same ordering `reset` needs, and for
+    -- the same reason: doing it afterwards discards what was just handed over.
+    actions.reset_state()
+  end
+
+  local built = world.open_world({
+    inventory = fresh and payload.inventory or nil,
+    position = payload.position,
+    chart_radius = payload.chart_radius,
+  })
+  -- Deliberately no `world.reset_force()` and no `world.clear_statistics()`:
+  -- both are episode-boundary operations for a benchmark scene, and both would
+  -- destroy state an open world is supposed to accumulate.
+  local new_episode = begin_episode()
+  return respond(request, CODE.OK, {
+    episode_id = new_episode,
+    scenario = built.scenario,
+    destroyed = built.destroyed,
+    delivered = built.delivered,
+    undelivered = built.undelivered,
+    position = built.position,
+    fresh = fresh,
+    profiles = profiles.metadata(state.observation_profile, state.action_profile),
+  })
+end
+
 local HANDLERS = {
   status = handle_status,
   observe = handle_observe,
@@ -509,11 +570,21 @@ local HANDLERS = {
   truth = handle_truth,
   world_digest = handle_world_digest,
   disrupt = handle_disrupt,
+  open_world = handle_open_world,
 }
 
 -- `disrupt` mutates the scene, so it belongs here: whatever gating a
 -- mutating request receives, a disruption must receive too.
-local MUTATING = { advance = true, act = true, reset = true, step = true, disrupt = true }
+-- `open_world` destroys player-force entities and moves the character, so it
+-- is as mutating as `reset` and receives the same gating.
+local MUTATING = {
+  advance = true,
+  act = true,
+  reset = true,
+  step = true,
+  disrupt = true,
+  open_world = true,
+}
 
 function runtime.handle_json(json_string)
   local ok, request = pcall(helpers.json_to_table, json_string)

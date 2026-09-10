@@ -554,10 +554,10 @@ class AgentLoop:
             return wait
         return legal[0].index
 
-    def run_episode(self, episode: int) -> dict:
+    def run_episode(self, episode: int, *, until=None) -> dict:
         """Reset, then play one segment for the whole budget."""
         self.env.reset()
-        return self.run_segment(episode, fresh_memory=True)
+        return self.run_segment(episode, fresh_memory=True, until=until)
 
     def run_segment(
         self,
@@ -771,7 +771,7 @@ class AgentLoop:
         except Exception:  # noqa: BLE001 - a missing metric is not a failed run
             return None
 
-    def run(self) -> dict:
+    def run(self, *, until: Callable[[], bool] | None = None) -> dict:
         """Play ``config.episodes`` episodes and write the run artifact."""
         started = time.perf_counter()
         self.run_dir.mkdir(parents=True, exist_ok=True)
@@ -781,7 +781,11 @@ class AgentLoop:
         episodes: list[dict] = []
         try:
             for index in range(self.config.episodes):
-                episodes.append(self.run_episode(index))
+                episodes.append(self.run_episode(index, until=until))
+                if until is not None and until():
+                    # A run-level stop -- a wall clock or a spend cap -- ends
+                    # the run, not merely the episode it fired in.
+                    break
             status = {"run_id": self.run_id, "state": "completed"}
         except Exception as exc:  # noqa: BLE001 - a failed run must stay inspectable
             import traceback

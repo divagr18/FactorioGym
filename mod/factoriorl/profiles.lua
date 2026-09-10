@@ -133,6 +133,42 @@ profiles.OBSERVATION = {
       "remembered", "task", "inflight", "goal", "events", "recipes",
     },
   },
+
+  -- `local-v2` plus the aggregated resource patches, for open generated worlds.
+  --
+  -- A separate profile rather than a change to `local-v2`, because every frozen
+  -- task declares `local-v2` and its `version` is part of the observation
+  -- contract those tasks were measured under. Adding a key there would change
+  -- what a benchmark observation is, for the benefit of a mode no benchmark task
+  -- uses. The roadmap is explicit: existing frozen task and action contracts
+  -- must not silently change.
+  --
+  -- Why it is needed at all: `resource_detail_radius` is 12 tiles, so anything
+  -- further out reaches the observation only as a per-name aggregate under
+  -- `resources.patches` -- and `slim` drops that block entirely. On a painted
+  -- benchmark scene that is invisible, because a declared scene places its ore
+  -- within a few tiles. On a generated map the nearest iron ore was measured at
+  -- 28 tiles, so the agent's prompt read "RESOURCES: none in sensor range" while
+  -- 29 resource entities sat inside the sensor radius. An agent told there is no
+  -- ore does not go looking for ore.
+  ["open-v1"] = {
+    name = "open-v1",
+    version = 1,
+    radius = 32,
+    entity_cap = 48,
+    entity_sweep_limit = 257,
+    resource_cap = 512,
+    resource_detail_radius = 12,
+    terrain_detail = "mask",
+    memory = true,
+    -- The whole point: `slim` is what suppresses `resources.patches`.
+    slim = false,
+    keys = {
+      "episode_id", "tick", "absolute_tick", "profiles", "character",
+      "inventory", "sensor", "terrain", "resources", "entities",
+      "remembered", "task", "inflight", "goal", "events", "recipes",
+    },
+  },
 }
 
 profiles.ACTION = {

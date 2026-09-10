@@ -375,8 +375,9 @@ def _resource_rows(observation: dict, origin: list[float]) -> list[dict]:
     nearest tile per resource name is the actionable fact and the tile count is
     the context for it.
     """
+    resources = observation.get("resources") or {}
     grouped: dict[str, dict] = {}
-    for tile in (observation.get("resources") or {}).get("tiles") or []:
+    for tile in resources.get("tiles") or []:
         position = tile.get("p") or [0.0, 0.0]
         dx = float(position[0]) - float(origin[0])
         dy = float(position[1]) - float(origin[1])
@@ -394,6 +395,50 @@ def _resource_rows(observation: dict, origin: list[float]) -> list[dict]:
             row["amount"] = tile.get("amount")
     for row in grouped.values():
         row["distance"] = round(row["distance"], 1)
+
+    # Anything further away than `resource_detail_radius` -- 12 tiles, for both
+    # observation profiles -- reaches the observation only as a per-name
+    # aggregate under `resources.patches`. Until now nothing read it: the mod's
+    # own comment says so ("`encoders.encode` and every task predicate read
+    # `resources.tiles`; nothing reads `patches`"), and neither did this.
+    #
+    # On a benchmark scene that never mattered, because a declared scene places
+    # its ore within a few tiles of the character. On a generated map it is
+    # fatal: measured on a natural spawn, the nearest iron ore is 28 tiles away,
+    # so the prompt said "RESOURCES: none in sensor range" while 29 resource
+    # entities sat inside the sensor radius. An agent told there is no ore does
+    # not go looking for ore.
+    # Keyed by name on the wire, because the mod builds it as a Lua table keyed
+    # by resource name. Both shapes are accepted so a future profile that emits
+    # a list does not silently render nothing.
+    raw_patches = resources.get("patches") or {}
+    patch_rows = raw_patches.values() if isinstance(raw_patches, dict) else raw_patches
+    for patch in patch_rows:
+        if not isinstance(patch, dict):
+            continue
+        name = patch.get("name", "unknown")
+        if name in grouped:
+            # Detail wins: if some tiles are close enough to address directly,
+            # the exact nearest tile is more useful than the patch average.
+            grouped[name]["patch_tiles"] = patch.get("count")
+            grouped[name]["patch_amount"] = patch.get("total")
+            continue
+        nearest = patch.get("nearest") or [0.0, 0.0]
+        dx = float(nearest[0]) - float(origin[0])
+        dy = float(nearest[1]) - float(origin[1])
+        grouped[name] = {
+            "name": name,
+            "tiles": patch.get("count", 0),
+            "distance": round(float(patch.get("nearest_d") or _distance(dx, dy)), 1),
+            "nearest_offset": [round(dx, 1), round(dy, 1)],
+            "bearing": _compass(dx, dy),
+            "amount": patch.get("total"),
+            # Marked, because the offset is to the nearest tile of the patch
+            # rather than to a tile this observation can address by handle. A
+            # model that tries to name a handle for it should be told why there
+            # is not one.
+            "aggregate": True,
+        }
     return sorted(grouped.values(), key=lambda row: row["distance"])
 
 
@@ -541,10 +586,15 @@ class ObservationSummary:
             lines.append("  none in sensor range")
         for row in self.resources:
             offset = row.get("nearest_offset") or [0.0, 0.0]
+            # An aggregate row has no addressable handle: it is further out than
+            # the detail radius, so the only way to act on it is to walk there
+            # first. Saying so beats letting the model discover it by having an
+            # action rejected.
+            note = " (too far to address; walk closer)" if row.get("aggregate") else ""
             lines.append(
                 f"  {row['name']}: {row['tiles']} tiles, nearest at offset "
                 f"({offset[0]:+.1f}, {offset[1]:+.1f}), "
-                f"{row['distance']} tiles {row.get('bearing')}"
+                f"{row['distance']} tiles {row.get('bearing')}{note}"
             )
 
         if self.events:

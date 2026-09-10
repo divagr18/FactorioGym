@@ -24,7 +24,7 @@ from factoriorl.modpack import package_mod
 from factoriorl.paths import ports_dir
 from factoriorl.protocol import Request, RequestType
 from factoriorl.rcon import LuaError, RCONClient, RCONError, lua_string
-from factoriorl.worker_config import WorkerPorts, WorkerSpec
+from factoriorl.worker_config import TERRAIN_BENCHMARK, WorkerPorts, WorkerSpec
 
 LAUNCH_TIMEOUT_SECONDS = 120.0
 SAVE_TIMEOUT_SECONDS = 90.0
@@ -361,8 +361,17 @@ class WorkerManager:
         map_seed: int = 424242,
         create_save: bool = True,
         save_source: Path | None = None,
+        terrain: str = TERRAIN_BENCHMARK,
     ) -> WorkerHandle:
         """Bring up one isolated worker.
+
+        ``terrain`` selects the generator surface. The default is the benchmark
+        one -- every resource, tree and body of water switched off -- because a
+        painted scene must not compete with generated obstacles the structural
+        validators cannot see. ``natural`` is an ordinary Factorio map with
+        finite deposits and no enemies, for the open-ended mode where the agent
+        has to find its own resources. It is ignored when ``save_source`` is
+        given, because a save already carries the world it was generated with.
 
         ``save_source`` starts the worker from an existing save instead of
         generating a fresh world -- how :meth:`WorkerSupervisor.restart`
@@ -374,7 +383,7 @@ class WorkerManager:
             raise StartupFailure(StartupFailureKind.MISSING_EXECUTABLE, str(self.engine.executable))
         ports = allocate_ports()
         try:
-            spec = WorkerSpec(worker_id=worker_id, ports=ports, map_seed=map_seed)
+            spec = WorkerSpec(worker_id=worker_id, ports=ports, map_seed=map_seed, terrain=terrain)
             spec.write_config_files()
             package_mod(spec.mod_directory)
             if save_source is not None:

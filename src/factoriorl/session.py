@@ -432,6 +432,47 @@ class WorkerSession:
         self._adopt_episode(timed.response)
         return timed
 
+    def open_world(
+        self,
+        inventory: dict[str, int] | None = None,
+        observation_profile: str | None = None,
+        action_profile: str | None = None,
+        position: tuple[float, float] | None = None,
+        chart_radius: int | None = None,
+        fresh: bool = True,
+    ) -> TimedResponse:
+        """Start (or resume) an open generated world.
+
+        This is not `reset` with different arguments. `reset` destroys the
+        surface inside the scene box and rebuilds a declared blueprint, which on
+        a generated map would delete the resources the agent is supposed to find.
+        `open_world` sweeps only player-force entities -- the reference scene the
+        mod paints into every new save -- and leaves the map itself alone.
+
+        `fresh=False` resumes: the character's inventory and the force's research
+        are left exactly as the save holds them.
+        """
+        payload: dict = {"fresh": fresh}
+        if inventory:
+            payload["inventory"] = dict(inventory)
+        if observation_profile is not None:
+            payload["observation_profile"] = observation_profile
+        if action_profile is not None:
+            payload["action_profile"] = action_profile
+        if position is not None:
+            payload["position"] = [float(position[0]), float(position[1])]
+        if chart_radius is not None:
+            payload["chart_radius"] = int(chart_radius)
+        request = Request(
+            request_id=self._next_request_id("openworld"),
+            episode_id=self.episode_id or "",
+            type=RequestType.OPEN_WORLD,
+            payload=payload,
+        )
+        timed = self._request(request)
+        self._adopt_episode(timed.response)
+        return timed
+
     def request_status(self, request_id: str) -> TimedResponse:
         request = Request(
             request_id=self._next_request_id("reqstat"),

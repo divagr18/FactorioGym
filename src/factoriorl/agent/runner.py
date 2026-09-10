@@ -22,11 +22,24 @@ from factoriorl.agent.adapters import ModelAdapter
 from factoriorl.agent.loop import AgentConfig, AgentLoop
 from factoriorl.engine_config import resolve_game_speed
 
+
 #: The paused server loop rate. Same value ``learn/train.py`` uses, for the same
 #: reason: RCON round-trip latency is bounded by the server tick, so a run at
-#: the default speed pays 16.6 ms per round trip instead of 1.5 ms. Set here so
-#: an agent run and a training run measure game time on the same footing.
-RUN_SPEED = resolve_game_speed()
+#: the default speed pays 16.6 ms per round trip instead of 1.5 ms.
+#:
+#: Resolved per call rather than at import, which is how it used to be: a module
+#: constant is read once when the process starts, so a caller that wanted a
+#: different speed -- a real-time run, say -- silently got whatever the first
+#: import had decided.
+def default_speed() -> float:
+    return resolve_game_speed()
+
+
+#: Real time. One second of wall clock is one second of game time, so a decision
+#: the model spends five seconds on costs the world five seconds. Every measured
+#: benchmark run uses `default_speed()` instead, which is far faster and
+#: unwatchable.
+REALTIME_SPEED = 1.0
 
 
 def run_task(
@@ -34,6 +47,10 @@ def run_task(
     adapter: ModelAdapter,
     *,
     master_seed: int = 20260907,
+    game_speed: float | None = None,
+    free_running: bool = False,
+    on_ready=None,
+    until=None,
 ) -> dict[str, Any]:
     """Launch a worker, play ``config.episodes`` episodes, return the result.
 
@@ -60,10 +77,17 @@ def run_task(
     handle = manager.launch(f"agent-{config.task_id}-{run_id[-8:]}")
     session = None
     try:
+        speed = default_speed() if game_speed is None else float(game_speed)
         with RCONClient(handle.spec.rcon_endpoint, timeout=30.0) as client:
-            client.lua(f"game.speed = {RUN_SPEED} return game.speed")
+            client.lua(f"game.speed = {speed} return game.speed")
         session = WorkerSession(handle, timeout=30.0)
         session.status()
+        if free_running:
+            # The world is no longer paused between decisions, so an action
+            # lands at whatever tick it arrives at. That makes the run a
+            # demonstration rather than a measurement, and it is recorded as one
+            # in the provenance below rather than left to be inferred.
+            session.configure(free_running=True)
         branch = Branch.TRAIN if config.split == "train" else Branch.EVAL
         env = FactorioEnv(
             task,
@@ -98,9 +122,115 @@ def run_task(
                     task.spec,
                     extra=((f"wait-batch:{config.wait_batch}",) if config.wait_batch else ()),
                 ),
+                "clock": {
+                    "game_speed": speed,
+                    "free_running": free_running,
+                    "measurement": (
+                        "demonstration: the world runs while the model thinks, so "
+                        "an action lands at whatever tick it arrives at"
+                        if free_running
+                        else "exact stepping"
+                    ),
+                },
             },
         )
-        return loop.run()
+        # The run clock starts here and not before: A0.3 puts it at "the first
+        # gameplay observation after engine readiness", so worker launch, mod
+        # packaging and save creation do not eat the agent's time. `loop.run()`
+        # takes the first observation on its next line.
+        if on_ready is not None:
+            on_ready()
+        return loop.run(until=until)
+    finally:
+        if session is not None:
+            try:
+                session.close()
+            except OSError:
+                pass
+        manager.cleanup(handle)
+
+
+def run_world(
+    mode,
+    config: AgentConfig,
+    adapter: ModelAdapter,
+    *,
+    master_seed: int = 20260910,
+    game_speed: float | None = None,
+    free_running: bool = True,
+    on_ready=None,
+    until=None,
+) -> dict[str, Any]:
+    """Play an open generated world -- `factoriorl.worlds` -- rather than a task.
+
+    Structurally the same as :func:`run_task` and deliberately not folded into
+    it. The two differ at every step that matters: the worker is created on the
+    natural terrain surface rather than the benchmark one, the environment
+    initialises the map instead of painting a scene over it, and the run is not
+    scored. Sharing one function would mean four branches through the only code
+    path that launches an engine.
+
+    ``free_running`` defaults to True here and False there, which is the honest
+    default for each: a benchmark episode is a measurement and needs the world
+    paused between decisions; an open world is played in real time and a paused
+    world would misrepresent what the agent was doing with its thirty minutes.
+    """
+    from factoriorl import manifest as manifest_module
+    from factoriorl.freeplay import starting_inventory
+    from factoriorl.open_world import OpenWorldEnv
+    from factoriorl.rcon import RCONClient
+    from factoriorl.seeding import seed_everything
+    from factoriorl.session import WorkerSession
+    from factoriorl.worker import WorkerManager
+
+    run_id = manifest_module.new_run_id(config.run_prefix)
+    seeded = seed_everything(master_seed)
+
+    manager = WorkerManager()
+    # Read before the worker is launched: an unreadable freeplay definition
+    # should fail in a second, not after a ninety-second map generation.
+    freeplay = starting_inventory(manager.engine.executable)
+    handle = manager.launch(
+        f"world-{mode.id}-{run_id[-8:]}",
+        map_seed=master_seed,
+        terrain=mode.terrain,
+    )
+    session = None
+    try:
+        speed = REALTIME_SPEED if game_speed is None else float(game_speed)
+        with RCONClient(handle.spec.rcon_endpoint, timeout=30.0) as client:
+            client.lua(f"game.speed = {speed} return game.speed")
+        session = WorkerSession(handle, timeout=30.0)
+        session.status()
+        if free_running:
+            session.configure(free_running=True)
+        env = OpenWorldEnv(mode, session, inventory=freeplay["items"], seed=master_seed)
+        loop = AgentLoop(
+            env,
+            adapter,
+            config,
+            run_id=run_id,
+            provenance={
+                "engine": handle.engine.to_dict(),
+                "workers": [handle.spec.manifest()],
+                "seeds": {"master": master_seed, "seeded": seeded, "map_seed": master_seed},
+                "assistance": assistance_module.STATIC,
+                "world": mode.to_dict(),
+                "starting_inventory": freeplay,
+                "clock": {
+                    "game_speed": speed,
+                    "free_running": free_running,
+                    "measurement": (
+                        "demonstration: an open world is played in real time and "
+                        "is not scored; no rate measured here is comparable to a "
+                        "benchmark task"
+                    ),
+                },
+            },
+        )
+        if on_ready is not None:
+            on_ready()
+        return loop.run(until=until)
     finally:
         if session is not None:
             try:

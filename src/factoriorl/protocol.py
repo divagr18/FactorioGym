@@ -71,6 +71,13 @@ class RequestType(StrEnum):
     # Evaluator-only, like TRUTH and WORLD_DIGEST -- no action a policy can name
     # reaches it.
     DISRUPT = "disrupt"
+    # Initialise a *generated* map instead of installing a painted scene. A
+    # separate request from RESET because the two differ in nearly everything
+    # they do: RESET sweeps the surface -- including the neutral-force entities
+    # that natural ore, trees and rocks are -- rebuilds a declared blueprint, and
+    # un-researches the force. On a world the agent is meant to explore and keep,
+    # every one of those is destructive.
+    OPEN_WORLD = "open_world"
 
 
 class ActionType(StrEnum):

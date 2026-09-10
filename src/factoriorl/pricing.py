@@ -99,6 +99,27 @@ PRICES: dict[str, ModelPrice] = {
     ),
 }
 
+#: A local inference endpoint -- llama.cpp, vLLM, LM Studio, Ollama -- bills
+#: nothing, and that is a *known* price rather than an unknown one. Without this
+#: the default `factoriorl agent` invocation, which points at a local server the
+#: way `doctor-agent` does, would be refused by a cap it can never breach.
+#:
+#: Zero is asserted here only for endpoints that are free by construction. A
+#: hosted model whose price nobody has checked still raises, which is the case
+#: the refusal exists for.
+_FREE = dict(
+    input_cache_hit=0.0,
+    input_cache_miss=0.0,
+    output=0.0,
+    context_window=0,
+    max_output=0,
+    retrieved="n/a",
+    source_url="https://localhost",
+)
+
+PRICES["local-model"] = ModelPrice(model="local-model", **_FREE)
+PRICES["scripted"] = ModelPrice(model="scripted", **_FREE)
+
 #: Aliases the provider documents as resolving to a priced model.
 ALIASES: dict[str, str] = {
     "deepseek-v4-flash": "deepseek-flash",

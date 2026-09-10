@@ -236,6 +236,87 @@ function world.recreate_character()
 end
 
 
+-- ---------------------------------------------------------------- open world
+
+-- Initialise an ordinary generated map without destroying it.
+--
+-- Every other route into a scene goes through `clear_scene`, which sweeps
+-- **neutral**-force entities inside the scene box -- and natural resources,
+-- trees and rocks are neutral. That is correct for a painted benchmark scene and
+-- catastrophic for a generated one: it would delete the ore the agent is
+-- supposed to go and find.
+--
+-- So this sweeps the **player** force only. The reference scene that
+-- `runtime.on_init` paints into every freshly created save -- two chests, a wall
+-- row, fifty iron plates -- is player force, so it goes; the map does not. That
+-- also makes this safe to run on a save that already had a scene installed,
+-- which gating `on_init` would not have been.
+--
+-- Three things it deliberately does not do:
+--
+--   * `world.reset_force()`, which un-researches every technology. A generated
+--     save already has prototype-default research, and on a resumed world this
+--     would silently throw away everything the agent had researched.
+--   * `always_day`. A benchmark scene freezes the clock so lighting cannot vary
+--     between episodes; an open world should have its ordinary day and night.
+--   * grant anything beyond the declared inventory. The caller passes freeplay's
+--     own `created_items`, read from the installed game.
+function world.open_world(options)
+  options = options or {}
+  local srf = surface()
+  local removed = 0
+  for _, entity in pairs(srf.find_entities_filtered({ force = "player" })) do
+    if entity.valid and entity.type ~= "character" then
+      entity.destroy({ raise_destroy = true })
+      removed = removed + 1
+    end
+  end
+
+  local ch = world.ensure_character()
+  local spawn = options.position or { 0, 0 }
+  ch.teleport({ spawn[1], spawn[2] })
+
+  -- Requested against delivered, per item. `insert` returns what it actually
+  -- took, and a partial insert would otherwise look like a successful start
+  -- with a quietly smaller inventory.
+  local inv = ch.get_inventory(defines.inventory.character_main)
+  local delivered, undelivered = {}, {}
+  for item, count in pairs(options.inventory or {}) do
+    local taken = inv.insert({ name = item, count = count })
+    delivered[item] = taken
+    if taken < count then
+      undelivered[#undelivered + 1] = { item = item, requested = count, delivered = taken }
+    end
+  end
+
+  -- Chart the starting area so the first observation is not of a blank map.
+  -- Freeplay charts too; an uncharted spawn would make the agent's first
+  -- several decisions be about revealing terrain rather than about building.
+  local radius = options.chart_radius or 96
+  game.forces["player"].chart(srf, { { -radius, -radius }, { radius, radius } })
+
+  storage.frrl_scene = {
+    name = "open_world",
+    aliases = {},
+    markers = {},
+    -- No objective markers at all: there is no declared goal geometry to
+    -- withhold, and nothing for `public_markers` to filter.
+    public_markers = {},
+    extra_tracked_items = options.extra_tracked_items or {},
+    radius = radius,
+    open_world = true,
+  }
+
+  return {
+    scenario = storage.frrl_scene.name,
+    destroyed = removed,
+    delivered = delivered,
+    undelivered = undelivered,
+    position = { ch.position.x, ch.position.y },
+  }
+end
+
+
 -- ---------------------------------------------------------------- blueprints
 
 --- Blueprints are installed once and referenced by hash thereafter, so a

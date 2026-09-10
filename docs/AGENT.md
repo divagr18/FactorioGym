@@ -62,6 +62,60 @@ landing verbatim in `decisions.jsonl` next to results people share.
 ## Run one
 
 ```
+uv run factoriorl agent --task deliver --base-url <url> --model <name> \
+    --api-key-env OPENAI_API_KEY --max-cost-usd 1 --max-wall-seconds 600
+```
+
+`--task` takes a registered task **or** an open world. `open_factory` is a
+fresh natural map with freeplay's ordinary starting items and no enemies:
+
+```
+uv run factoriorl agent --task open_factory --clock realtime \
+    --base-url https://api.deepseek.com --model deepseek-flash \
+    --api-key-env DEEPSEEK_API_KEY --thinking \
+    --max-cost-usd 5 --max-wall-seconds 1800
+```
+
+Three things this command does that no earlier entrypoint did:
+
+**It will not dispatch a request it cannot afford.** Before each call it
+reserves the worst case -- every input token priced as a cache miss, output at
+its ceiling -- and refuses to send if that would breach `--max-cost-usd`. The
+reservation is released when the provider reports real usage. A call whose usage
+never arrives keeps its reservation as committed spend and is flagged, so the
+total is never presented as exact.
+
+**The clock starts at the first gameplay observation**, not at process start, so
+a ninety-second map generation does not eat the agent's budget. Every provider
+request inherits whatever is left of it.
+
+**`--clock realtime`** runs at game speed 1.0 and does not pause the world
+between decisions, so the factory keeps running while the model thinks. That
+makes the run a demonstration rather than a measurement, and it is recorded as
+one in the manifest. Benchmark runs use `stepped`, the default.
+
+`--adapter anthropic` selects `AnthropicMessagesAdapter`, which was previously
+reachable only from Python.
+
+### Prompt caching, and why it decides whether a run is affordable
+
+For `deepseek-flash` an input token served from the provider's prefix cache
+costs $0.006 per million against $0.30 for one that is not -- **fifty times**
+cheaper. Over a 300-decision run at ~2,500 volatile tokens a turn, an
+append-only conversation costs about **$1.19** at a 99.3% hit rate; rebuilding
+the prompt each turn costs about **$34**. Against a $5 cap that is the
+difference between a run that can happen and one that cannot.
+
+So the conversation only ever grows: a retry appends the model's rejected answer
+and the reason rather than rewriting the turn already sent, and a call that
+failed in transport is re-sent byte-identical. `--thinking` enables the
+provider's thinking mode -- note that it accepts `temperature` and then ignores
+it, so such a run is **not** reproducible from its seed, and the manifest says
+so.
+
+The older demonstration entrypoint still exists:
+
+```
 uv run factoriorl demo
 ```
 
