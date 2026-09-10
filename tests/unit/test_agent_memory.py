@@ -86,8 +86,71 @@ def test_a_failed_plan_survives_compaction():
     assert len([a for a in memory.attempts if not a.failed]) == 3
     rendered = memory.render()
     assert "REFUSED ACTIONS" in rendered
-    assert "PLANS THAT DID NOT WORK" in rendered
-    assert "h9 is out of reach" in rendered
+    # Renamed from "PLANS THAT DID NOT WORK" when A3.2 gave `close_plan` its
+    # first caller. Once a plan can also be closed as `superseded` -- the model
+    # changing its own mind, which is not a failure -- a heading that calls
+    # every closed plan a failed one is wrong in the prompt the agent reads.
+    assert "EARLIER PLANS" in rendered
+    assert "deliver to h9 -> h9 is out of reach" in rendered
+
+
+def test_a_superseded_plan_is_not_reported_as_a_failure():
+    """A3.2: stating a new plan closes the old one, and says why it closed."""
+    memory = Memory()
+    memory.record_plan(1, "smelt iron by hand")
+    memory.record_plan(9, "build a furnace")
+
+    rendered = memory.render()
+    assert "CURRENT PLAN\n  build a furnace" in rendered
+    assert "smelt iron by hand -> superseded" in rendered
+    # One plan is open at a time: two contradictory current intentions in one
+    # prompt is the defect supersession exists to prevent.
+    assert len([p for p in memory.plans if p["outcome"] == "open"]) == 1
+
+
+def test_restating_the_same_plan_is_continuity_not_a_new_plan():
+    memory = Memory()
+    memory.record_plan(1, "smelt iron")
+    memory.record_plan(2, "smelt   iron")  # same words, different whitespace
+
+    assert len(memory.plans) == 1
+    assert "EARLIER PLANS" not in memory.render()
+
+
+def test_a_model_note_is_never_presented_as_an_observation():
+    """A3.2: model assertions stay separate from confirmed observations.
+
+    The separation has to be visible in the rendered prompt, because the prompt
+    is the only place the distinction can act on anything.
+    """
+    memory = Memory()
+    memory.observe(0, observation(0, ["h1"]))
+    memory.observe(3, observation(3, []))
+    memory.record_note(3, "coal is somewhere north-east, maybe 40 tiles")
+
+    rendered = memory.render()
+    notes_at = rendered.index("THE AGENT'S OWN NOTES")
+    remembered_at = rendered.index("REMEMBERED (not in the current observation)")
+    assert notes_at != remembered_at
+    # The claim appears under the unverified heading and nowhere else.
+    assert rendered.count("coal is somewhere north-east") == 1
+    assert "coal" not in rendered[remembered_at:notes_at]
+    assert all(note.source == "model" for note in memory.notes)
+
+
+def test_notes_are_bounded_and_do_not_repeat_themselves():
+    """The model controls this text completely, so it has to be capped: an
+    agent writing a note a turn would grow a prompt that is re-sent in full."""
+    from factoriorl.agent.memory import NOTES_KEPT
+
+    memory = Memory()
+    for step in range(NOTES_KEPT * 3):
+        memory.record_note(step, f"observation number {step}")
+    memory.record_note(99, "observation number 99")
+    memory.record_note(100, "observation number 99")
+
+    assert len(memory.notes) == NOTES_KEPT
+    assert memory.notes[-1].statement == "observation number 99"
 
 
 def test_memory_never_ingests_the_evaluator_s_verdict():

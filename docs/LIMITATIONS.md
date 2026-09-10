@@ -492,6 +492,48 @@ quietly wrong for the rest of a run the moment a research finished. Current
 availability is published every turn in the observation instead, and the block
 says so in its own header.
 
+**The agent can now hold an intention across turns, and the three mechanisms
+that do it had all been written and left unreachable** (roadmap A3).
+`Memory.record_plan` and `close_plan` had zero callers, so the prompt rendered
+a `CURRENT PLAN` heading that was permanently empty. `Fact.source` admitted only
+observation-sourced entries, so a claim the model wanted to keep had nowhere to
+go that was not a lie about provenance. Nothing counted identical failures.
+Proved against a live engine in `docs/evidence/a3-agency.json` -- 9/9, scripted
+provider, no key and no cost.
+
+*The objective is in the cached prefix, not the turn.* `open_factory` now states
+what the agent is there to do, and states it once: it is invariant, and ~700
+characters repeated into a history that is re-sent in full costs ~26k tokens by
+turn 300. It prescribes no coordinates, no machine ordering, no build sequence
+and no success threshold -- A3.1 forbids all four -- and the test that enforces
+that checks the text contains no digit at all, because a coordinate or a target
+number cannot be written without one.
+
+*A refusal is a failure.* The first version of the repeated-failure counter only
+saw actions the *engine* rejected. But an out-of-domain argument is refused by
+`check_against_state` before it ever reaches the engine, which means the single
+most likely way a real agent gets stuck -- proposing the same illegal position
+over and over -- was the one kind of failure nothing counted. Found by running
+the probe, not by reading the code: the scripted agent sent an unreachable
+placement five times and the prompt said nothing. Refusals now carry the action
+they refused, and are recorded like any other failed attempt.
+
+*A plan is not an action.* A reply that states an intention and then picks a bad
+argument has still stated the intention, so `plan` and `note` survive a refused
+reply rather than being discarded with it.
+
+*The loop never substitutes an action.* A stall produces text and closes the open
+plan; it does not choose something that works. A3.3 forbids that, and the reason
+is worth keeping: an agent quietly rescued by its harness produces a run that
+measures the harness, and a trace that does not show it happened.
+
+*What it costs in prompt.* The memory block on the probe's final turn is 544
+characters. Before deduplication it would have been roughly 1,900: a domain
+refusal quotes its legal values, and the same 300-character sentence was
+appearing under both `REPEATED FAILURE` and `REFUSED ACTIONS`, once per attempt,
+on every later turn. Reasons are now clipped to 120 characters and a failure
+already named above is not repeated below.
+
 **Sequences are executed by Python, not by the mod's `batch`.** `batch` accepts
 only instantaneous operations, and by its own documentation refuses ongoing ones
 -- move, navigate, mine, craft -- because it could not say whether later

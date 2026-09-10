@@ -1,0 +1,103 @@
+{
+  "measures": "roadmap A3's gate, rendered against a live observation",
+  "world": {
+    "id": "open_factory",
+    "version": "0.3.0",
+    "kind": "world",
+    "terrain": "natural",
+    "observation_profile": "open-v1",
+    "action_profile": "assisted-v1",
+    "catalog": "open-v1",
+    "decision_ticks": 30,
+    "max_decision_steps": 100000,
+    "chart_radius": 96,
+    "assistance": [
+      "navigation",
+      "bounded-sequences:8"
+    ],
+    "objective": "YOUR OBJECTIVE\nBuild a productive factory from the items you start with.\n\n  - Automate gathering and processing rather than doing them by hand.\n    Handcrafting and hand-mining are how you bootstrap, not how you\n    produce.\n  - Expand production that is useful to you: more of what you are short\n    of, and the machines that make it.\n  - As resources and time allow, work toward electricity, assembly and\n    research.\n\nYour progress is measured -- what you gather, craft, place and research,\nand what your machines produce without your help. There is no target\nnumber and no hidden win condition. Keep working until the controller\nstops the run; it will not stop because you did something wrong.\n\nHow to build is yours to decide. Nothing here tells you where to put a\nmachine or in what order to build, because nobody has decided that for\nyou.",
+    "scored": false,
+    "note": "an open world has no success predicate and no layout families; it is not a benchmark task and no rate measured on it is comparable to one"
+  },
+  "engine": {
+    "executable": "D:\\Factorio\\bin\\x64\\factorio.exe",
+    "version": "2.0.60",
+    "build": 83512,
+    "platform": "win64"
+  },
+  "provider": "scripted -- no key, no call, no cost",
+  "decisions": 5,
+  "resolutions": [
+    "model",
+    "fallback_wait",
+    "fallback_wait",
+    "fallback_wait",
+    "fallback_wait"
+  ],
+  "attempt_failures": [
+    [],
+    [
+      [
+        "bad_argument",
+        "position=[9000.5, 9000.5] is not one of the 121 legal values for placements (e.g. [[-4.5, -4.5], [-4.5, -3.5], [-4.5, -2.5], [-4.5, -1.5], [-4.5, -0.5], [-4.5, 0.5]])"
+      ],
+      [
+        "bad_argument",
+        "position=[9000.5, 9000.5] is not one of the 121 legal values for placements (e.g. [[-4.5, -4.5], [-4.5, -3.5], [-4.5, -2.5], [-4.5, -1.5], [-4.5, -0.5], [-4.5, 0.5]])"
+      ],
+      [
+        "bad_argument",
+        "position=[9000.5, 9000.5] is not one of the 121 legal values for placements (e.g. [[-4.5, -4.5], [-4.5, -3.5], [-4.5, -2.5], [-4.5, -1.5], [-4.5, -0.5], [-4.5, 0.5]])"
+      ]
+    ],
+    [
+      [
+        "bad_argument",
+        "position=[9000.5, 9000.5] is not one of the 121 legal values for placements (e.g. [[-4.5, -4.5], [-4.5, -3.5], [-4.5, -2.5], [-4.5, -1.5], [-4.5, -0.5], [-4.5, 0.5]])"
+      ]
+    ],
+    [],
+    []
+  ],
+  "memory_render": "THE AGENT'S OWN NOTES (unverified -- you wrote these)\n  decision 1: the crash site is west and there is ore to the east\nREPEATED FAILURE -- this is not working\n  place_at with direction=north, item=stone-furnace, position=[9000.5, 9000.5] has failed 4 times: position=[9000.5, 9000.5] is not one of the 121 legal values for placements (e.g. [[-4.5, -4.5], [-4.5, -3.5], [-4.5, -\u2026\n  Sending it again will fail again. Do something different,\n  and say what in \"plan\".\nEARLIER PLANS\n  smelt iron, then build a second furnace on the coal -> stalled",
+  "memory_attempts": 8,
+  "objective_in_static_prefix": true,
+  "objective_absent_from_turn": true,
+  "static_prefix_chars": 3606,
+  "plan_recorded": "smelt iron, then build a second furnace on the coal",
+  "note_recorded": "the crash site is west and there is ore to the east",
+  "user_turns": 8,
+  "plan_under_current_plan_on_turn_two": true,
+  "note_survived_without_restatement": 4,
+  "plan_still_present": true,
+  "prompt_chars": 2334,
+  "memory_chars": 544,
+  "note_under_unverified_heading": true,
+  "stall_reported": true,
+  "stall_block": [
+    "  place_at with direction=north, item=stone-furnace, position=[9000.5, 9000.5] has failed 4 times: position=[9000.5, 9000.5] is not one of the 121 legal values for placements (e.g. [[-4.5, -4.5], [-4.5, -3.5], [-4.5, -\u2026"
+  ],
+  "plan_closed_as_stalled": true,
+  "stalled_on": [
+    "place_at"
+  ],
+  "refusals": [
+    "completed",
+    "completed",
+    "completed",
+    "completed"
+  ],
+  "final_prompt": "TASK open_factory v0.3.0\n  A fresh natural map with freeplay's ordinary starting items and no enemies. Build and expand automated production as far as time allows.\n  decision 4 of 100000; game tick 129\n\nCHARACTER\n  at (0.0, 0.0), standing\n\n\nINVENTORY\n  burner-mining-drill x1\n  firearm-magazine x10\n  iron-plate x8\n  pistol x1\n  stone-furnace x1\n  wood x1\n\nNEARBY ENTITIES (0 shown)\n  none in sensor range\n\nRESOURCES\n  iron-ore: 29 tiles, nearest at offset (-28.5, -0.5), 28.5 tiles west (too far to address; walk closer)\n\nRECENT ACTION OUTCOMES (oldest first)\n  tick 33: {'status': 'completed', 'action': 'wait'} -> completed\n  tick 65: {'status': 'completed', 'action': 'wait'} -> completed\n  tick 97: {'status': 'completed', 'action': 'wait'} -> completed\n  tick 129: {'status': 'completed', 'action': 'wait'} -> completed\n\nLEGAL ACTIONS (18); anything else will be rejected\n  0: move_north, 1: move_east, 2: move_south, 3: move_west, 4: step_north, 5: step_east, 6: step_south, 7: step_west, 8: nudge_north, 9: nudge_east, 10: nudge_south, 11: nudge_west, 12: place_at, 19: craft_recipe, 21: wait, 22: walk_to_position, 24: research_technology, 26: wait_for\n\nARGUMENT VALUES -- an action marked [needs: ...] must be answered with an \"arguments\" object supplying exactly those names\n  position: 121 legal now, e.g. [-4.5, -4.5], [-4.5, -3.5], [-4.5, -2.5], [-4.5, -1.5], [-4.5, -0.5], [-4.5, 0.5], [-4.5, 1.5], [-4.5, 2.5]\n  destination: [-28.5, -0.5]\n  item: burner-mining-drill, firearm-magazine, iron-plate, pistol, stone-furnace, wood\n  count: 1, 5, 20\n  recipe: burner-inserter, burner-mining-drill, copper-plate, firearm-magazine, iron-chest, iron-gear-wheel, iron-plate, light-armor, stone-brick, stone-furnace, transport-belt, wooden-chest\n  technology: electronics, steam-power\nTHE AGENT'S OWN NOTES (unverified -- you wrote these)\n  decision 1: the crash site is west and there is ore to the east\nREPEATED FAILURE -- this is not working\n  place_at with direction=north, item=stone-furnace, position=[9000.5, 9000.5] has failed 4 times: position=[9000.5, 9000.5] is not one of the 121 legal values for placements (e.g. [[-4.5, -4.5], [-4.5, -3.5], [-4.5, -\u2026\n  Sending it again will fail again. Do something different,\n  and say what in \"plan\".\nEARLIER PLANS\n  smelt iron, then build a second furnace on the coal -> stalled",
+  "wall_seconds": 22.0,
+  "verdict": {
+    "objective_is_cached_not_repeated": true,
+    "plan_persists_without_restatement": true,
+    "plan_was_current_in_a_turn_actually_sent": true,
+    "note_persisted_without_restatement": true,
+    "refusal_is_stated_once_not_twice": true,
+    "note_is_labelled_unverified": true,
+    "repeated_failure_reported": true,
+    "stalled_plan_closed": true,
+    "refusals_came_from_the_engine": true
+  }
+}

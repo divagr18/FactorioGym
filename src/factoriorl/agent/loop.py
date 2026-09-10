@@ -53,6 +53,7 @@ from factoriorl.agent.summary import (
     argument_domains,
     argument_requirements,
     legal_actions,
+    objective_block,
     static_reference,
     summarise,
     targetable_actions,
@@ -110,7 +111,8 @@ catalog. Each turn you receive the character's local observation and the exact \
 list of actions the environment will currently accept, then choose one.
 
 Rules:
-- Choose exactly one action, by its numeric index, from the LEGAL ACTIONS list.
+- Choose an action by its numeric index from the LEGAL ACTIONS list -- one, or \
+a short sequence of them (see below).
 - An index that is not in that list will be rejected and you will be asked again.
 - Entity and resource positions are shown as offsets from the character in \
 tiles. The x axis grows east and the y axis grows south.
@@ -150,7 +152,19 @@ will be told which ones ran, which one failed and which never started.
 ones are checked when their turn comes, so a sequence that assumes a move has \
 finished may stop early.
 - Send one action when you are unsure, and a sequence when the steps do not \
-depend on anything you cannot predict.\
+depend on anything you cannot predict.
+
+Two more fields you may add to any reply. Both are optional and both are \
+kept for you across turns:
+{"action": <index>, "reason": "<why>", "plan": "<what you are working \
+toward>", "note": "<something worth remembering>"}
+- "plan" is your standing intention, not this turn's reason. It is shown \
+back to you under CURRENT PLAN until you state a different one. Stating a \
+new plan replaces the old one, which is then listed under EARLIER PLANS.
+- "note" is something you worked out and want later -- where you saw ore, \
+what a refusal meant. It is shown back under THE AGENT'S OWN NOTES and is \
+labelled unverified, because it is your claim and not something the game \
+told you. Do not use it for anything the observation already says.\
 """.replace("$MAX", str(MAX_ACTIONS_PER_SEQUENCE))
 
 #: What the prompt above must **not** contain, asserted by a test. R3.2
@@ -171,6 +185,30 @@ FORBIDDEN_IN_PROMPT = (
     "y+2",
     "two tiles south",
     "(1, 3)",
+)
+
+#: Roadmap A3.1 forbids the open-world objective from prescribing coordinates,
+#: machine ordering, a build sequence, or a hidden success condition. Three of
+#: those are already covered above -- a coordinate in the prompt is a
+#: coordinate whichever phase put it there. These are the ordering-and-target
+#: phrases a well-meaning edit to `OPEN_FACTORY_OBJECTIVE` would reach for, and
+#: naming them is what turns the prohibition into a test instead of an
+#: intention.
+#:
+#: Checked against the objective block only. The observation legitimately
+#: contains counts and the word "first"; the standing instruction must not.
+FORBIDDEN_IN_OBJECTIVE = (
+    "first build",
+    "build first",
+    "then place",
+    "start by",
+    "begin by",
+    "step 1",
+    "in this order",
+    "at least",
+    "you win",
+    "success is",
+    "you have succeeded",
 )
 
 
@@ -349,6 +387,27 @@ class Decision:
     outcomes: list[dict] = field(default_factory=list)
     #: Why the sequence ended early, or None if every action ran.
     sequence_stopped: str | None = None
+    #: Actions the model asked for that were refused before reaching the
+    #: environment -- an index that was not legal, an argument outside its
+    #: domain. They never produce an `outcome`, so without this they would be
+    #: invisible to the repeated-failure count, and "the same illegal position,
+    #: five times" is the likeliest stall a real run has.
+    refused: list[dict] = field(default_factory=list)
+    #: The action key whose repeated failure crossed A3.3's threshold on this
+    #: decision, if one did. Recorded so a replay can point at the moment the
+    #: agent was told it was stuck, rather than leaving a reader to count
+    #: refusals themselves.
+    stalled_on: str | None = None
+    #: The batch-level justification, at the top level (roadmap A3.2). It was
+    #: recorded only inside `attempts[].parsed_actions[]` and `actions[]`,
+    #: which is why `tools/replay.py` never showed it despite its search box
+    #: offering to "filter by action, reason or handle".
+    reason: str = ""
+    #: The standing intention the model stated this turn, if it stated one, and
+    #: the claim it asked to keep. Empty on every reply that omits them, which
+    #: is every reply written before A3.
+    plan: str = ""
+    note: str = ""
 
     @property
     def inference_ms(self) -> float:
@@ -391,6 +450,11 @@ class Decision:
             # knows the one-action contract sees exactly what it always did.
             "actions": list(self.outcomes),
             "sequence": self.sequence,
+            "refused": list(self.refused),
+            "stalled_on": self.stalled_on,
+            "reason": self.reason,
+            "plan": self.plan,
+            "note": self.note,
         }
         if self.record_summary:
             body["prompt"] = self.summary.render()
@@ -432,6 +496,10 @@ class AgentLoop:
         self.brief = TaskBrief.from_spec(env.spec_)
         self.decisions: list[Decision] = []
         self.memory = Memory()
+        #: Failure signatures the agent has already been told about, so the
+        #: open plan is closed once per stall rather than once per turn for the
+        #: rest of the episode. Reset with the memory it indexes into.
+        self._announced_stalls: set[str] = set()
         #: Prototype data -- what things cost, what they make, how big they are.
         #: It goes in the transcript's static prefix rather than into each turn
         #: because it never changes, which makes it one cache miss and then a
@@ -450,10 +518,23 @@ class AgentLoop:
         entry to re-send bytes that were already correct. The *turns* are what
         must not cross a boundary, and they do not.
         """
-        # Two invariant blocks: what the game's recipes cost, and what each verb
-        # does. Both are the same on every turn, so both belong in the prefix
+        # Three invariant blocks: what the game's recipes cost, what each verb
+        # does, and -- for an open world -- what the agent is here to do. All
+        # three are the same on every turn, so all three belong in the prefix
         # rather than in a message that is re-sent for the rest of the run.
-        blocks = [block for block in (self.static_knowledge, static_reference(self.env)) if block]
+        #
+        # Order matters for the cache, not for the reader: the prefix is matched
+        # by exact bytes from the start, so the objective goes last, where a
+        # future edit to it invalidates the least.
+        blocks = [
+            block
+            for block in (
+                self.static_knowledge,
+                static_reference(self.env),
+                objective_block(self.env),
+            )
+            if block
+        ]
         return Transcript(system=SYSTEM_PROMPT, static_prefix="\n\n".join(blocks))
 
     def _world_signature(self) -> tuple:
@@ -759,6 +840,9 @@ class AgentLoop:
                     arguments=first.arguments,
                     requested=list(outcome.actions),
                     resolution="model",
+                    reason=outcome.reason,
+                    plan=outcome.plan,
+                    note=outcome.note,
                     record_summary=self.config.record_summaries,
                 )
             # The model's own answer, then why it was refused -- appended,
@@ -780,6 +864,24 @@ class AgentLoop:
         # waits rather than crashing the episode -- but the decision is recorded
         # as a fallback, so it can never be read back as a choice the model made.
         fallback = ParsedAction(index=fallback_index, key=vocabulary[fallback_index][0])
+        # What the model actually asked for, and why it was refused. A refusal
+        # is a failed attempt in every sense that matters to an agent -- it
+        # spent a decision and the world did not move -- so it is recorded as
+        # one even though no action ran.
+        refused = [
+            {
+                "key": attempt.outcome.action.key,
+                "target": attempt.outcome.action.target,
+                "arguments": dict(attempt.outcome.action.arguments),
+                "failure": attempt.outcome.failure.value,
+                "detail": attempt.outcome.detail,
+            }
+            for attempt in attempts
+            if isinstance(attempt.outcome, ParseFailure) and attempt.outcome.action is not None
+        ]
+        # A plan is not an action. A reply that states an intention and then
+        # picks an illegal argument has still stated the intention.
+        standing = [a.outcome for a in attempts if isinstance(a.outcome, ParseFailure)]
         return Decision(
             episode=episode,
             step=step,
@@ -791,6 +893,9 @@ class AgentLoop:
             # `resolution` is what says nobody chose it.
             requested=[fallback],
             resolution="fallback_wait",
+            refused=refused,
+            plan=next((f.plan for f in standing if f.plan), ""),
+            note=next((f.note for f in standing if f.note), ""),
             record_summary=self.config.record_summaries,
         )
 
@@ -871,6 +976,7 @@ class AgentLoop:
             # A fresh record per episode. Carrying one over would put the
             # previous scene's containers into this scene's prompt.
             self.memory = Memory()
+            self._announced_stalls = set()
             # And a fresh transcript, for that reason and no other. Starting
             # over throws away a cached prefix, which is the expensive thing
             # in this design -- but a history carried across scenes would put
@@ -993,8 +1099,42 @@ class AgentLoop:
                         target=outcome.get("target") or _target_of(outcome["key"], observation),
                         status=outcome.get("action_status"),
                         error=outcome.get("action_error") or outcome.get("failure"),
+                        # Part of the attempt's identity: `place_at` at two
+                        # different positions is two things tried once, not one
+                        # thing tried twice (roadmap A3.3).
+                        arguments=outcome.get("arguments") or {},
                     )
                     ran += 1
+                for refusal in decision.refused:
+                    self.memory.record_action(
+                        first_step + steps,
+                        refusal["key"],
+                        target=refusal.get("target"),
+                        status="refused",
+                        error=refusal.get("detail") or refusal.get("failure"),
+                        arguments=refusal.get("arguments") or {},
+                    )
+                # The standing fields, recorded before compaction so that what
+                # the model just said is never the thing compaction drops.
+                if decision.plan:
+                    self.memory.record_plan(first_step + steps, decision.plan)
+                if decision.note:
+                    self.memory.record_note(first_step + steps, decision.note)
+                # A plan whose actions keep failing identically is not a plan
+                # that is still running. Closed once per signature: closing it
+                # every turn would fill EARLIER PLANS with copies of one plan
+                # and evict the ones that actually differ.
+                for entry in self.memory.repeated_failures():
+                    signature = json.dumps(
+                        [entry["action"], entry["target"], sorted(entry["arguments"].items())],
+                        sort_keys=True,
+                        default=str,
+                    )
+                    if signature in self._announced_stalls:
+                        continue
+                    self._announced_stalls.add(signature)
+                    decision.stalled_on = entry["action"]
+                    self.memory.close_plan(first_step + steps, "stalled")
                 self.memory.compact()
             self.decisions.append(decision)
             self._append_decision(decision)

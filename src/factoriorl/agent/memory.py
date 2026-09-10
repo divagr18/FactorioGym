@@ -42,11 +42,19 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-#: Sources a fact may cite. A fact built from anything else is a bug: those are
-#: the only two channels the agent itself receives.
+#: Sources a fact may cite. A fact built from anything else is a bug.
+#:
+#: The first two are channels the environment gave the agent, and they are
+#: authoritative in the narrow sense that the engine said them. `SOURCE_MODEL`
+#: is not: it is something the model asserted and asked to keep (roadmap
+#: A3.2). It is admitted here so that a claim can be *stored with its
+#: provenance* rather than either discarded or, far worse, mixed in with what
+#: was observed -- and `Memory.render` puts it under its own heading so the
+#: distinction survives into the prompt, which is the only place it matters.
 SOURCE_OBSERVATION = "observation"
 SOURCE_ACTION = "action_result"
-SOURCES = frozenset({SOURCE_OBSERVATION, SOURCE_ACTION})
+SOURCE_MODEL = "model"
+SOURCES = frozenset({SOURCE_OBSERVATION, SOURCE_ACTION, SOURCE_MODEL})
 
 #: Fields the evaluator computes and the agent never sees. Reading one into
 #: memory would put it in the next prompt.
@@ -57,6 +65,42 @@ EVALUATOR_FIELDS = frozenset(
 #: How many attempt records to keep per target before the oldest are folded into
 #: a count. Failures are never dropped entirely -- see `Memory.compact`.
 ATTEMPTS_KEPT = 4
+
+#: How many model-written notes to carry. Bounded because the model controls
+#: this text completely: without a cap, an agent that writes a note every turn
+#: grows its own prompt without limit, and in a re-sent history that is paid for
+#: on every later turn.
+NOTES_KEPT = 8
+
+#: How many times the *same* action, at the same target, with the same
+#: arguments, may fail before the agent is told plainly that it is stuck
+#: (roadmap A3.3). Three, because two is a coincidence and a fourth identical
+#: refusal is a decision spent learning nothing.
+STALL_THRESHOLD = 3
+
+#: Longest refusal reason rendered, in characters. A domain refusal quotes its
+#: legal values -- "not one of the 121 legal values for placements (e.g. ...)"
+#: runs past 300 characters -- and the same sentence appearing under both
+#: REPEATED FAILURE and REFUSED ACTIONS, on every turn, in a history that is
+#: re-sent in full, is the exact cost A2 measured and removed elsewhere.
+REASON_LIMIT = 120
+
+#: Longest note kept, in characters. Truncated rather than refused -- a refused
+#: note is a silent loss the agent cannot see, and a visibly clipped one is not.
+NOTE_LIMIT = 240
+
+
+def _clip(text: Any) -> str:
+    """One line, bounded. A refusal reason is diagnostic, not a document."""
+    single = " ".join(str(text or "").split())
+    return single if len(single) <= REASON_LIMIT else single[: REASON_LIMIT - 1] + "…"
+
+
+def _signature(action: str, target: str | None, arguments: dict) -> str:
+    """The identity used to decide whether two failures are the same failure."""
+    import json as _json
+
+    return _json.dumps([action, target, sorted(arguments.items())], sort_keys=True, default=str)
 
 
 @dataclass
@@ -94,10 +138,20 @@ class Attempt:
     target: str | None
     status: str | None
     error: str | None
+    #: What the model supplied. Part of the identity of an attempt: `place_at`
+    #: at one position and `place_at` at another are not the same thing tried
+    #: twice, and counting them as one would either cry stall at an agent
+    #: making progress or stay silent at one that is not.
+    arguments: dict = field(default_factory=dict)
 
     @property
     def failed(self) -> bool:
         return bool(self.error) or (self.status not in (None, "completed"))
+
+    @property
+    def signature(self) -> str:
+        """Identity for the repeated-failure count: verb, addressee, arguments."""
+        return _signature(self.action, self.target, self.arguments)
 
 
 @dataclass
@@ -110,6 +164,9 @@ class Memory:
     #: 5.4 requires it, and it is the only thing that stops the agent proposing
     #: it again.
     plans: list[dict] = field(default_factory=list)
+    #: What the model asked to remember, in its own words. Never merged with
+    #: `entities`, which is observation-sourced -- see `SOURCE_MODEL`.
+    notes: list[Fact] = field(default_factory=list)
     step: int = 0
 
     # ------------------------------------------------------------- writing
@@ -145,14 +202,53 @@ class Memory:
         target: str | None = None,
         status: str | None = None,
         error: str | None = None,
+        arguments: dict | None = None,
     ) -> Attempt:
         """Record an action's *outcome*, never the evaluator's verdict on it."""
-        attempt = Attempt(step=step, action=action, target=target, status=status, error=error)
+        attempt = Attempt(
+            step=step,
+            action=action,
+            target=target,
+            status=status,
+            error=error,
+            arguments=dict(arguments or {}),
+        )
         self.attempts.append(attempt)
         return attempt
 
+    def record_note(self, step: int, note: str) -> None:
+        """Keep something the model claims, labelled as a claim.
+
+        Consecutive repeats are dropped. A model that restates the same note
+        every turn is not adding information, and eight copies of one sentence
+        would evict seven real ones.
+        """
+        text = " ".join(str(note).split())[:NOTE_LIMIT]
+        if not text:
+            return
+        if self.notes and self.notes[-1].statement == text:
+            return
+        self.notes.append(
+            Fact(subject=f"note-{step}", statement=text, source=SOURCE_MODEL, step=step)
+        )
+        del self.notes[:-NOTES_KEPT]
+
     def record_plan(self, step: int, plan: str) -> None:
-        self.plans.append({"step": step, "plan": plan, "outcome": "open"})
+        """State a new plan, which supersedes whatever was open.
+
+        Only one plan is open at a time. A model that states a second without
+        closing the first has changed its mind, and recording both as current
+        would put two contradictory intentions in the next prompt.
+        """
+        text = " ".join(str(plan).split())
+        if not text:
+            return
+        open_plans = [entry for entry in self.plans if entry["outcome"] == "open"]
+        if open_plans and open_plans[-1]["plan"] == text:
+            # Restating the same plan is continuity, not a new plan.
+            return
+        self.close_plan(step, "superseded")
+        self.plans.append({"step": step, "plan": text, "outcome": "open"})
 
     def close_plan(self, step: int, outcome: str) -> None:
         for entry in reversed(self.plans):
@@ -179,6 +275,34 @@ class Memory:
     def failures(self) -> list[Attempt]:
         return [a for a in self.attempts if a.failed]
 
+    def repeated_failures(self, threshold: int = STALL_THRESHOLD) -> list[dict]:
+        """Identical failures that have now happened `threshold` times or more.
+
+        A3.3 wants the agent *told*, clearly, and then asked for a different
+        plan. It explicitly does not want the loop quietly choosing something
+        that works instead: that would make the run a measurement of this code
+        rather than of the model, and the trace would not show it had happened.
+        """
+        counted: dict[str, dict] = {}
+        for attempt in self.attempts:
+            if not attempt.failed:
+                continue
+            entry = counted.setdefault(
+                attempt.signature,
+                {
+                    "action": attempt.action,
+                    "target": attempt.target,
+                    "arguments": dict(attempt.arguments),
+                    "count": 0,
+                    "error": None,
+                    "last_step": attempt.step,
+                },
+            )
+            entry["count"] += 1
+            entry["error"] = attempt.error or attempt.status
+            entry["last_step"] = attempt.step
+        return [e for e in counted.values() if e["count"] >= threshold]
+
     def compact(self, keep: int = ATTEMPTS_KEPT) -> None:
         """Bound the record without losing the parts that carry information.
 
@@ -190,6 +314,12 @@ class Memory:
         failed = [a for a in self.attempts if a.failed]
         succeeded = [a for a in self.attempts if not a.failed]
         self.attempts = sorted(failed + succeeded[-keep:], key=lambda a: a.step)
+        # The open plan and the notes are already bounded and are outstanding
+        # work by definition, so compaction does not touch them. A3.2 requires
+        # exactly that: "compact bounded older history without dropping
+        # outstanding work or repeatedly encountered failures". Both halves of
+        # that sentence are load-bearing and both are honoured above.
+        del self.notes[:-NOTES_KEPT]
 
     def render(self) -> str:
         """The block added to the prompt. Contains no evaluator information."""
@@ -209,14 +339,52 @@ class Memory:
                 actions = ", ".join(sorted({a.action for a in attempts}))
                 lines.append(f"  {target}: {actions} ({len(attempts)}x)")
 
-        failures = self.failures()
+        if self.notes:
+            # Deliberately its own heading, and deliberately worded. These are
+            # the model's assertions; REMEMBERED above is what the sensor saw.
+            # A3.2 requires the two be kept separate, and a separation that is
+            # not visible in the prompt is not a separation.
+            lines.append("THE AGENT'S OWN NOTES (unverified -- you wrote these)")
+            for note in self.notes:
+                lines.append(f"  decision {note.step}: {note.statement}")
+
+        stuck = self.repeated_failures()
+        stuck_signatures = set()
+        if stuck:
+            lines.append("REPEATED FAILURE -- this is not working")
+            for entry in sorted(stuck, key=lambda e: -e["count"]):
+                stuck_signatures.add(
+                    _signature(entry["action"], entry["target"], entry["arguments"])
+                )
+                where = f" at {entry['target']}" if entry["target"] else ""
+                if entry["arguments"]:
+                    shown = ", ".join(f"{k}={v}" for k, v in sorted(entry["arguments"].items()))
+                    where += f" with {shown}"
+                lines.append(
+                    f"  {entry['action']}{where} has failed {entry['count']} times: "
+                    f"{_clip(entry['error'])}"
+                )
+            lines.append("  Sending it again will fail again. Do something different,")
+            lines.append('  and say what in "plan".')
+
+        # Anything already named above is not repeated here. The block above
+        # says it more usefully -- with a count and an instruction -- and two
+        # copies of one 300-character refusal is a turn's worth of tokens spent
+        # saying the same thing twice.
+        failures = [a for a in self.failures() if a.signature not in stuck_signatures]
         if failures:
             lines.append("REFUSED ACTIONS")
-            for attempt in failures[-ATTEMPTS_KEPT:]:
+            seen: set[str] = set()
+            for attempt in reversed(failures):
+                if attempt.signature in seen:
+                    continue
+                seen.add(attempt.signature)
+                if len(seen) > ATTEMPTS_KEPT:
+                    break
                 where = f" at {attempt.target}" if attempt.target else ""
                 lines.append(
                     f"  decision {attempt.step}: {attempt.action}{where}"
-                    f" -> {attempt.error or attempt.status}"
+                    f" -> {_clip(attempt.error or attempt.status)}"
                 )
 
         open_plans = [p for p in self.plans if p["outcome"] == "open"]
@@ -225,7 +393,12 @@ class Memory:
             lines.append("CURRENT PLAN")
             lines.append(f"  {open_plans[-1]['plan']}")
         if closed:
-            lines.append("PLANS THAT DID NOT WORK")
+            # Not "plans that did not work", which is what this heading said
+            # when nothing could reach it. A plan the model replaced of its own
+            # accord was superseded, not defeated, and calling that a failure
+            # in the prompt would teach the agent the wrong lesson about its
+            # own history. The outcome is printed, so the two stay distinct.
+            lines.append("EARLIER PLANS")
             for entry in closed[-ATTEMPTS_KEPT:]:
                 lines.append(f"  {entry['plan']} -> {entry['outcome']}")
 
@@ -254,4 +427,7 @@ class Memory:
                 for a in self.attempts
             ],
             "plans": list(self.plans),
+            "notes": [
+                {"step": n.step, "statement": n.statement, "source": n.source} for n in self.notes
+            ],
         }

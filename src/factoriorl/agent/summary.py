@@ -262,6 +262,24 @@ def argument_domains(env: Any) -> dict:
     return rendered
 
 
+def objective_block(env: Any) -> str:
+    """The standing instruction, for a world that declares one (roadmap A3.1).
+
+    Empty for every benchmark task, and that is the point: a task's objective is
+    its `description`, already rendered per turn under TASK, and adding anything
+    here would change a frozen prompt and with it what every existing result
+    means. Only a `WorldMode` carries an `objective`, and only an open world has
+    a `mode`.
+
+    It lives in the static prefix rather than the turn because it never changes.
+    At ~700 characters, repeating it would cost ~175 tokens on every turn of a
+    run whose history is re-sent in full -- around 26k tokens by turn 300, for
+    text that was identical every time.
+    """
+    mode = getattr(env, "mode", None)
+    return str(getattr(mode, "objective", "") or "")
+
+
 def static_reference(env: Any) -> str:
     """The half of the action surface that never changes, rendered once.
 

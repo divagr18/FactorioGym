@@ -130,6 +130,15 @@ class ParsedSequence:
 
     actions: tuple[ParsedAction, ...]
     reason: str = ""
+    #: The standing intention the model stated, if it stated one (roadmap
+    #: A3.2). Distinct from `reason`, which justifies *this* reply: a plan
+    #: outlives the turn that declared it and is carried forward in the prompt
+    #: until it is superseded or stalls.
+    plan: str = ""
+    #: Something the model claims about the world and wants back later. Stored
+    #: as the model's assertion, never as an observation -- A3.2 requires the
+    #: two be kept apart, and the prompt renders them under different headings.
+    note: str = ""
 
     def __len__(self) -> int:
         return len(self.actions)
@@ -139,7 +148,12 @@ class ParsedSequence:
         return self.actions[0]
 
     def to_dict(self) -> dict:
-        return {"reason": self.reason, "actions": [a.to_dict() for a in self.actions]}
+        return {
+            "reason": self.reason,
+            "plan": self.plan,
+            "note": self.note,
+            "actions": [a.to_dict() for a in self.actions],
+        }
 
 
 @dataclass(frozen=True)
@@ -148,9 +162,28 @@ class ParseFailure:
     detail: str
     #: What was extracted before validation rejected it, when anything was.
     candidate: str | None = None
+    #: The action the reply asked for, when the reply named a real one and the
+    #: *arguments* were what failed. Carried so a refusal can be counted like
+    #: any other failed attempt (roadmap A3.3): an out-of-domain position never
+    #: reaches the engine, so without this the most likely way an agent gets
+    #: stuck -- proposing the same illegal argument over and over -- would be
+    #: the one kind of failure nothing counted.
+    action: ParsedAction | None = None
+    #: The standing fields the reply carried. A plan is not an action: a model
+    #: that states its intention and then picks a bad argument has still stated
+    #: its intention, and discarding it would punish the wrong half of the reply.
+    plan: str = ""
+    note: str = ""
 
     def to_dict(self) -> dict:
-        return {"failure": self.failure.value, "detail": self.detail, "candidate": self.candidate}
+        return {
+            "failure": self.failure.value,
+            "detail": self.detail,
+            "candidate": self.candidate,
+            "action": self.action.to_dict() if self.action else None,
+            "plan": self.plan,
+            "note": self.note,
+        }
 
 
 #: A fenced or bare JSON object anywhere in the response. Models wrap JSON in
@@ -206,10 +239,11 @@ def _json_objects(text: str) -> list[str]:
     return spans
 
 
-def _extract_steps(text: str) -> tuple[list[Any], str] | ParseFailure | None:
+def _extract_steps(text: str) -> tuple[list[Any], str, dict] | ParseFailure | None:
     """Pull the requested action or actions out of a response.
 
-    Returns the raw steps in order and the batch-level reason, a
+    Returns the raw steps in order, the batch-level reason, the optional
+    standing fields (`plan`, `note`), a
     :class:`ParseFailure` when a batch was found and refused outright, or
     ``None`` when nothing in the text identified an action at all.
     """
@@ -221,6 +255,13 @@ def _extract_steps(text: str) -> tuple[list[Any], str] | ParseFailure | None:
         if not isinstance(payload, dict):
             continue
         reason = str(payload.get("reason") or "")
+        # Optional and additive. A reply that omits both is byte-identical in
+        # effect to every reply sent before A3, which is what keeps the whole
+        # existing fixture corpus valid.
+        standing = {
+            "plan": str(payload.get("plan") or "").strip(),
+            "note": str(payload.get("note") or "").strip(),
+        }
         batch = payload.get("actions")
         if isinstance(batch, list):
             if "action" in payload:
@@ -249,12 +290,12 @@ def _extract_steps(text: str) -> tuple[list[Any], str] | ParseFailure | None:
                     f"{MAX_ACTIONS_PER_SEQUENCE} may be sent at once",
                     match,
                 )
-            return list(batch), reason
+            return list(batch), reason, standing
         if "action" in payload:
-            return [payload], reason
+            return [payload], reason, standing
     line = _LINE.search(text or "")
     if line:
-        return [{"action": line.group(1)}], ""
+        return [{"action": line.group(1)}], "", {"plan": "", "note": ""}
     return None
 
 
@@ -499,17 +540,17 @@ def parse_sequence(
             DecisionFailure.UNPARSEABLE,
             "no JSON object with an 'action' or 'actions' field and no 'action:' line",
         )
-    steps, reason = extracted
+    steps, reason, standing = extracted
     keys = [key for key, _ in vocabulary]
     actions: list[ParsedAction] = []
     for position, step in enumerate(steps):
         fields = _step_fields(step)
         if isinstance(fields, ParseFailure):
-            return _at(fields, position, len(steps))
+            return _standing(_at(fields, position, len(steps)), standing)
         raw, own_reason, target, supplied = fields
         index = _resolve_index(raw, vocabulary)
         if isinstance(index, ParseFailure):
-            return _at(index, position, len(steps))
+            return _standing(_at(index, position, len(steps)), standing)
         action = ParsedAction(
             index=index,
             key=keys[index],
@@ -527,10 +568,20 @@ def parse_sequence(
                 domains=domains,
             )
             if isinstance(checked, ParseFailure):
-                return checked
+                return _standing(replace(checked, action=checked.action or action), standing)
             action = checked
         actions.append(action)
-    return ParsedSequence(tuple(actions), reason)
+    return ParsedSequence(
+        tuple(actions),
+        reason,
+        plan=standing.get("plan", ""),
+        note=standing.get("note", ""),
+    )
+
+
+def _standing(failure: ParseFailure, standing: dict) -> ParseFailure:
+    """Carry a refused reply's plan and note through, so they are not lost."""
+    return replace(failure, plan=standing.get("plan", ""), note=standing.get("note", ""))
 
 
 def parse_action(

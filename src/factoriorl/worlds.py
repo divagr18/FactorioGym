@@ -44,7 +44,7 @@ from factoriorl.worker_config import TERRAIN_NATURAL
 #: Bumped when a change would make two runs of the same id incomparable --
 #: different terrain, profiles, catalog or starting inventory. Same contract as
 #: `TaskSpec.version`, for the same reason.
-OPEN_FACTORY_VERSION = "0.2.0"
+OPEN_FACTORY_VERSION = "0.3.0"
 
 
 @dataclass(frozen=True)
@@ -64,6 +64,12 @@ class WorldMode:
     #: with a broken deadline would run until the machine was turned off.
     max_decision_steps: int
     chart_radius: int
+    #: The standing instruction the agent is given, verbatim (roadmap A3.1).
+    #: Separate from `description`, which is the one-line label an artifact
+    #: carries; this is prose the model reads and acts on, so it is versioned
+    #: with the world and rendered into the *static* prefix -- it never changes,
+    #: and a line repeated every turn is a line paid for on every later turn.
+    objective: str = ""
     #: What this world hands the agent beyond the bare observation, composed the
     #: way `factoriorl.assistance` composes a task's. A run that receives help
     #: and records `none` is the failure that module exists to prevent, and an
@@ -83,6 +89,7 @@ class WorldMode:
             "max_decision_steps": self.max_decision_steps,
             "chart_radius": self.chart_radius,
             "assistance": list(self.assistance),
+            "objective": self.objective,
             "scored": False,
             "note": (
                 "an open world has no success predicate and no layout families; "
@@ -90,6 +97,38 @@ class WorldMode:
                 "comparable to one"
             ),
         }
+
+
+#: The standing instruction for `open_factory` (roadmap A3.1).
+#:
+#: As much for what it withholds as for what it says: no coordinates, no
+#: machine ordering, no build sequence, no success threshold. A3.1 forbids
+#: all four, and `FORBIDDEN_IN_PROMPT` carries the phrases that would break
+#: the rule so a test enforces it rather than a comment.
+#:
+#: "Your progress is measured" is stated because it is true -- A4 measures
+#: it -- and an agent told to build a factory, told nothing about what is
+#: observed, will reasonably assume nothing is.
+OPEN_FACTORY_OBJECTIVE = """\
+YOUR OBJECTIVE
+Build a productive factory from the items you start with.
+
+  - Automate gathering and processing rather than doing them by hand.
+    Handcrafting and hand-mining are how you bootstrap, not how you
+    produce.
+  - Expand production that is useful to you: more of what you are short
+    of, and the machines that make it.
+  - As resources and time allow, work toward electricity, assembly and
+    research.
+
+Your progress is measured -- what you gather, craft, place and research,
+and what your machines produce without your help. There is no target
+number and no hidden win condition. Keep working until the controller
+stops the run; it will not stop because you did something wrong.
+
+How to build is yours to decide. Nothing here tells you where to put a
+machine or in what order to build, because nobody has decided that for
+you."""
 
 
 OPEN_FACTORY = WorldMode(
@@ -120,6 +159,7 @@ OPEN_FACTORY = WorldMode(
     # measured against and `manifest.verify` re-derives its digest, so adding
     # verbs to it would change what an existing result means.
     catalog="open-v1",
+    objective=OPEN_FACTORY_OBJECTIVE,
     assistance=("navigation", "bounded-sequences:8"),
     decision_ticks=30,
     max_decision_steps=100_000,
