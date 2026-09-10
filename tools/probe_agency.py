@@ -186,8 +186,12 @@ def main() -> int:
             report["plan_under_current_plan_on_turn_two"]
         ),
         "note_persisted_without_restatement": report["note_survived_without_restatement"] > 1,
+        # Counted on a stable phrase. This used to name the exact size of the
+        # placement domain ("121 legal values"), which then changed the moment
+        # the character's own tile stopped being offered -- a probe failing
+        # because the code got better is a probe testing the wrong thing.
         "refusal_is_stated_once_not_twice": (
-            report["memory_render"].count("is not one of the 121 legal values") == 1
+            report["memory_render"].count("legal values for placements") == 1
         ),
         "note_is_labelled_unverified": bool(report["note_under_unverified_heading"]),
         "repeated_failure_reported": bool(report["stall_reported"]),
