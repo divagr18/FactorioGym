@@ -125,6 +125,12 @@ def render(run_dir: Path) -> str:
     episodes = result.get("episodes") or []
     production = (episodes[0].get("production") if episodes else {}) or {}
     machine = production.get("cumulative_produced") or {}
+    # `result.json` is written when the run ends, and a run that was interrupted
+    # has none -- but `production.jsonl` is appended as it goes. Falling back to
+    # the last sample is the difference between a report that says "nothing" and
+    # one that says what actually happened.
+    if not machine and samples:
+        machine = samples[-1].get("machine_produced") or {}
     by_key = summary.get("tool_actions_by_key") or {}
     statuses = Counter(row.get("status") for row in events)
     consequential = first_consequential_failure(decisions)
@@ -140,8 +146,10 @@ def render(run_dir: Path) -> str:
         "## What was run",
         "",
         f"- model `{(config.get('adapter') or {}).get('model')}`, "
-        f"adapter `{(config.get('adapter') or {}).get('name')}`",
-        f"- world `{config.get('task')}`, deliberation `{config.get('deliberation_profile')}`",
+        f"adapter `{(config.get('adapter') or {}).get('adapter') or 'openai-compatible'}`",
+        f"- world `{(config.get('task') or {}).get('id')}` "
+        f"v{(config.get('task') or {}).get('version')}, "
+        f"deliberation `{config.get('deliberation_profile')}`",
         f"- clock `{(limits.get('clock') or {}).get('measures', 'n/a')}`",
         f"- prompt digest `{config.get('prompt_digest')}`, "
         f"static prefix {config.get('static_prefix_chars')} chars",
@@ -160,8 +168,10 @@ def render(run_dir: Path) -> str:
         "",
         "## What the agent did",
         "",
-        f"- {summary.get('decisions')} decisions, {summary.get('tool_actions')} tool actions, "
-        f"{summary.get('refused_actions')} refused before execution",
+        f"- {summary.get('decisions') or len(decisions)} decisions, "
+        f"{summary.get('tool_actions') or len(events)} tool actions, "
+        f"{summary.get('refused_actions') or sum(len(d.get('refused') or []) for d in decisions)} "
+        "refused before execution",
         f"- fallbacks {result.get('fallback_decisions')} (a fallback is a decision nobody chose)",
         "- actions by verb: "
         + (", ".join(f"{k} {v}" for k, v in sorted(by_key.items())) or "none"),
