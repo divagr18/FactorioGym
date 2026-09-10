@@ -38,3 +38,8 @@ release/
 # than over `phase3-generator-diagnostics.json`, which a --tasks run silently
 # replaced once.
 docs/evidence/phase3-generator-diagnostics-partial.json
+
+# Session transcripts, archived by request. Never committed: they carry the
+# author's home paths, full tool output and pasted terminal contents, and this
+# repository is public.
+transcripts/

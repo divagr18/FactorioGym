@@ -5,7 +5,10 @@ and carries its own staleness banner. Direction comes from
 [`docs/DEVELOPMENT_REDIRECTION.md`](DEVELOPMENT_REDIRECTION.md); this file is day-to-day
 state. Read this before treating any older summary as current fact.
 
-**Last reconciled:** 2026-09-10, after R4, Phase 4's validity items, R5.2, R5.3 and R6.
+**Last reconciled:** 2026-09-10 01:52, after R4, Phase 4's validity items, R5.2, R5.3
+and R6. Everything since is in [`docs/HANDOFF-2026-09-10.md`](HANDOFF-2026-09-10.md),
+which is the delta and does not repeat this file -- read it before treating the
+4.5 table below as current.
 
 ---
 
