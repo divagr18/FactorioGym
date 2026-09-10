@@ -936,9 +936,28 @@ class ObservationSummary:
                 f"({position[0]:.1f}, {position[1]:.1f}), {_distance(dx, dy):.1f} tiles "
                 f"{_compass(dx, dy)}"
             ]
+            covers = record.get("covers")
+            if covers:
+                # The tiles it actually occupies. Two machines "next to each
+                # other" can still miss by a tile, and the agent should not have
+                # to know a stone furnace is 2x2 to work that out.
+                parts.append(f"covers x {covers[0]}..{covers[2]}, y {covers[1]}..{covers[3]}")
             drop = record.get("drop")
             if drop:
-                parts.append(f"outputs onto ({drop[0]:.1f}, {drop[1]:.1f})")
+                # What is standing on the output tile, resolved rather than left
+                # as arithmetic. Measured on a live run: a drill outputting onto
+                # (-28.7, -0.5) with its furnace covering y 0..2 -- one tile
+                # short, ore on the floor, and both numbers already in the
+                # prompt.
+                into = record.get("drop_into")
+                if into == "ground":
+                    where = " -> BARE GROUND: its output piles up there and it jams"
+                elif into:
+                    handle = record.get("drop_into_handle")
+                    where = f" -> into {into}" + (f" [{handle}]" if handle else "")
+                else:
+                    where = ""
+                parts.append(f"outputs onto ({drop[0]:.1f}, {drop[1]:.1f}){where}")
             pickup = record.get("pickup")
             if pickup:
                 parts.append(f"takes from ({pickup[0]:.1f}, {pickup[1]:.1f})")

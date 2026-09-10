@@ -171,6 +171,29 @@ class TestDomainsComeFromTheObservation:
         # An action with no override falls back to the shared table.
         assert _domain_of("position", "place_at") == "placements"
 
+    def test_a_loose_pile_does_not_block_building_on_its_tile(self):
+        """Measured against the engine: `can_place_entity` returns true for
+        every build-check type on a tile holding seven iron ore.
+
+        This regressed the moment loose piles were added to the sensor sweep so
+        the local map could draw them -- `_placement_candidates` treats
+        everything in `entities` as occupying, so every pile-covered tile
+        silently left the domain. A live run then asked to place its furnace on
+        the drill's output tile, which was the correct move, and was refused
+        three times before falling back -- while its own prompt was telling it
+        that a pile does not stop it building there.
+        """
+        observation = _observation(
+            entities=[
+                {"h": "p1", "name": "item-on-ground", "type": "item-entity", "p": [2.5, 0.5]},
+                {"h": "e1", "name": "stone-furnace", "type": "furnace", "p": [3.5, 0.5]},
+            ]
+        )
+        tiles = {tuple(p) for p in _Env(observation).argument_domains()["placements"]}
+
+        assert (2.5, 0.5) in tiles, "a pile is not an obstruction"
+        assert (3.5, 0.5) not in tiles, "a standing machine still is"
+
     def test_placements_are_bounded(self):
         domains = _Env(_observation()).argument_domains()
         span = 2 * PLACEMENT_RADIUS + 1

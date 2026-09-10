@@ -384,10 +384,21 @@ class FactorioEnv(gym.Env):
         enforces the real `can_place_entity`, so this narrows the choice rather
         than deciding it.
         """
+        # Solid things only. A loose pile is an `item-entity`, and it does not
+        # block building: `can_place_entity` returns true for every build-check
+        # type on a tile holding seven iron ore, measured against the engine.
+        #
+        # This regressed the moment piles were added to the sensor sweep so the
+        # map could draw them -- every pile-covered tile silently left the
+        # placement domain. On a live run the agent asked to put its furnace on
+        # the drill's output tile, which is exactly right, and was refused
+        # "not one of the 117 legal values" three times and then fell back. The
+        # agent's own prompt was telling it "a pile does NOT stop you building
+        # on that tile" while this made that false.
         occupied = {
             (math.floor(record["p"][0]), math.floor(record["p"][1]))
             for record in (observation.get("entities") or [])
-            if record.get("p")
+            if record.get("p") and record.get("type") != "item-entity"
         }
         occupied |= {
             (math.floor(point[0]), math.floor(point[1]))

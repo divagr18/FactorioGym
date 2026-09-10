@@ -201,6 +201,42 @@ function observations.snapshot(state)
         if ok_drop and drop then record.drop = { drop.x, drop.y } end
         local ok_pick, pick = pcall(function() return entity.pickup_position end)
         if ok_pick and pick then record.pickup = { pick.x, pick.y } end
+        -- The footprint, and *what is actually standing on the output tile*.
+        --
+        -- Two coordinates were not enough. Measured on a live run: a drill at
+        -- (-30, 0) outputting onto (-28.7, -0.5), and a furnace at (-28, 1)
+        -- covering y 0..2 -- so the output tile ended one tile above the
+        -- furnace and the drill jammed dropping ore on the floor. Both numbers
+        -- were in the prompt; turning them into "these do not connect" needed
+        -- the agent to know a stone furnace is 2x2 and do the arithmetic.
+        --
+        -- So the conclusion is stated instead of the ingredients. This is
+        -- observation -- what a player sees by looking at the tile -- and not a
+        -- layout: it says what is there, never where to put anything.
+        local box = entity.bounding_box
+        record.covers = {
+          math.floor(box.left_top.x), math.floor(box.left_top.y),
+          math.ceil(box.right_bottom.x) - 1, math.ceil(box.right_bottom.y) - 1,
+        }
+        if ok_drop and drop then
+          record.drop_into = "ground"
+          for _, other in pairs(surface.find_entities_filtered({
+            area = { { drop.x - 0.1, drop.y - 0.1 }, { drop.x + 0.1, drop.y + 0.1 } },
+          })) do
+            -- `item-entity` is skipped deliberately. A machine dropping onto
+            -- bare ground *creates* a loose pile on that exact tile, so the
+            -- pile is the evidence of the jam -- resolving into it would
+            -- report "outputs into iron-ore", which reads as connected and is
+            -- the opposite of what is happening.
+            if other.valid and other ~= entity and other.type ~= "resource"
+              and other.type ~= "item-entity"
+              and other ~= storage.frrl_character then
+              record.drop_into = other.name
+              record.drop_into_handle = handles.mint(other)
+              break
+            end
+          end
+        end
         record.d2 = (entity.position.x - origin.x) ^ 2 + (entity.position.y - origin.y) ^ 2
         built[#built + 1] = record
       end
