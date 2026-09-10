@@ -177,6 +177,10 @@ profiles.OBSERVATION = {
       -- carries it because adding a key to one would change what every
       -- existing result was measured against.
       "grid",
+      -- Everything the agent has built, at any distance. Open worlds only:
+      -- a benchmark scene is placed by the evaluator and its contents are
+      -- already in `entities`.
+      "built",
     },
     grid_radius = 8,
   },

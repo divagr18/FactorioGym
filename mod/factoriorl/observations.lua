@@ -159,6 +159,37 @@ function observations.snapshot(state)
     grid = sensor.grid(surface, origin, observation_profile.grid_radius or 8)
   end
 
+  -- Everything the agent has built, wherever it is.
+  --
+  -- The local map has a radius of 8 and the entity sweep a radius of 32, so a
+  -- machine further away than that simply stopped existing as far as the agent
+  -- was concerned. Watching a live run: it built a second smelter, walked off
+  -- to mine coal, and never came back to it -- the furnace sat unfuelled and
+  -- out of range for the rest of the run, and nothing in any observation could
+  -- have reminded it the thing was there.
+  --
+  -- This is the agent's own factory, not a survey of the map: only the player
+  -- force, only what someone placed. Small by construction early on, and if it
+  -- ever stops being small that is a factory worth paying a few hundred
+  -- characters to keep track of.
+  local built = nil
+  if profiles.declares(observation_profile, "built") then
+    built = {}
+    for _, entity in pairs(surface.find_entities_filtered({ force = "player" })) do
+      if entity.valid and entity ~= storage.frrl_character and entity.type ~= "character" then
+        local record = sensor.entity_record(entity)
+        local ok_drop, drop = pcall(function() return entity.drop_position end)
+        if ok_drop and drop then record.drop = { drop.x, drop.y } end
+        local ok_pick, pick = pcall(function() return entity.pickup_position end)
+        if ok_pick and pick then record.pickup = { pick.x, pick.y } end
+        record.d2 = (entity.position.x - origin.x) ^ 2 + (entity.position.y - origin.y) ^ 2
+        built[#built + 1] = record
+      end
+    end
+    table.sort(built, function(a, b) return a.d2 < b.d2 end)
+    for _, record in ipairs(built) do record.d2 = nil end
+  end
+
   local task = storage.frrl_task or { transfers = 0, items_moved = 0 }
   local force_declared = profiles.declares(observation_profile, "force")
 
@@ -200,6 +231,7 @@ function observations.snapshot(state)
     absolute_tick = game.tick,
     profiles = profiles.metadata(state.observation_profile, state.action_profile),
     grid = grid,
+    built = built,
     character = character_state(ch, observation_profile),
     inventory = inventory_contents(
       ch and ch.valid and ch.get_inventory(defines.inventory.character_main) or nil

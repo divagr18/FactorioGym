@@ -217,6 +217,11 @@ PLACEMENT_EXAMPLES = 8
 #: `env.PLACEMENT_RADIUS`, stated here because the prompt says it in prose.
 PLACEMENT_RULE_TILES = 5
 
+#: Machines listed in the factory block before it is truncated. Generous: this
+#: is the agent's own construction and forgetting a machine is how a furnace
+#: ends up unfuelled and abandoned twenty tiles away.
+MAX_BUILT_SHOWN = 20
+
 #: Handles listed in full before the list is truncated.
 #:
 #: Twelve rather than twenty since each one now carries its offset and
@@ -654,6 +659,9 @@ class ObservationSummary:
     #: A tile-by-tile picture of the immediate surroundings, for a world whose
     #: profile publishes one. Empty for every benchmark task.
     grid: dict = field(default_factory=dict)
+    #: Every machine the agent has built, at any distance. Distinct from
+    #: `entities`, which is what the sensor can currently see.
+    built: list[dict] = field(default_factory=list)
     #: The resource tiles as the observation published them, kept because
     #: `resources` above is per-name aggregates and the *handles* live here.
     #: Rendered nowhere directly; used to say where an addressable tile is.
@@ -774,6 +782,54 @@ class ObservationSummary:
                     lines.append(f"       [{piece['handle']}] holds {held} -- take_from works")
         return lines
 
+    def _factory_lines(self) -> list[str]:
+        """Everything the agent built, however far away it now is.
+
+        The map reaches 8 tiles and the sensor 32, so a machine beyond that
+        stopped existing as far as the agent was concerned. Measured on a live
+        run: it built a second furnace, walked off to find coal, and never
+        returned -- the furnace sat unfuelled and out of range for the rest of
+        the run, and no observation could have reminded it the thing was there.
+
+        Two machines pass items only when one's output tile is the other's
+        tile, so the output tile is printed for each, which is what makes the
+        list a wiring diagram rather than an inventory.
+        """
+        if not self.built:
+            return []
+        origin = (self.character.get("position") or [0.0, 0.0]) if self.character else [0.0, 0.0]
+        lines = ["", f"YOUR FACTORY ({len(self.built)} machines, nearest first)"]
+        for record in self.built[:MAX_BUILT_SHOWN]:
+            position = record.get("p") or [0.0, 0.0]
+            dx = float(position[0]) - float(origin[0])
+            dy = float(position[1]) - float(origin[1])
+            parts = [
+                f"  {record.get('name')} [{record.get('h')}] at "
+                f"({position[0]:.1f}, {position[1]:.1f}), {_distance(dx, dy):.1f} tiles "
+                f"{_compass(dx, dy)}"
+            ]
+            drop = record.get("drop")
+            if drop:
+                parts.append(f"outputs onto ({drop[0]:.1f}, {drop[1]:.1f})")
+            pickup = record.get("pickup")
+            if pickup:
+                parts.append(f"takes from ({pickup[0]:.1f}, {pickup[1]:.1f})")
+            fuel = record.get("fuel")
+            if not fuel:
+                parts.append("NO FUEL")
+            else:
+                parts.append("fuel " + ", ".join(f"{k} x{v}" for k, v in sorted(fuel.items())))
+            contents = record.get("contents")
+            if contents:
+                parts.append("holds " + ", ".join(f"{k} x{v}" for k, v in sorted(contents.items())))
+            status = record.get("st") or _STATUS_NAMES.get(record.get("status"))
+            if status:
+                parts.append(str(status))
+            lines.append(", ".join(parts))
+        if len(self.built) > MAX_BUILT_SHOWN:
+            lines.append(f"  (+{len(self.built) - MAX_BUILT_SHOWN} more, further away)")
+        return lines
+
     def _handle_offsets(self) -> dict[str, tuple[float, float, float]]:
         """Where each addressable handle is, relative to the character.
 
@@ -849,6 +905,7 @@ class ObservationSummary:
                     f"{_distance(dx, dy):.1f} tiles {_compass(dx, dy)}"
                 )
         lines += self._map_lines()
+        lines += self._factory_lines()
         lines.append("")
         if self.inventory:
             lines.append("INVENTORY")
@@ -1063,6 +1120,7 @@ def summarise(
         resources=_resource_rows(observation, origin),
         raw_resources=dict(observation.get("resources") or {}),
         grid=dict(observation.get("grid") or {}),
+        built=list(observation.get("built") or []),
         inspected=observation.get("inspected"),
         inflight=list(observation.get("inflight") or []),
         events=list(observation.get("events") or [])[-MAX_EVENTS_SHOWN:],
