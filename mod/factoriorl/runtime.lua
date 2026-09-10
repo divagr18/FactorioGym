@@ -362,8 +362,17 @@ local function handle_configure(request)
         err(ERR.BAD_TYPE, "free_running must be a boolean"))
     end
     state.free_running = payload.free_running
-    if state.free_running then game.tick_paused = false end
+    -- Symmetric, and it was not. Turning `free_running` **on** unpaused
+    -- immediately; turning it off only changed the flag, and the world kept
+    -- running until the next step re-applied `tick_paused = not free_running`.
+    -- With no next step -- which is exactly the situation at the end of a run,
+    -- when the world is being stopped so a final save can be taken -- the world
+    -- never paused at all. Measured: 59 ticks drifted across `game.server_save`,
+    -- so the save held a different world from the last observation the agent
+    -- saw. Roadmap A4.3 asks for the world to be paused *for* the snapshot.
+    game.tick_paused = not state.free_running
     applied.free_running = state.free_running
+    applied.tick_paused = game.tick_paused
   end
   if payload.speed ~= nil then
     if type(payload.speed) ~= "number" or payload.speed <= 0 then

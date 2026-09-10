@@ -1,0 +1,182 @@
+{
+  "measures": "roadmap A4.3: wall-clock sampling and an orderly stop",
+  "world": {
+    "id": "open_factory",
+    "version": "0.3.0",
+    "kind": "world",
+    "terrain": "natural",
+    "observation_profile": "open-v1",
+    "action_profile": "assisted-v1",
+    "catalog": "open-v1",
+    "decision_ticks": 30,
+    "max_decision_steps": 100000,
+    "chart_radius": 96,
+    "assistance": [
+      "navigation",
+      "bounded-sequences:8"
+    ],
+    "objective": "YOUR OBJECTIVE\nBuild a productive factory from the items you start with.\n\n  - Automate gathering and processing rather than doing them by hand.\n    Handcrafting and hand-mining are how you bootstrap, not how you\n    produce.\n  - Expand production that is useful to you: more of what you are short\n    of, and the machines that make it.\n  - As resources and time allow, work toward electricity, assembly and\n    research.\n\nYour progress is measured -- what you gather, craft, place and research,\nand what your machines produce without your help. There is no target\nnumber and no hidden win condition. Keep working until the controller\nstops the run; it will not stop because you did something wrong.\n\nHow to build is yours to decide. Nothing here tells you where to put a\nmachine or in what order to build, because nobody has decided that for\nyou.",
+    "scored": false,
+    "note": "an open world has no success predicate and no layout families; it is not a benchmark task and no rate measured on it is comparable to one"
+  },
+  "provider": "scripted, 7.0s per call -- no key, no cost",
+  "wall_seconds": 64.7,
+  "gameplay_seconds": 42.0,
+  "finalization_seconds": 0.931,
+  "decisions": 4,
+  "sampling": {
+    "interval_seconds": 5.0,
+    "samples": 8,
+    "failures": 0,
+    "errors": [],
+    "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T211303-8a0bc156\\production.jsonl",
+    "measures": "world truth read on a wall clock, independent of the agent's decision rate; never acts and never advances a tick"
+  },
+  "samples": 8,
+  "samples_during_a_model_call": 6,
+  "sample_gaps_seconds": [
+    5.02,
+    5.01,
+    5.02,
+    5.01,
+    5.02,
+    5.01,
+    5.01
+  ],
+  "read_ms": [
+    4.8,
+    5.4,
+    10.5,
+    5.0,
+    7.0,
+    2.6,
+    8.4,
+    14.2
+  ],
+  "first_sample": {
+    "wall_seconds": 5.005,
+    "read_ms": 4.8,
+    "tick": 360,
+    "produced": {},
+    "machine_produced": {},
+    "handcrafted": {},
+    "mined_by_hand": {},
+    "placed_counts": {
+      "character": 1
+    },
+    "working_counts": {}
+  },
+  "last_sample": {
+    "wall_seconds": 40.112,
+    "read_ms": 14.2,
+    "tick": 2467,
+    "produced": {},
+    "machine_produced": {},
+    "handcrafted": {},
+    "mined_by_hand": {},
+    "placed_counts": {
+      "character": 1
+    },
+    "working_counts": {}
+  },
+  "finalization": {
+    "measures": "wall time after the last decision; outside gameplay",
+    "steps": [
+      {
+        "step": "pause",
+        "result": {
+          "status": "completed",
+          "applied": {
+            "free_running": false,
+            "tick_paused": true
+          }
+        },
+        "seconds": 0.013
+      },
+      {
+        "step": "save",
+        "result": {
+          "label": "final",
+          "name": "frrl-final-20260910T211352",
+          "verified": true,
+          "issued_tick": 2517,
+          "world_was_paused": true,
+          "advanced_a_tick": true,
+          "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T211303-8a0bc156\\saves\\frrl-final-20260910T211352.zip",
+          "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-8a0bc156\\write-data\\saves\\frrl-final-20260910T211352.zip",
+          "bytes": 439995,
+          "sha256": "0b54b414b2d8541c1f72b479afe991d912c2fe8bd768d3d7803f453e6d295724",
+          "wall_seconds": 0.887
+        },
+        "seconds": 0.887
+      }
+    ],
+    "cancelled": [],
+    "tick_before_save": 2517,
+    "tick_after_save": 2518,
+    "ticks_across_the_save": 1,
+    "world_was_still_for_the_save": true,
+    "seconds": 0.931,
+    "failed_steps": []
+  },
+  "checkpoints": {
+    "interval_seconds": 300.0,
+    "saves": [
+      {
+        "label": "initial",
+        "name": "frrl-initial-20260910T211310",
+        "verified": true,
+        "issued_tick": 2,
+        "world_was_paused": false,
+        "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T211303-8a0bc156\\saves\\frrl-initial-20260910T211310.zip",
+        "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-8a0bc156\\write-data\\saves\\frrl-initial-20260910T211310.zip",
+        "bytes": 432843,
+        "sha256": "0f0b9573522121d153dc9568f374b81ffb83aea3fcb1611d1ac141768d71dc3e",
+        "wall_seconds": 1.018
+      },
+      {
+        "label": "final",
+        "name": "frrl-final-20260910T211352",
+        "verified": true,
+        "issued_tick": 2517,
+        "world_was_paused": true,
+        "advanced_a_tick": true,
+        "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T211303-8a0bc156\\saves\\frrl-final-20260910T211352.zip",
+        "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-8a0bc156\\write-data\\saves\\frrl-final-20260910T211352.zip",
+        "bytes": 439995,
+        "sha256": "0b54b414b2d8541c1f72b479afe991d912c2fe8bd768d3d7803f453e6d295724",
+        "wall_seconds": 0.887
+      }
+    ],
+    "verified": 2,
+    "failed": 0,
+    "latest_verified": {
+      "label": "final",
+      "name": "frrl-final-20260910T211352",
+      "verified": true,
+      "issued_tick": 2517,
+      "world_was_paused": true,
+      "advanced_a_tick": true,
+      "path": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T211303-8a0bc156\\saves\\frrl-final-20260910T211352.zip",
+      "engine_path": "D:\\FactorioRL\\runtime\\workers\\world-open_factory-8a0bc156\\write-data\\saves\\frrl-final-20260910T211352.zip",
+      "bytes": 439995,
+      "sha256": "0b54b414b2d8541c1f72b479afe991d912c2fe8bd768d3d7803f453e6d295724",
+      "wall_seconds": 0.887
+    },
+    "accounting": "a checkpoint is reported only after its file appeared, stopped growing and was copied out of the worker directory"
+  },
+  "reordered_replies": null,
+  "run_dir": "D:\\FactorioRL\\runtime\\runs\\agent-20260910T211303-8a0bc156",
+  "verdict": {
+    "samples_were_written": true,
+    "samples_landed_during_model_calls": true,
+    "cadence_is_about_five_seconds": true,
+    "no_sample_failed": true,
+    "ticks_advanced_while_the_model_thought": true,
+    "finalization_ran_in_order": true,
+    "no_finalization_step_failed": true,
+    "the_world_was_still_for_the_save": true,
+    "gameplay_and_finalization_are_separate": true,
+    "the_final_save_is_verified": true
+  }
+}

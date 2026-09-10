@@ -2,15 +2,20 @@
   "measures": "roadmap A1's gate, against a live engine",
   "world": {
     "id": "open_factory",
-    "version": "0.1.0",
+    "version": "0.3.0",
     "kind": "world",
     "terrain": "natural",
     "observation_profile": "open-v1",
-    "action_profile": "primitive-v1",
-    "catalog": "parameterized-v1",
+    "action_profile": "assisted-v1",
+    "catalog": "open-v1",
     "decision_ticks": 30,
     "max_decision_steps": 100000,
     "chart_radius": 96,
+    "assistance": [
+      "navigation",
+      "bounded-sequences:8"
+    ],
+    "objective": "YOUR OBJECTIVE\nBuild a productive factory from the items you start with.\n\n  - Automate gathering and processing rather than doing them by hand.\n    Handcrafting and hand-mining are how you bootstrap, not how you\n    produce.\n  - Expand production that is useful to you: more of what you are short\n    of, and the machines that make it.\n  - As resources and time allow, work toward electricity, assembly and\n    research.\n\nYour progress is measured -- what you gather, craft, place and research,\nand what your machines produce without your help. There is no target\nnumber and no hidden win condition. Keep working until the controller\nstops the run; it will not stop because you did something wrong.\n\nHow to build is yours to decide. Nothing here tells you where to put a\nmachine or in what order to build, because nobody has decided that for\nyou.",
     "scored": false,
     "note": "an open world has no success predicate and no layout families; it is not a benchmark task and no rate measured on it is comparable to one"
   },
@@ -75,13 +80,14 @@
     "profiles": {
       "observation": "open-v1",
       "observation_version": 1,
-      "action": "primitive-v1",
+      "action": "assisted-v1",
       "action_version": 1,
-      "assistance": "none",
+      "assistance": "navigation+bounded-batches",
       "drivers": {
         "mining": "native",
         "crafting": "native",
-        "placement": "assembled"
+        "placement": "assembled",
+        "navigation": "own A* over explored terrain, walked with walking_state"
       }
     }
   },
@@ -104,14 +110,14 @@
   },
   "checkpoint": {
     "label": "probe",
-    "name": "frrl-probe-20260910T171444",
+    "name": "frrl-probe-20260910T211517",
     "verified": true,
     "issued_tick": 136,
     "world_was_paused": false,
-    "path": "D:\\FactorioRL\\runtime\\runs\\probe-a1\\saves\\frrl-probe-20260910T171444.zip",
-    "engine_path": "D:\\FactorioRL\\runtime\\workers\\probe-a1\\write-data\\saves\\frrl-probe-20260910T171444.zip",
-    "bytes": 501909,
-    "sha256": "c38db6ccf51d4853896a7335a3a18112bd3bc6d53903531cf72cfebc6c8cedfc",
+    "path": "D:\\FactorioRL\\runtime\\runs\\probe-a1\\saves\\frrl-probe-20260910T211517.zip",
+    "engine_path": "D:\\FactorioRL\\runtime\\workers\\probe-a1\\write-data\\saves\\frrl-probe-20260910T211517.zip",
+    "bytes": 501963,
+    "sha256": "8dcd69f43c188924b97bc9188916a3df5d4e97d45e1655a87f32be15d5dd5c06",
     "wall_seconds": 1.021
   },
   "worker_directory_removed": true,
@@ -130,13 +136,14 @@
       "profiles": {
         "observation": "open-v1",
         "observation_version": 1,
-        "action": "primitive-v1",
+        "action": "assisted-v1",
         "action_version": 1,
-        "assistance": "none",
+        "assistance": "navigation+bounded-batches",
         "drivers": {
           "mining": "native",
           "crafting": "native",
-          "placement": "assembled"
+          "placement": "assembled",
+          "navigation": "own A* over explored terrain, walked with walking_state"
         }
       }
     },
@@ -148,7 +155,7 @@
     "total_recipes": 217,
     "researched": 0
   },
-  "wall_seconds": 40.2,
+  "wall_seconds": 40.4,
   "verdict": {
     "natural_deposits_present": true,
     "trees_present": true,

@@ -534,6 +534,42 @@ appearing under both `REPEATED FAILURE` and `REFUSED ACTIONS`, once per attempt,
 on every later turn. Reasons are now clipped to 120 characters and a failure
 already named above is not repeated below.
 
+**A run is now measured on a wall clock and stopped in a defined order**
+(roadmap A4.3), and three things were wrong before that are worth keeping
+written down. Measured in `docs/evidence/a4-measurement.json`: a realtime
+`run_world` with a scripted provider that takes seven seconds a call, 10/10.
+
+*Sampling followed the agent's turn, not the clock.* Production was recorded
+once per environment step. Exactly-stepped that is every 30 ticks; in realtime
+it is *the model's latency* -- and `ProductionMetrics` refuses a window it did
+not observe densely enough, so A4.2's 60-second windows would have been thrown
+out as unsampled almost every time. A daemon sampler now reads the world every
+five seconds on the same connection. Measured: 8 samples in 42 seconds of
+gameplay, 6 of them landing inside a model call.
+
+*The world kept running while the final save was taken.* `configure` unpaused
+immediately when `free_running` was turned **on** and only set a flag when it
+was turned off -- the world paused at the next step, and at the end of a run
+there is no next step. Measured across `game.server_save`: 59 ticks of drift, so
+the save held a different world from the last observation the agent saw. Now 1
+tick, which is the floor rather than a tolerance chosen to pass: `tick_paused`
+set from inside a tick lets that tick finish.
+
+*`RunClock` published a claim that was false.* `to_dict()` states "gameplay
+only; worker launch and final snapshot excluded", and `clock.stop()` ran after
+the final save, the viewer teardown and `--hold-open`. Gameplay and finalization
+are now separate numbers -- 42.0s and 0.93s of a 64.7s wall on the probe.
+
+**Two engine tests fail and are not caused by this work.**
+`test_observation_profiles_decode_identically` for `navigate` and `deliver`
+asserts the `local-v2` profile sends fewer bytes than `local-v1`, and it now
+sends slightly *more* -- 95,015 against 94,985 on `deliver`. Confirmed
+pre-existing by running the same test on the previous commit. The slim profile's
+saving has been eroded by additions that apply to both profiles; nothing in the
+A-series uses `local-v2`, so this is recorded rather than fixed, and it is a
+real regression in a benchmark contract that should be chased before the next
+benchmark result is published.
+
 **Sequences are executed by Python, not by the mod's `batch`.** `batch` accepts
 only instantaneous operations, and by its own documentation refuses ongoing ones
 -- move, navigate, mine, craft -- because it could not say whether later

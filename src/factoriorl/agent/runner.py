@@ -15,12 +15,14 @@ engine run rather than presented as verified.
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from typing import Any
 
 from factoriorl import assistance as assistance_module
 from factoriorl.agent.adapters import ModelAdapter
 from factoriorl.agent.loop import AgentConfig, AgentLoop
+from factoriorl.agent.sampler import Sampler
 from factoriorl.engine_config import resolve_game_speed
 
 
@@ -151,6 +153,89 @@ def run_task(
         manager.cleanup(handle)
 
 
+def finalize(session, checkpointer, *, observation: dict | None = None) -> dict:
+    """Bring the world to a stop and take the last snapshot of it.
+
+    Roadmap A4.3: "At the deadline stop new actions, cancel controller-held
+    activity, pause the world for the final snapshot/save, then stop the
+    worker. The paused finalization period is outside gameplay and recorded
+    separately."
+
+    None of it happened before. In particular the world was still *running*
+    while `game.server_save` was issued, which in a realtime run means the save
+    holds a slightly different world from the last observation the agent saw --
+    and a run report presents the two side by side.
+
+    Every step is recorded, including the ones that failed, because a
+    finalization that half-worked is the case a reader most needs to know
+    about. A step that raises must not cost the run its final save, which is
+    the whole point of finalizing.
+    """
+    started = time.perf_counter()
+    record: dict = {
+        "measures": "wall time after the last decision; outside gameplay",
+        "steps": [],
+    }
+
+    def step(name: str, action) -> None:
+        at = time.perf_counter()
+        entry: dict = {"step": name}
+        try:
+            entry["result"] = action()
+        except Exception as failure:  # noqa: BLE001 - recorded, never fatal
+            entry["error"] = f"{type(failure).__name__}: {failure}"
+        entry["seconds"] = round(time.perf_counter() - at, 3)
+        record["steps"].append(entry)
+
+    # 1. Cancel what the controller still has running. A walk or a mine left in
+    #    flight would keep moving the character while the save is taken.
+    inflight = [
+        str(entry["request_id"])
+        for entry in (observation or {}).get("inflight") or []
+        if isinstance(entry, dict) and entry.get("request_id")
+    ]
+    record["cancelled"] = inflight
+    for request_id in inflight:
+        step(
+            f"cancel:{request_id}",
+            lambda rid=request_id: session.act("cancel", target_request_id=rid).response.result,
+        )
+
+    # 2. Pause. `free_running` is the one knob that changes what happens rather
+    #    than how fast it happens, and turning it off is what makes the world
+    #    stand still for the snapshot.
+    step("pause", lambda: session.configure(free_running=False).response.result)
+
+    # 3. The snapshot, of a world that is now not moving -- with the tick read
+    #    either side of it. "The world was paused for the save" is otherwise a
+    #    claim about a knob rather than a statement about the world, and this is
+    #    the difference between the two: if the pause did not take, these two
+    #    numbers differ and the artifact says so.
+    def _tick() -> int | None:
+        try:
+            return int((session.truth().response.result or {}).get("tick") or 0)
+        except Exception:  # noqa: BLE001 - a missing reading is not a failed save
+            return None
+
+    record["tick_before_save"] = _tick()
+    step("save", lambda: checkpointer.save("final"))
+    record["tick_after_save"] = _tick()
+    # One tick is the floor, not a tolerance chosen to make this pass.
+    # `game.tick_paused = true` set from inside a tick lets that tick finish, so
+    # the world advances by exactly one and then stops. Measured either side of
+    # the save: 59 ticks before `configure(free_running=False)` was made to
+    # pause immediately, 1 after.
+    drift = None
+    if record["tick_before_save"] is not None and record["tick_after_save"] is not None:
+        drift = record["tick_after_save"] - record["tick_before_save"]
+    record["ticks_across_the_save"] = drift
+    record["world_was_still_for_the_save"] = drift is not None and drift <= 1
+
+    record["seconds"] = round(time.perf_counter() - started, 3)
+    record["failed_steps"] = [entry["step"] for entry in record["steps"] if "error" in entry]
+    return record
+
+
 def run_world(
     mode,
     config: AgentConfig,
@@ -160,6 +245,7 @@ def run_world(
     game_speed: float | None = None,
     free_running: bool = True,
     on_ready=None,
+    on_finished=None,
     until=None,
     checkpoint_seconds: float | None = None,
     resume_from: Path | None = None,
@@ -200,6 +286,7 @@ def run_world(
     # should fail in a second, not after a ninety-second map generation.
     freeplay = starting_inventory(manager.engine.executable)
     viewer = None
+    sampler = None
     handle = manager.launch(
         f"world-{mode.id}-{run_id[-8:]}",
         map_seed=master_seed,
@@ -312,14 +399,33 @@ def run_world(
         # Before the first action, per A1.3: a world that dies on decision one
         # should still leave something to resume from.
         checkpointer.save("initial")
+        # Started after the initial save so the first sample describes a world
+        # that has been snapshotted, and stopped before finalization so the
+        # samples cover gameplay and nothing else.
+        sampler = Sampler(
+            session=session,
+            destination=manifest_module.runs_dir() / run_id / "production.jsonl",
+        ).start()
         result = loop.run(until=until, on_decision=checkpointer.maybe_save)
-        checkpointer.save("final")
+        # Gameplay is over here, and the clock has to say so *here*: everything
+        # below is finalization, and `RunClock.to_dict()` already claimed to
+        # exclude the final snapshot while `clock.stop()` ran after it.
+        if on_finished is not None:
+            on_finished()
+        result["sampling"] = sampler.stop().to_dict()
+        sampler = None  # stopped here, so the `finally` has nothing left to do
+        result["finalization"] = finalize(session, checkpointer, observation=env._observation)
         result["checkpoints"] = checkpointer.to_dict()
         result["viewer"] = viewer.to_dict(
             reordered_replies=getattr(session._client, "reordered_replies", None)
         )
         return result
     finally:
+        # A run that raised still has to leave the sampler stopped: it is a
+        # daemon thread, so it would otherwise keep reading a session the
+        # `finally` below is about to close.
+        if sampler is not None:
+            sampler.stop()
         # After the final checkpoint, so the last thing on screen is the world
         # that was actually saved.
         if viewer is not None:

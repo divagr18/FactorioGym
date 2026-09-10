@@ -579,6 +579,12 @@ def cmd_agent(args) -> int:
         "on_ready": clock.start,
         "until": clock.expired,
     }
+    # Stopped when the last decision is over, *before* the world is paused and
+    # saved. `RunClock.to_dict()` publishes "gameplay only; worker launch and
+    # final snapshot excluded", and until now that claim was false: `clock.stop()`
+    # ran after `save("final")`, the viewer teardown and `--hold-open`.
+    if is_world:
+        shared["on_finished"] = clock.stop
     if is_world:
         result = run_world(
             worlds.get(args.task),
@@ -609,6 +615,8 @@ def cmd_agent(args) -> int:
         return 2
     else:
         result = run_task(config, adapter, master_seed=args.seed, **shared)
+    # A second stop is a no-op for a world, which already stopped it at the end
+    # of gameplay; for a task this is still the only stop there is.
     clock.stop()
 
     result["limits"] = {**provider.to_dict(), "env_file_supplied": env_file_supplied}

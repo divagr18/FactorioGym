@@ -817,6 +817,11 @@ function world.truth()
   end
 
   return {
+    -- The game tick this reading was taken at. A4.2 measures production in
+    -- 60-second *game*-time windows, and a sample with no tick cannot be put
+    -- in one -- which is what the wall-clock sampler needs it for. Every
+    -- existing caller reads the four keys below and ignores this.
+    tick = game.tick,
     markers = markers,
     containers = containers,
     working = working,
