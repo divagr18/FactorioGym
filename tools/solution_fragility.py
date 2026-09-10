@@ -34,14 +34,29 @@ produces, and see whether it still reaches success.
 
 Near 0 would be disjunctive, near 1 conjunctive.
 
-The control, and why it is not optional
----------------------------------------
-The first run had no control and the result was uninterpretable. Injecting
-`wait` -- legal, changes nothing about the world, costs one step -- failed a
-`deliver` episode. A no-op cannot make a task conjunctive; it can only spend
-budget. So a second arm now re-runs every injection point substituting `wait`,
-and `excess_fragility = fragility - control` is the part *not* explained by
-having spent a step.
+The control, and what it caught
+-------------------------------
+The first run had no control and the result was uninterpretable: `deliver`
+measured the *most* fragile of four families at 0.20-0.35 while being the one
+that learns best, and `repair_belt` measured the *least* at 0.00-0.05 while
+being the one behaviour cloning fails hardest on. Backwards, in other words.
+
+So a second arm now re-runs every injection point substituting `wait` -- legal,
+changes nothing about the world, costs one step -- and `excess_fragility` is
+fragility minus control. On `deliver` the control came back 0.20-0.32 against a
+headline of 0.23-0.28: **essentially all of it**. A no-op cannot make a task
+conjunctive, so the headline was measuring something else.
+
+The per-trial rows named it. Every one of `deliver`'s control failures was
+injected at the *last* action of the solve, which for `deliver` is always
+`give_iron-plate_20` -- the delivery itself. Replacing the goal-achieving action
+of a straight-line plan means it is simply never taken. That is a fact about how
+`solve_deliver` is written, not about `deliver`.
+
+Hence `--restarts`: the solver is re-invoked on the state the perturbation
+produced. `solve_repair_belt` already did this internally, looping up to six
+times to re-find the gap, which is exactly why it scored 0.00 while the
+single-pass solvers did not. Re-invoking makes the arms comparable.
 
 What this does not measure
 --------------------------
@@ -144,20 +159,38 @@ def solve_length(task, session, plan, split: str, index: int) -> tuple[int, bool
     return trace.steps, driver.success
 
 
-def trial(task, session, plan, split, index, perturb_at, rng, forced=None) -> dict:
+def trial(task, session, plan, split, index, perturb_at, rng, forced=None, restarts=2) -> dict:
     env = FactorioEnv(task, session, plan, branch=Branch.TRAIN, split=split)
     env._episode_index = index - 1
     env.reset()
     trace = SolveTrace(task=task.spec.id, budget=task.spec.max_decision_steps)
     driver = PerturbingDriver(env, trace, perturb_at, rng, forced=forced)
     solver = _solver_for(task.spec.id)
+    used = 0
     try:
         solver(driver)
+        # Most reference solvers are straight-line plans: `Driver.do` is called
+        # once per planned step, so replacing a step means that step is simply
+        # never taken and the plan ends short. Without this, the measure scores
+        # *how the solver was written* -- `solve_repair_belt` loops up to six
+        # times and recovers from anything, while `solve_deliver` walks its plan
+        # once -- rather than anything about the task. Re-invoking the solver on
+        # the state the perturbation produced asks the question actually
+        # intended: from here, is the goal still reachable within budget?
+        while (
+            not driver.success
+            and not driver.terminated
+            and not driver.truncated
+            and used < restarts
+        ):
+            used += 1
+            solver(driver)
     except Exception as exc:  # a solver may assume a state its plan no longer holds
         return {
             "perturb_at": perturb_at,
             "perturbed": driver.injected is not None,
-            "recovered": False,
+            "recovered": bool(driver.success),
+            "restarts": used,
             "solver_error": f"{type(exc).__name__}: {str(exc)[:90]}",
         }
     return {
@@ -166,10 +199,11 @@ def trial(task, session, plan, split, index, perturb_at, rng, forced=None) -> di
         "replaced": driver.replaced,
         "injected": driver.injected,
         "recovered": bool(driver.success),
+        "restarts": used,
     }
 
 
-def measure(task, session, plan, split: str, episodes: int, per_episode: int, rng) -> dict:
+def measure(task, session, plan, split, episodes, per_episode, rng, restarts) -> dict:
     scenes = []
     for index in range(episodes):
         length, solved = solve_length(task, session, plan, split, index)
@@ -179,13 +213,18 @@ def measure(task, session, plan, split: str, episodes: int, per_episode: int, rn
         # Spread the injection points over the solve rather than clustering at
         # the start: a task can be forgiving early and unforgiving late.
         points = sorted({int(p) for p in np.linspace(1, length, per_episode, dtype=int)})
-        trials = [trial(task, session, plan, split, index, p, rng) for p in points]
+        trials = [
+            trial(task, session, plan, split, index, p, rng, restarts=restarts) for p in points
+        ]
         # The control arm: same scene, same injection points, but the substitute
         # is always `wait`. It leaves the world alone and spends one step, so
         # whatever it costs is the cost of *spending a step*, not of being
         # wrong. Without it the headline number cannot tell a task with one
         # solution from a task with a tight budget.
-        controls = [trial(task, session, plan, split, index, p, rng, forced="wait") for p in points]
+        controls = [
+            trial(task, session, plan, split, index, p, rng, forced="wait", restarts=restarts)
+            for p in points
+        ]
         usable = [t for t in trials if t["perturbed"]]
         used_control = [t for t in controls if t["perturbed"]]
         scenes.append(
@@ -238,6 +277,13 @@ def main() -> int:
         default=5,
         help="injection points per scene, spread across the reference solve",
     )
+    parser.add_argument(
+        "--restarts",
+        type=int,
+        default=2,
+        help="times the solver may be re-invoked on the perturbed state before the "
+        "trial counts as unrecovered",
+    )
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
@@ -265,6 +311,11 @@ def main() -> int:
             "can still be unlearnable; read this beside the random floor, not "
             "instead of it"
         ),
+        "solver_restarts": (
+            "the solver is re-invoked on the perturbed state up to --restarts times, "
+            "because most reference solvers are straight-line plans and would "
+            "otherwise score the plan's shape rather than the task's"
+        ),
         "credit": "framing from github.com/beyarkay/factorion",
         "tasks": {},
     }
@@ -281,7 +332,16 @@ def main() -> int:
             for split in splits:
                 if not task.spec.families(split):
                     continue
-                result = measure(task, session, plan, split, args.episodes, args.perturbations, rng)
+                result = measure(
+                    task,
+                    session,
+                    plan,
+                    split,
+                    args.episodes,
+                    args.perturbations,
+                    rng,
+                    args.restarts,
+                )
                 entry["splits"][split] = result
                 print(
                     f"{task_id:16s} {split:6s} fragility={result['fragility']} "
