@@ -261,6 +261,65 @@ end
 --     between episodes; an open world should have its ordinary day and night.
 --   * grant anything beyond the declared inventory. The caller passes freeplay's
 --     own `created_items`, read from the installed game.
+--- Every resource patch inside the charted area, aggregated.
+--
+-- The world charts a large square at creation and published none of it, while
+-- the agent's own sensor reaches 32 tiles. On seed 20260910 -- coal at 79.7
+-- tiles, trees at 81.0, stone at 104.8 -- the prompt never mentioned stone at
+-- all, and three paid runs spent most of their decisions walking in expanding
+-- squares through territory the force had already mapped. "Why does it not go
+-- and find stone" had a flat answer: it was never told stone exists.
+--
+-- Map-view information, which is what a player reads before deciding where to
+-- walk. Not a build plan: it says what is out there and roughly where, and
+-- nothing about what to do with it.
+--
+-- Aggregated on a coarse grid rather than clustered properly. A patch is
+-- hundreds of tiles and the useful fact is "coal, about 80 tiles west, big",
+-- so tiles are bucketed by `SURVEY_CELL` and merged; real clustering would be
+-- more code for a distinction the agent cannot act on.
+local SURVEY_CELL = 32
+
+function world.survey(radius)
+  local srf = surface()
+  local buckets = {}
+  for _, entity in pairs(srf.find_entities_filtered({
+    area = { { -radius, -radius }, { radius, radius } },
+    type = "resource",
+  })) do
+    if entity.valid then
+      local cx = math.floor(entity.position.x / SURVEY_CELL)
+      local cy = math.floor(entity.position.y / SURVEY_CELL)
+      local key = entity.name .. ":" .. cx .. ":" .. cy
+      local bucket = buckets[key]
+      if not bucket then
+        bucket = { name = entity.name, tiles = 0, amount = 0, sx = 0, sy = 0 }
+        buckets[key] = bucket
+      end
+      bucket.tiles = bucket.tiles + 1
+      bucket.amount = bucket.amount + (entity.amount or 0)
+      bucket.sx = bucket.sx + entity.position.x
+      bucket.sy = bucket.sy + entity.position.y
+    end
+  end
+  local patches = {}
+  for _, bucket in pairs(buckets) do
+    patches[#patches + 1] = {
+      name = bucket.name,
+      tiles = bucket.tiles,
+      amount = bucket.amount,
+      -- Centre of mass, which is where "walk to the coal" should aim.
+      position = { bucket.sx / bucket.tiles, bucket.sy / bucket.tiles },
+    }
+  end
+  table.sort(patches, function(a, b)
+    local da = a.position[1] ^ 2 + a.position[2] ^ 2
+    local db = b.position[1] ^ 2 + b.position[2] ^ 2
+    return da < db
+  end)
+  return patches
+end
+
 function world.open_world(options)
   options = options or {}
   -- `fresh` decides whether this is a *start* or a *resume*, and it gates the
@@ -311,6 +370,18 @@ function world.open_world(options)
   -- several decisions be about revealing terrain rather than about building.
   local radius = options.chart_radius or 96
   game.forces["player"].chart(srf, { { -radius, -radius }, { radius, radius } })
+  -- Charting *reveals* chunks; it does not generate them. Surveying straight
+  -- after a chart returned zero patches, because `find_entities_filtered` was
+  -- scanning ground that did not exist yet. Requesting generation and forcing
+  -- the queue makes the area real before it is measured.
+  --
+  -- This is the one place in the run where a synchronous chunk generation is
+  -- affordable: it happens once, before the clock starts, and a world whose
+  -- resources the agent will be told about has to have those resources
+  -- generated.
+  srf.request_to_generate_chunks({ 0, 0 }, math.ceil(radius / 32) + 1)
+  srf.force_generate_chunk_requests()
+  local survey = world.survey(radius)
 
   storage.frrl_scene = {
     name = "open_world",
@@ -326,6 +397,11 @@ function world.open_world(options)
   }
 
   return {
+    -- Surveyed once at creation and carried here. Resource patches do not
+    -- move, so this is world state that is constant for the run, which is
+    -- exactly what belongs in a cached prefix rather than in every turn.
+    survey = survey,
+    survey_radius = radius,
     scenario = storage.frrl_scene.name,
     -- Zero on a resume, by construction. A non-zero count there means the sweep
     -- ran when it should not have, which is directly assertable.

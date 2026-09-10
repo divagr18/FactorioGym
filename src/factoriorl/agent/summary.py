@@ -229,6 +229,10 @@ PLACEMENT_EXAMPLES = 8
 #: `env.PLACEMENT_RADIUS`, stated here because the prompt says it in prose.
 PLACEMENT_RULE_TILES = 5
 
+#: Patches named in the charted-map block. Generous: this is the whole reason
+#: an agent knows there is coal to walk to, and it is paid for once.
+SURVEY_PATCHES_SHOWN = 40
+
 #: Machines listed in the factory block before it is truncated. Generous: this
 #: is the agent's own construction and forgetting a machine is how a furnace
 #: ends up unfuelled and abandoned twenty tiles away.
@@ -323,6 +327,44 @@ def objective_block(env: Any) -> str:
     """
     mode = getattr(env, "mode", None)
     return str(getattr(mode, "objective", "") or "")
+
+
+def survey_block(env: Any) -> str:
+    """What the charted map holds, rendered once (roadmap A3.1's world state).
+
+    The agent's sensor reaches 32 tiles and the world charts far further, so
+    everything past that was invisible. Measured on seed 20260910: coal 79.7
+    tiles away, trees 81.0, stone 104.8 -- and the prompt never mentioned stone
+    at all, because stone was outside the sensor. Three paid runs spent most of
+    their decisions walking in expanding squares looking for fuel through
+    territory the force had already mapped.
+
+    This is map-view information: what is out there and roughly where. It
+    prescribes nothing -- no route, no order, no build. And it is invariant, so
+    it costs one cache miss rather than a line on every turn.
+    """
+    survey = getattr(env, "survey", None)
+    if not survey:
+        return ""
+    lines = [
+        "=== THE CHARTED MAP ===",
+        f"Resource patches within {getattr(env, 'survey_radius', '?')} tiles of the",
+        "origin (0, 0), surveyed once when the world was made. Your own sensor",
+        "reaches far less than this, so most of what follows you cannot see from",
+        "where you are standing -- walk to it. Positions are ABSOLUTE.",
+        "",
+    ]
+    for patch in survey[:SURVEY_PATCHES_SHOWN]:
+        position = patch.get("position") or [0.0, 0.0]
+        distance = _distance(float(position[0]), float(position[1]))
+        lines.append(
+            f"  {patch.get('name')}: {patch.get('tiles')} tiles centred on "
+            f"({position[0]:.0f}, {position[1]:.0f}), {distance:.0f} tiles from the "
+            f"origin {_compass(float(position[0]), float(position[1]))}"
+        )
+    if len(survey) > SURVEY_PATCHES_SHOWN:
+        lines.append(f"  (+{len(survey) - SURVEY_PATCHES_SHOWN} more, further out)")
+    return "\n".join(lines)
 
 
 def static_reference(env: Any) -> str:

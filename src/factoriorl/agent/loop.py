@@ -56,6 +56,7 @@ from factoriorl.agent.summary import (
     objective_block,
     static_reference,
     summarise,
+    survey_block,
     targetable_actions,
     visible_handles,
 )
@@ -538,6 +539,7 @@ class AgentLoop:
                 self.static_knowledge,
                 static_reference(self.env),
                 objective_block(self.env),
+                survey_block(self.env),
             )
             if block
         ]

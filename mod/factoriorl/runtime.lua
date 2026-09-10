@@ -565,6 +565,12 @@ local function handle_open_world(request)
     delivered = built.delivered,
     undelivered = built.undelivered,
     position = built.position,
+    -- Every resource patch inside the charted area. This handler names each
+    -- field it passes through, so a new one on `built` is invisible until it is
+    -- named here -- which is exactly what happened: `world.open_world` returned
+    -- the survey, the reply dropped it, and the Python side read `None`.
+    survey = built.survey,
+    survey_radius = built.survey_radius,
     fresh = fresh,
     profiles = profiles.metadata(state.observation_profile, state.action_profile),
   })

@@ -143,6 +143,12 @@ class OpenWorldEnv(FactorioEnv):
             fresh=self.fresh,
         )
         result = opened.response.result or {}
+        # Every resource patch inside the charted area, surveyed once at
+        # creation. Kept on the environment rather than in the observation
+        # because patches do not move: it is constant for the run, so it belongs
+        # in the cached prompt prefix and not in every turn.
+        self.survey = list(result.get("survey") or [])
+        self.survey_radius = result.get("survey_radius")
         undelivered = result.get("undelivered") or []
         if undelivered:
             # The same rule a declared scene gets: a world that is not the world

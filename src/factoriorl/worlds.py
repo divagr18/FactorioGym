@@ -163,7 +163,12 @@ OPEN_FACTORY = WorldMode(
     assistance=("navigation", "bounded-sequences:8"),
     decision_ticks=30,
     max_decision_steps=100_000,
-    chart_radius=96,
+    # 96 was "enough to not start on a blank map". It is not enough to *plan*:
+    # on this seed stone is 104.8 tiles from spawn and fell outside it entirely,
+    # so a survey built from the charted area could not have mentioned stone --
+    # which is the exact question a run kept failing to answer. 192 covers every
+    # starting resource on this seed with room to spare.
+    chart_radius=192,
 )
 
 MODES: dict[str, WorldMode] = {OPEN_FACTORY.id: OPEN_FACTORY}
