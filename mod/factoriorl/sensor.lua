@@ -184,7 +184,26 @@ function sensor.grid(surface, origin, radius)
 
   -- Then everything solid, over the top, marking every tile of its footprint
   -- so a 2x2 machine reads as 2x2.
-  local GLYPHS = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+  -- Deliberately excludes any letter whose lowercase is already taken by a
+  -- resource or by scenery -- i k c s u o t r x. That frees *case* to carry
+  -- meaning: an uppercase machine is running, a lowercase one is stopped, and
+  -- a stopped machine is otherwise indistinguishable from a working one on a
+  -- map made of single characters. The run before this built a drill, an
+  -- inserter and a furnace, fuelled none of them, and read the map as a
+  -- finished factory.
+  local debris = {}
+  local GLYPHS = "ABDEFGHJLMNPQVWYZ"
+
+  -- Statuses that mean "this is built and doing nothing".
+  local STOPPED = {
+    [defines.entity_status.no_fuel] = true,
+    [defines.entity_status.no_power] = true,
+    [defines.entity_status.no_ingredients] = true,
+    [defines.entity_status.no_minable_resources] = true,
+    [defines.entity_status.waiting_for_source_items] = true,
+    [defines.entity_status.item_ingredient_shortage] = true,
+    [defines.entity_status.missing_required_fluid] = true,
+  }
   local next_glyph = 1
   for _, entity in pairs(surface.find_entities_filtered({
     area = { { cx - radius, cy - radius }, { cx + radius + 1, cy + radius + 1 } },
@@ -195,16 +214,62 @@ function sensor.grid(surface, origin, radius)
         glyph = "t"
       elseif entity.type == "simple-entity" then
         glyph = "r"
+      elseif string.sub(entity.name, 1, 11) == "crash-site-" then
+        -- The spawn wreckage is nine entities spread over a dozen tiles. Giving
+        -- each its own letter consumed most of the alphabet and pushed the
+        -- machines the agent actually built down to glyphs it had to hunt for.
+        -- One glyph, one legend line, and the handles of the pieces that hold
+        -- something worth taking.
+        glyph = "x"
+        debris[#debris + 1] = {
+          handle = handles.mint(entity),
+          name = entity.name,
+          contents = contents_of(entity),
+        }
       elseif next_glyph <= #GLYPHS then
         glyph = string.sub(GLYPHS, next_glyph, next_glyph)
         next_glyph = next_glyph + 1
-        legend[#legend + 1] = {
+        local entry = {
           glyph = glyph,
           name = entity.name,
           handle = handles.mint(entity),
           direction = entity.supports_direction and entity.direction or nil,
           position = { entity.position.x, entity.position.y },
         }
+        -- Where this machine puts what it makes, and where it takes from.
+        --
+        -- "facing south" is a word, not a location: it does not tell an agent
+        -- which tile a burner drill's ore lands on, and a drill whose output
+        -- tile is not the furnace produces nothing however well fuelled it is.
+        -- The engine renders exactly this as an arrow on the entity, so any
+        -- player watching sees it -- it is world state, not the reference
+        -- solver's measured geometry, which is what `FORBIDDEN_IN_PROMPT`
+        -- withholds from the *static* instructions of a benchmark task.
+        local ok_drop, drop = pcall(function() return entity.drop_position end)
+        if ok_drop and drop then entry.drop = { drop.x, drop.y } end
+        local ok_pick, pick = pcall(function() return entity.pickup_position end)
+        if ok_pick and pick then entry.pickup = { pick.x, pick.y } end
+        -- Fuel and status, on the machine itself. Both were in the ENTITIES
+        -- block and neither was on the map, so a machine could sit there
+        -- looking built while being empty.
+        local ok_status, status = pcall(function() return entity.status end)
+        if ok_status and status then entry.status = status end
+        local ok_fuel, fuel = pcall(function()
+          local inv = entity.get_fuel_inventory()
+          if not inv then return nil end
+          local total = 0
+          for _, stack in pairs(inv.get_contents()) do total = total + stack.count end
+          return total
+        end)
+        if ok_fuel and fuel ~= nil then entry.fuel = fuel end
+        -- Lowercase means stopped. The letter still identifies the machine, so
+        -- the legend needs no second entry and the map needs no second layer.
+        if entry.status and STOPPED[entry.status] then
+          glyph = string.lower(glyph)
+          entry.glyph = glyph
+          entry.stopped = true
+        end
+        legend[#legend + 1] = entry
       else
         glyph = "+"
       end
@@ -212,6 +277,29 @@ function sensor.grid(surface, origin, radius)
       for x = math.floor(box.left_top.x), math.ceil(box.right_bottom.x) - 1 do
         for y = math.floor(box.left_top.y), math.ceil(box.right_bottom.y) - 1 do
           put(x, y, glyph)
+        end
+      end
+    end
+  end
+
+  -- Output arrows last, so they sit on top of open ground but never hide a
+  -- machine: a cell that already holds something solid keeps it.
+  for _, entry in ipairs(legend) do
+    if entry.drop then
+      local column = math.floor(entry.drop[1]) - (cx - radius) + 1
+      local row = math.floor(entry.drop[2]) - (cy - radius) + 1
+      if row >= 1 and row <= 2 * radius + 1 and column >= 1 and column <= 2 * radius + 1 then
+        local cell = cells[row][column]
+        if cell == "." or string.match(cell, "%l") then
+          local dx = entry.drop[1] - entry.position[1]
+          local dy = entry.drop[2] - entry.position[2]
+          local arrow = "v"
+          if math.abs(dx) > math.abs(dy) then
+            arrow = dx > 0 and ">" or "<"
+          else
+            arrow = dy > 0 and "v" or "^"
+          end
+          cells[row][column] = arrow
         end
       end
     end
@@ -228,6 +316,7 @@ function sensor.grid(surface, origin, radius)
     origin = { cx - radius, cy - radius },
     rows = rows,
     legend = legend,
+    debris = debris,
   }
 end
 

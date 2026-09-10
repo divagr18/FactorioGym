@@ -315,6 +315,26 @@ def static_reference(env: Any) -> str:
         suffix = f"  [needs: {', '.join(needed)}]" if needed else ""
         lines.append(f"  {index}: {key} -- {description}{suffix}")
 
+    if objective_block(env):
+        # Only a world draws a map, and the part of its key that never changes
+        # belongs here rather than in every turn: seven lines of explanation
+        # re-sent on each of 300 turns is the same cost A2 measured and moved.
+        lines += [
+            "",
+            "READING THE LOCAL MAP",
+            "One character per tile, north at the top, @ is you.",
+            "  . open ground   ~ water   t tree   r rock   x crash-site debris",
+            "  A MACHINE IN CAPITALS IS RUNNING. a machine in lower case is stopped:",
+            "    built, standing there, producing nothing. Its line says why.",
+            "  > < ^ v  the tile a machine puts its output on. A drill whose output",
+            "    tile is not the machine you want fed drops onto the ground instead.",
+            "    An inserter is the confusing one: it TAKES FROM BEHIND ITSELF and",
+            "    PUTS IN FRONT, so both of its tiles are named on its own line rather",
+            "    than left to the word 'facing', which points the wrong way for it.",
+            "  Two machines only pass items when one's output tile is the other's",
+            "  tile. Touching is not enough; the tiles have to match.",
+        ]
+
     domains = env.argument_domains() if hasattr(env, "argument_domains") else {}
     lines += [
         "",
@@ -474,6 +494,22 @@ def _entity_rows(observation: dict, origin: list[float]) -> tuple[list[dict], in
     rows += [_entity_row(r, origin, True) for r in observation.get("remembered") or []]
     rows.sort(key=lambda row: row["distance"])
     return rows[:MAX_ENTITIES_SHOWN], max(0, len(rows) - MAX_ENTITIES_SHOWN)
+
+
+#: The few entity statuses worth a word on the map. The full list is long and
+#: mostly irrelevant to an agent; these are the ones that explain why a machine
+#: that looks built is doing nothing.
+_STATUS_NAMES = {
+    1: "working",
+    12: "no power",
+    15: "no fuel",
+    16: "no ingredients",
+    18: "waiting for space in destination",
+    21: "no minable resources left under it",
+    22: "waiting for source items",
+    37: "not plugged in",
+    53: "no ingredients",
+}
 
 
 #: Factorio's direction enum, as the mod publishes it. Rendered as words
@@ -654,19 +690,61 @@ class ObservationSummary:
         lines += [f"  {row}" for row in rows]
         legend = (self.grid or {}).get("legend") or []
         if legend:
-            lines.append("  key:")
-            lines.append("    . open ground   ~ water   t tree   r rock")
+            lines.append("  key (the fixed part is in the ACTION REFERENCE above):")
             for entry in legend:
                 if entry.get("kind") == "resource":
                     lines.append(f"    {entry['glyph']} {entry['name']} (minable)")
                     continue
                 where = entry.get("position") or [0, 0]
                 facing = entry.get("direction")
-                facing_text = f", facing {_DIRECTION_NAMES.get(facing, facing)}" if facing else ""
-                lines.append(
+                parts = [
                     f"    {entry['glyph']} {entry.get('name')} [{entry.get('handle')}] "
-                    f"at ({where[0]:.1f}, {where[1]:.1f}){facing_text}"
+                    f"at ({where[0]:.1f}, {where[1]:.1f})"
+                ]
+                if facing is not None:
+                    parts.append(f"facing {_DIRECTION_NAMES.get(facing, facing)}")
+                # The tile, not the compass word. "facing south" does not tell
+                # anyone which tile the ore lands on, and a drill pointed at
+                # open ground produces into the ground however well fuelled.
+                drop = entry.get("drop")
+                if drop:
+                    parts.append(f"outputs onto ({drop[0]:.1f}, {drop[1]:.1f})")
+                pickup = entry.get("pickup")
+                if pickup:
+                    parts.append(f"takes from ({pickup[0]:.1f}, {pickup[1]:.1f})")
+                fuel = entry.get("fuel")
+                if fuel == 0:
+                    # Loud, because a machine with no fuel looks exactly like a
+                    # working one on the map and the run before this one built
+                    # two and never fuelled either.
+                    parts.append("NO FUEL -- it will not run until you give it some")
+                elif fuel:
+                    parts.append(f"fuel {fuel}")
+                status = entry.get("status")
+                if status is not None:
+                    named = _STATUS_NAMES.get(status)
+                    if named:
+                        parts.append(named)
+                if entry.get("stopped"):
+                    parts.append("STOPPED")
+                lines.append(", ".join(parts))
+            debris = (self.grid or {}).get("debris") or []
+            if debris:
+                # One line for the spawn wreckage instead of nine. It is scenery
+                # and it was eating most of the alphabet, pushing the machines
+                # the agent had actually built down to letters it had to hunt
+                # for -- but some pieces hold starting items, so those are named.
+                holding = [d for d in debris if d.get("contents")]
+                lines.append(
+                    f"    x  {len(debris)} pieces of crash-site debris. Not machines, "
+                    "and in the way:"
                 )
+                lines.append("       mine_at removes a piece and gives you what it was made of.")
+                for piece in holding[:6]:
+                    held = ", ".join(
+                        f"{name} x{count}" for name, count in sorted(piece["contents"].items())
+                    )
+                    lines.append(f"       [{piece['handle']}] holds {held} -- take_from works")
         return lines
 
     def _handle_offsets(self) -> dict[str, tuple[float, float, float]]:

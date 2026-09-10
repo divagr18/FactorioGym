@@ -16,10 +16,13 @@
     {
       "check": "format",
       "command": "D:\\FactorioRL\\.venv\\Scripts\\python.exe -m ruff ...",
-      "exit_code": 0,
-      "ok": true,
+      "exit_code": 1,
+      "ok": false,
       "tail": [
-        "213 files already formatted"
+        "\u001b[0m\u001b[1m\u001b[94m743\u001b[0m \u001b[1m\u001b[94m|\u001b[0m                 for piece in holding[:6]:",
+        "\u001b[1m\u001b[94m   \u001b[0m \u001b[1m\u001b[94m|\u001b[0m",
+        "",
+        "1 file would be reformatted, 212 files already formatted"
       ],
       "seconds": 0.1
     },
@@ -32,9 +35,9 @@
         "\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m [ 93%]",
         "\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m [ 99%]",
         "\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                 [100%]\u001b[0m",
-        "\u001b[32m\u001b[32m\u001b[1m1228 passed\u001b[0m, \u001b[33m4 skipped\u001b[0m\u001b[32m in 54.76s\u001b[0m\u001b[0m"
+        "\u001b[32m\u001b[32m\u001b[1m1228 passed\u001b[0m, \u001b[33m4 skipped\u001b[0m\u001b[32m in 54.99s\u001b[0m\u001b[0m"
       ],
-      "seconds": 56.2
+      "seconds": 56.5
     },
     {
       "check": "engine build",
@@ -65,7 +68,7 @@
         "}",
         "wrote D:\\FactorioRL\\docs\\evidence\\a2-bootstrap.json"
       ],
-      "seconds": 88.7
+      "seconds": 88.8
     },
     {
       "check": "probe_agency",
@@ -78,7 +81,7 @@
         "}",
         "wrote D:\\FactorioRL\\docs\\evidence\\a3-agency.json"
       ],
-      "seconds": 22.5
+      "seconds": 22.6
     },
     {
       "check": "probe_measurement",
@@ -88,7 +91,7 @@
       "tail": [
         "  \"the_final_save_is_verified\": true",
         "}",
-        "8 samples, 4 during a model call; gameplay 42.0s, finalization 0.932s of 64.5s wall",
+        "8 samples, 4 during a model call; gameplay 42.0s, finalization 0.93s of 64.5s wall",
         "wrote D:\\FactorioRL\\docs\\evidence\\a4-measurement.json"
       ],
       "seconds": 65.1
@@ -110,7 +113,9 @@
       "note": "not attempted; pass --live to make one capped call"
     }
   ],
-  "wall_seconds": 272.8,
-  "go": true,
-  "failed": []
+  "wall_seconds": 273.1,
+  "go": false,
+  "failed": [
+    "format"
+  ]
 }

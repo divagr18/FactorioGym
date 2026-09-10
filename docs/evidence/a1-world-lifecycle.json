@@ -110,15 +110,15 @@
   },
   "checkpoint": {
     "label": "probe",
-    "name": "frrl-probe-20260910T222534",
+    "name": "frrl-probe-20260910T224612",
     "verified": true,
     "issued_tick": 136,
     "world_was_paused": false,
-    "path": "D:\\FactorioRL\\runtime\\runs\\probe-a1\\saves\\frrl-probe-20260910T222534.zip",
-    "engine_path": "D:\\FactorioRL\\runtime\\workers\\probe-a1\\write-data\\saves\\frrl-probe-20260910T222534.zip",
+    "path": "D:\\FactorioRL\\runtime\\runs\\probe-a1\\saves\\frrl-probe-20260910T224612.zip",
+    "engine_path": "D:\\FactorioRL\\runtime\\workers\\probe-a1\\write-data\\saves\\frrl-probe-20260910T224612.zip",
     "bytes": 501963,
-    "sha256": "2b3b2911ad58556d59849bd77430bf454bba60d554c71d235ca6c32e5e308f13",
-    "wall_seconds": 1.022
+    "sha256": "8e9b74a2b92d7e2a00680dc4bbdc9a4438567b66173d7628baee6d055f19d25b",
+    "wall_seconds": 1.021
   },
   "worker_directory_removed": true,
   "resume": {

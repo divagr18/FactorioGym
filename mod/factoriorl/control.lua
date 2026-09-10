@@ -74,6 +74,33 @@ local function make_spectator(event)
   if character and character.valid and not is_agent then
     pcall(function() character.destroy() end)
   end
+
+  -- The join also builds a crash site, and that is not cosmetic.
+  --
+  -- Measured on a generated world, counting `crash-site-*` entities on the
+  -- whole surface: **0 wrecks and 0 items before a client connected, 34 wrecks
+  -- holding 16 items after**. The base scenario creates the introductory
+  -- wreckage when a player appears, so a *watched* run was being played on a
+  -- different map from a headless one -- with sixteen free items scattered in
+  -- containers the agent could and did loot.
+  --
+  -- A1.2 requires that the viewing client "must not create a second productive
+  -- participant or alter the agent's inventory", and A1.1 requires the
+  -- introductory wreck bonuses be disabled "so they cannot supply an accidental
+  -- construction kit". Both were being broken by the act of watching.
+  --
+  -- Removed by name prefix, which cannot touch anything the agent built.
+  local surface = game.surfaces["nauvis"]
+  if surface then
+    local removed = 0
+    for _, entity in pairs(surface.find_entities_filtered({})) do
+      if entity.valid and string.sub(entity.name, 1, 11) == "crash-site-" then
+        pcall(function() entity.destroy() end)
+        removed = removed + 1
+      end
+    end
+    storage.frrl_viewer_removed_wrecks = (storage.frrl_viewer_removed_wrecks or 0) + removed
+  end
 end
 
 -- Both events, because one is not enough. Registering only
