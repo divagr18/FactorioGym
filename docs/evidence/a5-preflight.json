@@ -1,0 +1,116 @@
+{
+  "measures": "roadmap A5.1: everything that must hold before a paid run",
+  "model": "deepseek-flash",
+  "adapter": "openai",
+  "checks": [
+    {
+      "check": "lint",
+      "command": "D:\\FactorioRL\\.venv\\Scripts\\python.exe -m ruff ...",
+      "exit_code": 0,
+      "ok": true,
+      "tail": [
+        "\u001b[1;32mAll checks passed!\u001b[0m"
+      ],
+      "seconds": 0.1
+    },
+    {
+      "check": "format",
+      "command": "D:\\FactorioRL\\.venv\\Scripts\\python.exe -m ruff ...",
+      "exit_code": 0,
+      "ok": true,
+      "tail": [
+        "212 files already formatted"
+      ],
+      "seconds": 0.1
+    },
+    {
+      "check": "tests",
+      "command": "D:\\FactorioRL\\.venv\\Scripts\\python.exe -m pytest ...",
+      "exit_code": 0,
+      "ok": true,
+      "tail": [
+        "\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m [ 93%]",
+        "\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m [ 99%]",
+        "\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                  [100%]\u001b[0m",
+        "\u001b[32m\u001b[32m\u001b[1m1227 passed\u001b[0m, \u001b[33m4 skipped\u001b[0m\u001b[32m in 54.82s\u001b[0m\u001b[0m"
+      ],
+      "seconds": 56.8
+    },
+    {
+      "check": "engine build",
+      "ok": true,
+      "seconds": 0.1
+    },
+    {
+      "check": "probe_world",
+      "command": "D:\\FactorioRL\\.venv\\Scripts\\python.exe tools/probe_world.py ...",
+      "exit_code": 0,
+      "ok": true,
+      "tail": [
+        "  \"resume_kept_research\": true,",
+        "  \"resume_destroyed_nothing\": true",
+        "}",
+        "wrote D:\\FactorioRL\\docs\\evidence\\a1-world-lifecycle.json"
+      ],
+      "seconds": 39.9
+    },
+    {
+      "check": "probe_bootstrap",
+      "command": "D:\\FactorioRL\\.venv\\Scripts\\python.exe tools/probe_bootstrap.py ...",
+      "exit_code": 0,
+      "ok": true,
+      "tail": [
+        "  \"partial_sequence_accounted_for_every_action\": true,",
+        "  \"partial_sequence_kept_completed_work\": true",
+        "}",
+        "wrote D:\\FactorioRL\\docs\\evidence\\a2-bootstrap.json"
+      ],
+      "seconds": 88.8
+    },
+    {
+      "check": "probe_agency",
+      "command": "D:\\FactorioRL\\.venv\\Scripts\\python.exe tools/probe_agency.py ...",
+      "exit_code": 0,
+      "ok": true,
+      "tail": [
+        "  \"stalled_plan_closed\": true,",
+        "  \"refusals_came_from_the_engine\": true",
+        "}",
+        "wrote D:\\FactorioRL\\docs\\evidence\\a3-agency.json"
+      ],
+      "seconds": 23.3
+    },
+    {
+      "check": "probe_measurement",
+      "command": "D:\\FactorioRL\\.venv\\Scripts\\python.exe tools/probe_measurement.py ...",
+      "exit_code": 0,
+      "ok": true,
+      "tail": [
+        "  \"the_final_save_is_verified\": true",
+        "}",
+        "8 samples, 7 during a model call; gameplay 42.0s, finalization 0.93s of 65.0s wall",
+        "wrote D:\\FactorioRL\\docs\\evidence\\a4-measurement.json"
+      ],
+      "seconds": 66.2
+    },
+    {
+      "check": "pricing",
+      "model": "deepseek-flash",
+      "ok": true,
+      "input_cache_hit": 0.006,
+      "input_cache_miss": 0.3,
+      "output": 1.2,
+      "retrieved": "2026-09-10",
+      "note": "peak rates, snapshotted; a run reports an upper bound, not an invoice"
+    },
+    {
+      "check": "live provider",
+      "attempted": false,
+      "ok": null,
+      "note": "not attempted; pass --live to make one capped call"
+    }
+  ],
+  "wall_seconds": 275.3,
+  "go": true,
+  "failed": []
+}

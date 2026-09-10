@@ -15,6 +15,8 @@ import json
 import os
 import subprocess
 import sys
+import time
+from pathlib import Path
 
 from factoriorl.engine_config import resolve_engine_config
 from factoriorl.errors import FactorioRLError
@@ -693,11 +695,18 @@ def cmd_doctor_agent(args) -> int:
     which is enough to tell "unset" from "set to an empty string" from "set to
     something that looks truncated".
     """
-    from factoriorl.agent.adapters import ModelRequest, OpenAICompatibleAdapter
+    from factoriorl import pricing
+    from factoriorl.agent import provider as provider_module
+    from factoriorl.agent.adapters import ModelRequest
     from factoriorl.agent.credentials import load_env_file
     from factoriorl.agent.loop import SYSTEM_PROMPT
 
-    report: dict = {"class": "model_provider", "base_url": args.base_url, "model": args.model}
+    report: dict = {
+        "class": "model_provider",
+        "base_url": args.base_url,
+        "model": args.model,
+        "adapter": args.adapter,
+    }
     # The same environment seeding a run performs, so the diagnostic cannot
     # disagree with the thing it diagnoses: `demo` carried its own inline
     # loader, so a key present only in `.env` made this report "not set" about
@@ -719,17 +728,51 @@ def cmd_doctor_agent(args) -> int:
         )
         return 1
 
-    adapter = OpenAICompatibleAdapter(
-        base_url=args.base_url,
+    # Through `provider.build`, which is the *only* thing that returns an
+    # adapter with a cap and a clock already on it. This function used to build
+    # a bare `OpenAICompatibleAdapter` directly, which meant the repository's
+    # one live-provider diagnostic was also its one uncapped billed call.
+    # Harmless against a local endpoint and not harmless against
+    # `api.deepseek.com`, which is exactly where A5.1 sends it.
+    try:
+        price = pricing.price(args.model)
+        report["price_per_million"] = {
+            "input_cache_hit": price.input_cache_hit,
+            "input_cache_miss": price.input_cache_miss,
+            "output": price.output,
+            "retrieved": price.retrieved,
+        }
+    except pricing.UnknownModelPrice as failure:
+        report["price_error"] = str(failure)
+        print(json.dumps(report, indent=2))
+        print(
+            "no snapshotted price for this model, so a run could not account for "
+            "what it spent. A0.3 requires failing the paid preflight rather than "
+            "guessing a rate.",
+            file=sys.stderr,
+        )
+        return 1
+
+    provider = provider_module.build(
         model=args.model,
-        api_key_env=args.api_key_env or None,
+        adapter=args.adapter,
+        base_url=args.base_url,
+        api_key_env=args.api_key_env or "",
         timeout=args.timeout,
-        token_parameter=args.token_parameter,
         temperature=None if args.no_temperature else 0.0,
+        token_parameter=args.token_parameter,
+        thinking=args.thinking or None,
+        max_tokens=64,
+        max_cost_usd=args.max_cost_usd,
+        max_wall_seconds=args.timeout * 2,
     )
+    adapter = provider.adapter
+    provider.clock.start()
     reply = adapter.complete(
         ModelRequest(system=SYSTEM_PROMPT, user='Reply with {"action": 0}.', max_tokens=64)
     )
+    provider.clock.stop()
+    report["spend"] = provider.budget.to_dict()
     report["reachable"] = reply.ok
     report["latency_ms"] = round(reply.latency_ms, 1)
     report["usage"] = reply.usage
@@ -746,8 +789,144 @@ def cmd_doctor_agent(args) -> int:
         )
         return 1
     report["reply"] = adapter.redact(reply.text)[:200]
+    # A5.1 asks the preflight to confirm price accounting, and for DeepSeek the
+    # thing that decides whether a thirty-minute run costs cents or dollars is
+    # whether the cache split is reported at all. An unreported split is priced
+    # as all-miss, which is a 50x difference on this model.
+    usage = reply.usage or {}
+    report["cache_fields"] = {
+        name: usage.get(name)
+        for name in (
+            "prompt_cache_hit_tokens",
+            "prompt_cache_miss_tokens",
+            "cache_read_input_tokens",
+            "cache_creation_input_tokens",
+        )
+    }
+    report["cache_split_reported"] = any(
+        value is not None for value in report["cache_fields"].values()
+    )
     print(json.dumps(report, indent=2))
     return 0
+
+
+def cmd_preflight(args) -> int:
+    """Everything A5.1 asks for before a paid run, in one command.
+
+    A5.1: "Run relevant offline tests and bounded engine probes, check live API
+    compatibility, confirm the requested model and conservative price
+    accounting, then execute the fresh-map attempt."
+
+    Every piece existed and none of them were one thing: `pytest`, `ruff`,
+    `factoriorl doctor`, three probe scripts, and a price check buried inside
+    `Budget`'s constructor. A go/no-go assembled by hand across six terminals
+    is a go/no-go nobody re-runs, and A5.2 forbids editing anything once the
+    paid attempt starts -- so the moment to find a problem is here.
+
+    The live call is opt-in (`--live`) and costs a fraction of a cent through
+    the same capped adapter a run uses. Nothing else here spends anything.
+    """
+    from factoriorl import pricing
+
+    checks: list[dict] = []
+    started = time.perf_counter()
+
+    def run(name: str, command: list[str], *, timeout: float = 1800.0) -> bool:
+        at = time.perf_counter()
+        entry: dict = {"check": name, "command": " ".join(command[:3]) + " ..."}
+        try:
+            done = subprocess.run(  # noqa: S603 - fixed argv, no shell
+                command, capture_output=True, text=True, timeout=timeout, check=False
+            )
+            entry["exit_code"] = done.returncode
+            entry["ok"] = done.returncode == 0
+            tail = (done.stdout or done.stderr or "").strip().splitlines()
+            entry["tail"] = tail[-4:]
+        except (OSError, subprocess.SubprocessError) as failure:
+            entry["ok"] = False
+            entry["error"] = f"{type(failure).__name__}: {failure}"
+        entry["seconds"] = round(time.perf_counter() - at, 1)
+        checks.append(entry)
+        print(f"  {'ok  ' if entry.get('ok') else 'FAIL'} {name} ({entry['seconds']}s)")
+        return bool(entry.get("ok"))
+
+    python = sys.executable
+    print("preflight")
+    run("lint", [python, "-m", "ruff", "check", "."], timeout=300)
+    run("format", [python, "-m", "ruff", "format", "--check", "."], timeout=300)
+    run("tests", [python, "-m", "pytest", "tests/unit", "tests/contract", "-q"], timeout=1800)
+    # In-process: there is no `factoriorl.__main__`, and shelling out to the
+    # installed entry point would test whichever `factoriorl` is on PATH rather
+    # than the checkout being flown.
+    engine = {"check": "engine build"}
+    at = time.perf_counter()
+    engine["ok"] = cmd_doctor(args) == 0
+    engine["seconds"] = round(time.perf_counter() - at, 1)
+    checks.append(engine)
+    print(f"  {'ok  ' if engine['ok'] else 'FAIL'} engine build ({engine['seconds']}s)")
+    if not args.skip_engine:
+        # Bounded engine probes, in the order they were built. Each writes its
+        # own evidence file and exits non-zero on any failed clause.
+        for probe in ("probe_world", "probe_bootstrap", "probe_agency", "probe_measurement"):
+            run(probe, [python, f"tools/{probe}.py"], timeout=900)
+
+    # The price has to exist before anything is dispatched, and `UnknownModelPrice`
+    # raises rather than guessing a rate -- A0.3's "fail the paid preflight
+    # instead of guessing".
+    price_entry: dict = {"check": "pricing", "model": args.model}
+    try:
+        price = pricing.price(args.model)
+        price_entry.update(
+            ok=True,
+            input_cache_hit=price.input_cache_hit,
+            input_cache_miss=price.input_cache_miss,
+            output=price.output,
+            retrieved=price.retrieved,
+            note="peak rates, snapshotted; a run reports an upper bound, not an invoice",
+        )
+    except pricing.UnknownModelPrice as failure:
+        price_entry.update(ok=False, error=str(failure))
+    checks.append(price_entry)
+    print(f"  {'ok  ' if price_entry['ok'] else 'FAIL'} pricing {args.model}")
+
+    live: dict = {"check": "live provider", "attempted": bool(args.live)}
+    if args.live:
+        code = cmd_doctor_agent(
+            argparse.Namespace(
+                base_url=args.base_url,
+                model=args.model,
+                api_key_env=args.api_key_env,
+                timeout=args.timeout,
+                env_file=args.env_file,
+                token_parameter="max_tokens",
+                no_temperature=False,
+                adapter=args.adapter,
+                thinking=args.thinking,
+                max_cost_usd=args.live_cost_usd,
+            )
+        )
+        live["ok"] = code == 0
+    else:
+        live["ok"] = None
+        live["note"] = "not attempted; pass --live to make one capped call"
+    checks.append(live)
+
+    decided = [c for c in checks if c.get("ok") is not None]
+    report = {
+        "measures": "roadmap A5.1: everything that must hold before a paid run",
+        "model": args.model,
+        "adapter": args.adapter,
+        "checks": checks,
+        "wall_seconds": round(time.perf_counter() - started, 1),
+        "go": all(c["ok"] for c in decided),
+        "failed": [c["check"] for c in decided if not c["ok"]],
+    }
+    Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.out).write_text(json.dumps(report, indent=2, default=str) + "\n", encoding="utf-8")
+    print(f"\n{'GO' if report['go'] else 'NO GO'} -- wrote {args.out}")
+    if report["failed"]:
+        print("failed: " + ", ".join(report["failed"]), file=sys.stderr)
+    return 0 if report["go"] else 1
 
 
 def cmd_demo(args) -> int:
@@ -1000,6 +1179,47 @@ def main(argv: list[str] | None = None) -> int:
     )
     agent_doctor.add_argument("--token-parameter", default="max_tokens")
     agent_doctor.add_argument("--no-temperature", action="store_true")
+    # The Anthropic path had no way to be diagnosed at all: this command built
+    # an OpenAI-compatible adapter unconditionally while `provider.build` has
+    # supported both since A0.
+    agent_doctor.add_argument("--adapter", default="openai", choices=("openai", "anthropic"))
+    agent_doctor.add_argument(
+        "--thinking",
+        action="store_true",
+        help="send the provider's thinking-mode flag, as a paid run would",
+    )
+    agent_doctor.add_argument(
+        "--max-cost-usd",
+        type=float,
+        default=0.05,
+        help="cap for this single call. Small on purpose: one short completion "
+        "against any priced model is a fraction of a cent, and a diagnostic "
+        "that can spend more than that is not a diagnostic",
+    )
+
+    pre = sub.add_parser(
+        "preflight", help="everything that must hold before a paid run (roadmap A5.1)"
+    )
+    pre.add_argument("--model", default="deepseek-flash")
+    pre.add_argument("--adapter", default="openai", choices=("openai", "anthropic"))
+    pre.add_argument("--base-url", default="https://api.deepseek.com/v1")
+    pre.add_argument("--api-key-env", default="DEEPSEEK_API_KEY")
+    pre.add_argument("--timeout", type=float, default=60.0)
+    pre.add_argument("--env-file", default=None, metavar="PATH")
+    pre.add_argument("--thinking", action="store_true")
+    pre.add_argument(
+        "--live",
+        action="store_true",
+        help="make one real, capped provider call. This is the only part of "
+        "preflight that spends anything, and it is a fraction of a cent",
+    )
+    pre.add_argument("--live-cost-usd", type=float, default=0.05)
+    pre.add_argument(
+        "--skip-engine",
+        action="store_true",
+        help="skip the four engine probes, which take several minutes and launch real workers",
+    )
+    pre.add_argument("--out", default="docs/evidence/a5-preflight.json")
 
     agent_cmd = sub.add_parser("agent", help="run a language-model agent on a task or world")
     agent_cmd.add_argument(
@@ -1213,6 +1433,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_doctor_train(args)
     if args.command == "doctor-agent":
         return cmd_doctor_agent(args)
+    if args.command == "preflight":
+        return cmd_preflight(args)
     if args.command == "agent":
         return cmd_agent(args)
     if args.command == "demo":

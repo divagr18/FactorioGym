@@ -607,6 +607,37 @@ list is a race whose outcome is silent: a dropped sample is indistinguishable
 from a window nobody observed. Measured on the probe: 33 samples in the metrics
 against 8 written by the sampler and 25 from the environment's own steps.
 
+**The repository's only live-provider diagnostic was also its only uncapped
+billed call.** `factoriorl doctor-agent` built a bare `OpenAICompatibleAdapter`
+directly, bypassing `factoriorl.agent.provider.build()` -- which is the one
+thing that returns an adapter with a spend cap and a run clock already attached,
+and which exists precisely to make an unbudgeted request unexpressible. Against
+a local endpoint that was harmless. Against `api.deepseek.com`, which is exactly
+where roadmap A5.1 points it, it was not. It now goes through `provider.build`,
+refuses before dispatch when the reservation would exceed the cap
+(`error_kind: budget_exhausted`, zero latency, nothing sent), reports the price
+it will be billed at, and gained the `--adapter` flag that made the Anthropic
+path undiagnosable.
+
+It also now reports whether the provider returned a **cache split** at all.
+For DeepSeek that single fact decides whether a thirty-minute run costs cents or
+dollars: an unreported split is priced as all-miss, and hit against miss is
+$0.006 versus $0.30 per million -- fifty times.
+
+**`factoriorl preflight` assembles A5.1's go/no-go into one command.** Lint,
+format, the unit and contract suites, the engine build pin, four bounded engine
+probes, the price lookup, and -- with `--live` -- one capped provider call.
+Every piece existed and none of them were one thing, and a go/no-go assembled by
+hand across six terminals is a go/no-go nobody re-runs. A5.2 forbids editing
+anything once the paid attempt starts, so this is the last moment a problem can
+be found. First full run: GO in 275 seconds, `docs/evidence/a5-preflight.json`.
+
+**No live provider call has ever been made from this repository.** There is no
+DeepSeek evidence under `docs/evidence/`, and the whole integration -- thinking
+mode, prefix caching, the usage shape, the cache-split field names -- is written
+against documentation alone. `preflight --live` is where that stops being true,
+and it is the first thing A5 does.
+
 **Two engine tests fail and are not caused by this work.**
 `test_observation_profiles_decode_identically` for `navigate` and `deliver`
 asserts the `local-v2` profile sends fewer bytes than `local-v1`, and it now
