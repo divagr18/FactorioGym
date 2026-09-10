@@ -119,10 +119,17 @@ The older demonstration entrypoint still exists:
 uv run factoriorl demo
 ```
 
-`demo` is **hardwired to `plate_line`** and to the OpenAI-compatible adapter,
-and writes to `docs/evidence/phase5-demonstration.json` — a **tracked file**,
-with no `--out` to redirect it. Running it dirties your working tree and
-overwrites committed evidence; stash or restore it afterwards.
+`demo` is **hardwired to `plate_line`** and to the OpenAI-compatible adapter.
+It is not a plain agent run: it drives five phases — commission, measure a
+production window, inject a fuel outage, recover, measure again — which is what
+PLAN 5.7's evidence *is*, so it was not folded into `factoriorl agent`.
+
+It used to write `docs/evidence/phase5-demonstration.json` unconditionally, with
+no `--out`, so running it dirtied the working tree and destroyed committed
+evidence. It now writes into the run's own directory, and overwrites the tracked
+file only under `--publish-evidence`. It also runs under a spend cap now
+(`--max-cost-usd`, default $5): it previously built its own adapter and had no
+ceiling at all.
 
 It is a demonstration entrypoint, not a general runner. There is no `factoriorl agent --task X` subcommand; running an
 agent on another task means calling `agent.runner.run_task` from Python, or

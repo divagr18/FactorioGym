@@ -461,13 +461,8 @@ def cmd_agent(args) -> int:
 
     from factoriorl import manifest as manifest_module
     from factoriorl import worlds
-    from factoriorl.agent.adapters import (
-        AnthropicMessagesAdapter,
-        OpenAICompatibleAdapter,
-    )
-    from factoriorl.agent.budget import Budget, RunClock
+    from factoriorl.agent import provider as provider_module
     from factoriorl.agent.credentials import load_env_file
-    from factoriorl.agent.guarded import BudgetedAdapter
     from factoriorl.agent.loop import AgentConfig
     from factoriorl.agent.runner import REALTIME_SPEED, default_speed, run_task, run_world
     from factoriorl.pricing import UnknownModelPrice
@@ -486,38 +481,30 @@ def cmd_agent(args) -> int:
             print(f"unknown task or world {args.task!r}; known: {known}", file=sys.stderr)
             return 2
 
-    # Constructed before anything is launched. An unpriced model is a preflight
-    # failure, not something to discover after a ninety-second map generation --
-    # A0.3: "fail the paid preflight instead of guessing".
+    # Built before anything is launched, and built already wrapped in its spend
+    # cap -- `factoriorl.agent.provider` exists so no entrypoint can construct a
+    # provider without one. An unpriced model is a preflight failure, not
+    # something to discover after a ninety-second map generation: A0.3, "fail the
+    # paid preflight instead of guessing".
     try:
-        budget = Budget(
-            cap_usd=args.max_cost_usd,
+        provider = provider_module.build(
             model=args.model,
-            max_output_tokens=args.max_tokens,
-        )
-    except UnknownModelPrice as unpriced:
-        print(str(unpriced), file=sys.stderr)
-        return 2
-    clock = RunClock(limit_seconds=args.max_wall_seconds)
-
-    if args.adapter == "anthropic":
-        provider = AnthropicMessagesAdapter(
-            model=args.model,
-            api_key_env=args.api_key_env or "ANTHROPIC_API_KEY",
-            timeout=args.timeout,
-        )
-    else:
-        provider = OpenAICompatibleAdapter(
+            adapter=args.adapter,
             base_url=args.base_url,
-            model=args.model,
-            api_key_env=args.api_key_env or None,
+            api_key_env=args.api_key_env,
             timeout=args.timeout,
             temperature=None if args.no_temperature else 0.0,
             token_parameter=args.token_parameter,
             thinking=True if args.thinking else None,
             reasoning_effort=args.reasoning_effort,
+            max_tokens=args.max_tokens,
+            max_cost_usd=args.max_cost_usd,
+            max_wall_seconds=args.max_wall_seconds,
         )
-    adapter = BudgetedAdapter(provider, budget, clock)
+    except UnknownModelPrice as unpriced:
+        print(str(unpriced), file=sys.stderr)
+        return 2
+    adapter, budget, clock = provider.adapter, provider.budget, provider.clock
 
     config = AgentConfig(
         task_id=args.task,
@@ -554,12 +541,7 @@ def cmd_agent(args) -> int:
         result = run_task(config, adapter, master_seed=args.seed, **shared)
     clock.stop()
 
-    result["limits"] = {
-        "budget": budget.to_dict(),
-        "clock": clock.to_dict(),
-        "refusals": list(adapter.refusals),
-        "env_file_supplied": env_file_supplied,
-    }
+    result["limits"] = {**provider.to_dict(), "env_file_supplied": env_file_supplied}
     # `loop.run()` writes `result.json` before returning, so the limits computed
     # here would exist only on stdout -- the run directory, which is what anyone
     # actually reads later, would say nothing about what the run cost or why it
@@ -689,8 +671,38 @@ def cmd_doctor_agent(args) -> int:
 
 
 def cmd_demo(args) -> int:
-    """One-command agent demonstration (PLAN 6.1)."""
-    return _run_tool("demonstration", args.rest)
+    """One-command agent demonstration (PLAN 6.1).
+
+    Still the five-phase driver -- commission, measure, disrupt, recover,
+    measure -- because that structure *is* PLAN 5.7's evidence. What changed is
+    that it now runs under a spend cap and writes run-local by default.
+    """
+    # Each flag named explicitly rather than looped over a tuple of dest names.
+    # A `getattr(args, dest)` loop reads them all, but nothing can *prove* it --
+    # and `tests/unit/test_declared_arguments_are_read.py` caught exactly that,
+    # which is the test doing its job rather than being in the way. Only
+    # supplied values are forwarded, so `tools/demonstration.py` keeps owning
+    # the defaults and the two argparse layers cannot drift apart.
+    supplied = {
+        "--model": args.model,
+        "--base-url": args.base_url,
+        "--api-key-env": args.api_key_env,
+        "--split": args.split,
+        "--commission-budget": args.commission_budget,
+        "--recovery-budget": args.recovery_budget,
+        "--window-ticks": args.window_ticks,
+        "--env-file": args.env_file,
+        "--out": args.out,
+        "--max-cost-usd": args.max_cost_usd,
+        "--max-wall-seconds": args.max_wall_seconds,
+    }
+    argv: list[str] = []
+    for flag, value in supplied.items():
+        if value is not None:
+            argv += [flag, str(value)]
+    if args.publish_evidence:
+        argv.append("--publish-evidence")
+    return _run_tool("demonstration", argv)
 
 
 def cmd_replay(args) -> int:
@@ -952,8 +964,28 @@ def main(argv: list[str] | None = None) -> int:
     )
     agent_cmd.add_argument("--out", default=None)
 
+    # Declared rather than swallowed by `nargs=REMAINDER`. The tool's own
+    # argparse was the only place these existed, so `factoriorl demo --help`
+    # printed nothing at all and the two flags that decide whether a run bills a
+    # provider and whether it overwrites tracked evidence were invisible from the
+    # command people are told to use.
     demo_cmd = sub.add_parser("demo", help="run the agent demonstration (PLAN 5.7)")
-    demo_cmd.add_argument("rest", nargs=argparse.REMAINDER)
+    demo_cmd.add_argument("--model", default=None)
+    demo_cmd.add_argument("--base-url", default=None)
+    demo_cmd.add_argument("--api-key-env", default=None)
+    demo_cmd.add_argument("--split", default=None, choices=("train", "val", "test"))
+    demo_cmd.add_argument("--commission-budget", type=int, default=None)
+    demo_cmd.add_argument("--recovery-budget", type=int, default=None)
+    demo_cmd.add_argument("--window-ticks", type=int, default=None)
+    demo_cmd.add_argument("--env-file", default=None)
+    demo_cmd.add_argument("--out", default=None, help="defaults to the run's own directory")
+    demo_cmd.add_argument(
+        "--publish-evidence",
+        action="store_true",
+        help="also overwrite the tracked docs/evidence/phase5-demonstration.json",
+    )
+    demo_cmd.add_argument("--max-cost-usd", type=float, default=None)
+    demo_cmd.add_argument("--max-wall-seconds", type=float, default=None)
 
     replay_cmd = sub.add_parser("replay", help="render a run's replay viewer (PLAN 5.5)")
     replay_cmd.add_argument("run")

@@ -47,7 +47,6 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from factoriorl import assistance as assistance_module  # noqa: E402
-from factoriorl.agent.adapters import OpenAICompatibleAdapter  # noqa: E402
 
 # `action_vocabulary`, `legal_actions` and `summarise` are deliberately *not*
 # imported any more. They were needed only by `play()`, this file's hand-copy of
@@ -178,6 +177,32 @@ def main() -> int:
     parser.add_argument("--recovery-budget", type=int, default=25)
     parser.add_argument("--window-ticks", type=int, default=WINDOW_TICKS)
     parser.add_argument("--env-file", default=str(ROOT / ".env"))
+    parser.add_argument(
+        "--out",
+        default=None,
+        help="where to write the report. Defaults to the run's own directory; "
+        "this file used to have no way to write anywhere else",
+    )
+    parser.add_argument(
+        "--publish-evidence",
+        action="store_true",
+        help="also overwrite docs/evidence/phase5-demonstration.json, which is "
+        "tracked. Opt-in because a demonstration run used to destroy committed "
+        "evidence and dirty the working tree with no way to decline",
+    )
+    parser.add_argument(
+        "--max-cost-usd",
+        type=float,
+        default=5.0,
+        help="hard cap on provider spend. A request whose worst case would "
+        "exceed what is left is not sent at all",
+    )
+    parser.add_argument(
+        "--max-wall-seconds",
+        type=float,
+        default=3600.0,
+        help="ceiling on the run, measured from the first gameplay observation",
+    )
     args = parser.parse_args()
 
     # Credentials come from the environment; the adapter redacts before writing.
@@ -189,20 +214,29 @@ def main() -> int:
     load_env_file(args.env_file)
 
     from factoriorl import manifest as manifest_module
+    from factoriorl.agent import provider as provider_module
     from factoriorl.env import FactorioEnv
     from factoriorl.seeding import Branch, SeedPlan, seed_everything
     from factoriorl.session import WorkerSession
     from factoriorl.tasks import get
     from factoriorl.worker import WorkerManager
 
-    adapter = OpenAICompatibleAdapter(
-        base_url=args.base_url,
+    # Through the shared builder, so this run has a spend cap. It used to
+    # construct a bare adapter and therefore had none at all: harmless while it
+    # pointed at a local endpoint, and a liability the moment an entrypoint
+    # points at a paid provider. `factoriorl.agent.provider` exists so that
+    # cannot happen by omission again.
+    provider = provider_module.build(
         model=args.model,
+        base_url=args.base_url,
         api_key_env=args.api_key_env,
         timeout=180.0,
         token_parameter="max_completion_tokens",
         temperature=None,
+        max_cost_usd=args.max_cost_usd,
+        max_wall_seconds=args.max_wall_seconds,
     )
+    adapter = provider.adapter
     config = AgentConfig(
         task_id="plate_line",
         episodes=1,
@@ -345,10 +379,26 @@ def main() -> int:
     finally:
         manager.cleanup(handle)
 
-    destination = ROOT / "docs" / "evidence" / "phase5-demonstration.json"
-    destination.write_text(json.dumps(report, indent=2), encoding="utf-8")
-    print(json.dumps({k: v for k, v in report.items() if k != "runs"}, indent=2))
-    print(f"\nwrote {destination.relative_to(ROOT)}")
+    report["limits"] = provider.to_dict()
+
+    # Run-local by default. This wrote straight into `docs/evidence/` with no
+    # way to redirect, so every demonstration run overwrote committed evidence
+    # and dirtied the working tree -- and `docs/AGENT.md` had to warn people to
+    # stash afterwards. Publishing is now something you ask for.
+    destination = Path(args.out) if args.out else (loop.run_dir / "demonstration.json")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    rendered = provider.redact(json.dumps(report, indent=2, default=str))
+    destination.write_text(rendered + "\n", encoding="utf-8")
+    print(json.dumps({k: v for k, v in report.items() if k != "runs"}, indent=2, default=str))
+    print(f"\nwrote {destination}")
+    if args.publish_evidence:
+        published = ROOT / "docs" / "evidence" / "phase5-demonstration.json"
+        published.write_text(rendered + "\n", encoding="utf-8")
+        print(f"published {published.relative_to(ROOT)} (tracked; commit or restore it)")
+    print(
+        f"spent ${provider.budget.committed_usd:.4f} of ${args.max_cost_usd:.2f} "
+        f"over {provider.budget.calls} calls"
+    )
     print(f"replay: uv run python tools/replay.py runtime/runs/{run_id}")
     return 0 if report.get("restored") else 1
 

@@ -355,10 +355,19 @@ half and not the learning half.
 
 **`factoriorl agent` now exists** (roadmap A0). It runs a registered task or an
 open world, selects either adapter with `--adapter`, enforces a spend cap and a
-wall clock, and writes run-local artifacts. What remains true: `factoriorl demo`
-is still hardwired to `plate_line` and still overwrites the tracked
-`docs/evidence/phase5-demonstration.json`; wrapping it over the new command is
-A0-4's remaining item.
+wall clock, and writes run-local artifacts.
+
+**`demo` is still hardwired to `plate_line`, and deliberately so.** It drives
+five phases around an injected fuel outage, which `factoriorl agent` has no way
+to express; rebuilding that on the new command would have risked changing what
+PLAN 5.7's published claim means. What was fixed instead: it writes run-local by
+default (`--publish-evidence` to touch the tracked evidence file), it runs under
+a spend cap, and its flags are declared on the subcommand rather than swallowed
+by `nargs=REMAINDER`, which made `factoriorl demo --help` print nothing.
+
+**Every entrypoint that can bill a provider now goes through one accounting
+layer.** `factoriorl.agent.provider.build()` returns an adapter already wrapped
+in its cap; there is no argument to it that yields an unguarded one.
 
 **An open world is not a benchmark task, and nothing measured on it is
 comparable to one.** `open_factory` has no success predicate, no layout
