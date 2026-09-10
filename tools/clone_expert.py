@@ -51,7 +51,10 @@ def main() -> int:
     parser.add_argument("--prefix", default="bc")
     args = parser.parse_args()
 
+    import numpy as np
+
     from factoriorl import manifest as manifest_module
+    from factoriorl.baselines import cached_random_baseline
     from factoriorl.env import FactorioEnv
     from factoriorl.learn.bc import (
         TRAINING_MODE,
@@ -60,7 +63,14 @@ def main() -> int:
         train_bc,
         write_report,
     )
-    from factoriorl.learn.train import TRAIN_SPEED, _make_session, _wrap, evaluate
+    from factoriorl.learn.train import (
+        SKILL_PROFILE,
+        TRAIN_SPEED,
+        _make_session,
+        _wrap,
+        evaluate,
+        random_baseline,
+    )
     from factoriorl.rcon import RCONClient
     from factoriorl.seeding import Branch, SeedPlan, seed_everything
     from factoriorl.skills import SkillEnv
@@ -179,8 +189,43 @@ def main() -> int:
             # indices to the disjointness check.
             first = row_start + 1
             rows[label]["episode_indices"] = list(range(first, first + args.eval_episodes))
+
+            # The floor, on the same scenes. `docs/RECIPE.md` says to quote a
+            # rate only with the floor from the same run, and this tool
+            # published rates with no floor at all -- so `keep_line_running`
+            # came back 0.87 and 0.94 on the frozen holdout and neither number
+            # could be quoted, because nothing said what a random walk scores
+            # on those same 100 episodes. `train.py` had done this from the
+            # start; the BC path simply never did.
+            def measure_floor(
+                split: str = split, branch=branch, row_plan=row_plan, row_start: int = row_start
+            ) -> dict:
+                floor_env = _wrap(
+                    FactorioEnv(task, session, row_plan, branch=branch, split=split), args.skills
+                )
+                floor_env.unwrapped._episode_index = row_start
+                return random_baseline(
+                    floor_env, args.eval_episodes, np.random.default_rng(args.seed)
+                )
+
+            rows[label]["random_baseline"] = cached_random_baseline(
+                task,
+                split,
+                args.seed,
+                args.eval_episodes,
+                measure_floor,
+                # A floor belongs to the action space as much as to the task,
+                # and the stream names the scenes: master alone does not, since
+                # every frozen holdout shares master=20260908 and differs only
+                # in run_id and start index.
+                action_space=SKILL_PROFILE if args.skills else task.spec.action_profile,
+                seed_run_id=row_plan.run_id,
+                start_index=row_start + 1,
+            )
+            floor = rows[label]["random_baseline"].get("success_rate")
             print(
-                f"  {label:11s} rate={rows[label]['success_rate']:.2f} {rows[label]['wilson_95']}",
+                f"  {label:11s} rate={rows[label]['success_rate']:.2f} "
+                f"{rows[label]['wilson_95']} random={floor}",
                 flush=True,
             )
 

@@ -292,6 +292,39 @@ def cmd_evaluate(args) -> int:
     model = MaskablePPO.load(checkpoint, device=args.device)
     plan = SeedPlan(master=args.seed, run_id=args.plan_id)
 
+    # Without this the one supported way to score a provided checkpoint could
+    # not reproduce a single published number: every headline in
+    # `docs/evidence/` is measured on a frozen holdout, and this command scored
+    # whatever scenes its own `--plan-id` and `--seed` happened to generate. A
+    # reader comparing the two would have found a different rate and no way to
+    # tell whether the checkpoint or the scenes had moved.
+    start_index, frozen_block = 0, None
+    if args.holdout:
+        frozen = _json.loads(Path(args.holdout).read_text(encoding="utf-8"))
+        entry = (frozen["holdout"].get("tasks") or {}).get(task_id)
+        if entry is None:
+            print(f"{args.holdout} does not cover task {task_id}", file=sys.stderr)
+            return 2
+        if entry["task_version"] != task.spec.version:
+            print(
+                f"{args.holdout} froze {task_id} at v{entry['task_version']}; this tree "
+                f"is v{task.spec.version}. The scenes would differ, so the number would "
+                "not be comparable to the published one",
+                file=sys.stderr,
+            )
+            return 2
+        seeds_spec = frozen["holdout"]["seed_plan"]
+        plan = SeedPlan(master=seeds_spec["master"], run_id=seeds_spec["run_id"])
+        start_index = frozen["holdout"]["start_index"]
+        frozen_block = {
+            "id": frozen["holdout"].get("holdout_id"),
+            "content_hash": frozen["content_hash"],
+            "start_index": start_index,
+            "episodes_per_task": frozen["holdout"]["episodes_per_task"],
+            "covers_frozen_set": args.episodes >= frozen["holdout"]["episodes_per_task"],
+            "split": args.split,
+        }
+
     manager = WorkerManager()
     handle = manager.launch(f"eval-{task_id}")
     try:
@@ -328,11 +361,12 @@ def cmd_evaluate(args) -> int:
                 skills=skills,
             )
             try:
+                vec.retarget(args.split, Branch.EVAL, start_index, plan=plan)
                 rows = evaluate_parallel(vec, model, args.episodes, deterministic=not args.sampled)
             finally:
                 vec.close()
         else:
-            probe.unwrapped._episode_index = -1
+            probe.unwrapped._episode_index = start_index - 1
             rows = evaluate(probe, model, args.episodes, deterministic=not args.sampled)
 
         # The floor, beside the rate, because `docs/RECIPE.md` says to quote a
@@ -350,7 +384,7 @@ def cmd_evaluate(args) -> int:
                 FactorioEnv(task, session, plan, branch=Branch.EVAL, split=args.split),
                 skills,
             )
-            floor_env.unwrapped._episode_index = -1
+            floor_env.unwrapped._episode_index = start_index - 1
             rng = np.random.default_rng(args.seed)
             solved = 0
             for _ in range(args.episodes):
@@ -371,8 +405,11 @@ def cmd_evaluate(args) -> int:
             args.episodes,
             measure_floor,
             action_space=SKILL_PROFILE if skills else task.spec.action_profile,
-            seed_run_id=args.plan_id,
-            start_index=0,
+            # The stream, not just the master seed: a scene is
+            # blake2b(master | run_id | branch | index), and every frozen
+            # holdout here shares master=20260908.
+            seed_run_id=plan.run_id,
+            start_index=start_index,
         )
     finally:
         manager.cleanup(handle)
@@ -391,6 +428,7 @@ def cmd_evaluate(args) -> int:
             if manifest_path.is_file()
             else None
         ),
+        "holdout": frozen_block,
         "result": rows,
         # Never report one without the other. A rate quoted without its floor
         # has been wrong four times in this repository's history, each time
@@ -753,7 +791,20 @@ def main(argv: list[str] | None = None) -> int:
     ev.add_argument("--workers", type=int, default=1)
     ev.add_argument("--device", default="auto")
     ev.add_argument("--seed", type=int, default=20260907)
-    ev.add_argument("--plan-id", default="evaluate", metavar="ID")
+    ev.add_argument(
+        "--plan-id",
+        default="evaluate",
+        metavar="ID",
+        help="ignored when --holdout is given, which brings its own seed plan",
+    )
+    ev.add_argument(
+        "--holdout",
+        default=None,
+        metavar="PATH",
+        help="score on a frozen holdout's scenes, e.g. "
+        "docs/evidence/holdout_v3.json. Without this the command generates its "
+        "own episodes and the result is not comparable to any published number",
+    )
     ev.add_argument("--out", default=None)
 
     gate4 = sub.add_parser("phase4-gate", help="run the Phase 4 exit gate")
