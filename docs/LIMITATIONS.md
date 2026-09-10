@@ -389,11 +389,35 @@ renders the aggregate, marked as too far to address directly. **The RL encoder
 still reads only `resources.tiles`**, so a trained policy remains blind to
 anything beyond 12 tiles -- unchanged, and now written down.
 
-**The open world has no save or resume.** There is no mid-run save anywhere in
-the project: no `game.server_save`, no `--mp-load-game`, and autosaves are
-disabled in two places. `session.open_world(fresh=False)` exists and is the
-shape a resume would use, but nothing produces the file it would resume from.
-That is roadmap A1.3.
+**The open world now saves and resumes** (roadmap A1.3): before the first
+action, every five wall-clock minutes, and at termination, with
+`--resume-from <run id>` continuing from a run's newest verified checkpoint.
+Measured end to end in `docs/evidence/a1-world-lifecycle.json` — a placed
+machine, the character's inventory and the force's research all survive a
+save, a worker teardown and a relaunch.
+
+Three things about it are worth knowing before relying on it:
+
+*A checkpoint is verified, not assumed.* `game.server_save` is deferred to the
+end of a tick and there is no completion event, and the mod cannot check —
+Lua has no `io` and no `game.file_exists`. So the mod reports only that the
+request was *issued*, and Python waits for the file to appear and stop growing
+before recording anything. A save that never materialises is recorded as a
+failure and the last verified checkpoint is kept.
+
+*A resume does not restore the agent's knowledge.* `open_world(fresh=False)`
+leaves the world, the inventory and the research exactly as the save holds
+them, but handles are episode-scoped and the agent's memory is rebuilt, so the
+resumed segment does not remember what it built. It has to look.
+
+*A pre-save request in flight is unresolvable after a resume.* `begin_episode`
+clears the dedup ledger, so `request_status` for a request issued before the
+save answers `unknown`. It has never mattered because nothing produced a save;
+it can now.
+
+**Autosaves remain off.** Their interval is *game* time, so at `game.speed 90`
+a 60-minute interval fires roughly every 40 seconds of wall clock. Checkpoints
+are driven from Python's wall clock instead.
 
 **A run's cost is conservative accounting, not an invoice.** Token counts come
 from the provider's own `usage` block and prices from a table snapshotted on a

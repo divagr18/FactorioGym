@@ -7,9 +7,16 @@ branching is unavailable; do not assume arbitrary snapshots already work. Show
 production loss and subsequent sustained restoration attributable to agent
 actions."*
 
-**There is no state branching.** `RequestType` has no snapshot or restore, no
-mid-run save exists, autosaves are disabled in both config writers, and the
-only save on disk is the `--create` output. So the arms are reached by
+**There was no state branching when this was run, and the replay method below
+is an account of that run rather than of the current tree.** At the time
+`RequestType` had no snapshot or restore, no mid-run save existed, autosaves
+were disabled in both config writers, and the only save on disk was the
+`--create` output.
+
+Roadmap A1.3 has since added `RequestType.SAVE` and verified checkpoints, so a
+future arm *could* branch from a save. R4's numbers were not produced that way
+and are not being restated as though they were; `docs/evidence/r4-recovery-arms.json`
+keeps the original justification until this tool is next run. So the arms are reached by
 *replaying an identical prefix from reset*, and R4.2's "do not assume" clause
 is taken literally: the prefix is replayed, the extended world digest is
 compared across arms at the pre-intervention tick, and **if the digests
@@ -201,7 +208,8 @@ def main() -> int:
         "state_reconstruction": {
             "method": "replay an identical prefix from reset",
             "why": (
-                "RequestType has no snapshot or restore, no mid-run save exists, "
+                "when this ran: RequestType had no snapshot or restore, no mid-run "
+                "save existed, "
                 "autosaves are disabled, and the only save on disk is the --create "
                 "output. State branching is unavailable, so R4.2's replay clause "
                 "applies -- and its 'do not assume' clause means the replay is "

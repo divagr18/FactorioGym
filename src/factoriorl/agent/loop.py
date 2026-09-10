@@ -558,10 +558,10 @@ class AgentLoop:
             return wait
         return legal[0].index
 
-    def run_episode(self, episode: int, *, until=None) -> dict:
+    def run_episode(self, episode: int, *, until=None, on_decision=None) -> dict:
         """Reset, then play one segment for the whole budget."""
         self.env.reset()
-        return self.run_segment(episode, fresh_memory=True, until=until)
+        return self.run_segment(episode, fresh_memory=True, until=until, on_decision=on_decision)
 
     def run_segment(
         self,
@@ -571,6 +571,7 @@ class AgentLoop:
         budget: int | None = None,
         fresh_memory: bool = False,
         until: Callable[[], bool] | None = None,
+        on_decision: Callable[[], None] | None = None,
     ) -> dict:
         """Play decisions on an **already-reset** environment.
 
@@ -728,6 +729,12 @@ class AgentLoop:
             if terminated or truncated:
                 stopped = "terminated" if terminated else "truncated"
                 break
+            if on_decision is not None:
+                # Evaluator-side work between decisions -- periodic checkpointing
+                # is the reason it exists. Deliberately *not* folded into
+                # `until`: that is a predicate, and a predicate with side effects
+                # is a trap for whoever reads it next.
+                on_decision()
             if until is not None and until():
                 stopped = "until"
                 break
@@ -775,7 +782,12 @@ class AgentLoop:
         except Exception:  # noqa: BLE001 - a missing metric is not a failed run
             return None
 
-    def run(self, *, until: Callable[[], bool] | None = None) -> dict:
+    def run(
+        self,
+        *,
+        until: Callable[[], bool] | None = None,
+        on_decision: Callable[[], None] | None = None,
+    ) -> dict:
         """Play ``config.episodes`` episodes and write the run artifact."""
         started = time.perf_counter()
         self.run_dir.mkdir(parents=True, exist_ok=True)
@@ -785,7 +797,7 @@ class AgentLoop:
         episodes: list[dict] = []
         try:
             for index in range(self.config.episodes):
-                episodes.append(self.run_episode(index, until=until))
+                episodes.append(self.run_episode(index, until=until, on_decision=on_decision))
                 if until is not None and until():
                     # A run-level stop -- a wall clock or a spend cap -- ends
                     # the run, not merely the episode it fired in.

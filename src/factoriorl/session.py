@@ -473,6 +473,26 @@ class WorkerSession:
         self._adopt_episode(timed.response)
         return timed
 
+    def save(self, name: str) -> TimedResponse:
+        """Ask the server to write a save called `name`.
+
+        Returns as soon as the request is *issued*, because that is all the mod
+        can honestly report: `game.server_save` is deferred to the end of the
+        tick and there is no completion event, and Lua cannot read the
+        filesystem to check. `factoriorl.agent.checkpoint` does the verifying.
+
+        The response carries `paused`. It matters: deferred means end-of-tick,
+        and the world is paused between decisions under exact stepping, so a save
+        issued into a paused world never executes. The caller advances a tick.
+        """
+        request = Request(
+            request_id=self._next_request_id("save"),
+            episode_id=self.episode_id or "",
+            type=RequestType.SAVE,
+            payload={"name": name},
+        )
+        return self._request(request)
+
     def request_status(self, request_id: str) -> TimedResponse:
         request = Request(
             request_id=self._next_request_id("reqstat"),

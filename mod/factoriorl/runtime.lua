@@ -326,6 +326,7 @@ local function handle_describe(request)
       "status", "observe", "reset", "advance", "act",
       "request_status", "step", "collect", "describe", "configure",
       "scenario_define", "truth", "world_digest", "disrupt", "open_world",
+      "save",
     },
   })
 end
@@ -559,6 +560,39 @@ local function handle_open_world(request)
   })
 end
 
+-- Ask the server to write a save, and say only that the request was issued.
+--
+-- `game.server_save` is deferred: the engine executes it at the end of the
+-- current tick, and there is no completion event to subscribe to. Lua also has
+-- no `io` and no `game.file_exists`, so this side **cannot observe whether the
+-- file appeared**. Reporting `completed` here would be the mod asserting a fact
+-- it has no way to check, which is the defect class this repository keeps
+-- paying for. Python owns verification.
+--
+-- `paused` is returned because it decides whether the save can happen at all.
+-- Deferred means end-of-tick, and between decisions the world is paused, so a
+-- save issued into a paused world sits there forever. The caller advances a tick
+-- when this says true.
+local function handle_save(request)
+  local payload = request.payload or {}
+  local name = payload.name
+  if not name or name == "" then
+    return respond(request, CODE.REJECTED, nil,
+      err(ERR.MISSING_FIELD, "a save name is required"))
+  end
+  -- Only in multiplayer, which every worker is: `worker.py` starts the engine
+  -- with `--start-server`. Stated because a single-player call silently does
+  -- nothing, which would look exactly like a save that never finished.
+  game.server_save(name)
+  return respond(request, CODE.OK, {
+    issued = true,
+    name = name,
+    tick = game.tick,
+    paused = game.tick_paused,
+    verified_by = "the caller; this side cannot read the filesystem",
+  })
+end
+
 local HANDLERS = {
   status = handle_status,
   observe = handle_observe,
@@ -577,6 +611,7 @@ local HANDLERS = {
   world_digest = handle_world_digest,
   disrupt = handle_disrupt,
   open_world = handle_open_world,
+  save = handle_save,
 }
 
 -- `disrupt` mutates the scene, so it belongs here: whatever gating a
@@ -590,6 +625,12 @@ local MUTATING = {
   step = true,
   disrupt = true,
   open_world = true,
+  -- Not a world mutation, and here anyway. What this table confers is
+  -- deduplication and an episode check, and a save needs both: a resend after an
+  -- ambiguous transport timeout must return the stored reply rather than write a
+  -- second file, and a save belonging to a finished episode should be refused
+  -- rather than applied to the current one.
+  save = true,
 }
 
 function runtime.handle_json(json_string)

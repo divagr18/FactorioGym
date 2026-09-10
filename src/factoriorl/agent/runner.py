@@ -15,6 +15,7 @@ engine run rather than presented as verified.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from factoriorl import assistance as assistance_module
@@ -160,6 +161,8 @@ def run_world(
     free_running: bool = True,
     on_ready=None,
     until=None,
+    checkpoint_seconds: float | None = None,
+    resume_from: Path | None = None,
 ) -> dict[str, Any]:
     """Play an open generated world -- `factoriorl.worlds` -- rather than a task.
 
@@ -176,6 +179,7 @@ def run_world(
     world would misrepresent what the agent was doing with its thirty minutes.
     """
     from factoriorl import manifest as manifest_module
+    from factoriorl.agent.checkpoint import DEFAULT_INTERVAL_SECONDS, Checkpointer
     from factoriorl.freeplay import starting_inventory
     from factoriorl.open_world import OpenWorldEnv
     from factoriorl.rcon import RCONClient
@@ -194,6 +198,11 @@ def run_world(
         f"world-{mode.id}-{run_id[-8:]}",
         map_seed=master_seed,
         terrain=mode.terrain,
+        # `terrain` is ignored when a save is given -- the save carries the
+        # world it was generated with -- but it is still passed so the worker
+        # manifest records the surface this world is on rather than
+        # defaulting to the benchmark one and quietly saying the wrong thing.
+        save_source=resume_from,
     )
     session = None
     try:
@@ -204,7 +213,25 @@ def run_world(
         session.status()
         if free_running:
             session.configure(free_running=True)
-        env = OpenWorldEnv(mode, session, inventory=freeplay["items"], seed=master_seed)
+        # A resume leaves the character, its inventory and the force's research
+        # exactly as the save holds them -- and, since the fresh-gate fix, leaves
+        # the factory standing.
+        resuming = resume_from is not None
+        env = OpenWorldEnv(
+            mode,
+            session,
+            inventory=freeplay["items"],
+            seed=master_seed,
+            fresh=not resuming,
+        )
+        checkpointer = Checkpointer(
+            session=session,
+            write_data=handle.spec.write_data,
+            run_dir=manifest_module.runs_dir() / run_id,
+            interval_seconds=(
+                DEFAULT_INTERVAL_SECONDS if checkpoint_seconds is None else checkpoint_seconds
+            ),
+        )
         loop = AgentLoop(
             env,
             adapter,
@@ -216,7 +243,8 @@ def run_world(
                 "seeds": {"master": master_seed, "seeded": seeded, "map_seed": master_seed},
                 "assistance": assistance_module.STATIC,
                 "world": mode.to_dict(),
-                "starting_inventory": freeplay,
+                "starting_inventory": None if resuming else freeplay,
+                "resumed_from": str(resume_from) if resuming else None,
                 "clock": {
                     "game_speed": speed,
                     "free_running": free_running,
@@ -230,11 +258,20 @@ def run_world(
         )
         if on_ready is not None:
             on_ready()
-        return loop.run(until=until)
+        # Before the first action, per A1.3: a world that dies on decision one
+        # should still leave something to resume from.
+        checkpointer.save("initial")
+        result = loop.run(until=until, on_decision=checkpointer.maybe_save)
+        checkpointer.save("final")
+        result["checkpoints"] = checkpointer.to_dict()
+        return result
     finally:
         if session is not None:
             try:
                 session.close()
             except OSError:
                 pass
+        # Every verified checkpoint has already been copied into the run
+        # directory by now, which matters: `cleanup` removes the worker
+        # directory wholesale and the engine writes its saves inside it.
         manager.cleanup(handle)

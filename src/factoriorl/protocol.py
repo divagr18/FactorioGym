@@ -78,6 +78,12 @@ class RequestType(StrEnum):
     # un-researches the force. On a world the agent is meant to explore and keep,
     # every one of those is destructive.
     OPEN_WORLD = "open_world"
+    # Ask the server to write a save. Deferred by the engine and unobservable
+    # from Lua -- no completion event exists, and the mod cannot read the
+    # filesystem -- so the response means "issued", and the caller verifies the
+    # file itself. Until this existed there was no mid-run save anywhere in the
+    # project: the only save on disk was the `--create` output.
+    SAVE = "save"
 
 
 class ActionType(StrEnum):

@@ -443,6 +443,25 @@ def cmd_evaluate(args) -> int:
     return 0
 
 
+def _resolve_checkpoint(reference: str):
+    """A run id, or a path to a save. Returns the file, or None.
+
+    Only a file that exists is returned. A resume pointed at a checkpoint that
+    is not there should fail before a worker is launched, not ninety seconds
+    later inside `WorkerManager.launch`.
+    """
+    from pathlib import Path
+
+    from factoriorl import manifest as manifest_module
+    from factoriorl.agent.checkpoint import newest_checkpoint
+
+    direct = Path(reference)
+    if direct.is_file():
+        return direct
+    found = newest_checkpoint(manifest_module.runs_dir() / reference)
+    return found if found and found.is_file() else None
+
+
 def cmd_agent(args) -> int:
     """Run a language-model agent on a task or an open world.
 
@@ -468,6 +487,31 @@ def cmd_agent(args) -> int:
     from factoriorl.pricing import UnknownModelPrice
 
     env_file_supplied = load_env_file(args.env_file or None)
+
+    # A resume must ask for its own allowance. Roadmap A1.3: "Do not
+    # automatically spend another budget on resume." Inheriting the parent's cap
+    # or falling back to the default would both do exactly that, so the flag is
+    # required rather than defaulted here.
+    resume_from = None
+    if args.resume_from:
+        if args.max_cost_usd is None:
+            print(
+                "--resume-from requires an explicit --max-cost-usd: a resumed run "
+                "does not inherit its parent's allowance and must not quietly "
+                "take a fresh one",
+                file=sys.stderr,
+            )
+            return 2
+        resume_from = _resolve_checkpoint(args.resume_from)
+        if resume_from is None:
+            print(
+                f"no verified checkpoint for {args.resume_from!r}. A run carries its "
+                f"saves in <run_dir>/saves/; give a run id that has one, or the path "
+                f"to a save file",
+                file=sys.stderr,
+            )
+            return 2
+    max_cost_usd = 5.0 if args.max_cost_usd is None else args.max_cost_usd
 
     # Worlds are resolved before tasks and are deliberately not in the task
     # registry -- see `factoriorl.worlds` for why registering one would break
@@ -498,7 +542,7 @@ def cmd_agent(args) -> int:
             thinking=True if args.thinking else None,
             reasoning_effort=args.reasoning_effort,
             max_tokens=args.max_tokens,
-            max_cost_usd=args.max_cost_usd,
+            max_cost_usd=max_cost_usd,
             max_wall_seconds=args.max_wall_seconds,
         )
     except UnknownModelPrice as unpriced:
@@ -517,7 +561,7 @@ def cmd_agent(args) -> int:
         run_prefix=args.prefix,
         extra={
             "limits": {
-                "max_cost_usd": args.max_cost_usd,
+                "max_cost_usd": max_cost_usd,
                 "max_wall_seconds": args.max_wall_seconds,
                 "clock": args.clock,
             }
@@ -536,7 +580,23 @@ def cmd_agent(args) -> int:
         "until": clock.expired,
     }
     if is_world:
-        result = run_world(worlds.get(args.task), config, adapter, master_seed=args.seed, **shared)
+        result = run_world(
+            worlds.get(args.task),
+            config,
+            adapter,
+            master_seed=args.seed,
+            checkpoint_seconds=args.checkpoint_seconds,
+            resume_from=resume_from,
+            **shared,
+        )
+    elif resume_from is not None:
+        print(
+            "--resume-from applies to open worlds only. A benchmark task's scene "
+            "is rebuilt from its declared blueprint on every reset, so there is "
+            "nothing in a save for it to resume",
+            file=sys.stderr,
+        )
+        return 2
     else:
         result = run_task(config, adapter, master_seed=args.seed, **shared)
     clock.stop()
@@ -567,9 +627,11 @@ def cmd_agent(args) -> int:
         print(f"wrote {args.out}")
     else:
         print(rendered)
+    saved = (result.get("checkpoints") or {}).get("verified")
     print(
-        f"spent ${budget.committed_usd:.4f} of ${args.max_cost_usd:.2f} over "
-        f"{budget.calls} calls; cache hit rate {budget.cache_hit_rate}",
+        f"spent ${budget.committed_usd:.4f} of ${max_cost_usd:.2f} over "
+        f"{budget.calls} calls; cache hit rate {budget.cache_hit_rate}"
+        + (f"; {saved} verified checkpoint(s)" if saved is not None else ""),
         file=sys.stderr,
     )
     return 0
@@ -953,8 +1015,25 @@ def main(argv: list[str] | None = None) -> int:
     agent_cmd.add_argument(
         "--max-cost-usd",
         type=float,
-        default=5.0,
-        help="hard cap. A request whose worst case would exceed what is left is not sent at all",
+        default=None,
+        help="hard cap. A request whose worst case would exceed what is left is "
+        "not sent at all. Defaults to $5 for a fresh run; with --resume-from it "
+        "must be given explicitly, because a resume must not silently spend "
+        "another allowance",
+    )
+    agent_cmd.add_argument(
+        "--resume-from",
+        default=None,
+        metavar="RUN_OR_SAVE",
+        help="continue an earlier open-world run from its newest verified "
+        "checkpoint. Takes a run id or a path to a save",
+    )
+    agent_cmd.add_argument(
+        "--checkpoint-seconds",
+        type=float,
+        default=None,
+        help="wall-clock interval between saves. Default 300; the world is also "
+        "saved before the first action and at termination",
     )
     agent_cmd.add_argument(
         "--max-wall-seconds",

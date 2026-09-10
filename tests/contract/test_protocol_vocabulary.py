@@ -140,6 +140,12 @@ def test_mutating_request_types_are_the_ones_python_expects(runtime_lua):
         # initialisation must return the stored reply rather than insert a second
         # copy of freeplay's items.
         RequestType.OPEN_WORLD.value,
+        # `save` is not a world mutation, and belongs here anyway. What this
+        # table confers is deduplication and an episode check, and a save needs
+        # both: a resend after an ambiguous transport timeout must return the
+        # stored reply rather than write a second file, and a save belonging to
+        # a finished episode should be refused rather than applied to this one.
+        RequestType.SAVE.value,
     }
 
 

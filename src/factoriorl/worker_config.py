@@ -257,6 +257,16 @@ class WorkerSpec:
         return self.directory / "save.zip"
 
     @property
+    def saves(self) -> Path:
+        """Where the engine writes a `game.server_save`.
+
+        Distinct from `save_path`, which is the single launch save passed to
+        `--start-server`. Checkpoints land here, under `write-data`, and are
+        copied into the run directory before teardown removes all of this.
+        """
+        return self.write_data / "saves"
+
+    @property
     def config_ini(self) -> Path:
         return self.directory / "config.ini"
 
@@ -295,6 +305,13 @@ class WorkerSpec:
         self.directory.mkdir(parents=True, exist_ok=True)
         self.write_data.mkdir(exist_ok=True)
         self.mod_directory.mkdir(exist_ok=True)
+        # The engine does **not** create this, and `game.server_save` fails
+        # outright without it:
+        #   handler error: canonical: The system cannot find the file
+        #   specified.: "...\write-data\saves"
+        # Autosaves are disabled and nothing else here ever saved, so the
+        # directory had simply never existed on any worker.
+        self.saves.mkdir(exist_ok=True)
 
         self.config_ini.write_text(
             CONFIG_INI_TEMPLATE.format(
