@@ -15,6 +15,18 @@ script.on_event(defines.events.on_tick, runtime.on_tick)
 -- in bulk.
 script.on_event(defines.events.on_object_destroyed, runtime.on_object_destroyed)
 
+-- By-hand tallies (roadmap A4.2). The engine's production statistics cannot
+-- separate a plate a furnace made from a plate a character hand-crafted, so
+-- what the character does by hand is counted here and subtracted there.
+--
+-- These fire only for an entity the engine considers a *player*. Whether the
+-- controlled character is one is a property of this mod's setup, not something
+-- to assume, so `world.tallies` also carries counters written by the mod's own
+-- action handlers and `world.truth` reports which of the two actually moved.
+local world = require("world")
+script.on_event(defines.events.on_player_crafted_item, world.on_player_crafted_item)
+script.on_event(defines.events.on_player_mined_item, world.on_player_mined_item)
+
 -- A human who joins to watch must not become part of the world.
 --
 -- Every worker is a dedicated server (`worker.py` runs the graphical binary

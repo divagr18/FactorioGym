@@ -32,6 +32,7 @@ import json
 import os
 import socket
 import struct
+import threading
 from dataclasses import dataclass
 
 _HEADER = struct.Struct("<iii")  # length, id, type
@@ -134,12 +135,34 @@ def encode_packet(packet_id: int, packet_type: int, body: str) -> bytes:
 
 
 class RCONClient:
-    """Blocking client; one request/response per call."""
+    """Blocking client; one request/response per call, one caller at a time.
+
+    **The lock is load-bearing, not defensive.** Without it two threads sharing
+    a client do not merely race -- they lose each other's answers, silently.
+    Each call allocates its id pair from a plain counter and then reads packets
+    until it has seen both of its own ids; a reply bearing a *lower* id is
+    drained as a stale packet from a call that already gave up (see `command`).
+    So thread B's perfectly valid reply, arriving inside thread A's read loop,
+    is discarded as garbage and B blocks until its timeout. A higher id raises
+    instead. Neither outcome names the real cause.
+
+    Nothing was concurrent before roadmap A4.3, which asks for operational
+    sampling every five seconds *including during model calls* and says the way
+    to do it is to "serialize game access through one owner". The socket is that
+    owner, and this is what makes it one. `vecenv.py` is unaffected: it already
+    gives each worker thread its own client, which is why the missing lock had
+    never bitten.
+    """
 
     def __init__(
         self, endpoint: RCONEndpoint, timeout: float = 10.0, silent: bool | None = None
     ) -> None:
         self._next_request_id = FIRST_REQUEST_ID
+        #: Held across a whole request/response exchange, so id allocation and
+        #: the read loop that consumes those ids cannot interleave. Reentrant
+        #: because `command` calls `_drain_late_chunks`, and a caller holding
+        #: the connection is allowed to keep holding it.
+        self._lock = threading.RLock()
         self.endpoint = endpoint
         self.timeout = timeout
         #: Issue Lua through `/silent-command` rather than `/c`, so the command
@@ -266,6 +289,11 @@ class RCONClient:
         ``expect_response=False`` is for commands that end the session (``/quit``),
         where waiting for a sentinel the server will never answer would hang.
         """
+        with self._lock:
+            return self._exchange(body, expect_response)
+
+    def _exchange(self, body: str, expect_response: bool) -> str:
+        """One request/response, with the connection already held."""
         request_id, sentinel_id = self._allocate_ids()
         self._send(request_id, TYPE_COMMAND, body)
         if not expect_response:

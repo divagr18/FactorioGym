@@ -611,6 +611,64 @@ function world.disrupt(kind, targets)
 end
 
 
+-- ------------------------------------------------------- by-hand tallies
+--
+-- Roadmap A4.2 requires cumulative *machine* production to be kept separate
+-- from handcrafting and from inventory transfers. The engine will not do this
+-- for us: `get_item_production_statistics():get_input_count(item)` counts every
+-- item that enters the force's inventory space, so a plate a furnace made and a
+-- plate a character hand-crafted are the same number, and mined ore is in there
+-- too.
+--
+-- There is no counter for "machine output" to read. So it is derived --
+--
+--     machine_produced = produced - handcrafted - mined
+--
+-- and the three components are published separately, so a reader can check the
+-- subtraction instead of trusting it. Anything the derivation cannot see (items
+-- from the crash site, research rewards) lands in the machine column, which is
+-- why `world.truth` labels it a derivation.
+
+local function tally(bucket, name, count)
+  if not name or not count or count <= 0 then return end
+  storage.frrl_tally = storage.frrl_tally or {}
+  local into = storage.frrl_tally[bucket] or {}
+  into[name] = (into[name] or 0) + count
+  storage.frrl_tally[bucket] = into
+end
+
+world.tally = tally
+
+--- Items a *player* finished crafting by hand.
+function world.on_player_crafted_item(event)
+  local stack = event and event.item_stack
+  if stack and stack.valid_for_read then tally("handcrafted", stack.name, stack.count) end
+end
+
+--- Items a *player* got by mining.
+function world.on_player_mined_item(event)
+  local stack = event and event.item_stack
+  if stack and stack.valid_for_read then tally("mined", stack.name, stack.count) end
+end
+
+--- What the tallies hold, as plain tables.
+function world.tallies()
+  local held = storage.frrl_tally or {}
+  return {
+    handcrafted = held.handcrafted or {},
+    mined = held.mined or {},
+    -- Counted by the mod's own action handlers rather than by an engine event.
+    -- Whether `on_player_crafted_item` and `on_player_mined_item` fire at all
+    -- for a controlled character depends on whether that character has a
+    -- LuaPlayer behind it, which is a fact about this build and this mod, not
+    -- something to assume -- so both are recorded and `world.truth` reports
+    -- which one actually moved.
+    handcrafted_by_action = held.handcrafted_by_action or {},
+    mined_by_action = held.mined_by_action or {},
+  }
+end
+
+
 function world.truth()
   local scene = storage.frrl_scene or {}
   local force = game.forces["player"]
@@ -640,6 +698,11 @@ function world.truth()
     end
   end
 
+  -- The eight names below were what a painted benchmark scene needed. An open
+  -- world produces whatever the agent decides to produce, so "outputs by item
+  -- type" (roadmap A4.2) cannot come from a fixed list. The engine's own
+  -- `input_counts` is the live set; the fixed names stay as a floor so a scene
+  -- predicate keeps seeing a key it expects even at zero.
   local tracked = {
     "iron-plate", "copper-plate", "stone-furnace", "iron-gear-wheel",
     "iron-ore", "copper-ore", "coal", "stone",
@@ -651,6 +714,37 @@ function world.truth()
   for _, item in ipairs(tracked) do
     local count = stats.get_input_count(item)
     if count and count > 0 then produced[item] = count end
+  end
+  -- Whatever else moved. Guarded because the accessor's spelling is a fact
+  -- about this build: if it is not there, the fixed list above is still the
+  -- answer and the report says the live set was unavailable.
+  local live_set = true
+  local ok, counts = pcall(function() return stats.input_counts end)
+  if ok and type(counts) == "table" then
+    for name, count in pairs(counts) do
+      if count and count > 0 then produced[name] = count end
+    end
+  else
+    live_set = false
+  end
+
+  -- A4.2's separation. Derived, because the engine has no counter for it.
+  local held = world.tallies()
+  -- Prefer whichever by-hand source actually moved. Player events do not fire
+  -- for a character with no LuaPlayer behind it, and which of those two worlds
+  -- this mod is in is a measured fact, reported below rather than assumed.
+  local function total(bucket)
+    local sum = 0
+    for _, count in pairs(bucket) do sum = sum + count end
+    return sum
+  end
+  local by_event = total(held.handcrafted) + total(held.mined)
+  local handcrafted = by_event > 0 and held.handcrafted or held.handcrafted_by_action
+  local mined = by_event > 0 and held.mined or held.mined_by_action
+  local machine_produced = {}
+  for name, count in pairs(produced) do
+    local rest = count - (handcrafted[name] or 0) - (mined[name] or 0)
+    if rest > 0 then machine_produced[name] = rest end
   end
 
   local markers = {}
@@ -734,6 +828,24 @@ function world.truth()
     stored_energy = stored_energy,
     remaining_burning_fuel = burning,
     built = built,
+    -- Roadmap A4.2. `machine_produced` is a **derivation**, not a reading:
+    -- the engine counts every item entering the force's inventory space and
+    -- has no separate counter for machine output. All three components are
+    -- returned so a reader can check the subtraction rather than trust it.
+    --
+    -- Known biases, both of which inflate the machine column:
+    --   * items granted outside production (crash-site loot, research rewards)
+    --   * intermediates the crafting queue builds on the way to a requested
+    --     recipe, which `handcrafted_by_action` does not see
+    machine_produced = machine_produced,
+    handcrafted = handcrafted,
+    mined_by_hand = mined,
+    by_hand_source = by_event > 0 and "player_events" or "mod_actions",
+    tracked_item_set = live_set and "live" or "fixed_list",
+    production_note = (
+      "machine_produced is produced minus handcrafted minus mined_by_hand; "
+      .. "it is derived, not measured"
+    ),
     scenario = scene.name,
   }
 end
@@ -745,6 +857,9 @@ function world.clear_statistics()
   -- with the rest, or a `BUILT` predicate would be satisfied by the previous
   -- episode's construction.
   storage.frrl_built = {}
+  -- Cleared with the statistics they are subtracted from. Leaving them would
+  -- make the next episode's derived machine output negative.
+  storage.frrl_tally = {}
   local force = game.forces["player"]
   for _, getter in ipairs({
     "get_item_production_statistics",

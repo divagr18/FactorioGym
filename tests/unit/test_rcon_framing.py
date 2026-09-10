@@ -297,3 +297,64 @@ def test_an_in_order_server_reports_no_inversions(server_factory):
         assert client.reordered_replies == 0
     finally:
         client.close()
+
+
+# ------------------------------------------------ one owner (roadmap A4.3)
+
+
+def test_two_threads_sharing_a_client_each_get_their_own_answer(server_factory):
+    """A4.3: "serialize game access through one owner."
+
+    Without the lock this does not race, it *loses*: each call allocates its id
+    pair from a plain counter and then reads until it has seen both of its own
+    ids, draining any *lower* id as a stale packet from an abandoned call. The
+    second thread's perfectly valid reply, arriving inside the first thread's
+    read loop, was discarded as garbage and the second thread blocked until its
+    timeout. A higher id raised instead. Neither outcome named the real cause.
+
+    Sixteen calls across four threads, on the connection they share.
+    """
+    calls = 16
+    server = server_factory([[f"answer-{index}"] for index in range(calls)])
+    client = _client(server)
+    answers: dict[int, str] = {}
+    errors: list[BaseException] = []
+    start = threading.Barrier(4)
+
+    def caller(slots: range) -> None:
+        try:
+            start.wait(timeout=5)
+            for slot in slots:
+                answers[slot] = client.command(f"ask-{slot}")
+        except BaseException as failure:  # noqa: BLE001 - reported, not raised here
+            errors.append(failure)
+
+    threads = [
+        threading.Thread(target=caller, args=(range(offset, calls, 4),)) for offset in range(4)
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=20)
+        assert not thread.is_alive(), "a caller never returned; a reply was lost"
+
+    assert not errors, errors
+    # Every call got *an* answer, and the answers are exactly the set the
+    # server sent -- no duplicates, none dropped.
+    assert len(answers) == calls
+    assert sorted(answers.values()) == sorted(f"answer-{index}" for index in range(calls))
+    client.close()
+
+
+def test_the_connection_is_held_for_a_whole_exchange_not_just_the_send(server_factory):
+    """The lock has to span the read loop, because the read loop is what
+    consumes ids allocated by the send. Guarding allocation alone would leave
+    exactly the defect it was meant to remove."""
+    import inspect
+
+    source = inspect.getsource(RCONClient.command)
+    assert "with self._lock:" in source
+    exchange = inspect.getsource(RCONClient._exchange)
+    # Allocation and the read loop live together, inside the held section.
+    assert "_allocate_ids()" in exchange
+    assert "_read_packet()" in exchange

@@ -16,6 +16,8 @@
 local protocol = require("protocol")
 local handles = require("handles")
 local navigation = require("navigation")
+-- `world` does not require this module, so the edge is one-way.
+local world = require("world")
 
 local STATUS = protocol.STATUS
 local ERR = protocol.ERR
@@ -153,6 +155,11 @@ POLLS.mine = function(entry)
     -- operation cannot continue: a target becoming unavailable is a recorded
     -- failure (PLAN.md 2.2), not a silent stop.
     ch.mining_state = { mining = false }
+    -- Counted here rather than from `on_player_mined_item`, because whether
+    -- that event fires for the controlled character depends on whether the
+    -- engine considers it a player. Both are recorded; `world.truth` reports
+    -- which moved. Roadmap A4.2.
+    world.tally("mined_by_action", entry.goal.item, gained)
     if gained >= entry.goal.count then
       return STATUS.COMPLETED, { action = "mine", mined = gained }, nil
     end
@@ -163,6 +170,7 @@ POLLS.mine = function(entry)
 
   if gained >= entry.goal.count then
     ch.mining_state = { mining = false }
+    world.tally("mined_by_action", entry.goal.item, gained)
     return STATUS.COMPLETED, { action = "mine", mined = gained }, nil
   end
   -- Keep the engine mining: selection can lapse when a resource entity is
@@ -194,6 +202,11 @@ POLLS.craft = function(entry)
   if still_queued then return nil end
   local inv = ch.get_inventory(defines.inventory.character_main)
   local produced = inv and inv.get_item_count(entry.goal.item) or 0
+  -- Only the requested recipe's own output. The crafting queue may build
+  -- intermediates on the way, and those are *not* counted here -- which means
+  -- they fall into the derived machine column. Named as a known bias rather
+  -- than papered over: see `world.truth`.
+  world.tally("handcrafted_by_action", entry.goal.item, produced - (entry.baseline or 0))
   return STATUS.COMPLETED, {
     action = "craft",
     recipe = entry.recipe,

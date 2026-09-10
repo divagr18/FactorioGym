@@ -1,0 +1,921 @@
+{
+  "measures": "roadmap A4.2: machine output separated from handcrafting and mining",
+  "world": {
+    "id": "open_factory",
+    "version": "0.3.0",
+    "kind": "world",
+    "terrain": "natural",
+    "observation_profile": "open-v1",
+    "action_profile": "assisted-v1",
+    "catalog": "open-v1",
+    "decision_ticks": 30,
+    "max_decision_steps": 100000,
+    "chart_radius": 96,
+    "assistance": [
+      "navigation",
+      "bounded-sequences:8"
+    ],
+    "objective": "YOUR OBJECTIVE\nBuild a productive factory from the items you start with.\n\n  - Automate gathering and processing rather than doing them by hand.\n    Handcrafting and hand-mining are how you bootstrap, not how you\n    produce.\n  - Expand production that is useful to you: more of what you are short\n    of, and the machines that make it.\n  - As resources and time allow, work toward electricity, assembly and\n    research.\n\nYour progress is measured -- what you gather, craft, place and research,\nand what your machines produce without your help. There is no target\nnumber and no hidden win condition. Keep working until the controller\nstops the run; it will not stop because you did something wrong.\n\nHow to build is yours to decide. Nothing here tells you where to put a\nmachine or in what order to build, because nobody has decided that for\nyou.",
+    "scored": false,
+    "note": "an open world has no success predicate and no layout families; it is not a benchmark task and no rate measured on it is comparable to one"
+  },
+  "engine": {
+    "executable": "D:\\Factorio\\bin\\x64\\factorio.exe",
+    "version": "2.0.60",
+    "build": 83512,
+    "platform": "win64"
+  },
+  "ore_started_at": 28.5,
+  "ore_walks": 1,
+  "ore_mined": 8,
+  "after_mining": {
+    "markers": {},
+    "containers": {},
+    "working": {},
+    "produced": {
+      "iron-ore": 8
+    },
+    "working_counts": {},
+    "placed_counts": {
+      "character": 1
+    },
+    "stored_energy": {},
+    "remaining_burning_fuel": {},
+    "built": {},
+    "machine_produced": {},
+    "handcrafted": {},
+    "mined_by_hand": {
+      "iron-ore": 8
+    },
+    "by_hand_source": "mod_actions",
+    "tracked_item_set": "live",
+    "production_note": "machine_produced is produced minus handcrafted minus mined_by_hand; it is derived, not measured",
+    "scenario": "open_world"
+  },
+  "handcraft": {
+    "action": "craft_recipe",
+    "arguments": {
+      "recipe": "iron-gear-wheel",
+      "count": 1
+    },
+    "status": "running",
+    "error": null,
+    "terminated": false,
+    "truncated": false,
+    "ms": 538.4
+  },
+  "after_handcraft": {
+    "markers": {},
+    "containers": {},
+    "working": {},
+    "produced": {
+      "iron-ore": 8
+    },
+    "working_counts": {},
+    "placed_counts": {
+      "character": 1
+    },
+    "stored_energy": {},
+    "remaining_burning_fuel": {},
+    "built": {},
+    "machine_produced": {},
+    "handcrafted": {
+      "iron-gear-wheel": 1
+    },
+    "mined_by_hand": {
+      "iron-ore": 8
+    },
+    "by_hand_source": "mod_actions",
+    "tracked_item_set": "live",
+    "production_note": "machine_produced is produced minus handcrafted minus mined_by_hand; it is derived, not measured",
+    "scenario": "open_world"
+  },
+  "gears_in_hand": 1,
+  "plates_in_hand": 6,
+  "placed_furnace": true,
+  "ore2_mined": 5,
+  "ore_to_furnace": {
+    "action": "give_to",
+    "arguments": {
+      "to": "h111",
+      "item": "iron-ore",
+      "count": 5
+    },
+    "status": "completed",
+    "error": null,
+    "terminated": false,
+    "truncated": false,
+    "ms": 533.4
+  },
+  "after_smelting": {
+    "markers": {},
+    "containers": {},
+    "working": {},
+    "produced": {
+      "iron-plate": 5,
+      "iron-ore": 13
+    },
+    "working_counts": {},
+    "placed_counts": {
+      "stone-furnace": 1,
+      "character": 1
+    },
+    "stored_energy": {
+      "stone-furnace": 100
+    },
+    "remaining_burning_fuel": {
+      "stone-furnace": 558400
+    },
+    "built": {
+      "stone-furnace": 1
+    },
+    "machine_produced": {
+      "iron-plate": 5
+    },
+    "handcrafted": {
+      "iron-gear-wheel": 1
+    },
+    "mined_by_hand": {
+      "iron-ore": 13
+    },
+    "by_hand_source": "mod_actions",
+    "tracked_item_set": "live",
+    "production_note": "machine_produced is produced minus handcrafted minus mined_by_hand; it is derived, not measured",
+    "scenario": "open_world"
+  },
+  "actions": [
+    {
+      "action": "walk_to_position",
+      "arguments": {
+        "destination": [
+          -28.5,
+          -0.5
+        ]
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.7
+    },
+    {
+      "action": "wait_for",
+      "arguments": {
+        "until": "nothing_in_flight",
+        "seconds": 10
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "condition_met": true,
+      "waited_steps": 5,
+      "ms": 2671.2
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 531.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.6
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.0
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.1
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.9
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.3
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.5
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.5
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.2
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.5
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.0
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.0
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.5
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.6
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.2
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.6
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.7
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.6
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.3
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.0
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 539.5
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 527.8
+    },
+    {
+      "action": "craft_recipe",
+      "arguments": {
+        "recipe": "iron-gear-wheel",
+        "count": 1
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 538.4
+    },
+    {
+      "action": "wait_for",
+      "arguments": {
+        "until": "nothing_in_flight",
+        "seconds": 10
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "condition_met": true,
+      "waited_steps": 1,
+      "ms": 533.2
+    },
+    {
+      "action": "wait_for",
+      "arguments": {
+        "until": "nothing_in_flight",
+        "seconds": 10
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "condition_met": true,
+      "waited_steps": 1,
+      "ms": 533.9
+    },
+    {
+      "action": "wait_for",
+      "arguments": {
+        "until": "nothing_in_flight",
+        "seconds": 10
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "condition_met": true,
+      "waited_steps": 1,
+      "ms": 533.2
+    },
+    {
+      "action": "wait_for",
+      "arguments": {
+        "until": "nothing_in_flight",
+        "seconds": 10
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "condition_met": true,
+      "waited_steps": 1,
+      "ms": 532.7
+    },
+    {
+      "action": "place_at",
+      "arguments": {
+        "item": "stone-furnace",
+        "position": [
+          -32.5,
+          -5.5
+        ],
+        "direction": "north"
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 537.9
+    },
+    {
+      "action": "give_to",
+      "arguments": {
+        "to": "h111",
+        "item": "wood",
+        "count": 1
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.5
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.1
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 534.3
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.9
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.7
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.0
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.9
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.6
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.2
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.6
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.3
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 534.0
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.6
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.0
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h7"
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.3
+    },
+    {
+      "action": "give_to",
+      "arguments": {
+        "to": "h111",
+        "item": "iron-ore",
+        "count": 5
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.4
+    },
+    {
+      "action": "wait_for",
+      "arguments": {
+        "until": "world_changes",
+        "seconds": 30
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "condition_met": true,
+      "waited_steps": 30,
+      "ms": 16017.4
+    },
+    {
+      "action": "wait_for",
+      "arguments": {
+        "until": "world_changes",
+        "seconds": 30
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "condition_met": false,
+      "waited_steps": 60,
+      "ms": 32001.2
+    },
+    {
+      "action": "wait_for",
+      "arguments": {
+        "until": "world_changes",
+        "seconds": 30
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "condition_met": false,
+      "waited_steps": 60,
+      "ms": 32017.2
+    }
+  ],
+  "wall_seconds": 134.7,
+  "by_hand_source": "mod_actions",
+  "tracked_item_set": "live",
+  "summary": {
+    "ore_mined_by_hand": 8.0,
+    "ore_in_machine_column_after_mining": 0.0,
+    "gears_handcrafted": 1.0,
+    "gears_in_machine_column": 0.0,
+    "plates_in_machine_column_after_handcraft": 0.0,
+    "plates_in_machine_column_after_smelting": 5.0,
+    "plates_produced_total": 5.0
+  },
+  "verdict": {
+    "mining_is_counted_by_hand": true,
+    "mining_is_not_counted_as_machine_output": true,
+    "handcrafting_is_counted_by_hand": true,
+    "handcrafting_is_not_counted_as_machine_output": true,
+    "smelting_is_counted_as_machine_output": true,
+    "the_columns_add_up": true,
+    "the_tracked_set_is_live": true
+  }
+}

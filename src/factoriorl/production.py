@@ -17,6 +17,7 @@ recorder that returns no reward cannot.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from factoriorl.tasks.spec import (
     SAMPLE_TOLERANCE_TICKS,
@@ -48,8 +49,24 @@ class ProductionMetrics:
     #: Widest gap allowed between consecutive samples covering the window.
     #: Mirrors `Predicate.max_sample_gap`; `for_task` reads the task's.
     max_sample_gap: int = SAMPLE_TOLERANCE_TICKS
+    #: Which truth key the rates are computed over. A benchmark task measures
+    #: `produced`, which is every item entering the force's inventory space, and
+    #: that is what every existing result was measured against. An open world
+    #: measures `machine_produced` -- roadmap A4.2 requires cumulative machine
+    #: output be kept separate from handcrafting, and on a world where the agent
+    #: bootstraps by hand the two are not close.
+    source: str = "produced"
+    #: Grow `items` from whatever the world actually produces. A task declares
+    #: its items in its predicates; an open world has no predicates and produces
+    #: whatever the agent decides to, so the set cannot be known in advance.
+    discover: bool = False
     _samples: list[tuple[int, dict[str, float]]] = field(default_factory=list)
     _first_sustained: dict[str, int] = field(default_factory=dict)
+    #: First tick each item was produced by a machine *at all*. Distinct from
+    #: `_first_sustained`, which needs a full window above a rate -- A4.2 asks
+    #: for "time to first machine production", which is a different question and
+    #: was not answerable before.
+    _first_output: dict[str, int] = field(default_factory=dict)
 
     @classmethod
     def for_task(cls, spec: TaskSpec) -> ProductionMetrics:
@@ -77,14 +94,38 @@ class ProductionMetrics:
             max_sample_gap=max_sample_gap,
         )
 
+    @classmethod
+    def for_world(cls, mode: Any) -> ProductionMetrics:
+        """Metrics for a world with no success predicate (roadmap A4.2).
+
+        `for_task` reads its item list off `PRODUCED`/`SUSTAINED_OUTPUT`
+        predicates. An open world declares none -- `open_world.spec_for` sets
+        `success=()` -- so that path yields `items=()` and every field of
+        `report()` comes back empty. Which is what an `open_factory` run would
+        have reported: nothing at all, for the entire run.
+        """
+        del mode  # the window is the game's minute, not the world's business
+        return cls(items=(), source="machine_produced", discover=True)
+
     # ---- recording ----------------------------------------------------
     def reset(self) -> None:
         self._samples = []
         self._first_sustained = {}
+        self._first_output = {}
 
     def record(self, observation: dict, truth: dict) -> None:
         tick = int(observation.get("tick") or 0)
-        produced = {item: float((truth.get("produced") or {}).get(item, 0)) for item in self.items}
+        counted = truth.get(self.source) or {}
+        if self.discover:
+            # Order is stable and additive: a new item joins the end and every
+            # earlier sample is treated as zero for it, which is true.
+            found = [name for name in sorted(counted) if name not in self.items]
+            if found:
+                self.items = (*self.items, *found)
+        produced = {item: float(counted.get(item, 0)) for item in self.items}
+        for item, count in produced.items():
+            if count > 0 and item not in self._first_output:
+                self._first_output[item] = tick
         # A step that advanced no ticks replaces its sample rather than adding
         # one, so a burst of zero-tick decisions cannot dilute a rate.
         if self._samples and self._samples[-1][0] == tick:
@@ -165,9 +206,11 @@ class ProductionMetrics:
                 "rate_denominator": "simulated_ticks",
                 "episode_ticks": 0,
                 "ticks_to_first_sustained_output": dict.fromkeys(self.items),
+                "ticks_to_first_output": dict.fromkeys(self.items),
                 "cumulative_produced": dict.fromkeys(self.items, 0.0),
                 "final_output_rate": dict.fromkeys(self.items, 0.0),
                 "over_ticks": self.over_ticks,
+                "counts": self.source,
                 "samples": 0,
             }
         latest_tick, latest = self._samples[-1]
@@ -187,9 +230,17 @@ class ProductionMetrics:
             "ticks_to_first_sustained_output": {
                 item: self._first_sustained.get(item) for item in self.items
             },
+            # A4.2 asks for "time to first machine production", which is not
+            # the same question as time to first *sustained* output above: one
+            # plate answers this and does not answer that.
+            "ticks_to_first_output": {item: self._first_output.get(item) for item in self.items},
             "cumulative_produced": {item: latest.get(item, 0.0) for item in self.items},
             "final_output_rate": rates,
             "over_ticks": self.over_ticks,
+            # Which truth key these came from. `produced` counts handcrafting
+            # and mining too; `machine_produced` is the derived machine-only
+            # column. A report that does not say which cannot be compared.
+            "counts": self.source,
             "samples": len(self._samples),
         }
 

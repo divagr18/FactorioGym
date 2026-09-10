@@ -30,6 +30,7 @@ import gymnasium as gym
 
 from factoriorl import encoders
 from factoriorl.env import FactorioEnv
+from factoriorl.production import ProductionMetrics
 from factoriorl.seeding import Branch, SeedPlan
 from factoriorl.session import WorkerSession
 from factoriorl.tasks import RegisteredTask, TaskConfigError
@@ -109,6 +110,11 @@ class OpenWorldEnv(FactorioEnv):
             # a manifest for a world with no rewards would read as a mistake.
             shaping=False,
         )
+        # Replaces the task-derived metrics `FactorioEnv.__init__` just built.
+        # `for_task` reads its item list off the spec's PRODUCED/SUSTAINED_OUTPUT
+        # predicates, and `spec_for` declares none -- so an open world's
+        # production report was `{}` in every field, for the whole run.
+        self.metrics = ProductionMetrics.for_world(mode)
 
     def _succeeded(self) -> bool:
         """Never. See the module docstring -- `all([])` is `True`.
