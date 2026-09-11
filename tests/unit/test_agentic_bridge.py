@@ -26,8 +26,8 @@ class _Env:
         self._truth = {"machine_produced": {"iron-plate": 99}}
         self.calls = []
 
-    def reset(self, seed=None):
-        self.calls.append(("reset", seed))
+    def reset(self, seed=None, options=None):
+        self.calls.append(("reset", seed, options))
 
     def action_masks(self):
         return np.array([True, True])
@@ -47,6 +47,7 @@ class _Env:
 def test_observation_contract_does_not_leak_truth():
     bridge = FactorioBridge(_Env(), "construct_smelting_line")
     state = bridge.reset(7)
+    assert bridge.env.calls[0] == ("reset", 7, {"scene_index": 7})
     assert state["task_id"] == "construct_smelting_line"
     assert state["observation"] == {"tick": 0, "inventory": {"coal": 4}}
     assert "truth" not in state

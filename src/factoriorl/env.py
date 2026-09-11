@@ -761,7 +761,18 @@ class FactorioEnv(gym.Env):
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         super().reset(seed=seed)
-        self._episode_index += 1
+        options = options or {}
+        scene_index = options.get("scene_index")
+        if scene_index is None:
+            self._episode_index += 1
+        elif (
+            isinstance(scene_index, int)
+            and not isinstance(scene_index, bool)
+            and scene_index >= 0
+        ):
+            self._episode_index = scene_index
+        else:
+            raise ValueError("scene_index must be a non-negative integer")
         self._steps = 0
         #: (tick, produced) samples for the episode. Cleared with it, or a
         #: sustained objective would be satisfied by the previous episode.

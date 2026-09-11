@@ -42,7 +42,11 @@ class FactorioBridge:
         }
 
     def reset(self, seed: int | None = None) -> dict:
-        self.env.reset(seed=seed)
+        # A GRPO group needs independent attempts from one scene.  The public
+        # bridge seed therefore names a stable Factorio scene index as well as
+        # seeding Gym; ordinary environment users retain sequential resets.
+        options = None if seed is None else {"scene_index": seed}
+        self.env.reset(seed=seed, options=options)
         self._ended = False
         return self._state()
 
