@@ -59,10 +59,12 @@ class GemmaSampler:
             )
             prompt_len = inputs["input_ids"].shape[1]
             completion = sequence[0, prompt_len:]
-            logits = self.model(input_ids=sequence).logits[0]
+            # Gemma's vocabulary is large: materializing logits for the prompt
+            # as well as the sampled suffix OOMs on 8 GB.  Only sampled tokens
+            # contribute to PPO/GRPO loss, so request exactly that suffix.
+            logits = self.model(input_ids=sequence, logits_to_keep=completion.numel()).logits[0]
             logprobs = [
-                float(torch.log_softmax(logits[prompt_len - 1 + i], -1)[token])
-                for i, token in enumerate(completion)
+                float(torch.log_softmax(logits[i], -1)[token]) for i, token in enumerate(completion)
             ]
         text = self.tokenizer.decode(completion, skip_special_tokens=True).strip()
         try:
