@@ -47,6 +47,7 @@ class _Env:
 def test_observation_contract_does_not_leak_truth():
     bridge = FactorioBridge(_Env(), "construct_smelting_line")
     state = bridge.reset(7)
+    assert state["task_id"] == "construct_smelting_line"
     assert state["observation"] == {"tick": 0, "inventory": {"coal": 4}}
     assert "truth" not in state
     assert "machine_produced" not in repr(state)

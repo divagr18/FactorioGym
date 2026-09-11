@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-11",
+  "commit": "09a78be",
+  "task": "construct_smelting_line",
+  "focused_tests": {
+    "command": "python -m pytest tests/unit/test_agentic_bridge.py tests/unit/test_construct_smelting_line.py -q",
+    "result": "7 passed"
+  },
+  "live_probe": {
+    "windows_service": {
+      "endpoint": "/v1/health",
+      "authenticated": true,
+      "result": {"ok": true, "task": "construct_smelting_line"}
+    },
+    "windows_environment": {
+      "endpoint": "/v1/observe",
+      "result": {"ended": false, "catalog_actions": 22, "legal_actions": 13}
+    },
+    "ubuntu_wsl_client": {
+      "distro": "Ubuntu-24.04",
+      "endpoint": "/v1/health",
+      "authenticated": true,
+      "result": {"ok": true, "task": "construct_smelting_line"}
+    },
+    "network": {
+      "localhost_forwarding": "unavailable on this PC",
+      "binding": "0.0.0.0 for the probe only",
+      "firewall": "temporary TCP 8765 rule limited to the active WSL subnet; removed after the probe"
+    }
+  },
+  "not_proven": [
+    "A WSL-driven reset, act, finish rollout",
+    "rollout artifact recording",
+    "throughput under concurrent workers",
+    "GRPO learner compatibility"
+  ]
+}

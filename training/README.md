@@ -73,7 +73,7 @@ declared arguments. `finish` is one-shot and invokes T1's action-locked
 verification window. The bridge never returns evaluator truth, RCON details,
 worker paths, or a generic command endpoint.
 
-The default listener is loopback (`127.0.0.1:8765`), suitable for WSL localhost
-forwarding. If the WSL setup requires a reachable host address, choose it with
-`--host` deliberately and protect the port with the required bearer token; do
-not expose it beyond the local network.
+The default listener is loopback (`127.0.0.1:8765`). If WSL localhost forwarding
+is unavailable, bind with `--host 0.0.0.0` and allow the port only from the
+current WSL subnet in Windows Firewall. Remove that firewall exception after the
+run. Do not expose the bridge to the LAN.

@@ -33,7 +33,7 @@ class FactorioBridge:
 
     def _state(self) -> dict:
         return {
-            "task": self.task_id,
+            "task_id": self.task_id,
             "observation": self.env._observation,
             "catalog": self._catalog(),
             "argument_domains": self.env.argument_domains(),

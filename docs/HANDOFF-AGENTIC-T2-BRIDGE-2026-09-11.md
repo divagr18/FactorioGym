@@ -19,8 +19,15 @@ ends the episode.
 token supplied through environment configuration; no credential is written into
 the repository or transcript.
 
-Focused bridge and T1 tests passed (7 tests), as did Ruff and compilation. The
-remaining T2 work is a real cross-host launch and a rollout recorder that stores
-token ids, behaviour log probabilities, tool calls/results, policy version, and
-termination reason. Do not claim WSL-to-Windows throughput or multi-turn GRPO
-compatibility until that end-to-end probe has run.
+Focused bridge and T1 tests passed (7 tests), as did Ruff and compilation. A live
+probe on the RTX 4060 PC started the Windows service, retrieved a real
+`construct_smelting_line` observation from Windows, and reached its authenticated
+health endpoint from Ubuntu WSL. That PC has localhost forwarding disabled and
+its WSL NAT traffic is firewall-blocked by default, so the probe used a temporary
+port-8765 rule restricted to the active WSL subnet and removed it during cleanup.
+The result is recorded in `docs/evidence/agentic-t2-bridge-2026-09-11.json`.
+
+The remaining T2 work is a rollout recorder that stores token ids, behaviour log
+probabilities, tool calls/results, policy version, and termination reason, then
+an actual WSL client reset/act/finish rollout. Do not claim throughput or
+multi-turn GRPO compatibility until that end-to-end rollout probe has run.

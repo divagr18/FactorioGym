@@ -1,6 +1,6 @@
 # FactorioRL: train a small language-model agent with verifiable game rewards
 
-Date: 2026-09-11. Status: T0 model-update fit and T1 task gate passed; T2's restricted bridge is implemented but has not yet had a cross-host rollout probe. See [the T0 handoff](HANDOFF-AGENTIC-T0-2026-09-11.md), [the T1 handoff](HANDOFF-AGENTIC-T1-2026-09-11.md), and [the T2 bridge handoff](HANDOFF-AGENTIC-T2-BRIDGE-2026-09-11.md). This remains the implementation plan for subsequent phases, not evidence that the agent has learned a game capability.
+Date: 2026-09-11. Status: T0 model-update fit and T1 task gate passed; the T2 restricted bridge has passed a Windows-service to Ubuntu-WSL authenticated transport probe, while the rollout recorder and learner integration remain open. See [the T0 handoff](HANDOFF-AGENTIC-T0-2026-09-11.md), [the T1 handoff](HANDOFF-AGENTIC-T1-2026-09-11.md), and [the T2 bridge handoff](HANDOFF-AGENTIC-T2-BRIDGE-2026-09-11.md). This remains the implementation plan for subsequent phases, not evidence that the agent has learned a game capability.
 
 ## 1. Direction and fixed decisions
 
