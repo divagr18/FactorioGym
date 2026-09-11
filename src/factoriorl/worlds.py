@@ -44,7 +44,7 @@ from factoriorl.worker_config import TERRAIN_NATURAL
 #: Bumped when a change would make two runs of the same id incomparable --
 #: different terrain, profiles, catalog or starting inventory. Same contract as
 #: `TaskSpec.version`, for the same reason.
-OPEN_FACTORY_VERSION = "0.3.0"
+OPEN_FACTORY_VERSION = "0.4.0"
 
 
 @dataclass(frozen=True)
@@ -109,26 +109,64 @@ class WorldMode:
 #: "Your progress is measured" is stated because it is true -- A4 measures
 #: it -- and an agent told to build a factory, told nothing about what is
 #: observed, will reasonably assume nothing is.
+#:
+#: Rewritten at 0.4.0 against two measured runs
+#: (`docs/HANDOFF-OBJECTIVE-AMBITION-2026-09-11.md`). The previous text had
+#: three defects, all of which the runs exercised: it listed hand-gathering and
+#: hand-crafting *first* among what is measured, contradicting its own bullet
+#: calling them bootstrap rather than production; it made research conditional
+#: on "as resources and time allow", which run 7 exercised verbatim as its plan
+#: "Practical maximum without stone"; and "expand production that is useful to
+#: you" was circular, with no terminal goal to make "useful" refer to anything.
+#:
+#: The measurement sentence now names handwork as *explanatory* rather than
+#: scored, which is what it actually is: A4.2 publishes the three production
+#: sources separately so a reader can check the subtraction, and describing that
+#: instrument to the agent as a scoreboard was a category error in the prompt.
+#:
+#: It names a direction -- science and research -- where the old text left the
+#: goal open. That is a deliberate narrowing, and it is still within A3.1: a
+#: direction is not a coordinate, a machine ordering, a build sequence or a
+#: success threshold, and the last paragraph hands all of those back.
 OPEN_FACTORY_OBJECTIVE = """\
 YOUR OBJECTIVE
-Build a productive factory from the items you start with.
 
-  - Automate gathering and processing rather than doing them by hand.
-    Handcrafting and hand-mining are how you bootstrap, not how you
-    produce.
-  - Expand production that is useful to you: more of what you are short
-    of, and the machines that make it.
-  - As resources and time allow, work toward electricity, assembly and
-    research.
+Build and expand a factory toward automated science production and research.
 
-Your progress is measured -- what you gather, craft, place and research,
-and what your machines produce without your help. There is no target
-number and no hidden win condition. Keep working until the controller
-stops the run; it will not stop because you did something wrong.
+Progress means two things:
+- Your production chains operate with less manual intervention.
+- Your factory gains the ability to produce more advanced items and
+  complete new research.
 
-How to build is yours to decide. Nothing here tells you where to put a
-machine or in what order to build, because nobody has decided that for
-you."""
+Use hand-mining, handcrafting, and manual transfers to bootstrap,
+construct, and recover. Work toward having machines handle recurring
+production and transport.
+
+Give production a purpose. Use the technology tree and recipe
+requirements to choose a capability to develop, then build the supply
+chain it needs. Accumulating materials is useful when they support
+that plan.
+
+Check that what you build actually works. A placed machine is not
+necessarily productive, and a productive machine is not necessarily
+connected to its consumer. Use observed inputs, outputs, operating
+status, and item movement to verify the chain.
+
+Maintain a short plan with your current goal and the obstacle
+preventing it. Revise it when observations contradict your assumptions.
+If an approach is blocked, investigate the cause or pursue another way
+to advance.
+
+Balance maintaining existing production with expanding capabilities.
+Use the remaining time to choose achievable improvements; avoid
+spending the rest of the run servicing a loop that could be automated.
+
+Your progress is measured, including automated production, functioning
+supply chains, and research. Handwork is recorded separately to explain
+how the factory was built and maintained.
+
+Choose your own layout, production priorities, and construction
+sequence. Keep working until the controller stops the run."""
 
 
 OPEN_FACTORY = WorldMode(

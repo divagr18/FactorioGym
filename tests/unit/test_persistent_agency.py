@@ -68,7 +68,12 @@ def test_the_open_world_states_an_objective_and_a_benchmark_task_does_not():
     assert objective_block(StubEnv()) == ""
 
     objective = worlds.get("open_factory").objective
-    assert "Build a productive factory" in objective
+    assert "Build and expand a factory" in objective
+    # The direction the 0.4.0 rewrite names, where the old text left the goal
+    # open. Pinned because it is the substantive change: an objective that stops
+    # naming it has quietly gone back to "expand production that is useful to
+    # you", which two runs showed resolves to "keep the current loop running".
+    assert "research" in objective.lower()
     assert "progress is measured" in objective.lower()
     assert "until the controller" in objective
 
