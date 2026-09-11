@@ -363,15 +363,28 @@ H.craft = function(_, request, payload, respond, err)
       err(ERR.TECH_LOCKED, payload.recipe .. " is not unlocked for this force"))
   end
   local craftable = ch.get_craftable_count(payload.recipe)
-  if craftable < payload.count then
+  if craftable <= 0 then
     return respond(request, CODE.REJECTED, nil,
       err(ERR.NO_ITEMS, "not enough ingredients",
         { requested = payload.count, craftable = craftable }))
   end
+  -- Craft what can be crafted, up to what was asked for.
+  --
+  -- The same pairing that broke `transfer`, left in place here: `count` is
+  -- drawn from 1, 5 and 20, and the true affordable number is almost never one
+  -- of those. Measured on a live run holding enough copper for fifteen cables:
+  -- the agent could say 5 and waste two thirds of a decision, or say 20 and be
+  -- refused. It said 20 five times and 5 three times, and eight of its
+  -- thirty-eight decisions bought nothing at all.
+  --
+  -- The engine was already doing this. `begin_crafting` returns how many it
+  -- actually started and the response below reports `started`, so the only
+  -- thing turning a partial craft into a refusal was the check above.
+  local wanted = math.min(payload.count, craftable)
   local product = prototypes.recipe[payload.recipe].products[1]
   local inv = ch.get_inventory(defines.inventory.character_main)
   local baseline = product and inv and inv.get_item_count(product.name) or 0
-  local started = ch.begin_crafting({ recipe = payload.recipe, count = payload.count })
+  local started = ch.begin_crafting({ recipe = payload.recipe, count = wanted })
   if not started or started == 0 then
     return respond(request, CODE.REJECTED, nil,
       err(ERR.PRECONDITION, "the engine refused to start crafting"))
@@ -386,6 +399,12 @@ H.craft = function(_, request, payload, respond, err)
     action = "craft",
     recipe = payload.recipe,
     started = started,
+    -- Published only when the craft was smaller than the ask, so "I asked for
+    -- twenty and got fifteen" is a fact in the outcome rather than something
+    -- the agent has to infer from its inventory two decisions later. Same
+    -- contract as `transfer`.
+    requested = started ~= payload.count and payload.count or nil,
+    craftable = started ~= payload.count and craftable or nil,
     energy = prototypes.recipe[payload.recipe].energy,
   })
 end
