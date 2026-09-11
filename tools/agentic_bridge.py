@@ -24,6 +24,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--token-env", required=True)
     parser.add_argument("--seed", type=int, default=20260911)
+    parser.add_argument(
+        "--game-speed",
+        type=float,
+        default=None,
+        help="explicit Factorio pacing speed recorded by the worker environment",
+    )
     return parser.parse_args()
 
 
@@ -51,6 +57,10 @@ def build_bridge(task_id: str, split: str, seed: int) -> tuple[FactorioBridge, o
 
 def main() -> int:
     args = parse_args()
+    if args.game_speed is not None:
+        if args.game_speed <= 0:
+            raise SystemExit("--game-speed must be positive")
+        os.environ["FACTORIO_RL_GAME_SPEED"] = str(args.game_speed)
     token = os.environ.get(args.token_env)
     if not token:
         raise SystemExit(f"required token environment variable is unset: {args.token_env}")
@@ -73,7 +83,10 @@ def main() -> int:
             if not self._authorized():
                 self._reply(HTTPStatus.UNAUTHORIZED, {"error": "unauthorized"})
             elif self.path == "/v1/health":
-                self._reply(HTTPStatus.OK, {"ok": True, "task": args.task})
+                self._reply(
+                    HTTPStatus.OK,
+                    {"ok": True, "task": args.task, "game_speed": args.game_speed},
+                )
             elif self.path == "/v1/observe":
                 with request_lock:
                     self._reply(HTTPStatus.OK, bridge.observe())
@@ -105,7 +118,12 @@ def main() -> int:
             return
 
     server = ThreadingHTTPServer((args.host, args.port), Handler)
-    print(json.dumps({"host": args.host, "port": args.port, "task": args.task}), flush=True)
+    print(
+        json.dumps(
+            {"host": args.host, "port": args.port, "task": args.task, "game_speed": args.game_speed}
+        ),
+        flush=True,
+    )
     try:
         server.serve_forever()
     finally:
