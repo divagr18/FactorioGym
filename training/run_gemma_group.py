@@ -19,7 +19,8 @@ SYSTEM = """You control Factorio through one action per turn.
 Reply with only a JSON object: {"index": integer, "arguments": object}.
 Choose an action only from LEGAL_ACTIONS. Supply every declared argument and no
 others. For handles, items, recipes, positions, or directions, copy an exact
-value from ARGUMENT_DOMAINS; never invent an identifier. If the action needed
+value from ARGUMENT_DOMAINS. For a `handle` argument, copy only a `handle` from
+HANDLE_OPTIONS, never its `name`; never invent an identifier. If the action needed
 for a goal is not legal, choose a legal movement or wait action instead. Do not
 use Markdown fences or explain your choice."""
 
@@ -31,10 +32,26 @@ def policy_view(state: dict) -> dict:
         for action, legal in zip(state["catalog"], state["action_mask"], strict=True)
         if legal
     ]
+    targets = {str(value) for value in state["argument_domains"].get("targets", [])}
+    options = []
+    for section in ("entities", "resources", "tiles", "machines"):
+        for record in state["observation"].get(section, []):
+            if not isinstance(record, dict):
+                continue
+            handle = record.get("h") or record.get("handle")
+            if handle is not None and str(handle) in targets:
+                options.append(
+                    {
+                        "handle": str(handle),
+                        "name": record.get("name") or record.get("type"),
+                        "position": record.get("position") or record.get("pos"),
+                    }
+                )
     return {
         "OBSERVATION": state["observation"],
         "LEGAL_ACTIONS": legal_actions,
         "ARGUMENT_DOMAINS": state["argument_domains"],
+        "HANDLE_OPTIONS": options,
     }
 
 
