@@ -125,3 +125,40 @@ class TestTheConsoleRecord:
         narrator = Narrator(None, console=False, overlay=False)
         narrator.decision(_Decision(reason="silent"))
         assert capsys.readouterr().out == ""
+
+
+class TestTheTwoWaitsAreNotDescribedAsTheSameThing:
+    """`wait` and `wait_for` both dispatch to the mod's `wait`, and both were
+    described as "do nothing this decision interval".
+
+    They differ by a factor of sixty. `wait` buys one decision interval -- 30
+    ticks, half a second -- and `wait_for` blocks on a stated condition for up
+    to thirty seconds. With identical descriptions the only visible difference
+    was that one needed arguments and the other did not, and a live run spent
+    **71 of its 135 decisions** on the cheap one: about 35 seconds of game time
+    bought with 71 model calls, while `wait_for` sat legal in the same list.
+    """
+
+    def _described(self) -> dict[str, str]:
+        from factoriorl import catalog as catalog_module
+        from factoriorl.agent.summary import describe_template
+
+        return {
+            t.key: describe_template(t)
+            for t in catalog_module.resolve("open-v1").templates
+            if t.key in ("wait", "wait_for")
+        }
+
+    def test_they_do_not_share_a_description(self):
+        described = self._described()
+        assert described["wait"] != described["wait_for"]
+
+    def test_each_names_what_it_actually_buys(self):
+        described = self._described()
+        assert "half a second" in described["wait"]
+        assert "30 seconds" in described["wait_for"]
+
+    def test_the_cheap_one_points_at_the_useful_one(self):
+        """The bare wait cannot be removed -- it is the guaranteed legal no-op
+        every mask leaves available -- so the description has to do the work."""
+        assert "wait_for" in self._described()["wait"]

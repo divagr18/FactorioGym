@@ -33,7 +33,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from factoriorl.catalog import ARGUMENT_PREFIX
+from factoriorl.catalog import ARGUMENT_PREFIX, WAIT_FOR
 
 #: Bumped when what the language-model client is *shown* changes, even if the
 #: prompt text does not. `model.system_prompt_digest` pins the prompt and not
@@ -128,6 +128,10 @@ def describe_template(template: Any) -> str:
     """
     payload = dict(getattr(template, "payload", {}) or {})
     action = getattr(template, "action", "")
+    # Needed because two catalog keys share one mod action. `wait` and
+    # `wait_for` both dispatch to the mod's `wait`, and they differ by a factor
+    # of sixty in what they buy.
+    key = getattr(template, "key", "")
 
     def reference(value: Any) -> str:
         if isinstance(value, str) and value.startswith(ARGUMENT_PREFIX):
@@ -213,7 +217,26 @@ def describe_template(template: Any) -> str:
             "shown next to that machine afterwards, so turn, look, turn again"
         )
     if action == "wait":
-        return "do nothing this decision interval"
+        # Two verbs ride on the mod's `wait` and they are not remotely
+        # equivalent: `wait` buys one decision interval -- 30 ticks, half a
+        # second -- and `wait_for` blocks on a stated condition for up to
+        # thirty. Both were described with this same sentence, so the only
+        # visible difference was that one needed arguments and the other did
+        # not, and a run spent 71 of its 135 decisions on the cheap one. That is
+        # roughly 35 seconds of game time bought with 71 model calls.
+        if key == WAIT_FOR:
+            return (
+                "wait until something happens, or until the seconds you name run "
+                "out -- WHICHEVER COMES FIRST. This is the one to use: it buys up "
+                "to 30 seconds, against the bare `wait` below which buys half a "
+                "second. A stone furnace takes 3.2 seconds per plate, so waiting "
+                "the other way costs six decisions and six model calls per plate"
+            )
+        return (
+            "do nothing for half a second of game time. This is the smallest "
+            "possible step and is almost never what you want -- it is here so a "
+            "legal action always exists. To let a machine work, use wait_for"
+        )
     # A catalog entry this function has never seen still gets a description,
     # because falling back to nothing would silently hide a new action from
     # every model agent until someone remembered to edit this file.
