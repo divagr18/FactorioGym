@@ -22,6 +22,7 @@ from typing import Any
 from factoriorl import assistance as assistance_module
 from factoriorl.agent.adapters import ModelAdapter
 from factoriorl.agent.loop import AgentConfig, AgentLoop
+from factoriorl.agent.narrate import Narrator
 from factoriorl.agent.sampler import Sampler
 from factoriorl.engine_config import resolve_game_speed
 
@@ -253,6 +254,8 @@ def run_world(
     launch_client: bool = False,
     client_warmup: float = 30.0,
     hold_open: float = 0.0,
+    narrate: bool = True,
+    overlay: bool = True,
 ) -> dict[str, Any]:
     """Play an open generated world -- `factoriorl.worlds` -- rather than a task.
 
@@ -354,11 +357,19 @@ def run_world(
             knowledge_error = f"{type(failure).__name__}: {failure}"
         rendered_knowledge = knowledge_module.render(knowledge) if knowledge else ""
 
+        # Built before the loop so the first decision is narrated too, and
+        # given the session rather than the env: the overlay is drawn with
+        # `rendering`, which the sensor cannot see, so nothing here reaches the
+        # agent's observation. See `factoriorl.agent.narrate`.
+        narrator = (
+            Narrator(session, console=narrate, overlay=overlay) if (narrate or overlay) else None
+        )
         loop = AgentLoop(
             env,
             adapter,
             config,
             run_id=run_id,
+            narrator=narrator,
             static_knowledge=rendered_knowledge,
             provenance={
                 "engine": handle.engine.to_dict(),

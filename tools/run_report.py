@@ -161,6 +161,18 @@ def stated_plans(decisions: list[dict]) -> list[dict]:
     return seen
 
 
+def _finalization_seconds(result: dict) -> float | None:
+    """How long finalization took, summed over its steps.
+
+    `finalization` records a list of steps, each with its own `seconds`, and
+    never a total -- so reading `finalization["seconds"]` was always `None`.
+    """
+    steps = (result.get("finalization") or {}).get("steps") or []
+    seconds = [s.get("seconds") for s in steps if isinstance(s, dict)]
+    measured = [float(v) for v in seconds if isinstance(v, int | float)]
+    return round(sum(measured), 3) if measured else None
+
+
 def first_machine_output(samples: list[dict]) -> int | None:
     """The tick of the first sample showing any machine-made item."""
     for sample in samples:
@@ -179,7 +191,12 @@ def render(run_dir: Path) -> str:
     saves = sorted(p.name for p in (run_dir / "saves").glob("*.zip"))
 
     limits = result.get("limits") or {}
-    spend = limits.get("spend") or {}
+    # `budget`, not `spend`. The key was wrong from the day this was written, so
+    # `spend` was always `{}` and every report ever generated showed the cost of
+    # the run as `None` -- eleventh instance in this repository of a field that
+    # is declared and never read, and the first one that hid a number the run
+    # printed to the console on its way out.
+    spend = limits.get("budget") or {}
     clock = limits.get("clock") or {}
     episodes = result.get("episodes") or []
     production = (episodes[0].get("production") if episodes else {}) or {}
@@ -241,8 +258,7 @@ def render(run_dir: Path) -> str:
         "",
         f"- gameplay {_or_unrecorded(clock.get('elapsed_seconds'), 's')} of a "
         f"{_or_unrecorded(clock.get('limit_seconds'), 's')} limit",
-        f"- finalization {_or_unrecorded((result.get('finalization') or {}).get('seconds'), 's')}"
-        ", outside gameplay",
+        f"- finalization {_or_unrecorded(_finalization_seconds(result), 's')}, outside gameplay",
         f"- simulated ticks {_or_unrecorded(summary.get('simulated_ticks'))}"
         + (f" (last production sample at tick {last_sample.get('tick')})" if last_sample else ""),
         f"- spend {_or_unrecorded(spend.get('committed_usd'))} of a "

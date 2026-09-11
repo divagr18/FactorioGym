@@ -502,10 +502,17 @@ class AgentLoop:
         run_dir: Path | None = None,
         provenance: dict | None = None,
         static_knowledge: str = "",
+        narrator: Any = None,
     ) -> None:
         self.env = env
         self.adapter = adapter
         self.config = config
+        #: Says what the agent just did, to the console and to the game window.
+        #: An attribute rather than a parameter on `run`/`run_episode`/
+        #: `run_segment`, because it is not evaluator work interleaved with
+        #: gameplay -- that is what `on_decision` is, and conflating the two
+        #: would put checkpointing and subtitles on the same hook.
+        self.narrator = narrator
         self.run_id = run_id or manifest_module.new_run_id(config.run_prefix)
         self.run_dir = run_dir or (manifest_module.runs_dir() / self.run_id)
         # Engine, worker and seed provenance the caller holds and the loop does
@@ -1199,6 +1206,10 @@ class AgentLoop:
             self.decisions.append(decision)
             self._append_decision(decision)
             self._append_tool_events(decision)
+            if self.narrator is not None:
+                # After the artifacts, so anything narrated is already on disk:
+                # if a narrator ever throws, the record survives it.
+                self.narrator.decision(decision)
 
             if not executed:
                 # `steps` did not move, so the `while` would spin. Unreachable

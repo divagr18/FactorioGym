@@ -615,6 +615,8 @@ def cmd_agent(args) -> int:
             launch_client=args.launch_client,
             client_warmup=args.client_warmup,
             hold_open=args.hold_open,
+            narrate=not args.quiet,
+            overlay=not args.no_overlay,
             **shared,
         )
     elif args.launch_client:
@@ -1366,6 +1368,22 @@ def main(argv: list[str] | None = None) -> int:
         type=float,
         default=1800.0,
         help="measured from the first gameplay observation, so engine launch does not consume it",
+    )
+    agent_cmd.add_argument(
+        "--quiet",
+        action="store_true",
+        help="do not print each decision as it happens. A run prints what it "
+        "chose, why, and what the world said back, so a thirty-minute run is "
+        "watchable while it runs rather than only afterwards in decisions.jsonl",
+    )
+    agent_cmd.add_argument(
+        "--no-overlay",
+        action="store_true",
+        help="do not draw the agent's reason and current plan in the game "
+        "window. The overlay is a `rendering` object anchored to the character, "
+        "so it is invisible to the agent -- the sensor sweeps entities and "
+        "resources, and a render object is neither -- but it costs one RCON "
+        "round trip per decision, which is worth knowing in a realtime run",
     )
     agent_cmd.add_argument(
         "--launch-client",

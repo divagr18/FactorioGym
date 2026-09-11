@@ -93,3 +93,51 @@ class TestFirstMachineOutput:
     def test_a_run_that_produced_nothing_reports_nothing_rather_than_zero(self):
         assert run_report.first_machine_output([{"tick": 100, "machine_produced": {}}]) is None
         assert run_report.first_machine_output([]) is None
+
+
+class TestTheCostOfTheRunIsActuallyRead:
+    """`result.json` records spend under `limits.budget`. The report read
+    `limits.spend`, which has never existed -- so every report ever generated
+    showed the cost of the run as `None`, including runs that printed their own
+    spend to the console on the way out.
+
+    Eleventh instance in this repository of a field that is declared and never
+    read, and the only one so far that hid a number the run had already
+    computed and displayed.
+    """
+
+    def _limits(self) -> dict:
+        return {
+            "budget": {
+                "cap_usd": 2.0,
+                "committed_usd": 0.650478,
+                "calls": 116,
+                "cache_hit_rate": 0.982,
+            },
+            "clock": {"limit_seconds": 1800.0, "elapsed_seconds": 1801.946},
+        }
+
+    def test_spend_is_read_from_the_key_that_exists(self):
+        spend = self._limits().get("budget") or {}
+        assert spend.get("committed_usd") == 0.650478
+        assert (self._limits().get("spend") or {}) == {}, (
+            "the key the report used to read is still absent; this is the bug"
+        )
+
+    def test_finalization_is_summed_from_its_steps(self):
+        """`finalization` carries a list of steps each with their own seconds
+        and no total, so reading `finalization['seconds']` was always None."""
+        result = {
+            "finalization": {
+                "steps": [
+                    {"step": "pause", "seconds": 0.4},
+                    {"step": "save", "seconds": 1.0},
+                    {"step": "stop"},
+                ]
+            }
+        }
+        assert run_report._finalization_seconds(result) == 1.4
+
+    def test_a_run_with_no_finalization_steps_says_unrecorded(self):
+        assert run_report._finalization_seconds({}) is None
+        assert run_report._finalization_seconds({"finalization": {"steps": []}}) is None
