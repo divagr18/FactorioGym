@@ -13,6 +13,7 @@ class _Client:
     def reset(self, seed):
         return {
             "task_id": "construct_smelting_line",
+            "scene": {"blueprint": "same", "episode_index": seed, "task_version": "v1"},
             "observation": {"seed": seed},
             "catalog": [],
             "argument_domains": {},

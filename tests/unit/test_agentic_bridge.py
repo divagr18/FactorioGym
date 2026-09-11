@@ -28,6 +28,7 @@ class _Env:
 
     def reset(self, seed=None, options=None):
         self.calls.append(("reset", seed, options))
+        return None, {"blueprint": "same-scene", "episode_index": seed, "task_version": "v1"}
 
     def action_masks(self):
         return np.array([True, True])
@@ -49,6 +50,7 @@ def test_observation_contract_does_not_leak_truth():
     state = bridge.reset(7)
     assert bridge.env.calls[0] == ("reset", 7, {"scene_index": 7})
     assert state["task_id"] == "construct_smelting_line"
+    assert state["scene"]["blueprint"] == "same-scene"
     assert state["observation"] == {"tick": 0, "inventory": {"coal": 4}}
     assert "truth" not in state
     assert "machine_produced" not in repr(state)

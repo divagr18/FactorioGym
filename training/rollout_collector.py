@@ -29,12 +29,12 @@ class Sample:
 
 
 def public_scene_hash(state: dict[str, Any]) -> str:
-    """Hash exactly the learner-visible reset state; evaluator truth cannot enter it."""
-    public = {
-        key: state[key]
-        for key in ("task_id", "observation", "catalog", "argument_domains", "action_mask")
-    }
-    payload = json.dumps(public, sort_keys=True, separators=(",", ":"))
+    """Hash the installed scene identity, excluding reset-volatile entity handles."""
+    payload = json.dumps(
+        {"task_id": state["task_id"], "scene": state["scene"]},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
     return hashlib.sha256(payload.encode()).hexdigest()
 
 

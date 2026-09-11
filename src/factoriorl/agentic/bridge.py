@@ -24,6 +24,7 @@ class FactorioBridge:
     env: Any
     task_id: str
     _ended: bool = False
+    _scene: dict | None = None
 
     def _catalog(self) -> list[dict]:
         return [
@@ -34,6 +35,7 @@ class FactorioBridge:
     def _state(self) -> dict:
         return {
             "task_id": self.task_id,
+            "scene": self._scene,
             "observation": self.env._observation,
             "catalog": self._catalog(),
             "argument_domains": self.env.argument_domains(),
@@ -46,7 +48,12 @@ class FactorioBridge:
         # bridge seed therefore names a stable Factorio scene index as well as
         # seeding Gym; ordinary environment users retain sequential resets.
         options = None if seed is None else {"scene_index": seed}
-        self.env.reset(seed=seed, options=options)
+        _observation, info = self.env.reset(seed=seed, options=options)
+        self._scene = {
+            "blueprint": info["blueprint"],
+            "episode_index": info["episode_index"],
+            "task_version": info["task_version"],
+        }
         self._ended = False
         return self._state()
 
