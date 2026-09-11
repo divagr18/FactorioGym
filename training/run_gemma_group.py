@@ -122,6 +122,7 @@ def main() -> None:
     parser.add_argument("--token", default=os.environ.get("FACTORIORL_BRIDGE_TOKEN"))
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--seed", type=int, default=20260911)
+    parser.add_argument("--max-turns", type=int, default=4)
     parser.add_argument("--model", default="unsloth/gemma-4-E2B-it-unsloth-bnb-4bit")
     args = parser.parse_args()
     if not args.base_url or not args.token:
@@ -135,7 +136,7 @@ def main() -> None:
     )
     digests = SequentialGroupCollector(
         BridgeClient(args.base_url, args.token, timeout_seconds=120), writer, sampler
-    ).collect_group(seed=args.seed)
+    ).collect_group(seed=args.seed, max_turns=args.max_turns)
     print(json.dumps({"episodes": len(digests), "output": str(args.output)}))
 
 
