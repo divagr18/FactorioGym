@@ -151,6 +151,15 @@ def validate_all(sample_seeds: int = 16) -> dict:
             problems.append(f"expected exactly one sparse_success reward, found {len(sparse)}")
         if spec.max_decision_steps <= 0 or spec.max_game_ticks <= 0:
             problems.append("budgets must be positive, or truncation is undefined")
+        if spec.verification:
+            verification = spec.verification
+            if verification.target <= 0 or verification.ticks <= 0:
+                problems.append("verification target and ticks must be positive")
+            if verification.ticks >= spec.max_game_ticks:
+                problems.append(
+                    "verification ticks must leave a positive construction budget "
+                    "inside max_game_ticks"
+                )
         if spec.decision_ticks <= 0 or spec.decision_ticks > MAX_ADVANCE_TICKS:
             problems.append(
                 f"decision_ticks must be in [1, {MAX_ADVANCE_TICKS}], got "

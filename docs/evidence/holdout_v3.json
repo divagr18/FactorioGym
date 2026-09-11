@@ -1,5 +1,5 @@
 {
-  "content_hash": "432c2c4d0ecbc5a98cd53aab2e16dfc7e4765c76729701ebbd71b6aa6835737b",
+  "content_hash": "47d294e61b5c261b764e86eb91d51556d91d71b475dfdde29cb39ba72e633dfe",
   "holdout": {
     "schema": "factoriorl.holdout/1",
     "holdout_id": "holdout_v3",
@@ -520,6 +520,515 @@
             "episode_index": 3099,
             "layout_family": "narrow_patch",
             "blueprint_digest": "e24e9ffca0507661"
+          }
+        ]
+      },
+      "construct_smelting_line": {
+        "task_id": "construct_smelting_line",
+        "task_version": "1.0.0",
+        "families_in_split": [
+          "obstructed_patch"
+        ],
+        "episodes": [
+          {
+            "episode_index": 3000,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "c533872af90370fc"
+          },
+          {
+            "episode_index": 3001,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "2cee9e3ef9a3728a"
+          },
+          {
+            "episode_index": 3002,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "a188193a933b3e78"
+          },
+          {
+            "episode_index": 3003,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "c6081e67b3cb4621"
+          },
+          {
+            "episode_index": 3004,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "5adf298f0f7e9359"
+          },
+          {
+            "episode_index": 3005,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "00fa5c3a79ab40ca"
+          },
+          {
+            "episode_index": 3006,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "c0939b32abb1c523"
+          },
+          {
+            "episode_index": 3007,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "51fc2d35b8ad442f"
+          },
+          {
+            "episode_index": 3008,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "4f590f7ee1147640"
+          },
+          {
+            "episode_index": 3009,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "ad600a4941bc6af0"
+          },
+          {
+            "episode_index": 3010,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "cabf21e1210ce797"
+          },
+          {
+            "episode_index": 3011,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "6eab179456762d47"
+          },
+          {
+            "episode_index": 3012,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "ecb60934f5c6976f"
+          },
+          {
+            "episode_index": 3013,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "f09f45f7414e8d5a"
+          },
+          {
+            "episode_index": 3014,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "267cecba24b263dd"
+          },
+          {
+            "episode_index": 3015,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "f2686a050b4c5ff5"
+          },
+          {
+            "episode_index": 3016,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "c1f4344e0bb21713"
+          },
+          {
+            "episode_index": 3017,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "e56b4e75492248f1"
+          },
+          {
+            "episode_index": 3018,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "797b116a955240a8"
+          },
+          {
+            "episode_index": 3019,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "c54b841b45002003"
+          },
+          {
+            "episode_index": 3020,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "c4269bdfa1386c36"
+          },
+          {
+            "episode_index": 3021,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "364f36f5f2366d6b"
+          },
+          {
+            "episode_index": 3022,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "10cb2070a1ffd0d1"
+          },
+          {
+            "episode_index": 3023,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "67aa036c5e7dba0d"
+          },
+          {
+            "episode_index": 3024,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "26f98e358ac9749c"
+          },
+          {
+            "episode_index": 3025,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "8d7d52be472a14fc"
+          },
+          {
+            "episode_index": 3026,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "4e47011ce8f94beb"
+          },
+          {
+            "episode_index": 3027,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "1c4b621f475bc75f"
+          },
+          {
+            "episode_index": 3028,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "c0fb93a3eb095b46"
+          },
+          {
+            "episode_index": 3029,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "d6b010577ee1e4f5"
+          },
+          {
+            "episode_index": 3030,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "66cfea562df2d6b4"
+          },
+          {
+            "episode_index": 3031,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "2c37a0e9866111fe"
+          },
+          {
+            "episode_index": 3032,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "b967d8819c385881"
+          },
+          {
+            "episode_index": 3033,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "c8cc77fd85b7d50b"
+          },
+          {
+            "episode_index": 3034,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "30a63d03e7831628"
+          },
+          {
+            "episode_index": 3035,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "6a1a758bfbe18355"
+          },
+          {
+            "episode_index": 3036,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "fe681faabe9d4ee4"
+          },
+          {
+            "episode_index": 3037,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "0b8445227458935e"
+          },
+          {
+            "episode_index": 3038,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "5c21d71ff54c2394"
+          },
+          {
+            "episode_index": 3039,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "becc84ae96fc5f38"
+          },
+          {
+            "episode_index": 3040,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "05ed1ddafb5fc755"
+          },
+          {
+            "episode_index": 3041,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "f17dae8a38e3633a"
+          },
+          {
+            "episode_index": 3042,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "7b53d70f33d23b6e"
+          },
+          {
+            "episode_index": 3043,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "d7807d36e32c4c0d"
+          },
+          {
+            "episode_index": 3044,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "f99da560f7517947"
+          },
+          {
+            "episode_index": 3045,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "00a29dbb7048447a"
+          },
+          {
+            "episode_index": 3046,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "4dd6ecb0a6e2413f"
+          },
+          {
+            "episode_index": 3047,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "1d5b80d8c81e4d8a"
+          },
+          {
+            "episode_index": 3048,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "523a9a57ba464bd8"
+          },
+          {
+            "episode_index": 3049,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "fa6c57b5dc67b384"
+          },
+          {
+            "episode_index": 3050,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "8ff6345aa512050e"
+          },
+          {
+            "episode_index": 3051,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "b1ba30b38a37c222"
+          },
+          {
+            "episode_index": 3052,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "c2d3627bccd22d16"
+          },
+          {
+            "episode_index": 3053,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "da26fadf2cb8ca21"
+          },
+          {
+            "episode_index": 3054,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "fa105cb4789d2f82"
+          },
+          {
+            "episode_index": 3055,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "91bdf8bb61c74b09"
+          },
+          {
+            "episode_index": 3056,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "a612ac35036af52f"
+          },
+          {
+            "episode_index": 3057,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "4f58c903e9da8191"
+          },
+          {
+            "episode_index": 3058,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "e69995be05814cea"
+          },
+          {
+            "episode_index": 3059,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "64b63c39eb180682"
+          },
+          {
+            "episode_index": 3060,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "faf50e9f218c5b29"
+          },
+          {
+            "episode_index": 3061,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "1971af0dbd1f6f54"
+          },
+          {
+            "episode_index": 3062,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "7db155bb7ce1d659"
+          },
+          {
+            "episode_index": 3063,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "7db192269d971eec"
+          },
+          {
+            "episode_index": 3064,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "06e38b912569b6c4"
+          },
+          {
+            "episode_index": 3065,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "8cabb6473a28d203"
+          },
+          {
+            "episode_index": 3066,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "6408b6b5c9917033"
+          },
+          {
+            "episode_index": 3067,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "65f27484c7c77adb"
+          },
+          {
+            "episode_index": 3068,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "4f5d8def318fdba3"
+          },
+          {
+            "episode_index": 3069,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "3758267665d63e8a"
+          },
+          {
+            "episode_index": 3070,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "2a775a70484d754c"
+          },
+          {
+            "episode_index": 3071,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "de40a64c925634cf"
+          },
+          {
+            "episode_index": 3072,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "fce137ed6cb5e95b"
+          },
+          {
+            "episode_index": 3073,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "24b730406095c486"
+          },
+          {
+            "episode_index": 3074,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "bbde375e396a817a"
+          },
+          {
+            "episode_index": 3075,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "3cde7998c0c7dcdc"
+          },
+          {
+            "episode_index": 3076,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "596d3216e71d6bb8"
+          },
+          {
+            "episode_index": 3077,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "b905f5faa6aede7f"
+          },
+          {
+            "episode_index": 3078,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "610033a485cc9652"
+          },
+          {
+            "episode_index": 3079,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "2d17d5b00f6a10a5"
+          },
+          {
+            "episode_index": 3080,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "704bc4492cfa5c37"
+          },
+          {
+            "episode_index": 3081,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "7b8143c11d6fad69"
+          },
+          {
+            "episode_index": 3082,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "132a4afe38efb4d8"
+          },
+          {
+            "episode_index": 3083,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "c258c3b8082862b6"
+          },
+          {
+            "episode_index": 3084,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "4d4c1bf4ba544318"
+          },
+          {
+            "episode_index": 3085,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "f4922125cb847a9b"
+          },
+          {
+            "episode_index": 3086,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "7c62a60bff0c58d5"
+          },
+          {
+            "episode_index": 3087,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "b6197cdf7ddaee21"
+          },
+          {
+            "episode_index": 3088,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "8701a0c1494be71c"
+          },
+          {
+            "episode_index": 3089,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "a13e5fa8d5792072"
+          },
+          {
+            "episode_index": 3090,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "3d1526cfd0443174"
+          },
+          {
+            "episode_index": 3091,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "ccec2aa07e11346d"
+          },
+          {
+            "episode_index": 3092,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "bdd5d704f53202be"
+          },
+          {
+            "episode_index": 3093,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "d9757742ccc1543c"
+          },
+          {
+            "episode_index": 3094,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "0aa3e730ccf94013"
+          },
+          {
+            "episode_index": 3095,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "2984425f69d09bc1"
+          },
+          {
+            "episode_index": 3096,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "f2502e12818498d8"
+          },
+          {
+            "episode_index": 3097,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "fb742ba68fa626e9"
+          },
+          {
+            "episode_index": 3098,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "8ce517dd5ebfa5ee"
+          },
+          {
+            "episode_index": 3099,
+            "layout_family": "obstructed_patch",
+            "blueprint_digest": "ae312cd041aa5117"
           }
         ]
       },
@@ -5106,8 +5615,8 @@
       }
     }
   },
-  "generated_at": "2026-09-09T07:20:04Z",
-  "git_commit": "bf0a870bbe63141863b32cfc2f8f5e158190e8f8",
+  "generated_at": "2026-09-11T18:12:27Z",
+  "git_commit": "eb6c61f4b7b420a5bea1ff05cd0896df3bb8e963",
   "declaration": {
     "candidate_families": [
       "deliver",
@@ -5134,6 +5643,17 @@
       "task_version": "1.1.0",
       "families_in_split": [
         "narrow_patch"
+      ],
+      "episodes": 100,
+      "distinct_scenes": 100,
+      "distinct_fraction": 1.0,
+      "below_min_distinct_scenes": false
+    },
+    "construct_smelting_line": {
+      "entry_hash": "c2294ca22fed1048",
+      "task_version": "1.0.0",
+      "families_in_split": [
+        "obstructed_patch"
       ],
       "episodes": 100,
       "distinct_scenes": 100,

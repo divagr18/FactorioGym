@@ -1,5 +1,7 @@
 # FactorioRL: strategy and phased implementation handoff
 
+> **Agentic-RL amendment — 2026-09-11:** Follow [the agentic-RL training handoff](docs/AGENTIC_RL_PLAN.md) for the next learning implementation: Gemma-first model-fit checks, verified construction tasks, teacher SFT, and GRPO. Teacher API configuration is deferred; independent local work can proceed. This sequence supersedes older development priorities, not historical acceptance criteria or results. Use the user-confirmed RTX 4060 PC; older hardware rows below describe a different machine.
+
 > **Development amendment — 2026-09-08:** Read [the development redirection handoff](docs/DEVELOPMENT_REDIRECTION.md) before executing this plan. Its R0–R6 work packages and acceptance gates govern the current development sequence. The amendment separates runtime readiness, reproducible learning, and benchmark mastery; it does not retrospectively accept old experiments or demonstrations. Historical thresholds remain recorded below. Current task versions and pending experiments must be reconciled from artifacts, not inferred from phase labels.
 
 ## 1. Project goal and locked decisions

@@ -372,6 +372,9 @@ class PredicateKind(StrEnum):
     #: the final window" from "30 plates, line dead since tick 4000" -- which is
     #: exactly the distinction a sustained-operation objective is made of.
     SUSTAINED_OUTPUT = "sustained_output"
+    #: Output measured by an evaluator-controlled, action-locked verification
+    #: window. It is absent until that window has finished.
+    VERIFIED_MACHINE_OUTPUT = "verified_machine_output"
 
 
 #: Items the mod counts in `truth["produced"]` unconditionally. Mirrors the
@@ -417,7 +420,7 @@ UNDECIDABLE_AT_RESET: frozenset = frozenset(
 #: The predicate kinds whose measurement comes from `truth["produced"]`. Kept
 #: beside the enum so a new production-shaped kind is added in one place.
 PRODUCTION_KINDS: frozenset[PredicateKind] = frozenset(
-    {PredicateKind.PRODUCED, PredicateKind.SUSTAINED_OUTPUT}
+    {PredicateKind.PRODUCED, PredicateKind.SUSTAINED_OUTPUT, PredicateKind.VERIFIED_MACHINE_OUTPUT}
 )
 
 
@@ -503,6 +506,8 @@ class Predicate:
             if self.not_before_tick and not self.settled(truth):
                 return False
             return self.window_output(truth) >= self.at_least
+        if self.kind is PredicateKind.VERIFIED_MACHINE_OUTPUT:
+            return float((truth.get("verification") or {}).get(self.item, 0)) >= self.at_least
         return False
 
     def window_elapsed(self, truth: dict) -> bool:
@@ -628,6 +633,23 @@ class RewardComponent:
     cap: float | None = None
 
 
+@dataclass(frozen=True)
+class VerificationSpec:
+    """An evaluator-controlled output measurement after the agent calls finish.
+
+    During the window no policy action is dispatched. The count is a delta of
+    ``truth[\"machine_produced\"]`` so hand crafting, transfers, and output from
+    before the window cannot satisfy it.
+    """
+
+    item: str
+    target: int
+    ticks: int
+
+    def to_dict(self) -> dict:
+        return {"item": self.item, "target": self.target, "ticks": self.ticks}
+
+
 # ---------------------------------------------------------------------- task
 
 
@@ -653,6 +675,9 @@ class TaskSpec:
     rewards: tuple[RewardComponent, ...]
     max_decision_steps: int = 600
     max_game_ticks: int = 36000
+    #: Optional action-locked evaluator window. Its ticks are reserved from
+    #: ``max_game_ticks``; policy actions stop at the earlier construction cap.
+    verification: VerificationSpec | None = None
     #: Discount for this family, for both the learner and the shaping. Declared
     #: per task because the useful horizon is `1/(1-gamma)` and it has to cover
     #: the episode: at 0.99 that is 100 steps, and a 300-step family shaping
@@ -900,6 +925,7 @@ class TaskSpec:
             "budgets": {
                 "max_decision_steps": self.max_decision_steps,
                 "max_game_ticks": self.max_game_ticks,
+                "verification": self.verification.to_dict() if self.verification else None,
             },
             # What the policy can *see* of the objective, and the marker the
             # goal vector's geometry points at. Both were absent from this

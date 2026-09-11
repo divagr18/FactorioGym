@@ -132,6 +132,9 @@ class FactorioEnv(gym.Env):
         self._observation: dict = {}
         self._truth: dict = {}
         self._family: LayoutFamily | None = None
+        #: Set only by ``finish`` / ``run_verification``. Keeping it evaluator
+        #: state means an ordinary policy action cannot forge a passing result.
+        self._verification: dict | None = None
 
     # ------------------------------------------------------------ helpers
 
@@ -769,6 +772,7 @@ class FactorioEnv(gym.Env):
         self._resyncs = []
         self._disrupted = set()
         self._disruptions_applied = []
+        self._verification = None
 
         digest = self.prepare_scene(self._episode_index)
         self.begin_episode(digest)
@@ -871,6 +875,58 @@ class FactorioEnv(gym.Env):
 
     def _succeeded(self) -> bool:
         return all(p.evaluate(self._observation, self._truth) for p in self.spec_.success)
+
+    @property
+    def construction_tick_limit(self) -> int:
+        """Last tick at which a policy action may run for this task."""
+        verification = self.spec_.verification
+        return self.spec_.max_game_ticks - (verification.ticks if verification else 0)
+
+    def run_verification(self) -> dict:
+        """Lock actions and measure machine output over the declared window.
+
+        This is the implementation behind the future agent-facing ``finish``
+        tool. It deliberately has no action payload: it sends only wait steps
+        through the normal session path, sampling each chunk so the evidence is
+        replayable. A second call is refused rather than measuring a convenient
+        later interval.
+        """
+        verification = self.spec_.verification
+        if verification is None:
+            raise TaskConfigError(f"{self.spec_.id} does not declare a verification window")
+        if self._verification is not None:
+            raise TaskConfigError(f"{self.spec_.id} verification has already run")
+        before = float((self._truth.get("machine_produced") or {}).get(verification.item, 0))
+        start_tick = int(self._observation.get("tick") or 0)
+        advanced = self.advance(verification.ticks)
+        after = float((self._truth.get("machine_produced") or {}).get(verification.item, 0))
+        produced = max(0.0, after - before)
+        self._verification = {
+            "item": verification.item,
+            "target": verification.target,
+            "ticks": verification.ticks,
+            "start_tick": start_tick,
+            "end_tick": int(self._observation.get("tick") or 0),
+            "ticks_advanced": advanced,
+            "machine_output": produced,
+            "success": produced >= verification.target,
+        }
+        self._truth = {
+            **self._truth,
+            "verification": {verification.item: produced},
+        }
+        succeeded = self._succeeded()
+        components = self.accountant.step(
+            self._observation, self._truth, succeeded, terminated=True
+        )
+        # This is the task's declared terminal reward, not dense shaping. The
+        # sparse component exists so generic task tooling can still name a
+        # terminal outcome; replace its binary value with the verifier's
+        # normalized machine-only score.
+        components["verified_output"] = min(produced / verification.target, 1.0)
+        self._verification["reward_components"] = components
+        self._verification["reward"] = RewardAccountant.total(components)
+        return dict(self._verification)
 
     def _failed(self) -> bool:
         return any(p.evaluate(self._observation, self._truth) for p in self.spec_.failure)
@@ -1065,7 +1121,7 @@ class FactorioEnv(gym.Env):
 
         truncated = (not terminated) and (
             self._steps >= self.spec_.max_decision_steps
-            or self._observation.get("tick", 0) >= self.spec_.max_game_ticks
+            or self._observation.get("tick", 0) >= self.construction_tick_limit
         )
         info: dict[str, Any] = {
             "reward_components": components,

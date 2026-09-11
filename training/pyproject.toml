@@ -1,0 +1,22 @@
+[project]
+name = "factoriorl-agentic-training"
+version = "0.0.1"
+description = "Isolated Linux-only runtime for FactorioRL language-model training."
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "accelerate>=1.12,<2",
+    "bitsandbytes>=0.46,<1",
+    "datasets>=4.5,<5",
+    "peft>=0.18,<1",
+    "safetensors>=0.6,<1",
+    "torch>=2.8,<2.11",
+    "transformers>=5.5,<5.7",
+    # The reference notebook force-installs TRL 0.28 with --no-deps.  The
+    # published Unsloth package currently declares a lower range. T0 follows
+    # the notebook's explicit tested override and records it in the report.
+    "trl>=0.28,<0.30",
+    "vllm==0.19.1; sys_platform == 'linux'",
+]
+
+[tool.uv]
+package = false

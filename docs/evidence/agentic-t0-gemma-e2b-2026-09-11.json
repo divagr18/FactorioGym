@@ -1,0 +1,46 @@
+{
+  "phase": "T0",
+  "model": "unsloth/gemma-4-E2B-it-unsloth-bnb-4bit",
+  "max_seq_length": 1024,
+  "max_new_tokens": 64,
+  "lora_rank": 8,
+  "load_in_4bit": true,
+  "text_only": true,
+  "force_single_gpu": true,
+  "vllm": {
+    "enabled": false,
+    "gpu_memory_utilization": 0.35,
+    "topology": "single-process shared with trainable model"
+  },
+  "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "started_at_unix": 1789147469.644443,
+  "passed": true,
+  "torch": "2.10.0+cu128",
+  "packages": {
+    "transformers": "5.6.2",
+    "trl": "0.29.1",
+    "vllm": "0.19.1",
+    "unsloth": "2026.9.4",
+    "unsloth-zoo": "2026.9.3"
+  },
+  "cuda_before": {
+    "available": true,
+    "device": "NVIDIA GeForce RTX 4060",
+    "total_gb": 8.59,
+    "allocated_gb": 0.01,
+    "reserved_gb": 0.02
+  },
+  "text_only_architecture_metadata_repaired": true,
+  "generated_tokens": 23,
+  "loss": 0.016214992851018906,
+  "gradient_l2_norm": 0.798182757552962,
+  "adapter": "/root/factoriorl-t0/runtime/agentic-t0/gemma-e2b-explicit-4bit-repaired/adapter",
+  "cuda_after": {
+    "available": true,
+    "device": "NVIDIA GeForce RTX 4060",
+    "total_gb": 8.59,
+    "allocated_gb": 7.46,
+    "reserved_gb": 7.76
+  },
+  "finished_at_unix": 1789147555.4767063
+}

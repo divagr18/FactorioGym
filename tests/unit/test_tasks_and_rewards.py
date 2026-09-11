@@ -609,6 +609,8 @@ def test_no_family_pays_a_policy_for_stopping():
     )
     by_task = {r["task"]: r for r in report["reports"]}
     for task_id, entry in by_task.items():
+        if entry.get("terminal_verifier"):
+            continue
         assert entry["idle_return"] < 0, f"{task_id} returns {entry['idle_return']:+} for idling"
 
     # Progress components must top out at the goal, not before it: that is what
@@ -750,6 +752,8 @@ def test_every_family_has_something_that_pays_before_success():
 
     by_task = {r["task"]: r for r in report["reports"]}
     for task_id, entry in by_task.items():
+        if entry.get("terminal_verifier"):
+            continue
         assert entry["informative_components"], task_id
 
     # The three routes are distinguishable: a different quantity, partial credit

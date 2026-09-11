@@ -166,18 +166,23 @@ def audit(task_id: str) -> dict:
 
     plateau = round(plateau, 4)
     informative = informative_components(spec)
+    # An action-locked verifier deliberately pays only after ``finish``. It is
+    # a terminal score for group-based agent rollouts, not an SB3-shaped task;
+    # requiring a pre-success reward here would silently change that contract.
+    terminal_verifier = spec.verification is not None
     return {
         "task": task_id,
         "informative_components": informative,
         # No component payable before success means no gradient at all, whatever
         # the training budget.
-        "has_gradient": bool(informative),
+        "has_gradient": bool(informative) or terminal_verifier,
+        "terminal_verifier": terminal_verifier,
         "version": spec.version,
         "budget": spec.max_decision_steps,
         "step_cost_weight": step_weight,
         "pressure": pressure,
         "plateau": plateau,
-        "idle_return": round(plateau - pressure, 4),
+        "idle_return": None if terminal_verifier else round(plateau - pressure, 4),
         "violates": plateau >= pressure and plateau > 0,
         "margin": round(plateau / pressure, 2) if pressure else None,
         "contributors": contributors,
@@ -192,10 +197,11 @@ def main() -> int:
 
     for report in reports:
         flag = "TRAP" if report["violates"] else "ok  "
+        idle = "action-locked" if report["terminal_verifier"] else f"{report['idle_return']:+.2f}"
         print(
             f"{flag} {report['task']:16s} plateau={report['plateau']:.2f} "
             f"pressure={report['pressure']:.2f} "
-            f"idle_return={report['idle_return']:+.2f} "
+            f"idle_return={idle} "
             f"budget={report['budget']}"
         )
         for entry in report["contributors"]:
