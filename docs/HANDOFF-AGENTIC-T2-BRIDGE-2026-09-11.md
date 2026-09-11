@@ -27,7 +27,12 @@ its WSL NAT traffic is firewall-blocked by default, so the probe used a temporar
 port-8765 rule restricted to the active WSL subnet and removed it during cleanup.
 The result is recorded in `docs/evidence/agentic-t2-bridge-2026-09-11.json`.
 
-The remaining T2 work is a rollout recorder that stores token ids, behaviour log
-probabilities, tool calls/results, policy version, and termination reason, then
-an actual WSL client reset/act/finish rollout. Do not claim throughput or
+`training/rollout_artifacts.py` now provides the append-only JSONL artifact
+format. It rejects an episode unless every model completion has aligned token
+IDs and behavior log probabilities, the policy and scene identities are pinned,
+and the terminal reason is explicit. Each record carries a SHA-256 of its
+canonical episode payload. The focused writer/bridge/task tests pass (10 tests).
+
+The remaining T2 work is to connect the WSL generation loop to that writer and
+run a client-driven reset/act/finish rollout. Do not claim throughput or
 multi-turn GRPO compatibility until that end-to-end rollout probe has run.
