@@ -7,7 +7,7 @@ import json
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from bridge_client import BridgeClient
+from bridge_client import BridgeClient, BridgeError
 from rollout_artifacts import Episode, RolloutArtifactError, RolloutStep, RolloutWriter
 
 
@@ -60,7 +60,22 @@ class SequentialGroupCollector:
             reason = "turn_limit"
             for turn in range(max_turns):
                 sample = self.sampler.sample(state)
-                outcome = self.client.act(sample.action_index, sample.arguments)
+                try:
+                    outcome = self.client.act(sample.action_index, sample.arguments)
+                except BridgeError as exc:
+                    steps.append(
+                        RolloutStep(
+                            turn,
+                            sample.prompt_token_ids,
+                            sample.completion_token_ids,
+                            sample.behavior_logprobs,
+                            {"index": sample.action_index, "arguments": sample.arguments},
+                            {"bridge_error": str(exc)},
+                            0.0,
+                        )
+                    )
+                    terminated, truncated, reason = False, True, "invalid_tool_call"
+                    break
                 transition = outcome["transition"]
                 steps.append(
                     RolloutStep(

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 
 import torch
@@ -65,7 +66,8 @@ class GemmaSampler:
             ]
         text = self.tokenizer.decode(completion, skip_special_tokens=True).strip()
         try:
-            action = json.loads(text)
+            match = re.search(r"\{.*\}", text, flags=re.DOTALL)
+            action = json.loads(match.group(0) if match else text)
             index, arguments = action["index"], action["arguments"]
         except (json.JSONDecodeError, KeyError, TypeError) as exc:
             raise RuntimeError(f"model emitted invalid action: {text[:240]!r}") from exc
