@@ -62,6 +62,14 @@ def _lines(path: Path) -> list[dict]:
     return out
 
 
+def _relative(path: Path) -> str:
+    """A repository-relative path, or the bare directory name if it is outside."""
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.name
+
+
 def _load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
@@ -110,6 +118,57 @@ def first_consequential_failure(decisions: list[dict]) -> dict | None:
     return entry
 
 
+#: What a field says when the run never wrote the file that holds it.
+#:
+#: `None` was what it said before, and rendered as prose it produced lines like
+#: "gameplay Nones of a Nones limit" and "spend $None of a $None cap" -- which
+#: read as a measurement rather than as its absence. Marking absence matters
+#: more here than anywhere else in the repo: this document is the one a person
+#: reads to decide what the run showed.
+#:
+#: Short, because the banner at the top of an interrupted report already
+#: explains why these are missing; spelling the reason out again in each of the
+#: six fields that use it turned the section into a wall of one sentence.
+UNRECORDED = "*unrecorded*"
+
+
+def _or_unrecorded(value: object, suffix: str = "") -> str:
+    return UNRECORDED if value is None else f"{value}{suffix}"
+
+
+def stated_plans(decisions: list[dict]) -> list[dict]:
+    """Every plan the agent actually stated, in order, deduplicated.
+
+    Read from `decisions.jsonl` rather than from the memory snapshot in
+    `summary.json`, because a run that is stopped never writes that snapshot --
+    and the report then declared "the agent never used the `plan` field", which
+    for the run this was first pointed at was the opposite of true: it stated a
+    plan on 126 of 253 decisions, and one of them ("Practical maximum without
+    stone") is the single most informative line in the whole run.
+
+    A report that quietly turns a missing file into a claim about the agent is
+    worse than one that admits it has nothing.
+    """
+    seen: list[dict] = []
+    for decision in decisions:
+        plan = (decision.get("plan") or "").strip()
+        if not plan:
+            continue
+        if seen and seen[-1]["plan"] == plan:
+            seen[-1]["held_until"] = decision.get("step")
+            continue
+        seen.append({"plan": plan, "stated_at": decision.get("step"), "held_until": None})
+    return seen
+
+
+def first_machine_output(samples: list[dict]) -> int | None:
+    """The tick of the first sample showing any machine-made item."""
+    for sample in samples:
+        if sample.get("machine_produced"):
+            return sample.get("tick")
+    return None
+
+
 def render(run_dir: Path) -> str:
     summary = _load(run_dir / "summary.json")
     result = _load(run_dir / "result.json")
@@ -131,8 +190,20 @@ def render(run_dir: Path) -> str:
     # one that says what actually happened.
     if not machine and samples:
         machine = samples[-1].get("machine_produced") or {}
-    by_key = summary.get("tool_actions_by_key") or {}
+    # Same argument as `machine` above: `tool_events.jsonl` is appended as the
+    # run goes, so a stopped run still has every action in it. Reading the verb
+    # tally only from `summary.json` made a 381-action run report "actions by
+    # verb: none" two lines under "381 tool actions".
+    by_key = summary.get("tool_actions_by_key") or Counter(
+        row.get("key") for row in events if row.get("key")
+    )
     statuses = Counter(row.get("status") for row in events)
+    fallbacks = result.get("fallback_decisions")
+    if fallbacks is None:
+        fallbacks = sum(1 for d in decisions if "fallback" in str(d.get("resolution") or ""))
+    ticks_to_first = production.get("ticks_to_first_output") or first_machine_output(samples)
+    interrupted = not summary and not result
+    latency = result.get("latency_ms") or {}
     consequential = first_consequential_failure(decisions)
 
     last_sample = samples[-1] if samples else {}
@@ -143,6 +214,18 @@ def render(run_dir: Path) -> str:
         "success predicate, no layout families and no reward components, so nothing",
         "measured here is comparable to a benchmark task.",
         "",
+        *(
+            [
+                "**This run was stopped rather than finished.** It never reached",
+                "finalization, so `summary.json` and `result.json` do not exist and every",
+                "number they would have held is marked unrecorded below. What *is* here was",
+                "appended as the run went -- decisions, tool events and production samples --",
+                "and is complete up to the moment it was stopped.",
+                "",
+            ]
+            if interrupted
+            else []
+        ),
         "## What was run",
         "",
         f"- model `{(config.get('adapter') or {}).get('model')}`, "
@@ -156,15 +239,18 @@ def render(run_dir: Path) -> str:
         "",
         "## Time and cost",
         "",
-        f"- gameplay {clock.get('elapsed_seconds')}s of a {clock.get('limit_seconds')}s limit",
-        f"- finalization {(result.get('finalization') or {}).get('seconds')}s, outside gameplay",
-        f"- simulated ticks {summary.get('simulated_ticks')}",
-        f"- spend ${spend.get('committed_usd')} of a ${spend.get('cap_usd')} cap "
-        f"over {spend.get('calls')} calls",
-        f"- cache hit rate {spend.get('cache_hit_rate')} "
-        f"({spend.get('cache_hit_tokens')} hit / {spend.get('cache_miss_tokens')} miss)",
-        f"- model latency mean {(result.get('latency_ms') or {}).get('mean')} ms, "
-        f"p95 {(result.get('latency_ms') or {}).get('p95')} ms",
+        f"- gameplay {_or_unrecorded(clock.get('elapsed_seconds'), 's')} of a "
+        f"{_or_unrecorded(clock.get('limit_seconds'), 's')} limit",
+        f"- finalization {_or_unrecorded((result.get('finalization') or {}).get('seconds'), 's')}"
+        ", outside gameplay",
+        f"- simulated ticks {_or_unrecorded(summary.get('simulated_ticks'))}"
+        + (f" (last production sample at tick {last_sample.get('tick')})" if last_sample else ""),
+        f"- spend {_or_unrecorded(spend.get('committed_usd'))} of a "
+        f"{_or_unrecorded(spend.get('cap_usd'))} cap over "
+        f"{_or_unrecorded(spend.get('calls'))} calls",
+        f"- cache hit rate {_or_unrecorded(spend.get('cache_hit_rate'))}",
+        f"- model latency mean {_or_unrecorded(latency.get('mean'), ' ms')}, "
+        f"p95 {_or_unrecorded(latency.get('p95'), ' ms')}",
         "",
         "## What the agent did",
         "",
@@ -172,7 +258,7 @@ def render(run_dir: Path) -> str:
         f"{summary.get('tool_actions') or len(events)} tool actions, "
         f"{summary.get('refused_actions') or sum(len(d.get('refused') or []) for d in decisions)} "
         "refused before execution",
-        f"- fallbacks {result.get('fallback_decisions')} (a fallback is a decision nobody chose)",
+        f"- fallbacks {fallbacks} (a fallback is a decision nobody chose)",
         "- actions by verb: "
         + (", ".join(f"{k} {v}" for k, v in sorted(by_key.items())) or "none"),
         "- outcomes: " + (", ".join(f"{k} {v}" for k, v in statuses.items() if k) or "none"),
@@ -188,7 +274,9 @@ def render(run_dir: Path) -> str:
         "- mined by hand: " + json.dumps(last_sample.get("mined_by_hand") or {}),
         "- machines placed: " + json.dumps(last_sample.get("placed_counts") or {}),
         "- machines working at the end: " + json.dumps(last_sample.get("working_counts") or {}),
-        f"- time to first machine output: {production.get('ticks_to_first_output')}",
+        f"- time to first machine output: tick {ticks_to_first}"
+        if ticks_to_first is not None
+        else "- time to first machine output: never produced any",
         f"- production samples {len(samples)} (wall-clock, independent of the decision rate)",
         "",
         "## First consequential failure",
@@ -215,9 +303,15 @@ def render(run_dir: Path) -> str:
         "## Plans the agent stated",
         "",
     ]
-    plans = summary.get("plans") or []
+    plans = summary.get("plans") or stated_plans(decisions)
     lines += (
-        [f"- `{p.get('outcome')}` -- {p.get('plan')}" for p in plans]
+        [
+            f"- decision {p.get('stated_at')}"
+            + (f"-{p['held_until']}" if p.get("held_until") else "")
+            + (f" `{p['outcome']}`" if p.get("outcome") else "")
+            + f" -- {p.get('plan')}"
+            for p in plans
+        ]
         if plans
         else ["- none: the agent never used the `plan` field."]
     )
@@ -228,7 +322,12 @@ def render(run_dir: Path) -> str:
         "",
         "## Artifacts",
         "",
-        f"- run directory: `{run_dir}`",
+        # Relative to the repository, never absolute. This document is committed
+        # to a public repository, and `package_release.audit` refuses a bundle
+        # carrying a drive letter for the same reason: an absolute path
+        # publishes the author's machine layout and reproduces nothing. The run
+        # id above is what actually identifies the run.
+        f"- run directory: `{_relative(run_dir)}`",
         f"- replay: `uv run factoriorl replay {run_dir.name}`",
         "- saves: " + (", ".join(saves) or "none"),
         "",
