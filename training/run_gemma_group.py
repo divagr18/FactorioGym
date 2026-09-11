@@ -14,9 +14,28 @@ from rollout_artifacts import RolloutWriter
 from rollout_collector import Sample, SequentialGroupCollector
 from unsloth import FastVisionModel
 
-SYSTEM = """You control Factorio using exactly one catalog action. Reply only JSON:
-{"index": integer, "arguments": object}. Select a currently legal action and use only
-the exact arguments declared by that action. Do not explain."""
+SYSTEM = """You control Factorio through one action per turn.
+
+Reply with only a JSON object: {"index": integer, "arguments": object}.
+Choose an action only from LEGAL_ACTIONS. Supply every declared argument and no
+others. For handles, items, recipes, positions, or directions, copy an exact
+value from ARGUMENT_DOMAINS; never invent an identifier. If the action needed
+for a goal is not legal, choose a legal movement or wait action instead. Do not
+use Markdown fences or explain your choice."""
+
+
+def policy_view(state: dict) -> dict:
+    """Render a small, action-grounded view; the raw bridge state stays out of prompts."""
+    legal_actions = [
+        action
+        for action, legal in zip(state["catalog"], state["action_mask"], strict=True)
+        if legal
+    ]
+    return {
+        "OBSERVATION": state["observation"],
+        "LEGAL_ACTIONS": legal_actions,
+        "ARGUMENT_DOMAINS": state["argument_domains"],
+    }
 
 
 def _repair(model) -> None:
@@ -46,7 +65,9 @@ class GemmaSampler:
             [
                 {
                     "role": "user",
-                    "content": SYSTEM + "\nSTATE:\n" + json.dumps(state, separators=(",", ":")),
+                    "content": SYSTEM
+                    + "\nTURN:\n"
+                    + json.dumps(policy_view(state), separators=(",", ":")),
                 }
             ],
             tokenize=False,
