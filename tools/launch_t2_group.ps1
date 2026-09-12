@@ -9,7 +9,7 @@ artifacts are append-only evidence.
 #>
 [CmdletBinding()]
 param(
-    [string]$Root = (Split-Path -Parent $PSScriptRoot),
+    [string]$Root,
     [string]$WslRoot = '/mnt/d/FactorioRL-agentic-t2',
     [string]$Output,
     [int]$Seed = 20260911,
@@ -18,6 +18,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 if (-not $Output) {
     $Output = "$WslRoot/runtime/agentic-t2/gemma-group-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 }
