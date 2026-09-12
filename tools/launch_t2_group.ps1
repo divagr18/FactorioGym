@@ -13,6 +13,7 @@ param(
     [string]$Python,
     [string]$WslRoot = '/mnt/d/FactorioRL-agentic-t2',
     [string]$Output,
+    [string]$LogPath,
     [int]$Seed = 20260911,
     [int]$MaxTurns = 32,
     [double]$GameSpeed = 120
@@ -30,6 +31,10 @@ if (-not (Test-Path -LiteralPath $Python)) { throw "Python executable not found:
 if (-not $Output) {
     $Output = "$WslRoot/runtime/agentic-t2/gemma-group-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 }
+if (-not $LogPath) {
+    $LogPath = Join-Path $Root "runtime\agentic-t2\$(Split-Path -Leaf $Output).launcher.log"
+}
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $LogPath) | Out-Null
 $token = [guid]::NewGuid().ToString('N')
 $rule = "FactorioRL T2 $token"
 $env:FACTORIORL_BRIDGE_TOKEN = $token
@@ -53,10 +58,11 @@ try {
         "FACTORIORL_BRIDGE_TOKEN=$token" `
         "PYTHONPATH=$WslRoot/training" `
         /root/factoriorl-t0/.venv/bin/python "$WslRoot/training/run_gemma_group.py" `
-        --output $Output --seed $Seed --max-turns $MaxTurns
+        --output $Output --seed $Seed --max-turns $MaxTurns 2>&1 | Tee-Object -FilePath $LogPath
     if ($LASTEXITCODE -ne 0) { throw "Gemma WSL process failed: $LASTEXITCODE" }
     & wsl.exe -d Ubuntu-24.04 -- env "PYTHONPATH=$WslRoot/training" `
-        /root/factoriorl-t0/.venv/bin/python "$WslRoot/training/audit_rollout.py" --run $Output
+        /root/factoriorl-t0/.venv/bin/python "$WslRoot/training/audit_rollout.py" --run $Output 2>&1 |
+        Tee-Object -FilePath $LogPath -Append
     if ($LASTEXITCODE -ne 0) { throw "rollout audit failed: $LASTEXITCODE" }
 }
 finally {
