@@ -61,7 +61,13 @@ class GemmaSampler:
 
     def _sampling_logprobs(self, sequence: torch.Tensor, prompt_len: int, completion: torch.Tensor) -> list[float]:
         """Recompute the same temperature/top-p distribution used for sampling."""
-        logits = self.model(input_ids=sequence, logits_to_keep=completion.numel()).logits[0]
+        # A causal LM logit at position i predicts token i + 1.  The first
+        # generated token is therefore scored by the final prompt logit, not
+        # by the first logit returned for the completion.  Requesting only the
+        # trailing logits shifted this alignment by one and could assign
+        # -inf after top-p filtering to a token that was valid when sampled.
+        all_logits = self.model(input_ids=sequence).logits[0]
+        logits = all_logits[prompt_len - 1 : prompt_len - 1 + completion.numel()]
         temperature = TemperatureLogitsWarper(self.temperature)
         top_p = TopPLogitsWarper(self.top_p)
         values: list[float] = []
