@@ -1,0 +1,2 @@
+# WSL entrypoints must retain a Unix shebang after checkout from Windows.
+*.sh text eol=lf
