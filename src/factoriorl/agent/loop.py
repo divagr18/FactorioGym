@@ -138,24 +138,19 @@ YOUR FACTORY is live state for machines you built, at any distance. THE \
 CHARTED MAP is a one-time survey from when the world was made: it says where \
 resources are, not what is there now.
 
-Some actions act on an entity. Those say "the nearest entity" in their \
-description, and by default that is what they do. To act on a *particular* one \
-instead, add its handle -- the [hN] shown beside it -- as "target".
-
-Some actions need arguments you must supply. Those are marked "[needs: ...]" \
-in the LEGAL ACTIONS list, and the legal values for each argument name are \
-listed under ARGUMENT VALUES. Supply exactly the names it asks for, no more.
+Every action uses the same JSON shape. Actions marked "[needs: ...]" require \
+an "arguments" object with exactly those names, using only values listed under \
+ARGUMENT VALUES. A handle such as [h41] is supplied as an argument (for example, \
+{"arguments": {"handle": "h41"}}), never as a top-level "target" field.
 
 Reply with a single JSON object and nothing else:
 {"action": <index>, "reason": "<one short sentence>"}
-or, to choose which entity it acts on:
-{"action": <index>, "target": "<hN>", "reason": "<one short sentence>"}
 or, for an action marked [needs: ...]:
 {"action": <index>, "arguments": {"<name>": <value>}, "reason": "<why>"}
 
 When you already know the next few moves, you may send up to $MAX of them to \
 run in order, using the same fields for each one:
-{"actions": [{"action": <index>}, {"action": <index>, "target": "<hN>"}], \
+{"actions": [{"action": <index>}, {"action": <index>, "arguments": {"<name>": <value>}}], \
 "reason": "<why this sequence>"}
 - They run one at a time, and each is checked again against the world the one \
 before it left. The first one that is refused or fails stops the rest, and you \

@@ -966,6 +966,22 @@ def test_a_target_on_an_action_that_acts_on_nothing_is_refused():
     assert outcome.failure is DecisionFailure.UNKNOWN_TARGET
 
 
+def test_legacy_handle_target_is_normalized_to_the_canonical_arguments_shape():
+    """A model trained on the previous prompt keeps its intended mine action."""
+    from factoriorl.agent.parsing import ParsedAction, parse_action
+    from factoriorl.agent.summary import LegalAction
+
+    parsed = parse_action(
+        '{"action": 0, "target": "h41"}',
+        (LegalAction(0, "mine_at", "mine"),),
+        (("mine_at", "mine"),),
+        requires={"mine_at": ("handle",)},
+    )
+    assert isinstance(parsed, ParsedAction), parsed
+    assert parsed.target is None
+    assert parsed.arguments == {"handle": "h41"}
+
+
 def test_a_target_the_agent_cannot_see_is_refused():
     from factoriorl.agent.parsing import DecisionFailure, ParseFailure, parse_action
 

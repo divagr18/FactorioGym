@@ -478,6 +478,12 @@ def check_against_state(
             f"action {action.index} ({action.key}) is masked out in this state",
             action.key,
         )
+    required = (requires or {}).get(action.key, ())
+    if action.target is not None and required == ("handle",) and not action.arguments:
+        # Legacy prompt wording advertised `target` generically. For the
+        # unambiguous handle-only action shape, preserve the chosen game action
+        # while normalizing it into the canonical arguments contract.
+        action = replace(action, target=None, arguments={"handle": action.target})
     if action.target is not None:
         # An addressee is only meaningful for an action that acts on something,
         # and only if the thing is one the agent can currently see. Both are
@@ -496,7 +502,6 @@ def check_against_state(
                 f"{action.target!r} is not a handle in the current observation",
                 action.target,
             )
-    required = (requires or {}).get(action.key, ())
     if required or action.arguments:
         checked = _validate_arguments(action.key, action.arguments, required, domains or {})
         if isinstance(checked, ParseFailure):
