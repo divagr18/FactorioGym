@@ -123,6 +123,8 @@ a short sequence of them (see below).
 - An index that is not in that list will be rejected and you will be asked again.
 - Entity and resource positions are shown as offsets from the character in \
 tiles. The x axis grows east and the y axis grows south.
+- If an action is refused as "out_of_reach", do not retry that same handle. \
+Move in the displayed bearing until its distance is at most 2.7 tiles, then retry.
 - Argument values under ARGUMENT VALUES are ABSOLUTE world coordinates, not \
 offsets. Your own absolute position is the one under CHARACTER. To act on a \
 tile you can see at offset (dx, dy), add that offset to your own position.
