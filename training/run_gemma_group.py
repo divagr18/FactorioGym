@@ -22,7 +22,7 @@ from bridge_client import BridgeClient
 from rollout_artifacts import LOGPROB_RECOMPUTE_TOLERANCE, RolloutWriter, audit_run
 from rollout_collector import Sample, SequentialGroupCollector
 from unsloth import FastVisionModel
-from transformers.generation.logits_process import TemperatureLogitsWarper, TopPLogitsWarper
+from transformers.generation.logits_process import TemperatureLogitsWarper, TopKLogitsWarper, TopPLogitsWarper
 
 
 def _repair(model: Any) -> None:
@@ -69,12 +69,16 @@ class GemmaSampler:
         all_logits = self.model(input_ids=sequence).logits[0]
         logits = all_logits[prompt_len - 1 : prompt_len - 1 + completion.numel()]
         temperature = TemperatureLogitsWarper(self.temperature)
+        # generate() applies the generation config's default top-k (50 for
+        # this checkpoint) before top-p unless explicitly disabled.
+        top_k = TopKLogitsWarper(self.model.generation_config.top_k)
         top_p = TopPLogitsWarper(self.top_p)
         values: list[float] = []
         for index, token in enumerate(completion):
             scores = logits[index].unsqueeze(0)
             prefix = sequence[:, : prompt_len + index]
             scores = temperature(prefix, scores)
+            scores = top_k(prefix, scores)
             scores = top_p(prefix, scores)
             values.append(float(torch.log_softmax(scores[0], -1)[token]))
         return values
