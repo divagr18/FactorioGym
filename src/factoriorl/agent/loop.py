@@ -35,6 +35,7 @@ from factoriorl import assistance as assistance_module
 from factoriorl import manifest as manifest_module
 from factoriorl.agent.adapters import DEFAULT_MAX_TOKENS, ModelAdapter, ModelReply, ModelRequest
 from factoriorl.agent.memory import Memory
+from factoriorl.agent.policy import build_policy_turn, policy_static_prefix
 from factoriorl.agent.parsing import (
     MAX_ACTIONS_PER_SEQUENCE,
     DecisionFailure,
@@ -563,17 +564,10 @@ class AgentLoop:
         # Order matters for the cache, not for the reader: the prefix is matched
         # by exact bytes from the start, so the objective goes last, where a
         # future edit to it invalidates the least.
-        blocks = [
-            block
-            for block in (
-                self.static_knowledge,
-                static_reference(self.env),
-                objective_block(self.env),
-                survey_block(self.env),
-            )
-            if block
-        ]
-        return Transcript(system=SYSTEM_PROMPT, static_prefix="\n\n".join(blocks))
+        return Transcript(
+            system=SYSTEM_PROMPT,
+            static_prefix=policy_static_prefix(self.env, static_knowledge=self.static_knowledge),
+        )
 
     def clock_state(self) -> dict:
         """What the run's clock is doing and how much of it is left.
@@ -1044,16 +1038,11 @@ class AgentLoop:
             observation = self.env._observation
             if self.config.memory:
                 self.memory.observe(first_step + steps, observation)
-            mask = self.env.action_masks()
-            vocabulary = action_vocabulary(self.env)
-            legal = legal_actions(vocabulary, mask)
-            summary = summarise(
-                observation,
+            turn = build_policy_turn(
+                self.env,
                 brief=self.brief,
-                actions=legal,
+                observation=observation,
                 step=first_step + steps,
-                arguments=argument_domains(self.env),
-                requires=argument_requirements(self.env),
                 clock=self.clock_state(),
                 # What became of the previous reply. Recorded since A2 and
                 # never shown back to the model.
@@ -1066,6 +1055,9 @@ class AgentLoop:
                     else {}
                 ),
             )
+            summary = turn.summary
+            vocabulary = turn.vocabulary
+            legal = turn.legal
             targetable, handles = self._addressing(observation)
             decision = self.decide(
                 summary,

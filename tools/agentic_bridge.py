@@ -104,7 +104,7 @@ def main() -> int:
                     if self.path == "/v1/reset":
                         result = bridge.reset(body.get("seed"))
                     elif self.path == "/v1/act":
-                        result = bridge.act(body.get("index"), body.get("arguments"))
+                        result = bridge.act(body.get("index"), body.get("arguments"), body.get("target"))
                     elif self.path == "/v1/finish":
                         result = bridge.finish()
                     else:

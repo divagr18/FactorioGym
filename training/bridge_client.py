@@ -48,8 +48,11 @@ class BridgeClient:
     def observe(self) -> dict:
         return self._call("GET", "/v1/observe")
 
-    def act(self, index: int, arguments: dict | None = None) -> dict:
-        return self._call("POST", "/v1/act", {"index": index, "arguments": arguments or {}})
+    def act(self, index: int, arguments: dict | None = None, target: str | None = None) -> dict:
+        body = {"index": index, "arguments": arguments or {}}
+        if target is not None:
+            body["target"] = target
+        return self._call("POST", "/v1/act", body)
 
     def finish(self) -> dict:
         return self._call("POST", "/v1/finish", {})

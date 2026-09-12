@@ -6,12 +6,15 @@ import numpy as np
 import pytest
 
 from factoriorl.agentic.bridge import BridgeRequestError, FactorioBridge
+from factoriorl.tasks import get
 
 
 class _Template:
     def __init__(self, key: str, arguments=()):
         self.key = key
         self.arguments = tuple(arguments)
+        self.payload = {}
+        self.action = key
 
 
 class _Catalog:
@@ -20,6 +23,7 @@ class _Catalog:
 
 class _Env:
     catalog = _Catalog()
+    spec_ = get("construct_smelting_line").spec
 
     def __init__(self):
         self._observation = {"tick": 0, "inventory": {"coal": 4}}

@@ -77,3 +77,20 @@ The default listener is loopback (`127.0.0.1:8765`). If WSL localhost forwarding
 is unavailable, bind with `--host 0.0.0.0` and allow the port only from the
 current WSL subnet in Windows Firewall. Remove that firewall exception after the
 run. Do not expose the bridge to the LAN.
+
+Run one audited, canonical-prompt group from WSL:
+
+```bash
+FACTORIORL_BRIDGE_URL=http://<windows-host>:8765 \
+FACTORIORL_BRIDGE_TOKEN="<same-long-random-value>" \
+uv run python run_gemma_group.py --output ../runtime/agentic-t2/gemma-group-<run-id>
+
+uv run python audit_rollout.py --run ../runtime/agentic-t2/gemma-group-<run-id>
+```
+
+The group command uses the same policy renderer and native action parser as the
+agent loop. It records the exact messages and rendered prompt, sampled token
+IDs and log probabilities, parser result, native tool traffic, terminal
+verification, and a same-scene group manifest. The audit refuses altered JSONL,
+mixed scenes or policy revisions, missing terminal evidence, and sampled-token
+log-probability recomputation outside the declared tolerance.

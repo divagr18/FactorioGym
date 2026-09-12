@@ -34,7 +34,19 @@ class _Sampler:
     policy_revision = "frozen-adapter"
 
     def sample(self, _state):
-        return Sample([1], [2], [-0.1], 0, {})
+        return Sample(
+            [1],
+            [2],
+            [-0.1],
+            0,
+            {},
+            messages=[{"role": "system", "content": "contract"}],
+            rendered_prompt="contract",
+            sampled_token_mask=[True],
+            completion_text='{"action": 0}',
+            parsed_action={"index": 0},
+            prompt_digest="f" * 64,
+        )
 
 
 def test_same_seed_group_writes_four_closed_attempts(tmp_path):
@@ -44,3 +56,4 @@ def test_same_seed_group_writes_four_closed_attempts(tmp_path):
     )
     assert len(digests) == 4
     assert len((tmp_path / "run" / "episodes.jsonl").read_text().splitlines()) == 4
+    assert len((tmp_path / "run" / "groups.jsonl").read_text().splitlines()) == 1
