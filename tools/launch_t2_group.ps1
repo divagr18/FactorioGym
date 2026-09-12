@@ -10,6 +10,7 @@ artifacts are append-only evidence.
 [CmdletBinding()]
 param(
     [string]$Root,
+    [string]$Python,
     [string]$WslRoot = '/mnt/d/FactorioRL-agentic-t2',
     [string]$Output,
     [int]$Seed = 20260911,
@@ -19,6 +20,13 @@ param(
 
 $ErrorActionPreference = 'Stop'
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
+if (-not $Python) {
+    $Python = Join-Path $Root '.venv\Scripts\python.exe'
+    if (-not (Test-Path -LiteralPath $Python)) {
+        $Python = 'D:\FactorioRL\.venv\Scripts\python.exe'
+    }
+}
+if (-not (Test-Path -LiteralPath $Python)) { throw "Python executable not found: $Python" }
 if (-not $Output) {
     $Output = "$WslRoot/runtime/agentic-t2/gemma-group-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 }
@@ -30,7 +38,7 @@ $env:FACTORIO_RL_GAME_SPEED = [string]$GameSpeed
 
 New-NetFirewallRule -DisplayName $rule -Direction Inbound -Action Allow -Protocol TCP `
     -LocalPort 8765 -RemoteAddress '172.29.224.0/20' -Profile Any | Out-Null
-$bridge = Start-Process "$Root\.venv\Scripts\python.exe" -ArgumentList @(
+$bridge = Start-Process $Python -ArgumentList @(
     '-u', 'tools/agentic_bridge.py', '--token-env', 'FACTORIORL_BRIDGE_TOKEN',
     '--host', '0.0.0.0', '--port', '8765', '--game-speed', $GameSpeed
 ) -WorkingDirectory $Root -WindowStyle Hidden -PassThru
