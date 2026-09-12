@@ -22,7 +22,6 @@ from bridge_client import BridgeClient
 from rollout_artifacts import LOGPROB_RECOMPUTE_TOLERANCE, RolloutWriter, audit_run
 from rollout_collector import Sample, SequentialGroupCollector
 from unsloth import FastVisionModel
-from transformers.generation.logits_process import TemperatureLogitsWarper, TopKLogitsWarper, TopPLogitsWarper
 
 
 def _repair(model: Any) -> None:
@@ -59,29 +58,12 @@ class GemmaSampler:
         self._episode_nonce: int | None = None
         self._prompt_digest = ""
 
-    def _sampling_logprobs(self, sequence: torch.Tensor, prompt_len: int, completion: torch.Tensor) -> list[float]:
-        """Recompute the same temperature/top-p distribution used for sampling."""
-        # A causal LM logit at position i predicts token i + 1.  The first
-        # generated token is therefore scored by the final prompt logit, not
-        # by the first logit returned for the completion.  Requesting only the
-        # trailing logits shifted this alignment by one and could assign
-        # -inf after top-p filtering to a token that was valid when sampled.
-        all_logits = self.model(input_ids=sequence).logits[0]
-        logits = all_logits[prompt_len - 1 : prompt_len - 1 + completion.numel()]
-        temperature = TemperatureLogitsWarper(self.temperature)
-        # generate() applies the generation config's default top-k (50 for
-        # this checkpoint) before top-p unless explicitly disabled.
-        top_k = TopKLogitsWarper(self.model.generation_config.top_k)
-        top_p = TopPLogitsWarper(self.top_p)
-        values: list[float] = []
-        for index, token in enumerate(completion):
-            scores = logits[index].unsqueeze(0)
-            prefix = sequence[:, : prompt_len + index]
-            scores = temperature(prefix, scores)
-            scores = top_k(prefix, scores)
-            scores = top_p(prefix, scores)
-            values.append(float(torch.log_softmax(scores[0], -1)[token]))
-        return values
+    def _sampling_logprobs(self, sequence: torch.Tensor, scores: tuple[torch.Tensor, ...]) -> list[float]:
+        """Normalize the exact processed distributions used by generate()."""
+        transitions = self.model.compute_transition_scores(
+            sequence, scores, normalize_logits=True
+        )[0, -len(scores) :]
+        return [float(value) for value in transitions]
 
     def _ensure_episode(self, state: dict[str, Any]) -> None:
         policy = state["policy"]
@@ -121,7 +103,7 @@ class GemmaSampler:
                 float(torch.log_softmax(scores[0], -1)[token])
                 for scores, token in zip(generated.scores, completion, strict=True)
             ]
-            recomputed = self._sampling_logprobs(sequence, prompt_len, completion)
+            recomputed = self._sampling_logprobs(sequence, generated.scores)
             parity_error = max(abs(left - right) for left, right in zip(logprobs, recomputed, strict=True))
             if parity_error > LOGPROB_RECOMPUTE_TOLERANCE:
                 raise RuntimeError(
