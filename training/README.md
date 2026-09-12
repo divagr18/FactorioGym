@@ -94,3 +94,7 @@ IDs and log probabilities, parser result, native tool traffic, terminal
 verification, and a same-scene group manifest. The audit refuses altered JSONL,
 mixed scenes or policy revisions, missing terminal evidence, and sampled-token
 log-probability recomputation outside the declared tolerance.
+
+On the Windows host, `tools/launch_t2_group.ps1` performs the paired bridge and
+WSL launch with a fresh output directory, a per-run token, and a temporary
+WSL-subnet firewall rule. It removes the rule and stops the bridge in `finally`.
