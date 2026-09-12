@@ -56,6 +56,10 @@ def test_observation_contract_does_not_leak_truth():
     assert state["task_id"] == "construct_smelting_line"
     assert state["scene"]["blueprint"] == "same-scene"
     assert state["observation"] == {"tick": 0, "inventory": {"coal": 4}}
+    assert state["policy"]["system_prompt"].startswith("You are controlling")
+    assert state["policy"]["prompt_digest"]
+    assert "machine_produced" not in state["policy"]["summary"]
+    assert bridge.observe()["policy"]["prompt_digest"] == state["policy"]["prompt_digest"]
     assert "truth" not in state
     assert "machine_produced" not in repr(state)
 
