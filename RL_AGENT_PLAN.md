@@ -1,6 +1,43 @@
 # FactorioRL learner plan: close T3 and T4
 
-**Status:** implementation handoff  
+> **PAUSED — 2026-09-15.** This track is paused while a fast early-game simulator
+> is built. That work trains a small RL policy from scratch in C and keeps real
+> Factorio as the held-out verifier; it continues on branch `sim-parity`. Nothing
+> below has been withdrawn, but three defects were found in the T2 work before
+> pausing, and anyone resuming must not inherit the claims they undermine:
+>
+> 1. **The log-probability "parity" check compares a tensor with itself.**
+>    `training/run_gemma_group.py` computes `logprobs` as `log_softmax` of
+>    `generated.scores`, and `recomputed` as `compute_transition_scores(sequence,
+>    generated.scores, normalize_logits=True)`, which normalizes those same
+>    scores. Both sides come from one set of processed logits, so agreement is
+>    guaranteed and proves nothing. It is not the fresh forward-pass
+>    recomputation T2-C.4 requires. It replaced an earlier real recomputation in
+>    `453ef32`, after `4943d44` and `c74203b` tried to make that one agree.
+> 2. **`construct_smelting_line` pays for hand-loading a furnace.**
+>    `machine_produced` is `produced - handcrafted - mined`
+>    (`mod/factoriorl/world.lua`), so plates smelted from hand-mined ore count as
+>    machine output, and `run_verification` (`src/factoriorl/env.py`) has no
+>    provenance check. Placing a furnace, fuelling it, hand-mining ore and
+>    feeding it scores 1.0 without a drill. `docs/evidence/a4-production.json`
+>    already shows hand-mined ore turning into "machine" plates. The fix is
+>    scheduled on `sim-parity` because the simulator reuses this task. Decision 4
+>    below ("hand-crafted output receive[s] no reward") is not true of the code
+>    as it stands.
+> 3. **The launchers point at a machine layout that does not exist here.**
+>    `tools/launch_t2_group.ps1` and `_launch_gemma_group.ps1` hard-code
+>    `D:\FactorioRL-agentic-t2` / `/mnt/d/FactorioRL-agentic-t2` (absent on this
+>    PC), the WSL subnet `172.29.224.0/20`, and `/root/factoriorl-t0/.venv`, as
+>    does `training/run_t2_service.sh`.
+>
+> Also unverified: the "four same-scene episodes … zero reward" group in section 3
+> has no evidence file, and no rollout throughput has been measured. And the branch
+> is not lint-clean: `uv run ruff check .` reports 31 errors, all introduced here
+> (`master` passes) — 22 in `training/`, 6 in `src/factoriorl/agent/loop.py`, and
+> one each in `agentic/bridge.py`, `agent/policy.py`, `tools/agentic_bridge.py`
+> and a rollout test. `tests/unit` and `tests/contract` pass (1282).
+
+**Status:** implementation handoff (paused 2026-09-15, see above)  
 **Date:** 2026-09-12  
 **Starting branch:** `codex/agentic-t2`  
 **Implementation baseline:** `c877fc7`  

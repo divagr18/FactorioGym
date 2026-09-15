@@ -1,5 +1,12 @@
 # FactorioRL: train a small language-model agent with verifiable game rewards
 
+> **SUPERSEDED — 2026-09-15.** [`RL_AGENT_PLAN.md`](../RL_AGENT_PLAN.md) replaced
+> this document on 2026-09-12 and is itself now paused. Parts of this file are out
+> of date: the status line, the Qwen teacher (the later plan uses DeepSeek), the
+> 32-turn budget (the task allows 600 decisions), and the closing note that no
+> teacher call or rollout had been made. It is kept as a historical record. Read
+> the pause notice at the top of `RL_AGENT_PLAN.md` before resuming anything here.
+
 Date: 2026-09-11. Status: T0 model-update fit and T1 task gate passed; the T2 restricted bridge has passed a Windows-service to Ubuntu-WSL authenticated transport probe and its append-only rollout format is implemented. The WSL generation loop and client-driven rollout remain open. See [the T0 handoff](HANDOFF-AGENTIC-T0-2026-09-11.md), [the T1 handoff](HANDOFF-AGENTIC-T1-2026-09-11.md), and [the T2 bridge handoff](HANDOFF-AGENTIC-T2-BRIDGE-2026-09-11.md). This remains the implementation plan for subsequent phases, not evidence that the agent has learned a game capability.
 
 ## 1. Direction and fixed decisions
