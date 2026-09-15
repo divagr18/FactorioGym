@@ -1,5 +1,5 @@
 {
-  "content_hash": "47d294e61b5c261b764e86eb91d51556d91d71b475dfdde29cb39ba72e633dfe",
+  "content_hash": "89950b6e4d13b6c1a2b419b76cecfecd92d273d9444973b2a4a76e46c7a12e15",
   "holdout": {
     "schema": "factoriorl.holdout/1",
     "holdout_id": "holdout_v3",
@@ -525,7 +525,7 @@
       },
       "construct_smelting_line": {
         "task_id": "construct_smelting_line",
-        "task_version": "1.0.0",
+        "task_version": "1.1.0",
         "families_in_split": [
           "obstructed_patch"
         ],
@@ -5615,8 +5615,8 @@
       }
     }
   },
-  "generated_at": "2026-09-11T18:12:27Z",
-  "git_commit": "eb6c61f4b7b420a5bea1ff05cd0896df3bb8e963",
+  "generated_at": "2026-09-15T08:20:24Z",
+  "git_commit": "aa0b1f85638029553b8472cb363a6bf826d9aede",
   "declaration": {
     "candidate_families": [
       "deliver",
@@ -5650,8 +5650,8 @@
       "below_min_distinct_scenes": false
     },
     "construct_smelting_line": {
-      "entry_hash": "c2294ca22fed1048",
-      "task_version": "1.0.0",
+      "entry_hash": "a3fb75ca36a42c0f",
+      "task_version": "1.1.0",
       "families_in_split": [
         "obstructed_patch"
       ],

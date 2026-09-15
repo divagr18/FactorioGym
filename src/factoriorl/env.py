@@ -644,7 +644,14 @@ class FactorioEnv(gym.Env):
             # into a *uniform* distribution over illegal values, silently, so
             # the empty domain has to be handled before it ever gets there.
             for name in template.arguments:
-                domain = catalog_module.ARGUMENT_DOMAINS.get(name)
+                # The same lookup `step_arguments` validates against. The mask
+                # used to read `ARGUMENT_DOMAINS` alone, so an action whose
+                # argument is overridden per key (`take_from`'s `item` draws on
+                # `source_items`) was judged legal or illegal against a domain
+                # it is never checked against.
+                domain = catalog_module.ARGUMENT_DOMAINS_BY_KEY.get(template.key, {}).get(
+                    name
+                ) or catalog_module.ARGUMENT_DOMAINS.get(name)
                 if domain is not None and not domains.get(domain):
                     mask[index] = False
                     break
@@ -766,9 +773,7 @@ class FactorioEnv(gym.Env):
         if scene_index is None:
             self._episode_index += 1
         elif (
-            isinstance(scene_index, int)
-            and not isinstance(scene_index, bool)
-            and scene_index >= 0
+            isinstance(scene_index, int) and not isinstance(scene_index, bool) and scene_index >= 0
         ):
             self._episode_index = scene_index
         else:
@@ -907,11 +912,24 @@ class FactorioEnv(gym.Env):
             raise TaskConfigError(f"{self.spec_.id} does not declare a verification window")
         if self._verification is not None:
             raise TaskConfigError(f"{self.spec_.id} verification has already run")
-        before = float((self._truth.get("machine_produced") or {}).get(verification.item, 0))
+        machine = lambda: self._truth.get("machine_produced") or {}  # noqa: E731
+        before = float(machine().get(verification.item, 0))
+        source_before = float(machine().get(verification.source, 0)) if verification.source else 0.0
         start_tick = int(self._observation.get("tick") or 0)
         advanced = self.advance(verification.ticks)
-        after = float((self._truth.get("machine_produced") or {}).get(verification.item, 0))
-        produced = max(0.0, after - before)
+        after = float(machine().get(verification.item, 0))
+        output = max(0.0, after - before)
+        # Output only counts as far as machines supplied its input *inside the
+        # window*. `machine_produced` is `produced - handcrafted - mined`, so a
+        # plate smelted from hand-mined ore is machine output; a furnace loaded
+        # by hand before verification scored in full with no drill anywhere.
+        # Actions are locked during the window, so ore mined in it came from a
+        # machine, and a line with no drill has none.
+        sourced = None
+        produced = output
+        if verification.source:
+            sourced = max(0.0, float(machine().get(verification.source, 0)) - source_before)
+            produced = min(output, sourced)
         self._verification = {
             "item": verification.item,
             "target": verification.target,
@@ -920,6 +938,9 @@ class FactorioEnv(gym.Env):
             "end_tick": int(self._observation.get("tick") or 0),
             "ticks_advanced": advanced,
             "machine_output": produced,
+            "uncapped_output": output,
+            "source": verification.source,
+            "machine_source": sourced,
             "success": produced >= verification.target,
         }
         self._truth = {
@@ -1134,6 +1155,23 @@ class FactorioEnv(gym.Env):
             self._steps >= self.spec_.max_decision_steps
             or self._observation.get("tick", 0) >= self.construction_tick_limit
         )
+        verification = None
+        if truncated and self.spec_.verification is not None and self._verification is None:
+            # A task that declares a verification window is scored by it, and
+            # nothing else scores it. That window only ever ran when a driver
+            # called `run_verification` -- the agentic bridge's `finish` and the
+            # evaluator-only `solve` -- so an RL episode on the same task ran
+            # out of budget, truncated, and was never measured: its reward was
+            # zero whatever it built.
+            #
+            # Run it here instead of adding a `finish` verb, which would change
+            # the frozen `parameterized-v1` digest that `build_line`'s published
+            # numbers are checked against. The episode then *terminates*: the
+            # verifier's score is the outcome, so there is nothing to bootstrap.
+            verification = self.run_verification()
+            reward += float(verification["reward"])
+            succeeded = bool(verification["success"])
+            terminated, truncated = True, False
         info: dict[str, Any] = {
             "reward_components": components,
             "success": succeeded,
@@ -1146,6 +1184,8 @@ class FactorioEnv(gym.Env):
             # Duration of this transition in primitive steps (R1.3).
             "primitive_steps": 1,
         }
+        if verification is not None:
+            info["verification"] = verification
         if terminated or truncated:
             info["production"] = self.metrics.report()
         return (

@@ -335,10 +335,8 @@ def observation_compatibility(model, env) -> dict:
     # `int` and `bool` deliberately: `Discrete.n` is a numpy integer, so the
     # comparison yields `np.bool_` and this whole dict goes into JSON, which
     # refuses numpy scalars.
-    action_theirs = getattr(getattr(model, "action_space", None), "n", None)
-    action_ours = getattr(getattr(env, "action_space", None), "n", None)
-    action_theirs = None if action_theirs is None else int(action_theirs)
-    action_ours = None if action_ours is None else int(action_ours)
+    action_theirs = _action_signature(getattr(model, "action_space", None))
+    action_ours = _action_signature(getattr(env, "action_space", None))
     return {
         "comparable": True,
         "compatible": bool(not differences and action_theirs == action_ours),
@@ -353,6 +351,24 @@ def observation_compatibility(model, env) -> dict:
         if differences or action_theirs != action_ours
         else None,
     }
+
+
+def _action_signature(space) -> int | list[int] | None:
+    """What an action space's *shape* is, in a form two checkpoints can compare.
+
+    Read as `.n` alone, this was `None` for every `MultiDiscrete` space, so any
+    two parameterized policies compared equal -- a checkpoint trained on one
+    catalog would have been declared compatible with an environment exposing a
+    different one. `int` and `list` deliberately: numpy scalars break the JSON
+    this result is written into.
+    """
+    if space is None:
+        return None
+    nvec = getattr(space, "nvec", None)
+    if nvec is not None:
+        return [int(n) for n in nvec]
+    n = getattr(space, "n", None)
+    return None if n is None else int(n)
 
 
 def describe(model) -> dict:

@@ -1,10 +1,21 @@
 """T1's verifiable, agent-built iron-smelting task.
 
 Unlike the older ``build_line`` family, this task has a hard episode boundary:
-the agent calls finish, then the evaluator advances 3,600 ticks without
-dispatching an action and scores only the machine-production delta in that
-window. The initial scene contains ore and starting equipment, but no machine,
-plate, or preloaded inventory.
+when construction ends, the evaluator advances 3,600 ticks without dispatching an
+action and scores only the machine-production delta in that window.
+Construction ends when a driver calls ``run_verification`` (the agentic bridge's
+``finish``), or automatically when the episode's decision or construction-tick
+budget runs out, which is how an RL episode reaches it. The initial scene
+contains ore and starting equipment, but no machine, plate, or preloaded
+inventory.
+
+**1.1.0** caps the counted plates by the iron ore machines mined during the same
+window. 1.0.0 paid for a furnace fed by hand: ``machine_produced`` subtracts
+hand-mined *ore* but not the plates smelted from it, so a furnace, some coal and
+ten hand-mined ore scored 1.0 with no drill. With actions locked during the
+window, ore mined in it came from a drill, so a drill-less line now scores 0.
+The measured drill-to-furnace line is drill-limited at about fifteen plates a
+minute, so a working line still clears the target.
 """
 
 from __future__ import annotations
@@ -37,7 +48,7 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="construct_smelting_line",
-    version="1.0.0",
+    version="1.1.0",
     description=(
         "Build and fuel an iron-smelting line, then finish. Success is at least "
         "ten iron plates made by machines during an action-locked verification minute."
@@ -52,7 +63,9 @@ SPEC = TaskSpec(
     track="production",
     max_decision_steps=600,
     max_game_ticks=CONSTRUCTION_TICKS + VERIFICATION_TICKS,
-    verification=VerificationSpec("iron-plate", TARGET_PLATES, VERIFICATION_TICKS),
+    verification=VerificationSpec(
+        "iron-plate", TARGET_PLATES, VERIFICATION_TICKS, source="iron-ore"
+    ),
     catalog="parameterized-v1",
     extra_public_markers=("patch",),
     difficulty_marker="patch",

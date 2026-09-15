@@ -36,10 +36,11 @@ from factoriorl.learn.policy import (
     initialise_from,
     policy_kwargs,
 )
+from factoriorl.parameterized import as_env_action, sample_masked, wrap_for_policy
 from factoriorl.rcon import RCONClient
 from factoriorl.seeding import Branch, SeedPlan, seed_everything
 from factoriorl.session import WorkerSession
-from factoriorl.skills import SKILLS, SkillEnv
+from factoriorl.skills import SKILLS
 from factoriorl.tasks import get
 from factoriorl.vecenv import EpisodeResetFailed
 from factoriorl.worker import WorkerManager
@@ -73,7 +74,7 @@ def _wrap(env: FactorioEnv, skills: bool):
     silently truncate its action space, so this is applied to every evaluation
     and baseline environment, not only the training ones.
     """
-    return SkillEnv(env) if skills else env
+    return wrap_for_policy(env, skills)
 
 
 @dataclass
@@ -361,7 +362,9 @@ def evaluate(env: FactorioEnv, model, episodes: int, deterministic: bool = True)
         while True:
             masks = env.action_masks()
             action, _ = model.predict(observation, action_masks=masks, deterministic=deterministic)
-            observation, reward, terminated, truncated, info = env.step(int(action))
+            observation, reward, terminated, truncated, info = env.step(
+                as_env_action(env.action_space, action)
+            )
             total += reward
             steps += 1
             if terminated or truncated:
@@ -569,7 +572,7 @@ def random_baseline_parallel(vec, episodes: int, rng: np.random.Generator) -> di
     counted = 0
     while counted < episodes:
         masks = vec.action_masks()
-        actions = [int(rng.choice(np.flatnonzero(row))) for row in masks]
+        actions = [sample_masked(vec.action_space, row, rng) for row in masks]
         _, _, dones, infos = vec.step(np.array(actions))
         for index, done in enumerate(dones):
             if not done:
@@ -591,8 +594,8 @@ def random_baseline(env: FactorioEnv, episodes: int, rng: np.random.Generator) -
     for _ in range(episodes):
         env.reset()
         while True:
-            legal = np.flatnonzero(env.action_masks())
-            _, _, terminated, truncated, info = env.step(int(rng.choice(legal)))
+            action = sample_masked(env.action_space, env.action_masks(), rng)
+            _, _, terminated, truncated, info = env.step(action)
             if terminated or truncated:
                 successes += int(bool(info.get("success")))
                 break

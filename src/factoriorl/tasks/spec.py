@@ -635,19 +635,36 @@ class RewardComponent:
 
 @dataclass(frozen=True)
 class VerificationSpec:
-    """An evaluator-controlled output measurement after the agent calls finish.
+    """An evaluator-controlled output measurement at the end of an episode.
 
     During the window no policy action is dispatched. The count is a delta of
-    ``truth[\"machine_produced\"]`` so hand crafting, transfers, and output from
-    before the window cannot satisfy it.
+    ``truth[\"machine_produced\"]``, so output from before the window cannot
+    satisfy it.
+
+    That delta alone does not keep hand labour out, whatever this docstring used
+    to claim. ``machine_produced`` is ``produced - handcrafted - mined``, so a
+    plate smelted from hand-mined ore is machine output, and a furnace loaded by
+    hand before the window scores in full with no drill anywhere.
+    ``docs/evidence/a4-production.json`` records exactly that: five "machine"
+    plates from thirteen hand-mined ore, with only a furnace built. ``source``
+    closes it: when set, the counted output is capped by how much of that input
+    machines produced inside the same window.
     """
 
     item: str
     target: int
     ticks: int
+    #: A machine-made input the counted output must be matched by, inside the
+    #: window. ``None`` keeps the uncapped delta.
+    source: str | None = None
 
     def to_dict(self) -> dict:
-        return {"item": self.item, "target": self.target, "ticks": self.ticks}
+        body: dict = {"item": self.item, "target": self.target, "ticks": self.ticks}
+        # Omitted rather than written as null, so a spec without a source keeps
+        # the digest it had before the field existed.
+        if self.source is not None:
+            body["source"] = self.source
+        return body
 
 
 # ---------------------------------------------------------------------- task

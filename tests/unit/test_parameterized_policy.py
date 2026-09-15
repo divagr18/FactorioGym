@@ -347,3 +347,175 @@ def test_every_dimension_is_named_and_sized(name):
     env = _env()
     assert name in env._sizes
     assert env._sizes[name] >= 1
+
+
+class TestOperationsThatCanNeverDecodeAreMasked:
+    """`craft_recipe`, `set_recipe_at` and `cancel_request` take a `recipe` or a
+    `target_request_id`, and no dimension offers either. They were decode
+    failures every time they were sampled, yet the operation mask was the
+    catalog's own, so `craft_recipe` stayed legal whenever `recipes` was
+    non-empty -- a free no-op the policy could learn to spend probability on."""
+
+    def test_undecodable_operations_are_illegal_even_with_recipes_in_view(self):
+        env = _env(recipes=[{"name": "iron-gear-wheel", "craftable": 3}])
+        keys = env.env.catalog.keys()
+        operations = env.action_masks()[: int(env.action_space.nvec[0])]
+        for key in ("craft_recipe", "set_recipe_at", "cancel_request"):
+            if key in keys:
+                assert not operations[keys.index(key)], f"{key} can never decode"
+
+    def test_every_legal_operation_is_decodable(self):
+        env = _env(recipes=[{"name": "iron-gear-wheel", "craftable": 3}])
+        operations = env.action_masks()[: int(env.action_space.nvec[0])]
+        for index in np.flatnonzero(operations):
+            assert env.decodable(int(index))
+
+    def test_the_no_op_survives(self):
+        env = _env(entities=[], resources={"tiles": []}, inventory={})
+        operations = env.action_masks()[: int(env.action_space.nvec[0])]
+        assert operations[env.env.catalog.wait_index]
+
+
+class TestAnItemCanBeTakenThatIsNotYetHeld:
+    """The item dimension offered only what the character held. `take_from`
+    validates against `source_items` -- what visible entities hold -- so the
+    first plate out of a furnace, or anything out of a chest the character had
+    none of, could never be requested at all."""
+
+    def _item_mask(self, env):
+        mask = env.action_masks()
+        offset = int(sum(env.action_space.nvec[:4]))
+        item_mask = mask[offset : offset + int(env.action_space.nvec[4])]
+        return {encoders.ITEMS[i - 1] for i in np.flatnonzero(item_mask) if i != UNUSED}
+
+    def test_an_item_inside_a_visible_container_is_nameable(self):
+        env = _env(
+            entities=[
+                {"h": "e2", "p": [-3.5, 0.5], "type": "container", "contents": {"iron-plate": 7}},
+            ],
+        )
+        assert self._item_mask(env) == {"transport-belt", "iron-plate"}
+
+    def test_furnace_output_is_nameable(self):
+        env = _env(
+            inventory={},
+            entities=[
+                {"h": "f1", "p": [1.5, 1.5], "type": "furnace", "output": {"iron-plate": 2}},
+            ],
+        )
+        assert "iron-plate" in self._item_mask(env)
+
+
+class TestOnePlaceDecidesTheActionSpace:
+    """Training, evaluation, baselines and every vectorised worker wrapped the
+    environment by hand, and each knew only about `SkillEnv`. A task on
+    `parameterized-v1` therefore reached the learner as `Discrete(len(catalog))`,
+    and stepping any template with a `?` argument through that path raises."""
+
+    def test_a_parameterized_catalog_gets_the_factorized_space(self):
+        from factoriorl.parameterized import wrap_for_policy
+
+        wrapped = wrap_for_policy(_Inner())
+        assert isinstance(wrapped, ParameterizedEnv)
+        assert isinstance(wrapped.action_space, spaces.MultiDiscrete)
+
+    def test_a_primitive_catalog_is_left_alone(self):
+        from factoriorl.parameterized import wrap_for_policy
+
+        inner = _Inner(catalog="primitive-v1")
+        assert wrap_for_policy(inner) is inner
+
+    def test_skills_over_a_parameterized_catalog_is_refused_not_ignored(self):
+        from factoriorl.parameterized import wrap_for_policy
+
+        with pytest.raises(ValueError, match="parameterized catalog"):
+            wrap_for_policy(_Inner(), skills=True)
+
+    def test_train_and_the_vectorised_workers_use_it(self):
+        """A guard on the wiring itself: the bug was four hand-written copies."""
+        import inspect
+
+        from factoriorl import vecenv
+        from factoriorl.learn import train
+
+        assert "wrap_for_policy" in inspect.getsource(train._wrap)
+        assert "wrap_for_policy(env, skills)" in inspect.getsource(vecenv)
+
+
+class TestTheRandomFloorSamplesTheRealActionSpace:
+    """`rng.choice(np.flatnonzero(mask))` is a catalog index for `Discrete` and
+    nonsense for `MultiDiscrete`, where the flat mask is every dimension
+    concatenated: the "random action" was an index into that concatenation."""
+
+    def test_each_dimension_is_sampled_from_its_own_legal_values(self):
+        from factoriorl.parameterized import sample_masked
+
+        env = _env()
+        rng = np.random.default_rng(0)
+        mask = env.action_masks()
+        for _ in range(200):
+            action = sample_masked(env.action_space, mask, rng)
+            assert action.shape == env.action_space.nvec.shape
+            offset = 0
+            for value, size in zip(action, env.action_space.nvec, strict=True):
+                assert 0 <= value < size
+                assert mask[offset + int(value)], "sampled a masked value"
+                offset += int(size)
+
+    def test_a_discrete_space_still_gets_a_catalog_index(self):
+        from factoriorl.parameterized import sample_masked
+
+        mask = np.array([False, True, False, True])
+        rng = np.random.default_rng(0)
+        drawn = {sample_masked(spaces.Discrete(4), mask, rng) for _ in range(50)}
+        assert drawn == {1, 3}
+
+
+class TestAPolicyActionReachesTheEnvironmentIntact:
+    """`int(action)` was hard-coded where a learned policy's action meets an
+    environment -- the vectorised worker and serial evaluation. The first real
+    PPO run on a parameterized task (`build_line`) raised `TypeError: only
+    0-dimensional arrays can be converted to Python scalars` on its first step.
+    No stub test caught it because none drove `step_async`."""
+
+    def test_a_factorized_vector_is_kept_whole(self):
+        from factoriorl.parameterized import as_env_action
+
+        space = spaces.MultiDiscrete([22, 33, 122, 5, 15, 4])
+        action = as_env_action(space, np.array([12, 0, 7, 2, 0, 0]))
+        assert isinstance(action, np.ndarray)
+        assert action.tolist() == [12, 0, 7, 2, 0, 0]
+
+    def test_a_discrete_index_is_still_an_int(self):
+        from factoriorl.parameterized import as_env_action
+
+        assert as_env_action(spaces.Discrete(23), np.array(7)) == 7
+        assert as_env_action(spaces.Discrete(23), np.array([7])) == 7
+
+    def test_the_vectorised_worker_submits_the_whole_vector(self):
+        from concurrent.futures import ThreadPoolExecutor
+
+        from factoriorl.vecenv import FactorioVecEnv
+
+        received = []
+
+        class _Worker:
+            action_space = spaces.MultiDiscrete([22, 33, 122, 5, 15, 4])
+
+            def step(self, action):
+                received.append(action)
+                return None
+
+        vec = object.__new__(FactorioVecEnv)
+        vec.envs = [_Worker(), _Worker()]
+        vec._executor = ThreadPoolExecutor(max_workers=2)
+        try:
+            vec.step_async(np.array([[12, 0, 7, 2, 0, 0], [21, 0, 0, 0, 0, 0]]))
+            for future in vec._pending:
+                future.result()
+        finally:
+            vec._executor.shutdown()
+        assert sorted(a.tolist() for a in received) == [
+            [12, 0, 7, 2, 0, 0],
+            [21, 0, 0, 0, 0, 0],
+        ]

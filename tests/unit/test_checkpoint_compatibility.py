@@ -119,3 +119,35 @@ def test_a_plain_box_space_is_handled_rather_than_crashing():
         Fake(spaces.Box(-1.0, 1.0, (8,), np.float32), spaces.Discrete(4)),
     )
     assert report["compatible"] is True
+
+
+def test_two_different_factorized_action_spaces_are_not_compatible():
+    """`.n` is `None` on every `MultiDiscrete`, so the check compared `None` with
+    `None` and called any two parameterized policies compatible."""
+    from gymnasium import spaces
+
+    from factoriorl import encoders
+
+    observation = encoders.observation_space()
+    model = Fake(observation, spaces.MultiDiscrete([22, 33, 122, 5, 15, 4]))
+    env = Fake(observation, spaces.MultiDiscrete([23, 33, 122, 5, 15, 4]))
+    result = observation_compatibility(model, env)
+    assert result["comparable"] is True
+    assert result["compatible"] is False
+    assert result["actions"] == {
+        "checkpoint": [22, 33, 122, 5, 15, 4],
+        "environment": [23, 33, 122, 5, 15, 4],
+    }
+
+
+def test_matching_factorized_action_spaces_are_compatible():
+    from gymnasium import spaces
+
+    from factoriorl import encoders
+
+    observation = encoders.observation_space()
+    nvec = [22, 33, 122, 5, 15, 4]
+    result = observation_compatibility(
+        Fake(observation, spaces.MultiDiscrete(nvec)), Fake(observation, spaces.MultiDiscrete(nvec))
+    )
+    assert result["compatible"] is True

@@ -137,20 +137,48 @@ class ParameterizedEnv(gym.Env):
             "amount": list(domains["amounts"]),
         }
 
+    def decodable(self, operation: int) -> bool:
+        """Whether every argument this operation needs has a dimension to come from.
+
+        `craft_recipe`, `set_recipe_at` and `cancel_request` take a `recipe` or a
+        `target_request_id`, and no dimension offers either. They could never be
+        decoded, only sampled and turned into a counted no-op -- yet the operation
+        mask was the catalog's own, which leaves `craft_recipe` legal whenever
+        `recipes` is non-empty. The comment on `ARGUMENT_DIMENSION` said these
+        "stay masked"; nothing made that true until this.
+        """
+        template = self.env.catalog.templates[operation]
+        return all(ARGUMENT_DIMENSION.get(name) in self._sizes for name in template.arguments)
+
     def action_masks(self) -> np.ndarray:
         """Flat concatenation, in `nvec` order -- the shape sb3 splits."""
         values = self._domain_values()
         available = self.env.argument_domains()
-        parts: list[np.ndarray] = [np.asarray(self.env.action_masks(), dtype=bool)]
+        operations = np.asarray(self.env.action_masks(), dtype=bool).copy()
+        for index in range(len(operations)):
+            if operations[index] and not self.decodable(index):
+                operations[index] = False
+        parts: list[np.ndarray] = [operations]
         for name, _domain in DIMENSIONS[1:]:
             size = self._sizes[name]
             mask = np.zeros(size, dtype=bool)
             mask[UNUSED] = True  # never an all-false dimension
             legal = values.get(name, [])
             if name == "item":
-                held = set(available["items"])
+                # Everything an item argument could legally name: what the
+                # character holds (`give_to`, `place_at`) *and* what visible
+                # entities hold (`take_from`). A dimension mask is built before
+                # the operation is sampled, so it cannot tell which of the two
+                # applies; the union is the only mask that leaves both reachable.
+                #
+                # Held-only was the previous rule, and it made `take_from`
+                # unable to collect anything the character was not already
+                # carrying -- including the first plate out of a furnace. A
+                # `give_to` of an item it does not hold is still refused, by
+                # `step_arguments`, as a counted decode failure.
+                nameable = set(available["items"]) | set(available.get("source_items") or ())
                 for index, item in enumerate(legal):
-                    mask[index + 1] = item in held
+                    mask[index + 1] = item in nameable
             else:
                 for index in range(min(len(legal), size - 1)):
                     mask[index + 1] = True
@@ -222,3 +250,69 @@ class ParameterizedEnv(gym.Env):
 
     def reset(self, **kwargs):
         return self.env.reset(**kwargs)
+
+
+def wrap_for_policy(env: Any, skills: bool = False) -> Any:
+    """Give a `FactorioEnv` the action space its catalog actually has.
+
+    One function, used everywhere a policy meets an environment -- training,
+    evaluation, baselines and every vectorised worker -- because they must
+    agree, and they used to be wrapped in four places by hand. Each of those
+    only knew about `SkillEnv`, so a task on `parameterized-v1` (`build_line`,
+    `construct_smelting_line`) reached the policy as `Discrete(len(catalog))`.
+    Stepping any template with a `?` argument through that path raises, so no
+    RL run on those tasks could get past its first placement.
+    """
+    if any(template.parameterized for template in env.catalog.templates):
+        if skills:
+            raise ValueError(
+                f"{env.spec_.id} uses a parameterized catalog; skills are defined over "
+                "the discrete primitive catalog and cannot be layered on top of it"
+            )
+        return ParameterizedEnv(env)
+    if skills:
+        from factoriorl.skills import SkillEnv
+
+        return SkillEnv(env)
+    return env
+
+
+def as_env_action(space: spaces.Space, action):
+    """A policy's output in the form the environment's `step` takes.
+
+    `int(action)` was hard-coded at both places a learned policy's action
+    reaches an environment -- the vectorised worker and serial evaluation --
+    which is right for `Discrete` and raises on every `MultiDiscrete` vector.
+    The first real training run on a parameterized task died on it, on its very
+    first step.
+    """
+    if isinstance(space, spaces.MultiDiscrete):
+        return np.asarray(action, dtype=np.int64).reshape(-1)
+    return int(np.asarray(action).reshape(-1)[0])
+
+
+def sample_masked(space: spaces.Space, mask: np.ndarray, rng: np.random.Generator):
+    """One uniformly random legal action, for either kind of action space.
+
+    The random floor used to be `rng.choice(np.flatnonzero(mask))`, which is a
+    catalog index for `Discrete` and nonsense for `MultiDiscrete`: the flat mask
+    is every dimension concatenated, so a "random action" was an index into that
+    concatenation, fed to the environment as if it were one operation. A
+    factorized action is uniform per dimension over that dimension's legal
+    values, which is the distribution an untrained masked policy starts from.
+    """
+    mask = np.asarray(mask, dtype=bool)
+    if isinstance(space, spaces.MultiDiscrete):
+        action, offset = [], 0
+        for size in (int(n) for n in space.nvec):
+            legal = np.flatnonzero(mask[offset : offset + size])
+            # `UNUSED` is always legal, so an empty dimension means the mask is
+            # broken. Raise rather than pick something: sb3 turns an all-false
+            # sub-mask into a uniform draw over illegal values, silently, and a
+            # sampler that papered over it would hide the same bug.
+            if legal.size == 0:
+                raise ValueError("a dimension had no legal value")
+            action.append(int(rng.choice(legal)))
+            offset += size
+        return np.asarray(action, dtype=np.int64)
+    return int(rng.choice(np.flatnonzero(mask)))

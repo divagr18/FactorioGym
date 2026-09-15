@@ -105,22 +105,34 @@ class TestActionOutcomesReachThePolicy:
 
 
 class TestRecipesAreSelectable:
+    def _scene(self, entity_type: str) -> dict:
+        return {
+            "character": {"position": [0.0, 0.0]},
+            "entities": [{"h": "e1", "p": [1.5, 0.5], "type": entity_type}],
+            "resources": {"tiles": []},
+            "terrain": {"blocked": []},
+            "inventory": {"stone-furnace": 1},
+            "inflight": [],
+            "recipes": ["iron-plate", "stone-furnace"],
+        }
+
     def test_an_observed_recipe_becomes_a_legal_argument(self):
-        env = _Env(
-            {
-                "character": {"position": [0.0, 0.0]},
-                "entities": [{"h": "e1", "p": [1.5, 0.5], "type": "furnace"}],
-                "resources": {"tiles": []},
-                "terrain": {"blocked": []},
-                "inventory": {"stone-furnace": 1},
-                "inflight": [],
-                "recipes": ["iron-plate", "stone-furnace"],
-            }
-        )
+        env = _Env(self._scene("assembling-machine"))
         assert env.argument_domains()["recipes"] == ["iron-plate", "stone-furnace"]
         mask = dict(zip(env.catalog.keys(), env.action_masks(), strict=True))
         assert mask["craft_recipe"], "a craftable recipe must unmask crafting"
-        assert mask["set_recipe_at"]
+        assert mask["set_recipe_at"], "an assembler in view takes a recipe"
+
+    def test_a_furnace_alone_does_not_unmask_setting_a_recipe(self):
+        """A furnace picks its recipe from what it is fed; `set_recipe` raises on
+        one. This test used to assert the opposite, against a furnace -- which
+        only passed because the mask ignored `set_recipe_at`'s own handle domain
+        (`recipe_targets`, assembling machines) and checked every handle in
+        view instead."""
+        env = _Env(self._scene("furnace"))
+        mask = dict(zip(env.catalog.keys(), env.action_masks(), strict=True))
+        assert mask["craft_recipe"]
+        assert not mask["set_recipe_at"]
 
     def test_without_recipes_those_operations_stay_masked(self):
         env = _Env(

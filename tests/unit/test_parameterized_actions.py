@@ -252,10 +252,14 @@ class TestEmptyDomainsAreMasked:
         domains = env.argument_domains()
         expected = []
         for template in env.catalog.templates:
+            # The per-action override first, as `step_arguments` resolves it.
+            # This reconstruction used to read `ARGUMENT_DOMAINS` alone and so
+            # agreed with a mask that had the same defect.
+            by_key = catalog_module.ARGUMENT_DOMAINS_BY_KEY.get(template.key, {})
             legal = all(
-                domains.get(catalog_module.ARGUMENT_DOMAINS[name])
+                domains.get(by_key.get(name) or catalog_module.ARGUMENT_DOMAINS[name])
                 for name in template.arguments
-                if name in catalog_module.ARGUMENT_DOMAINS
+                if name in by_key or name in catalog_module.ARGUMENT_DOMAINS
             )
             expected.append(bool(legal) or template.action == "wait")
         assert np.array_equal(env.action_masks(), np.array(expected))
@@ -292,3 +296,33 @@ class TestPurity:
 
     def test_the_parameterized_catalog_keeps_a_wait(self):
         assert catalog_module.resolve("parameterized-v1").wait_index >= 0
+
+
+class TestTheMaskAsksTheDomainTheStepValidates:
+    """`action_masks` read `ARGUMENT_DOMAINS` alone while `step_arguments` looks
+    in `ARGUMENT_DOMAINS_BY_KEY` first. `take_from`'s `item` is overridden to
+    `source_items`, so its legality was decided against the character's own
+    inventory -- a domain it is never checked against."""
+
+    def _take_from_legal(self, observation) -> bool:
+        env = _Env(observation)
+        return bool(env.action_masks()[env.catalog.keys().index("take_from")])
+
+    def test_take_from_is_illegal_when_nothing_visible_holds_anything(self):
+        # The character holds belts, but there is nothing to take out of.
+        assert not self._take_from_legal(_observation())
+
+    def test_take_from_is_legal_when_a_chest_holds_something_you_do_not(self):
+        observation = _observation(
+            inventory={},
+            entities=[
+                {
+                    "h": "e2",
+                    "name": "wooden-chest",
+                    "type": "container",
+                    "p": [-3.5, 0.5],
+                    "contents": {"iron-plate": 4},
+                },
+            ],
+        )
+        assert self._take_from_legal(observation)

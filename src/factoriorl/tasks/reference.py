@@ -21,7 +21,6 @@ import math
 from dataclasses import dataclass, field
 
 import numpy as np
-from gymnasium import spaces
 
 from factoriorl.env import FactorioEnv
 from factoriorl.seeding import Branch
@@ -915,23 +914,13 @@ def random_rollout(env, rng: np.random.Generator, budget: int) -> bool:
     picking the argument-free actions and report a floor for a space nobody
     trains in.
     """
-    factorized = isinstance(getattr(env, "action_space", None), spaces.MultiDiscrete)
+    # One sampler for every random floor. This loop and the trainer's baselines
+    # used to be separate implementations of "uniform over legal values", and
+    # the trainer's was wrong for factorized spaces.
+    from factoriorl.parameterized import sample_masked
+
     for _ in range(budget):
-        mask = np.asarray(env.action_masks(), dtype=bool)
-        if factorized:
-            action, offset = [], 0
-            for size in (int(n) for n in env.action_space.nvec):
-                legal = np.flatnonzero(mask[offset : offset + size])
-                # `UNUSED` is always legal, so this cannot be empty; assert it
-                # rather than silently drawing from an all-false sub-mask,
-                # which sb3 turns into a uniform draw over illegal values.
-                if legal.size == 0:
-                    raise ValueError("a dimension had no legal value")
-                action.append(int(rng.choice(legal)))
-                offset += size
-            step = env.step(np.asarray(action))
-        else:
-            step = env.step(int(rng.choice(np.flatnonzero(mask))))
+        step = env.step(sample_masked(env.action_space, env.action_masks(), rng))
         _, _, terminated, truncated, info = step
         if terminated or truncated:
             return bool(info.get("success"))

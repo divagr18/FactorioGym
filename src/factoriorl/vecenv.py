@@ -31,11 +31,11 @@ from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 
 from factoriorl.env import FactorioEnv
 from factoriorl.errors import InfrastructureFailure, ProtocolError
+from factoriorl.parameterized import as_env_action, wrap_for_policy
 from factoriorl.pool import WorkerPool
 from factoriorl.rcon import RCONClient
 from factoriorl.seeding import Branch, SeedPlan
 from factoriorl.session import WorkerSession
-from factoriorl.skills import SkillEnv
 from factoriorl.tasks import RegisteredTask
 
 #: Raising this past ~30 buys nothing: the engine is already at its UPS ceiling,
@@ -129,8 +129,10 @@ class FactorioVecEnv(VecEnv):
             # assignment would land on the wrapper, leaving every worker on
             # episode stream zero.
             env._episode_index = index * 100_000 - 1
-            if skills:
-                env = SkillEnv(env)
+            # The same wrapping every other policy entry point uses. This worker
+            # used to wrap `SkillEnv` by hand, so a parameterized task reached
+            # the vectorised learner as a flat catalog index.
+            env = wrap_for_policy(env, skills)
             self.envs.append(env)
             # Stagger: the launch storm is the worst commit spike.
             time.sleep(0.15)
@@ -233,7 +235,7 @@ class FactorioVecEnv(VecEnv):
 
     def step_async(self, actions: np.ndarray) -> None:
         self._pending = [
-            self._executor.submit(env.step, int(action))
+            self._executor.submit(env.step, as_env_action(env.action_space, action))
             for env, action in zip(self.envs, actions, strict=True)
         ]
 
