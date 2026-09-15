@@ -1,0 +1,31 @@
+{
+  "id": "act_transfer_clamped",
+  "protocol": 2,
+  "description": "An overdraw moves what the source holds and says so: requested and available are published when the move was smaller than the ask. The count domain offers only 1, 5 and 20, so exact counts are usually unnameable; a strict refusal made the domain and the runtime jointly unusable.",
+  "setup": [
+    "reset"
+  ],
+  "request": {
+    "protocol": 2,
+    "request_id": "<auto>",
+    "episode_id": "<current>",
+    "type": "act",
+    "payload": {
+      "action": "transfer",
+      "from": "src",
+      "to": "character",
+      "item": "iron-plate",
+      "count": 999
+    }
+  },
+  "response": {
+    "protocol": 2,
+    "code": "ok",
+    "result": {
+      "status": "completed",
+      "count": 50,
+      "requested": 999,
+      "available": 50
+    }
+  }
+}

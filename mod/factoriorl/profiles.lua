@@ -113,7 +113,17 @@ profiles.OBSERVATION = {
     --    is unchanged; the *content* of a declared domain is not, and a
     --    checkpoint whose recipe dimension meant something else must not
     --    silently cross the boundary.
-    version = 5,
+    -- 6: `deterministic_order`. Every order in the observation is now a function
+    --    of the world alone, not of the engine's iteration order: resource tiles
+    --    by (distance, y, x, name) from a sweep the engine cannot clip, entity
+    --    distance ties by (y, x, name), `remembered` by (y, x, name, handle).
+    --    Handles are minted in that order too, so a handle's number no longer
+    --    depends on `find_entities_filtered`. A simulator that has to reproduce
+    --    this observation cannot reproduce the engine's internal order, and
+    --    before this a large patch within the 32-tile sweep could also push near
+    --    tiles out of the capped resource sweep entirely.
+    version = 6,
+    deterministic_order = true,
     radius = 32,
     entity_cap = 48,
     entity_sweep_limit = 257,
@@ -153,7 +163,12 @@ profiles.OBSERVATION = {
   -- ore does not go looking for ore.
   ["open-v1"] = {
     name = "open-v1",
-    version = 1,
+    -- 2: `deterministic_order`, for the same reason as `local-v2` v6, and
+    --    `recipe_detail` (craftable counts and missing ingredients), which only
+    --    this profile's consumer, the language-model summary, reads.
+    version = 2,
+    deterministic_order = true,
+    recipe_detail = true,
     radius = 32,
     entity_cap = 48,
     entity_sweep_limit = 257,

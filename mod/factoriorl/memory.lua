@@ -407,7 +407,7 @@ end
 
 --- Fold this sweep's visible entities into memory and return what is only
 --- remembered.
-function memory.update(visible, origin, radius)
+function memory.update(visible, origin, radius, ordered)
   local s = state()
 
   -- Terrain is folded from the same observation the entity records came from.
@@ -466,6 +466,19 @@ function memory.update(visible, origin, radius)
   for _, handle in ipairs(stale) do
     s.entries[handle] = nil
     s.count = s.count - 1
+  end
+  if ordered then
+    -- Built by `pairs()` over the store, so its order was the table's
+    -- iteration order: stable inside Factorio, specified nowhere, and not
+    -- something a simulator can reproduce. A profile with
+    -- `deterministic_order` sorts it on the world instead. The handle is the
+    -- last key only because two records cannot share a position and a name.
+    table.sort(remembered, function(a, b)
+      if a.p[2] ~= b.p[2] then return a.p[2] < b.p[2] end
+      if a.p[1] ~= b.p[1] then return a.p[1] < b.p[1] end
+      if a.name ~= b.name then return a.name < b.name end
+      return a.h < b.h
+    end)
   end
   return remembered
 end

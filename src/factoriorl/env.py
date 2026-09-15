@@ -276,12 +276,13 @@ class FactorioEnv(gym.Env):
             "amounts": list(TRANSFER_AMOUNTS),
             # Now observable (local-v2 v4), so `craft_recipe` and
             # `set_recipe_at` stop being permanently masked.
-            # Names only. The observation now carries `{name, craftable}` per
-            # recipe so the prompt can say how many you could actually make,
-            # but a *domain* is the set of legal argument values and a recipe
-            # you cannot afford is still a legal thing to ask for -- the
-            # refusal is `no_items`, which is a fact about your inventory, not
-            # about the argument.
+            # Names only. A profile with `recipe_detail` (`open-v1`) carries
+            # `{name, craftable, missing}` per recipe so the prompt can say how
+            # many you could make and what is short; `local-v2` carries plain
+            # names, because nothing on that path reads the rest. Either way a
+            # *domain* is the set of legal argument values, and a recipe you
+            # cannot afford is still a legal thing to ask for -- the refusal is
+            # `no_items`, a fact about your inventory, not about the argument.
             "recipes": [
                 entry["name"] if isinstance(entry, dict) else entry
                 for entry in (observation.get("recipes") or [])

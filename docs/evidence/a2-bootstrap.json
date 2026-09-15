@@ -69,28 +69,28 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 563.9
+      "ms": 567.7
     },
     "inflight": [
       {
-        "request_id": "step-c2f35908-6:act",
+        "request_id": "step-ff0caf6b-6:act",
         "action": "navigate",
         "started_tick": 6,
         "progress": 0.026129792431719666
       }
     ],
-    "identity": "step-c2f35908-6:act",
+    "identity": "step-ff0caf6b-6:act",
     "published_in_domain": true,
     "cancel": {
       "action": "cancel_request",
       "arguments": {
-        "target_request_id": "step-c2f35908-6:act"
+        "target_request_id": "step-ff0caf6b-6:act"
       },
       "status": "completed",
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.0
+      "ms": 532.8
     },
     "still_in_flight": [],
     "moved_after_cancel": 0.59
@@ -115,7 +115,7 @@
     "error": null,
     "terminated": false,
     "truncated": false,
-    "ms": 532.8
+    "ms": 534.0
   },
   "crafted_a_gear": true,
   "placed_furnace": true,
@@ -134,15 +134,15 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.2
+      "ms": 533.7
     }
   ],
-  "furnace_handle": "h103",
+  "furnace_handle": "h145",
   "fuel_used": "wood",
   "fuelled": {
     "action": "give_to",
     "arguments": {
-      "to": "h103",
+      "to": "h145",
       "item": "wood",
       "count": 1
     },
@@ -150,12 +150,12 @@
     "error": null,
     "terminated": false,
     "truncated": false,
-    "ms": 533.5
+    "ms": 532.7
   },
   "fed": {
     "action": "give_to",
     "arguments": {
-      "to": "h103",
+      "to": "h145",
       "item": "iron-ore",
       "count": 5
     },
@@ -163,7 +163,7 @@
     "error": null,
     "terminated": false,
     "truncated": false,
-    "ms": 533.0
+    "ms": 533.4
   },
   "waited": [
     {
@@ -178,7 +178,7 @@
       "truncated": false,
       "condition_met": true,
       "waited_steps": 30,
-      "ms": 16000.7
+      "ms": 16000.8
     },
     {
       "action": "wait_for",
@@ -192,13 +192,13 @@
       "truncated": false,
       "condition_met": false,
       "waited_steps": 60,
-      "ms": 32017.8
+      "ms": 32009.2
     }
   ],
   "inspected": {
     "action": "inspect",
     "arguments": {
-      "handle": "h103"
+      "handle": "h145"
     },
     "status": "completed",
     "error": null,
@@ -206,7 +206,7 @@
     "truncated": false,
     "inspected": {
       "seen": "now",
-      "h": "h103",
+      "h": "h145",
       "name": "stone-furnace",
       "type": "furnace",
       "p": [
@@ -222,7 +222,7 @@
       },
       "at_step": 130
     },
-    "ms": 533.2
+    "ms": 543.2
   },
   "furnace_output": "plates:5 status:18",
   "produced_plates": true,
@@ -237,17 +237,17 @@
         "action": "transfer",
         "item": "iron-plate",
         "count": 1,
-        "from": "h103",
+        "from": "h145",
         "to": "character"
       },
       "ticks_advanced": 30,
       "observation": {
         "episode_id": "ep-2",
-        "tick": 4201,
-        "absolute_tick": 4202,
+        "tick": 4199,
+        "absolute_tick": 4200,
         "profiles": {
           "observation": "open-v1",
-          "observation_version": 1,
+          "observation_version": 2,
           "action": "assisted-v1",
           "action_version": 1,
           "assistance": "navigation+bounded-batches",
@@ -292,7 +292,7 @@
             {
               "glyph": "a",
               "name": "stone-furnace",
-              "handle": "h103",
+              "handle": "h145",
               "position": [
                 -32,
                 -4
@@ -308,7 +308,7 @@
         },
         "built": [
           {
-            "h": "h103",
+            "h": "h145",
             "name": "stone-furnace",
             "type": "furnace",
             "p": [
@@ -361,7 +361,7 @@
             0.890625
           ],
           "truncated": false,
-          "handles": 103,
+          "handles": 145,
           "remembered": 1
         },
         "terrain": {
@@ -371,655 +371,7 @@
         "resources": {
           "tiles": [
             {
-              "h": "h101",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                -8.5
-              ],
-              "amount": 472
-            },
-            {
-              "h": "h50",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                -8.5
-              ],
-              "amount": 299
-            },
-            {
-              "h": "h51",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                -8.5
-              ],
-              "amount": 102
-            },
-            {
-              "h": "h102",
-              "name": "iron-ore",
-              "p": [
-                -36.5,
-                -6.5
-              ],
-              "amount": 738
-            },
-            {
-              "h": "h52",
-              "name": "iron-ore",
-              "p": [
-                -35.5,
-                -7.5
-              ],
-              "amount": 679
-            },
-            {
-              "h": "h53",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                -7.5
-              ],
-              "amount": 584
-            },
-            {
-              "h": "h54",
-              "name": "iron-ore",
-              "p": [
-                -35.5,
-                -6.5
-              ],
-              "amount": 724
-            },
-            {
-              "h": "h55",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                -6.5
-              ],
-              "amount": 669
-            },
-            {
-              "h": "h56",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                -7.5
-              ],
-              "amount": 440
-            },
-            {
-              "h": "h57",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                -7.5
-              ],
-              "amount": 259
-            },
-            {
-              "h": "h58",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                -6.5
-              ],
-              "amount": 561
-            },
-            {
-              "h": "h59",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                -6.5
-              ],
-              "amount": 405
-            },
-            {
-              "h": "h60",
-              "name": "iron-ore",
-              "p": [
-                -31.5,
-                -7.5
-              ],
-              "amount": 59
-            },
-            {
-              "h": "h7",
-              "name": "iron-ore",
-              "p": [
-                -31.5,
-                -6.5
-              ],
-              "amount": 213
-            },
-            {
-              "h": "h8",
-              "name": "iron-ore",
-              "p": [
-                -30.5,
-                -6.5
-              ],
-              "amount": 3
-            },
-            {
-              "h": "h61",
-              "name": "iron-ore",
-              "p": [
-                -36.5,
-                -5.5
-              ],
-              "amount": 748
-            },
-            {
-              "h": "h62",
-              "name": "iron-ore",
-              "p": [
-                -37.5,
-                -4.5
-              ],
-              "amount": 793
-            },
-            {
-              "h": "h63",
-              "name": "iron-ore",
-              "p": [
-                -36.5,
-                -4.5
-              ],
-              "amount": 793
-            },
-            {
-              "h": "h64",
-              "name": "iron-ore",
-              "p": [
-                -35.5,
-                -5.5
-              ],
-              "amount": 751
-            },
-            {
-              "h": "h65",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                -5.5
-              ],
-              "amount": 732
-            },
-            {
-              "h": "h66",
-              "name": "iron-ore",
-              "p": [
-                -35.5,
-                -4.5
-              ],
-              "amount": 794
-            },
-            {
-              "h": "h67",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                -4.5
-              ],
-              "amount": 782
-            },
-            {
-              "h": "h68",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                -5.5
-              ],
-              "amount": 667
-            },
-            {
-              "h": "h69",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                -5.5
-              ],
-              "amount": 544
-            },
-            {
-              "h": "h70",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                -4.5
-              ],
-              "amount": 742
-            },
-            {
-              "h": "h9",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                -4.5
-              ],
-              "amount": 652
-            },
-            {
-              "h": "h10",
-              "name": "iron-ore",
-              "p": [
-                -31.5,
-                -5.5
-              ],
-              "amount": 373
-            },
-            {
-              "h": "h11",
-              "name": "iron-ore",
-              "p": [
-                -30.5,
-                -5.5
-              ],
-              "amount": 167
-            },
-            {
-              "h": "h12",
-              "name": "iron-ore",
-              "p": [
-                -31.5,
-                -4.5
-              ],
-              "amount": 508
-            },
-            {
-              "h": "h13",
-              "name": "iron-ore",
-              "p": [
-                -30.5,
-                -4.5
-              ],
-              "amount": 319
-            },
-            {
-              "h": "h14",
-              "name": "iron-ore",
-              "p": [
-                -29.5,
-                -4.5
-              ],
-              "amount": 94
-            },
-            {
-              "h": "h71",
-              "name": "iron-ore",
-              "p": [
-                -38.5,
-                -2.5
-              ],
-              "amount": 1024
-            },
-            {
-              "h": "h72",
-              "name": "iron-ore",
-              "p": [
-                -37.5,
-                -3.5
-              ],
-              "amount": 892
-            },
-            {
-              "h": "h73",
-              "name": "iron-ore",
-              "p": [
-                -36.5,
-                -3.5
-              ],
-              "amount": 873
-            },
-            {
-              "h": "h74",
-              "name": "iron-ore",
-              "p": [
-                -37.5,
-                -2.5
-              ],
-              "amount": 1010
-            },
-            {
-              "h": "h75",
-              "name": "iron-ore",
-              "p": [
-                -36.5,
-                -2.5
-              ],
-              "amount": 964
-            },
-            {
-              "h": "h76",
-              "name": "iron-ore",
-              "p": [
-                -35.5,
-                -3.5
-              ],
-              "amount": 851
-            },
-            {
-              "h": "h77",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                -3.5
-              ],
-              "amount": 817
-            },
-            {
-              "h": "h78",
-              "name": "iron-ore",
-              "p": [
-                -35.5,
-                -2.5
-              ],
-              "amount": 898
-            },
-            {
-              "h": "h79",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                -2.5
-              ],
-              "amount": 820
-            },
-            {
-              "h": "h80",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                -3.5
-              ],
-              "amount": 768
-            },
-            {
-              "h": "h15",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                -3.5
-              ],
-              "amount": 696
-            },
-            {
-              "h": "h16",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                -2.5
-              ],
-              "amount": 740
-            },
-            {
-              "h": "h17",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                -2.5
-              ],
-              "amount": 666
-            },
-            {
-              "h": "h18",
-              "name": "iron-ore",
-              "p": [
-                -31.5,
-                -3.5
-              ],
-              "amount": 581
-            },
-            {
-              "h": "h19",
-              "name": "iron-ore",
-              "p": [
-                -30.5,
-                -3.5
-              ],
-              "amount": 419
-            },
-            {
-              "h": "h20",
-              "name": "iron-ore",
-              "p": [
-                -31.5,
-                -2.5
-              ],
-              "amount": 576
-            },
-            {
-              "h": "h21",
-              "name": "iron-ore",
-              "p": [
-                -30.5,
-                -2.5
-              ],
-              "amount": 444
-            },
-            {
-              "h": "h22",
-              "name": "iron-ore",
-              "p": [
-                -29.5,
-                -3.5
-              ],
-              "amount": 217
-            },
-            {
-              "h": "h23",
-              "name": "iron-ore",
-              "p": [
-                -29.5,
-                -2.5
-              ],
-              "amount": 279
-            },
-            {
-              "h": "h1",
-              "name": "iron-ore",
-              "p": [
-                -28.5,
-                -2.5
-              ],
-              "amount": 98
-            },
-            {
-              "h": "h81",
-              "name": "iron-ore",
-              "p": [
-                -38.5,
-                -1.5
-              ],
-              "amount": 1107
-            },
-            {
-              "h": "h82",
-              "name": "iron-ore",
-              "p": [
-                -38.5,
-                -0.5
-              ],
-              "amount": 1123
-            },
-            {
-              "h": "h83",
-              "name": "iron-ore",
-              "p": [
-                -37.5,
-                -1.5
-              ],
-              "amount": 1096
-            },
-            {
-              "h": "h84",
-              "name": "iron-ore",
-              "p": [
-                -36.5,
-                -1.5
-              ],
-              "amount": 1028
-            },
-            {
-              "h": "h85",
-              "name": "iron-ore",
-              "p": [
-                -37.5,
-                -0.5
-              ],
-              "amount": 1110
-            },
-            {
-              "h": "h86",
-              "name": "iron-ore",
-              "p": [
-                -36.5,
-                -0.5
-              ],
-              "amount": 1028
-            },
-            {
-              "h": "h87",
-              "name": "iron-ore",
-              "p": [
-                -35.5,
-                -1.5
-              ],
-              "amount": 915
-            },
-            {
-              "h": "h88",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                -1.5
-              ],
-              "amount": 785
-            },
-            {
-              "h": "h89",
-              "name": "iron-ore",
-              "p": [
-                -35.5,
-                -0.5
-              ],
-              "amount": 888
-            },
-            {
-              "h": "h90",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                -0.5
-              ],
-              "amount": 724
-            },
-            {
-              "h": "h24",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                -1.5
-              ],
-              "amount": 667
-            },
-            {
-              "h": "h25",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                -1.5
-              ],
-              "amount": 579
-            },
-            {
-              "h": "h26",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                -0.5
-              ],
-              "amount": 575
-            },
-            {
-              "h": "h27",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                -0.5
-              ],
-              "amount": 467
-            },
-            {
-              "h": "h28",
-              "name": "iron-ore",
-              "p": [
-                -31.5,
-                -1.5
-              ],
-              "amount": 503
-            },
-            {
-              "h": "h29",
-              "name": "iron-ore",
-              "p": [
-                -30.5,
-                -1.5
-              ],
-              "amount": 400
-            },
-            {
-              "h": "h30",
-              "name": "iron-ore",
-              "p": [
-                -31.5,
-                -0.5
-              ],
-              "amount": 394
-            },
-            {
-              "h": "h31",
-              "name": "iron-ore",
-              "p": [
-                -30.5,
-                -0.5
-              ],
-              "amount": 313
-            },
-            {
-              "h": "h32",
-              "name": "iron-ore",
-              "p": [
-                -29.5,
-                -1.5
-              ],
-              "amount": 271
-            },
-            {
               "h": "h2",
-              "name": "iron-ore",
-              "p": [
-                -28.5,
-                -1.5
-              ],
-              "amount": 125
-            },
-            {
-              "h": "h33",
-              "name": "iron-ore",
-              "p": [
-                -29.5,
-                -0.5
-              ],
-              "amount": 211
-            },
-            {
-              "h": "h3",
               "name": "iron-ore",
               "p": [
                 -28.5,
@@ -1028,169 +380,7 @@
               "amount": 81
             },
             {
-              "h": "h91",
-              "name": "iron-ore",
-              "p": [
-                -38.5,
-                0.5
-              ],
-              "amount": 1067
-            },
-            {
-              "h": "h92",
-              "name": "iron-ore",
-              "p": [
-                -38.5,
-                1.5
-              ],
-              "amount": 975
-            },
-            {
-              "h": "h93",
-              "name": "iron-ore",
-              "p": [
-                -37.5,
-                0.5
-              ],
-              "amount": 1055
-            },
-            {
-              "h": "h94",
-              "name": "iron-ore",
-              "p": [
-                -36.5,
-                0.5
-              ],
-              "amount": 967
-            },
-            {
-              "h": "h95",
-              "name": "iron-ore",
-              "p": [
-                -37.5,
-                1.5
-              ],
-              "amount": 966
-            },
-            {
-              "h": "h96",
-              "name": "iron-ore",
-              "p": [
-                -36.5,
-                1.5
-              ],
-              "amount": 878
-            },
-            {
-              "h": "h97",
-              "name": "iron-ore",
-              "p": [
-                -35.5,
-                0.5
-              ],
-              "amount": 818
-            },
-            {
-              "h": "h98",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                0.5
-              ],
-              "amount": 640
-            },
-            {
-              "h": "h99",
-              "name": "iron-ore",
-              "p": [
-                -35.5,
-                1.5
-              ],
-              "amount": 724
-            },
-            {
-              "h": "h100",
-              "name": "iron-ore",
-              "p": [
-                -34.5,
-                1.5
-              ],
-              "amount": 538
-            },
-            {
-              "h": "h34",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                0.5
-              ],
-              "amount": 474
-            },
-            {
-              "h": "h35",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                0.5
-              ],
-              "amount": 352
-            },
-            {
-              "h": "h36",
-              "name": "iron-ore",
-              "p": [
-                -33.5,
-                1.5
-              ],
-              "amount": 364
-            },
-            {
-              "h": "h37",
-              "name": "iron-ore",
-              "p": [
-                -32.5,
-                1.5
-              ],
-              "amount": 235
-            },
-            {
-              "h": "h38",
-              "name": "iron-ore",
-              "p": [
-                -31.5,
-                0.5
-              ],
-              "amount": 277
-            },
-            {
-              "h": "h39",
-              "name": "iron-ore",
-              "p": [
-                -30.5,
-                0.5
-              ],
-              "amount": 207
-            },
-            {
-              "h": "h40",
-              "name": "iron-ore",
-              "p": [
-                -31.5,
-                1.5
-              ],
-              "amount": 156
-            },
-            {
-              "h": "h41",
-              "name": "iron-ore",
-              "p": [
-                -30.5,
-                1.5
-              ],
-              "amount": 89
-            },
-            {
-              "h": "h4",
+              "h": "h5",
               "name": "iron-ore",
               "p": [
                 -29.5,
@@ -1206,6 +396,1266 @@
                 1.5
               ],
               "amount": 8
+            },
+            {
+              "h": "h7",
+              "name": "iron-ore",
+              "p": [
+                -29.5,
+                -0.5
+              ],
+              "amount": 211
+            },
+            {
+              "h": "h3",
+              "name": "iron-ore",
+              "p": [
+                -28.5,
+                -1.5
+              ],
+              "amount": 125
+            },
+            {
+              "h": "h8",
+              "name": "iron-ore",
+              "p": [
+                -29.5,
+                -1.5
+              ],
+              "amount": 271
+            },
+            {
+              "h": "h10",
+              "name": "iron-ore",
+              "p": [
+                -30.5,
+                0.5
+              ],
+              "amount": 207
+            },
+            {
+              "h": "h11",
+              "name": "iron-ore",
+              "p": [
+                -30.5,
+                1.5
+              ],
+              "amount": 89
+            },
+            {
+              "h": "h12",
+              "name": "iron-ore",
+              "p": [
+                -30.5,
+                -0.5
+              ],
+              "amount": 313
+            },
+            {
+              "h": "h4",
+              "name": "iron-ore",
+              "p": [
+                -28.5,
+                -2.5
+              ],
+              "amount": 98
+            },
+            {
+              "h": "h14",
+              "name": "iron-ore",
+              "p": [
+                -30.5,
+                -1.5
+              ],
+              "amount": 400
+            },
+            {
+              "h": "h9",
+              "name": "iron-ore",
+              "p": [
+                -29.5,
+                -2.5
+              ],
+              "amount": 279
+            },
+            {
+              "h": "h17",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                0.5
+              ],
+              "amount": 277
+            },
+            {
+              "h": "h18",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                1.5
+              ],
+              "amount": 156
+            },
+            {
+              "h": "h20",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                -0.5
+              ],
+              "amount": 394
+            },
+            {
+              "h": "h21",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                2.5
+              ],
+              "amount": 44
+            },
+            {
+              "h": "h15",
+              "name": "iron-ore",
+              "p": [
+                -30.5,
+                -2.5
+              ],
+              "amount": 444
+            },
+            {
+              "h": "h22",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                -1.5
+              ],
+              "amount": 503
+            },
+            {
+              "h": "h13",
+              "name": "iron-ore",
+              "p": [
+                -29.5,
+                -3.5
+              ],
+              "amount": 217
+            },
+            {
+              "h": "h26",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                0.5
+              ],
+              "amount": 352
+            },
+            {
+              "h": "h27",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                1.5
+              ],
+              "amount": 235
+            },
+            {
+              "h": "h23",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                -2.5
+              ],
+              "amount": 576
+            },
+            {
+              "h": "h19",
+              "name": "iron-ore",
+              "p": [
+                -30.5,
+                -3.5
+              ],
+              "amount": 419
+            },
+            {
+              "h": "h28",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                -0.5
+              ],
+              "amount": 467
+            },
+            {
+              "h": "h29",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                2.5
+              ],
+              "amount": 136
+            },
+            {
+              "h": "h31",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                -1.5
+              ],
+              "amount": 579
+            },
+            {
+              "h": "h16",
+              "name": "iron-ore",
+              "p": [
+                -29.5,
+                -4.5
+              ],
+              "amount": 94
+            },
+            {
+              "h": "h32",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                3.5
+              ],
+              "amount": 80
+            },
+            {
+              "h": "h25",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                -3.5
+              ],
+              "amount": 581
+            },
+            {
+              "h": "h34",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                -2.5
+              ],
+              "amount": 666
+            },
+            {
+              "h": "h24",
+              "name": "iron-ore",
+              "p": [
+                -30.5,
+                -4.5
+              ],
+              "amount": 319
+            },
+            {
+              "h": "h40",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                0.5
+              ],
+              "amount": 474
+            },
+            {
+              "h": "h41",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                1.5
+              ],
+              "amount": 364
+            },
+            {
+              "h": "h35",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                4.5
+              ],
+              "amount": 78
+            },
+            {
+              "h": "h42",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                -0.5
+              ],
+              "amount": 575
+            },
+            {
+              "h": "h43",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                2.5
+              ],
+              "amount": 272
+            },
+            {
+              "h": "h44",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                -1.5
+              ],
+              "amount": 667
+            },
+            {
+              "h": "h45",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                3.5
+              ],
+              "amount": 226
+            },
+            {
+              "h": "h37",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                -3.5
+              ],
+              "amount": 696
+            },
+            {
+              "h": "h33",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                -4.5
+              ],
+              "amount": 508
+            },
+            {
+              "h": "h38",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                5.5
+              ],
+              "amount": 114
+            },
+            {
+              "h": "h48",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                -2.5
+              ],
+              "amount": 740
+            },
+            {
+              "h": "h30",
+              "name": "iron-ore",
+              "p": [
+                -30.5,
+                -5.5
+              ],
+              "amount": 167
+            },
+            {
+              "h": "h49",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                4.5
+              ],
+              "amount": 229
+            },
+            {
+              "h": "h51",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                0.5
+              ],
+              "amount": 640
+            },
+            {
+              "h": "h52",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                1.5
+              ],
+              "amount": 538
+            },
+            {
+              "h": "h53",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                -0.5
+              ],
+              "amount": 724
+            },
+            {
+              "h": "h54",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                2.5
+              ],
+              "amount": 448
+            },
+            {
+              "h": "h46",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                -4.5
+              ],
+              "amount": 652
+            },
+            {
+              "h": "h55",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                -3.5
+              ],
+              "amount": 768
+            },
+            {
+              "h": "h56",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                -1.5
+              ],
+              "amount": 785
+            },
+            {
+              "h": "h39",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                -5.5
+              ],
+              "amount": 373
+            },
+            {
+              "h": "h47",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                6.5
+              ],
+              "amount": 154
+            },
+            {
+              "h": "h57",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                3.5
+              ],
+              "amount": 390
+            },
+            {
+              "h": "h58",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                5.5
+              ],
+              "amount": 262
+            },
+            {
+              "h": "h59",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                -2.5
+              ],
+              "amount": 820
+            },
+            {
+              "h": "h36",
+              "name": "iron-ore",
+              "p": [
+                -30.5,
+                -6.5
+              ],
+              "amount": 3
+            },
+            {
+              "h": "h60",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                4.5
+              ],
+              "amount": 362
+            },
+            {
+              "h": "h62",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                -4.5
+              ],
+              "amount": 742
+            },
+            {
+              "h": "h61",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                -5.5
+              ],
+              "amount": 544
+            },
+            {
+              "h": "h63",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                0.5
+              ],
+              "amount": 818
+            },
+            {
+              "h": "h64",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                1.5
+              ],
+              "amount": 724
+            },
+            {
+              "h": "h67",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                -0.5
+              ],
+              "amount": 888
+            },
+            {
+              "h": "h65",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                6.5
+              ],
+              "amount": 288
+            },
+            {
+              "h": "h68",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                2.5
+              ],
+              "amount": 626
+            },
+            {
+              "h": "h66",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                7.5
+              ],
+              "amount": 163
+            },
+            {
+              "h": "h69",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                -3.5
+              ],
+              "amount": 817
+            },
+            {
+              "h": "h50",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                -6.5
+              ],
+              "amount": 213
+            },
+            {
+              "h": "h70",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                5.5
+              ],
+              "amount": 355
+            },
+            {
+              "h": "h71",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                -1.5
+              ],
+              "amount": 915
+            },
+            {
+              "h": "h72",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                3.5
+              ],
+              "amount": 535
+            },
+            {
+              "h": "h73",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                -5.5
+              ],
+              "amount": 667
+            },
+            {
+              "h": "h74",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                -2.5
+              ],
+              "amount": 898
+            },
+            {
+              "h": "h76",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                4.5
+              ],
+              "amount": 460
+            },
+            {
+              "h": "h77",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                -4.5
+              ],
+              "amount": 782
+            },
+            {
+              "h": "h75",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                -6.5
+              ],
+              "amount": 405
+            },
+            {
+              "h": "h78",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                7.5
+              ],
+              "amount": 280
+            },
+            {
+              "h": "h79",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                6.5
+              ],
+              "amount": 345
+            },
+            {
+              "h": "h80",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                8.5
+              ],
+              "amount": 128
+            },
+            {
+              "h": "h81",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                0.5
+              ],
+              "amount": 967
+            },
+            {
+              "h": "h82",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                1.5
+              ],
+              "amount": 878
+            },
+            {
+              "h": "h84",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                -3.5
+              ],
+              "amount": 851
+            },
+            {
+              "h": "h85",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                -0.5
+              ],
+              "amount": 1028
+            },
+            {
+              "h": "h83",
+              "name": "iron-ore",
+              "p": [
+                -31.5,
+                -7.5
+              ],
+              "amount": 59
+            },
+            {
+              "h": "h86",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                2.5
+              ],
+              "amount": 768
+            },
+            {
+              "h": "h87",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                5.5
+              ],
+              "amount": 399
+            },
+            {
+              "h": "h88",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                -1.5
+              ],
+              "amount": 1028
+            },
+            {
+              "h": "h90",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                3.5
+              ],
+              "amount": 643
+            },
+            {
+              "h": "h91",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                -5.5
+              ],
+              "amount": 732
+            },
+            {
+              "h": "h89",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                -6.5
+              ],
+              "amount": 561
+            },
+            {
+              "h": "h92",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                7.5
+              ],
+              "amount": 307
+            },
+            {
+              "h": "h93",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                8.5
+              ],
+              "amount": 231
+            },
+            {
+              "h": "h95",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                -4.5
+              ],
+              "amount": 794
+            },
+            {
+              "h": "h96",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                -2.5
+              ],
+              "amount": 964
+            },
+            {
+              "h": "h94",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                -7.5
+              ],
+              "amount": 259
+            },
+            {
+              "h": "h97",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                4.5
+              ],
+              "amount": 522
+            },
+            {
+              "h": "h98",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                6.5
+              ],
+              "amount": 341
+            },
+            {
+              "h": "h99",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                9.5
+              ],
+              "amount": 81
+            },
+            {
+              "h": "h100",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                -3.5
+              ],
+              "amount": 873
+            },
+            {
+              "h": "h101",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                0.5
+              ],
+              "amount": 1055
+            },
+            {
+              "h": "h102",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                1.5
+              ],
+              "amount": 966
+            },
+            {
+              "h": "h104",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                5.5
+              ],
+              "amount": 412
+            },
+            {
+              "h": "h103",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                -6.5
+              ],
+              "amount": 669
+            },
+            {
+              "h": "h105",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                -0.5
+              ],
+              "amount": 1110
+            },
+            {
+              "h": "h107",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                2.5
+              ],
+              "amount": 847
+            },
+            {
+              "h": "h108",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                -5.5
+              ],
+              "amount": 751
+            },
+            {
+              "h": "h106",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                -7.5
+              ],
+              "amount": 440
+            },
+            {
+              "h": "h109",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                8.5
+              ],
+              "amount": 245
+            },
+            {
+              "h": "h110",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                -1.5
+              ],
+              "amount": 1096
+            },
+            {
+              "h": "h111",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                7.5
+              ],
+              "amount": 272
+            },
+            {
+              "h": "h113",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                3.5
+              ],
+              "amount": 705
+            },
+            {
+              "h": "h112",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                9.5
+              ],
+              "amount": 169
+            },
+            {
+              "h": "h115",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                -4.5
+              ],
+              "amount": 793
+            },
+            {
+              "h": "h114",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                -8.5
+              ],
+              "amount": 102
+            },
+            {
+              "h": "h116",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                -2.5
+              ],
+              "amount": 1010
+            },
+            {
+              "h": "h117",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                6.5
+              ],
+              "amount": 312
+            },
+            {
+              "h": "h119",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                4.5
+              ],
+              "amount": 557
+            },
+            {
+              "h": "h118",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                10.5
+              ],
+              "amount": 51
+            },
+            {
+              "h": "h121",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                -6.5
+              ],
+              "amount": 724
+            },
+            {
+              "h": "h120",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                -7.5
+              ],
+              "amount": 584
+            },
+            {
+              "h": "h122",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                -3.5
+              ],
+              "amount": 892
+            },
+            {
+              "h": "h123",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                8.5
+              ],
+              "amount": 200
+            },
+            {
+              "h": "h124",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                9.5
+              ],
+              "amount": 171
+            },
+            {
+              "h": "h126",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                -5.5
+              ],
+              "amount": 748
+            },
+            {
+              "h": "h127",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                5.5
+              ],
+              "amount": 420
+            },
+            {
+              "h": "h125",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                -8.5
+              ],
+              "amount": 299
+            },
+            {
+              "h": "h128",
+              "name": "iron-ore",
+              "p": [
+                -38.5,
+                0.5
+              ],
+              "amount": 1067
+            },
+            {
+              "h": "h129",
+              "name": "iron-ore",
+              "p": [
+                -38.5,
+                1.5
+              ],
+              "amount": 975
+            },
+            {
+              "h": "h131",
+              "name": "iron-ore",
+              "p": [
+                -38.5,
+                -0.5
+              ],
+              "amount": 1123
+            },
+            {
+              "h": "h130",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                7.5
+              ],
+              "amount": 224
+            },
+            {
+              "h": "h133",
+              "name": "iron-ore",
+              "p": [
+                -38.5,
+                2.5
+              ],
+              "amount": 856
+            },
+            {
+              "h": "h132",
+              "name": "iron-ore",
+              "p": [
+                -33.5,
+                10.5
+              ],
+              "amount": 117
+            },
+            {
+              "h": "h134",
+              "name": "iron-ore",
+              "p": [
+                -38.5,
+                -1.5
+              ],
+              "amount": 1107
+            },
+            {
+              "h": "h135",
+              "name": "iron-ore",
+              "p": [
+                -38.5,
+                3.5
+              ],
+              "amount": 719
+            },
+            {
+              "h": "h136",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                -4.5
+              ],
+              "amount": 793
+            },
+            {
+              "h": "h137",
+              "name": "iron-ore",
+              "p": [
+                -37.5,
+                6.5
+              ],
+              "amount": 306
+            },
+            {
+              "h": "h138",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                -7.5
+              ],
+              "amount": 679
+            },
+            {
+              "h": "h140",
+              "name": "iron-ore",
+              "p": [
+                -38.5,
+                -2.5
+              ],
+              "amount": 1024
+            },
+            {
+              "h": "h139",
+              "name": "iron-ore",
+              "p": [
+                -32.5,
+                11.5
+              ],
+              "amount": 24
+            },
+            {
+              "h": "h141",
+              "name": "iron-ore",
+              "p": [
+                -38.5,
+                4.5
+              ],
+              "amount": 582
+            },
+            {
+              "h": "h142",
+              "name": "iron-ore",
+              "p": [
+                -36.5,
+                -6.5
+              ],
+              "amount": 738
+            },
+            {
+              "h": "h143",
+              "name": "iron-ore",
+              "p": [
+                -34.5,
+                -8.5
+              ],
+              "amount": 472
+            },
+            {
+              "h": "h144",
+              "name": "iron-ore",
+              "p": [
+                -35.5,
+                9.5
+              ],
+              "amount": 121
             }
           ],
           "patches": [
@@ -1222,7 +1672,7 @@
         },
         "entities": [
           {
-            "h": "h103",
+            "h": "h145",
             "name": "stone-furnace",
             "type": "furnace",
             "p": [
@@ -1247,7 +1697,7 @@
         "events": [
           {
             "seq": 1,
-            "request_id": "step-c2f35908-6",
+            "request_id": "step-ff0caf6b-6",
             "action": {
               "status": "cancelled",
               "action": "navigate",
@@ -1407,18 +1857,18 @@
           },
           {
             "seq": 2,
-            "request_id": "step-c2f35908-6:act",
+            "request_id": "step-ff0caf6b-6:act",
             "action": "navigate",
             "status": "cancelled",
             "tick": 39
           },
           {
             "seq": 3,
-            "request_id": "step-c2f35908-8",
+            "request_id": "step-ff0caf6b-8",
             "action": {
               "status": "completed",
               "action": "cancel",
-              "target_request_id": "step-c2f35908-6:act",
+              "target_request_id": "step-ff0caf6b-6:act",
               "cancelled_action": "navigate",
               "result": {
                 "action": "navigate",
@@ -1443,7 +1893,7 @@
           },
           {
             "seq": 4,
-            "request_id": "step-c2f35908-10",
+            "request_id": "step-ff0caf6b-10",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1453,7 +1903,7 @@
           },
           {
             "seq": 5,
-            "request_id": "step-c2f35908-12",
+            "request_id": "step-ff0caf6b-12",
             "action": {
               "status": "completed",
               "action": "navigate",
@@ -1501,7 +1951,7 @@
           },
           {
             "seq": 6,
-            "request_id": "step-c2f35908-14",
+            "request_id": "step-ff0caf6b-14",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1511,7 +1961,7 @@
           },
           {
             "seq": 7,
-            "request_id": "step-c2f35908-16",
+            "request_id": "step-ff0caf6b-16",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1521,7 +1971,7 @@
           },
           {
             "seq": 8,
-            "request_id": "step-c2f35908-18",
+            "request_id": "step-ff0caf6b-18",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1531,7 +1981,7 @@
           },
           {
             "seq": 9,
-            "request_id": "step-c2f35908-20",
+            "request_id": "step-ff0caf6b-20",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1541,14 +1991,14 @@
           },
           {
             "seq": 10,
-            "request_id": "step-c2f35908-12:act",
+            "request_id": "step-ff0caf6b-12:act",
             "action": "navigate",
             "status": "completed",
             "tick": 262
           },
           {
             "seq": 11,
-            "request_id": "step-c2f35908-22",
+            "request_id": "step-ff0caf6b-22",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1558,11 +2008,11 @@
           },
           {
             "seq": 12,
-            "request_id": "step-c2f35908-24",
+            "request_id": "step-ff0caf6b-24",
             "action": {
               "status": "failed",
               "action": "mine",
-              "target": "h5",
+              "target": "h1",
               "item": "iron-ore",
               "count": 5,
               "mining_time": 1,
@@ -1574,7 +2024,7 @@
           },
           {
             "seq": 13,
-            "request_id": "step-c2f35908-26",
+            "request_id": "step-ff0caf6b-26",
             "action": {
               "status": "rejected",
               "error": {
@@ -1587,7 +2037,7 @@
           },
           {
             "seq": 14,
-            "request_id": "step-c2f35908-28",
+            "request_id": "step-ff0caf6b-28",
             "action": {
               "status": "rejected",
               "error": {
@@ -1600,7 +2050,7 @@
           },
           {
             "seq": 15,
-            "request_id": "step-c2f35908-30",
+            "request_id": "step-ff0caf6b-30",
             "action": {
               "status": "rejected",
               "error": {
@@ -1613,7 +2063,7 @@
           },
           {
             "seq": 16,
-            "request_id": "step-c2f35908-32",
+            "request_id": "step-ff0caf6b-32",
             "action": {
               "status": "rejected",
               "error": {
@@ -1626,7 +2076,7 @@
           },
           {
             "seq": 17,
-            "request_id": "step-c2f35908-34",
+            "request_id": "step-ff0caf6b-34",
             "action": {
               "status": "rejected",
               "error": {
@@ -1639,7 +2089,7 @@
           },
           {
             "seq": 18,
-            "request_id": "step-c2f35908-36",
+            "request_id": "step-ff0caf6b-36",
             "action": {
               "status": "rejected",
               "error": {
@@ -1652,14 +2102,14 @@
           },
           {
             "seq": 19,
-            "request_id": "step-c2f35908-24:act",
+            "request_id": "step-ff0caf6b-24:act",
             "action": "mine",
             "status": "failed",
             "tick": 537
           },
           {
             "seq": 20,
-            "request_id": "step-c2f35908-38",
+            "request_id": "step-ff0caf6b-38",
             "action": {
               "status": "rejected",
               "error": {
@@ -1672,11 +2122,11 @@
           },
           {
             "seq": 21,
-            "request_id": "step-c2f35908-40",
+            "request_id": "step-ff0caf6b-40",
             "action": {
               "status": "completed",
               "action": "mine",
-              "target": "h3",
+              "target": "h2",
               "item": "iron-ore",
               "count": 5,
               "mining_time": 1,
@@ -1687,7 +2137,7 @@
           },
           {
             "seq": 22,
-            "request_id": "step-c2f35908-42",
+            "request_id": "step-ff0caf6b-42",
             "action": {
               "status": "rejected",
               "error": {
@@ -1700,7 +2150,7 @@
           },
           {
             "seq": 23,
-            "request_id": "step-c2f35908-44",
+            "request_id": "step-ff0caf6b-44",
             "action": {
               "status": "rejected",
               "error": {
@@ -1713,7 +2163,7 @@
           },
           {
             "seq": 24,
-            "request_id": "step-c2f35908-46",
+            "request_id": "step-ff0caf6b-46",
             "action": {
               "status": "rejected",
               "error": {
@@ -1726,7 +2176,7 @@
           },
           {
             "seq": 25,
-            "request_id": "step-c2f35908-48",
+            "request_id": "step-ff0caf6b-48",
             "action": {
               "status": "rejected",
               "error": {
@@ -1739,7 +2189,7 @@
           },
           {
             "seq": 26,
-            "request_id": "step-c2f35908-50",
+            "request_id": "step-ff0caf6b-50",
             "action": {
               "status": "rejected",
               "error": {
@@ -1752,7 +2202,7 @@
           },
           {
             "seq": 27,
-            "request_id": "step-c2f35908-52",
+            "request_id": "step-ff0caf6b-52",
             "action": {
               "status": "rejected",
               "error": {
@@ -1765,7 +2215,7 @@
           },
           {
             "seq": 28,
-            "request_id": "step-c2f35908-54",
+            "request_id": "step-ff0caf6b-54",
             "action": {
               "status": "rejected",
               "error": {
@@ -1778,7 +2228,7 @@
           },
           {
             "seq": 29,
-            "request_id": "step-c2f35908-56",
+            "request_id": "step-ff0caf6b-56",
             "action": {
               "status": "rejected",
               "error": {
@@ -1791,7 +2241,7 @@
           },
           {
             "seq": 30,
-            "request_id": "step-c2f35908-58",
+            "request_id": "step-ff0caf6b-58",
             "action": {
               "status": "rejected",
               "error": {
@@ -1804,7 +2254,7 @@
           },
           {
             "seq": 31,
-            "request_id": "step-c2f35908-60",
+            "request_id": "step-ff0caf6b-60",
             "action": {
               "status": "rejected",
               "error": {
@@ -1817,7 +2267,7 @@
           },
           {
             "seq": 32,
-            "request_id": "step-c2f35908-62",
+            "request_id": "step-ff0caf6b-62",
             "action": {
               "status": "rejected",
               "error": {
@@ -1830,7 +2280,7 @@
           },
           {
             "seq": 33,
-            "request_id": "step-c2f35908-64",
+            "request_id": "step-ff0caf6b-64",
             "action": {
               "status": "completed",
               "action": "craft",
@@ -1844,14 +2294,14 @@
           },
           {
             "seq": 34,
-            "request_id": "step-c2f35908-64:act",
+            "request_id": "step-ff0caf6b-64:act",
             "action": "craft",
             "status": "completed",
             "tick": 966
           },
           {
             "seq": 35,
-            "request_id": "step-c2f35908-66",
+            "request_id": "step-ff0caf6b-66",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1861,7 +2311,7 @@
           },
           {
             "seq": 36,
-            "request_id": "step-c2f35908-68",
+            "request_id": "step-ff0caf6b-68",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1871,7 +2321,7 @@
           },
           {
             "seq": 37,
-            "request_id": "step-c2f35908-70",
+            "request_id": "step-ff0caf6b-70",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1881,7 +2331,7 @@
           },
           {
             "seq": 38,
-            "request_id": "step-c2f35908-72",
+            "request_id": "step-ff0caf6b-72",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1891,7 +2341,7 @@
           },
           {
             "seq": 39,
-            "request_id": "step-c2f35908-74",
+            "request_id": "step-ff0caf6b-74",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1901,14 +2351,14 @@
           },
           {
             "seq": 40,
-            "request_id": "step-c2f35908-40:act",
+            "request_id": "step-ff0caf6b-40:act",
             "action": "mine",
             "status": "completed",
             "tick": 1156
           },
           {
             "seq": 41,
-            "request_id": "step-c2f35908-76",
+            "request_id": "step-ff0caf6b-76",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1918,12 +2368,12 @@
           },
           {
             "seq": 42,
-            "request_id": "step-c2f35908-78",
+            "request_id": "step-ff0caf6b-78",
             "action": {
               "status": "completed",
               "action": "place",
               "entity": "stone-furnace",
-              "handle": "h103",
+              "handle": "h145",
               "position": [
                 -32,
                 -4
@@ -1934,35 +2384,35 @@
           },
           {
             "seq": 43,
-            "request_id": "step-c2f35908-80",
+            "request_id": "step-ff0caf6b-80",
             "action": {
               "status": "completed",
               "action": "transfer",
               "item": "wood",
               "count": 1,
               "from": "character",
-              "to": "h103"
+              "to": "h145"
             },
             "status": "completed",
             "tick": 1221
           },
           {
             "seq": 44,
-            "request_id": "step-c2f35908-82",
+            "request_id": "step-ff0caf6b-82",
             "action": {
               "status": "completed",
               "action": "transfer",
               "item": "iron-ore",
               "count": 5,
               "from": "character",
-              "to": "h103"
+              "to": "h145"
             },
             "status": "completed",
             "tick": 1253
           },
           {
             "seq": 45,
-            "request_id": "step-c2f35908-84",
+            "request_id": "step-ff0caf6b-84",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1972,7 +2422,7 @@
           },
           {
             "seq": 46,
-            "request_id": "step-c2f35908-86",
+            "request_id": "step-ff0caf6b-86",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1982,7 +2432,7 @@
           },
           {
             "seq": 47,
-            "request_id": "step-c2f35908-88",
+            "request_id": "step-ff0caf6b-88",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -1992,7 +2442,7 @@
           },
           {
             "seq": 48,
-            "request_id": "step-c2f35908-90",
+            "request_id": "step-ff0caf6b-90",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2002,7 +2452,7 @@
           },
           {
             "seq": 49,
-            "request_id": "step-c2f35908-92",
+            "request_id": "step-ff0caf6b-92",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2012,7 +2462,7 @@
           },
           {
             "seq": 50,
-            "request_id": "step-c2f35908-94",
+            "request_id": "step-ff0caf6b-94",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2022,7 +2472,7 @@
           },
           {
             "seq": 51,
-            "request_id": "step-c2f35908-96",
+            "request_id": "step-ff0caf6b-96",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2032,7 +2482,7 @@
           },
           {
             "seq": 52,
-            "request_id": "step-c2f35908-98",
+            "request_id": "step-ff0caf6b-98",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2042,7 +2492,7 @@
           },
           {
             "seq": 53,
-            "request_id": "step-c2f35908-100",
+            "request_id": "step-ff0caf6b-100",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2052,7 +2502,7 @@
           },
           {
             "seq": 54,
-            "request_id": "step-c2f35908-102",
+            "request_id": "step-ff0caf6b-102",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2062,7 +2512,7 @@
           },
           {
             "seq": 55,
-            "request_id": "step-c2f35908-104",
+            "request_id": "step-ff0caf6b-104",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2072,7 +2522,7 @@
           },
           {
             "seq": 56,
-            "request_id": "step-c2f35908-106",
+            "request_id": "step-ff0caf6b-106",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2082,7 +2532,7 @@
           },
           {
             "seq": 57,
-            "request_id": "step-c2f35908-108",
+            "request_id": "step-ff0caf6b-108",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2092,7 +2542,7 @@
           },
           {
             "seq": 58,
-            "request_id": "step-c2f35908-110",
+            "request_id": "step-ff0caf6b-110",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2102,7 +2552,7 @@
           },
           {
             "seq": 59,
-            "request_id": "step-c2f35908-112",
+            "request_id": "step-ff0caf6b-112",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2112,7 +2562,7 @@
           },
           {
             "seq": 60,
-            "request_id": "step-c2f35908-114",
+            "request_id": "step-ff0caf6b-114",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2122,7 +2572,7 @@
           },
           {
             "seq": 61,
-            "request_id": "step-c2f35908-116",
+            "request_id": "step-ff0caf6b-116",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2132,7 +2582,7 @@
           },
           {
             "seq": 62,
-            "request_id": "step-c2f35908-118",
+            "request_id": "step-ff0caf6b-118",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2142,7 +2592,7 @@
           },
           {
             "seq": 63,
-            "request_id": "step-c2f35908-120",
+            "request_id": "step-ff0caf6b-120",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2152,7 +2602,7 @@
           },
           {
             "seq": 64,
-            "request_id": "step-c2f35908-122",
+            "request_id": "step-ff0caf6b-122",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2162,7 +2612,7 @@
           },
           {
             "seq": 65,
-            "request_id": "step-c2f35908-124",
+            "request_id": "step-ff0caf6b-124",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2172,7 +2622,7 @@
           },
           {
             "seq": 66,
-            "request_id": "step-c2f35908-126",
+            "request_id": "step-ff0caf6b-126",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2182,7 +2632,7 @@
           },
           {
             "seq": 67,
-            "request_id": "step-c2f35908-128",
+            "request_id": "step-ff0caf6b-128",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2192,7 +2642,7 @@
           },
           {
             "seq": 68,
-            "request_id": "step-c2f35908-130",
+            "request_id": "step-ff0caf6b-130",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2202,7 +2652,7 @@
           },
           {
             "seq": 69,
-            "request_id": "step-c2f35908-132",
+            "request_id": "step-ff0caf6b-132",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2212,7 +2662,7 @@
           },
           {
             "seq": 70,
-            "request_id": "step-c2f35908-134",
+            "request_id": "step-ff0caf6b-134",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2222,7 +2672,7 @@
           },
           {
             "seq": 71,
-            "request_id": "step-c2f35908-136",
+            "request_id": "step-ff0caf6b-136",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2232,7 +2682,7 @@
           },
           {
             "seq": 72,
-            "request_id": "step-c2f35908-138",
+            "request_id": "step-ff0caf6b-138",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2242,7 +2692,7 @@
           },
           {
             "seq": 73,
-            "request_id": "step-c2f35908-140",
+            "request_id": "step-ff0caf6b-140",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2252,7 +2702,7 @@
           },
           {
             "seq": 74,
-            "request_id": "step-c2f35908-142",
+            "request_id": "step-ff0caf6b-142",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2262,7 +2712,7 @@
           },
           {
             "seq": 75,
-            "request_id": "step-c2f35908-144",
+            "request_id": "step-ff0caf6b-144",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2272,7 +2722,7 @@
           },
           {
             "seq": 76,
-            "request_id": "step-c2f35908-146",
+            "request_id": "step-ff0caf6b-146",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2282,7 +2732,7 @@
           },
           {
             "seq": 77,
-            "request_id": "step-c2f35908-148",
+            "request_id": "step-ff0caf6b-148",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2292,7 +2742,7 @@
           },
           {
             "seq": 78,
-            "request_id": "step-c2f35908-150",
+            "request_id": "step-ff0caf6b-150",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2302,7 +2752,7 @@
           },
           {
             "seq": 79,
-            "request_id": "step-c2f35908-152",
+            "request_id": "step-ff0caf6b-152",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2312,7 +2762,7 @@
           },
           {
             "seq": 80,
-            "request_id": "step-c2f35908-154",
+            "request_id": "step-ff0caf6b-154",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2322,7 +2772,7 @@
           },
           {
             "seq": 81,
-            "request_id": "step-c2f35908-156",
+            "request_id": "step-ff0caf6b-156",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2332,7 +2782,7 @@
           },
           {
             "seq": 82,
-            "request_id": "step-c2f35908-158",
+            "request_id": "step-ff0caf6b-158",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2342,7 +2792,7 @@
           },
           {
             "seq": 83,
-            "request_id": "step-c2f35908-160",
+            "request_id": "step-ff0caf6b-160",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2352,7 +2802,7 @@
           },
           {
             "seq": 84,
-            "request_id": "step-c2f35908-162",
+            "request_id": "step-ff0caf6b-162",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2362,7 +2812,7 @@
           },
           {
             "seq": 85,
-            "request_id": "step-c2f35908-164",
+            "request_id": "step-ff0caf6b-164",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2372,7 +2822,7 @@
           },
           {
             "seq": 86,
-            "request_id": "step-c2f35908-166",
+            "request_id": "step-ff0caf6b-166",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2382,7 +2832,7 @@
           },
           {
             "seq": 87,
-            "request_id": "step-c2f35908-168",
+            "request_id": "step-ff0caf6b-168",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2392,7 +2842,7 @@
           },
           {
             "seq": 88,
-            "request_id": "step-c2f35908-170",
+            "request_id": "step-ff0caf6b-170",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2402,7 +2852,7 @@
           },
           {
             "seq": 89,
-            "request_id": "step-c2f35908-172",
+            "request_id": "step-ff0caf6b-172",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2412,7 +2862,7 @@
           },
           {
             "seq": 90,
-            "request_id": "step-c2f35908-174",
+            "request_id": "step-ff0caf6b-174",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2422,7 +2872,7 @@
           },
           {
             "seq": 91,
-            "request_id": "step-c2f35908-176",
+            "request_id": "step-ff0caf6b-176",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2432,7 +2882,7 @@
           },
           {
             "seq": 92,
-            "request_id": "step-c2f35908-178",
+            "request_id": "step-ff0caf6b-178",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2442,7 +2892,7 @@
           },
           {
             "seq": 93,
-            "request_id": "step-c2f35908-180",
+            "request_id": "step-ff0caf6b-180",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2452,7 +2902,7 @@
           },
           {
             "seq": 94,
-            "request_id": "step-c2f35908-182",
+            "request_id": "step-ff0caf6b-182",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2462,7 +2912,7 @@
           },
           {
             "seq": 95,
-            "request_id": "step-c2f35908-184",
+            "request_id": "step-ff0caf6b-184",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2472,7 +2922,7 @@
           },
           {
             "seq": 96,
-            "request_id": "step-c2f35908-186",
+            "request_id": "step-ff0caf6b-186",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2482,7 +2932,7 @@
           },
           {
             "seq": 97,
-            "request_id": "step-c2f35908-188",
+            "request_id": "step-ff0caf6b-188",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2492,7 +2942,7 @@
           },
           {
             "seq": 98,
-            "request_id": "step-c2f35908-190",
+            "request_id": "step-ff0caf6b-190",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2502,7 +2952,7 @@
           },
           {
             "seq": 99,
-            "request_id": "step-c2f35908-192",
+            "request_id": "step-ff0caf6b-192",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2512,7 +2962,7 @@
           },
           {
             "seq": 100,
-            "request_id": "step-c2f35908-194",
+            "request_id": "step-ff0caf6b-194",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2522,7 +2972,7 @@
           },
           {
             "seq": 101,
-            "request_id": "step-c2f35908-196",
+            "request_id": "step-ff0caf6b-196",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2532,7 +2982,7 @@
           },
           {
             "seq": 102,
-            "request_id": "step-c2f35908-198",
+            "request_id": "step-ff0caf6b-198",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2542,7 +2992,7 @@
           },
           {
             "seq": 103,
-            "request_id": "step-c2f35908-200",
+            "request_id": "step-ff0caf6b-200",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2552,7 +3002,7 @@
           },
           {
             "seq": 104,
-            "request_id": "step-c2f35908-202",
+            "request_id": "step-ff0caf6b-202",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2562,7 +3012,7 @@
           },
           {
             "seq": 105,
-            "request_id": "step-c2f35908-204",
+            "request_id": "step-ff0caf6b-204",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2572,7 +3022,7 @@
           },
           {
             "seq": 106,
-            "request_id": "step-c2f35908-206",
+            "request_id": "step-ff0caf6b-206",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2582,7 +3032,7 @@
           },
           {
             "seq": 107,
-            "request_id": "step-c2f35908-208",
+            "request_id": "step-ff0caf6b-208",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2592,7 +3042,7 @@
           },
           {
             "seq": 108,
-            "request_id": "step-c2f35908-210",
+            "request_id": "step-ff0caf6b-210",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2602,7 +3052,7 @@
           },
           {
             "seq": 109,
-            "request_id": "step-c2f35908-212",
+            "request_id": "step-ff0caf6b-212",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2612,7 +3062,7 @@
           },
           {
             "seq": 110,
-            "request_id": "step-c2f35908-214",
+            "request_id": "step-ff0caf6b-214",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2622,7 +3072,7 @@
           },
           {
             "seq": 111,
-            "request_id": "step-c2f35908-216",
+            "request_id": "step-ff0caf6b-216",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2632,7 +3082,7 @@
           },
           {
             "seq": 112,
-            "request_id": "step-c2f35908-218",
+            "request_id": "step-ff0caf6b-218",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2642,7 +3092,7 @@
           },
           {
             "seq": 113,
-            "request_id": "step-c2f35908-220",
+            "request_id": "step-ff0caf6b-220",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2652,7 +3102,7 @@
           },
           {
             "seq": 114,
-            "request_id": "step-c2f35908-222",
+            "request_id": "step-ff0caf6b-222",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2662,7 +3112,7 @@
           },
           {
             "seq": 115,
-            "request_id": "step-c2f35908-224",
+            "request_id": "step-ff0caf6b-224",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2672,7 +3122,7 @@
           },
           {
             "seq": 116,
-            "request_id": "step-c2f35908-226",
+            "request_id": "step-ff0caf6b-226",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2682,7 +3132,7 @@
           },
           {
             "seq": 117,
-            "request_id": "step-c2f35908-228",
+            "request_id": "step-ff0caf6b-228",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2692,7 +3142,7 @@
           },
           {
             "seq": 118,
-            "request_id": "step-c2f35908-230",
+            "request_id": "step-ff0caf6b-230",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2702,7 +3152,7 @@
           },
           {
             "seq": 119,
-            "request_id": "step-c2f35908-232",
+            "request_id": "step-ff0caf6b-232",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2712,7 +3162,7 @@
           },
           {
             "seq": 120,
-            "request_id": "step-c2f35908-234",
+            "request_id": "step-ff0caf6b-234",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2722,7 +3172,7 @@
           },
           {
             "seq": 121,
-            "request_id": "step-c2f35908-236",
+            "request_id": "step-ff0caf6b-236",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2732,7 +3182,7 @@
           },
           {
             "seq": 122,
-            "request_id": "step-c2f35908-238",
+            "request_id": "step-ff0caf6b-238",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2742,7 +3192,7 @@
           },
           {
             "seq": 123,
-            "request_id": "step-c2f35908-240",
+            "request_id": "step-ff0caf6b-240",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2752,7 +3202,7 @@
           },
           {
             "seq": 124,
-            "request_id": "step-c2f35908-242",
+            "request_id": "step-ff0caf6b-242",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2762,7 +3212,7 @@
           },
           {
             "seq": 125,
-            "request_id": "step-c2f35908-244",
+            "request_id": "step-ff0caf6b-244",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2772,7 +3222,7 @@
           },
           {
             "seq": 126,
-            "request_id": "step-c2f35908-246",
+            "request_id": "step-ff0caf6b-246",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2782,7 +3232,7 @@
           },
           {
             "seq": 127,
-            "request_id": "step-c2f35908-248",
+            "request_id": "step-ff0caf6b-248",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2792,77 +3242,77 @@
           },
           {
             "seq": 128,
-            "request_id": "step-c2f35908-250",
+            "request_id": "step-ff0caf6b-250",
             "action": {
               "status": "completed",
               "action": "wait"
             },
             "status": "completed",
-            "tick": 3942
+            "tick": 3941
           },
           {
             "seq": 129,
-            "request_id": "step-c2f35908-252",
+            "request_id": "step-ff0caf6b-252",
             "action": {
               "status": "completed",
               "action": "wait"
             },
             "status": "completed",
-            "tick": 3974
+            "tick": 3973
           },
           {
             "seq": 130,
-            "request_id": "step-c2f35908-254",
+            "request_id": "step-ff0caf6b-254",
             "action": {
               "status": "completed",
               "action": "wait"
             },
             "status": "completed",
-            "tick": 4006
+            "tick": 4005
           },
           {
             "seq": 131,
-            "request_id": "step-c2f35908-256",
+            "request_id": "step-ff0caf6b-256",
             "action": {
               "status": "completed",
               "action": "wait"
             },
             "status": "completed",
-            "tick": 4038
+            "tick": 4037
           },
           {
             "seq": 132,
-            "request_id": "step-c2f35908-258",
+            "request_id": "step-ff0caf6b-258",
             "action": {
               "status": "completed",
               "action": "wait"
             },
             "status": "completed",
-            "tick": 4070
+            "tick": 4069
           },
           {
             "seq": 133,
-            "request_id": "step-c2f35908-260",
+            "request_id": "step-ff0caf6b-260",
             "action": {
               "status": "completed",
               "action": "wait"
             },
             "status": "completed",
-            "tick": 4102
+            "tick": 4101
           },
           {
             "seq": 134,
-            "request_id": "step-c2f35908-262",
+            "request_id": "step-ff0caf6b-262",
             "action": {
               "status": "completed",
               "action": "wait"
             },
             "status": "completed",
-            "tick": 4134
+            "tick": 4133
           },
           {
             "seq": 135,
-            "request_id": "step-c2f35908-264",
+            "request_id": "step-ff0caf6b-264",
             "action": {
               "status": "completed",
               "action": "wait"
@@ -2878,21 +3328,21 @@
               "action": "transfer",
               "item": "iron-plate",
               "count": 1,
-              "from": "h103",
+              "from": "h145",
               "to": "character"
             },
             "status": "completed",
-            "tick": 4201
+            "tick": 4199
           },
           {
             "seq": 137,
-            "request_id": "step-c2f35908-297",
+            "request_id": "step-ff0caf6b-297",
             "action": {
               "status": "completed",
               "action": "wait"
             },
             "status": "completed",
-            "tick": 4233
+            "tick": 4231
           }
         ],
         "recipes": [
@@ -3002,7 +3452,7 @@
         "researchable": {}
       },
       "truth": {
-        "tick": 4202,
+        "tick": 4200,
         "markers": {},
         "containers": {},
         "working": {},
@@ -3062,15 +3512,15 @@
         "key": "take_from",
         "target": null,
         "arguments": {
-          "from": "h103",
+          "from": "h145",
           "item": "iron-plate",
           "count": 1
         },
         "reason": "",
         "status": "completed",
-        "observation_tick": 4266,
-        "execution_tick": 4298,
-        "elapsed_ms": 532.533,
+        "observation_tick": 4264,
+        "execution_tick": 4296,
+        "elapsed_ms": 532.856,
         "reward": 0.0,
         "action_status": "completed",
         "action_error": null
@@ -3085,7 +3535,7 @@
         },
         "reason": "",
         "status": "failed",
-        "observation_tick": 4298,
+        "observation_tick": 4296,
         "failure": "missing_argument",
         "detail": "mine_at needs handle, count; missing count"
       },
@@ -3095,7 +3545,7 @@
         "key": "inspect",
         "target": null,
         "arguments": {
-          "handle": "h103"
+          "handle": "h145"
         },
         "reason": "",
         "status": "unexecuted"
@@ -3115,9 +3565,9 @@
       "arguments": {
         "handle": "h9999"
       },
-      "refused": "ValueError: mine_at: handle='h9999' is not in domain 'targets' (94 values)",
-      "client_error": "mine_at: handle='h9999' is not in domain 'targets' (94 values)",
-      "ms": 0.1
+      "refused": "ValueError: mine_at: handle='h9999' is not in domain 'targets' (144 values)",
+      "client_error": "mine_at: handle='h9999' is not in domain 'targets' (144 values)",
+      "ms": 0.2
     },
     "blocked_placement": {
       "action": "place_at",
@@ -3131,7 +3581,7 @@
       },
       "refused": "ValueError: place_at: item='stone-furnace' is not in domain 'items' (6 values)",
       "client_error": "place_at: item='stone-furnace' is not in domain 'items' (6 values)",
-      "ms": 0.1
+      "ms": 0.2
     },
     "insufficient_ingredients": {
       "action": "craft_recipe",
@@ -3141,7 +3591,7 @@
       },
       "refused": "ValueError: craft_recipe: recipe='electronic-circuit' is not in domain 'recipes' (12 values)",
       "client_error": "craft_recipe: recipe='electronic-circuit' is not in domain 'recipes' (12 values)",
-      "ms": 0.1
+      "ms": 0.2
     },
     "out_of_domain_argument": {
       "action": "walk_to_position",
@@ -3153,7 +3603,7 @@
       },
       "refused": "ValueError: walk_to_position: destination=[9999.5, 9999.5] is not in domain 'destinations' (19 values)",
       "client_error": "walk_to_position: destination=[9999.5, 9999.5] is not in domain 'destinations' (19 values)",
-      "ms": 0.1
+      "ms": 0.2
     },
     "unavailable_research": {
       "action": "research_technology",
@@ -3162,7 +3612,7 @@
       },
       "refused": "ValueError: research_technology: technology='rocket-silo' is not in domain 'technologies' (0 values)",
       "client_error": "research_technology: technology='rocket-silo' is not in domain 'technologies' (0 values)",
-      "ms": 0.1
+      "ms": 0.2
     },
     "deposit_emptied_by_evaluator": 3837,
     "mine_exhausted_deposit": {
@@ -3170,9 +3620,9 @@
       "arguments": {
         "handle": "h1"
       },
-      "refused": "ValueError: mine_at needs argument 'count'",
-      "client_error": "mine_at needs argument 'count'",
-      "ms": 0.4
+      "refused": "ValueError: mine_at: handle='h1' is not in domain 'targets' (144 values)",
+      "client_error": "mine_at: handle='h1' is not in domain 'targets' (144 values)",
+      "ms": 0.5
     }
   },
   "actions": [
@@ -3188,308 +3638,14 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 563.9
+      "ms": 567.7
     },
     {
       "action": "cancel_request",
       "arguments": {
-        "target_request_id": "step-c2f35908-6:act"
+        "target_request_id": "step-ff0caf6b-6:act"
       },
       "status": "completed",
-      "error": null,
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.0
-    },
-    {
-      "action": "wait_for",
-      "arguments": {
-        "until": "nothing_in_flight",
-        "seconds": 10
-      },
-      "status": "completed",
-      "error": null,
-      "terminated": false,
-      "truncated": false,
-      "condition_met": true,
-      "waited_steps": 1,
-      "ms": 533.4
-    },
-    {
-      "action": "walk_to_position",
-      "arguments": {
-        "destination": [
-          -28.5,
-          0.5
-        ]
-      },
-      "status": "running",
-      "error": null,
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.0
-    },
-    {
-      "action": "wait_for",
-      "arguments": {
-        "until": "nothing_in_flight",
-        "seconds": 10
-      },
-      "status": "completed",
-      "error": null,
-      "terminated": false,
-      "truncated": false,
-      "condition_met": true,
-      "waited_steps": 5,
-      "ms": 2670.7
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5",
-        "count": 5
-      },
-      "status": "running",
-      "error": null,
-      "terminated": false,
-      "truncated": false,
-      "ms": 531.8
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.8
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.0
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.3
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 534.5
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.3
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.3
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h5",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 532.5
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "running",
-      "error": null,
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.1
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.3
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.5
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.1
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.2
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.5
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.0
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.3
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 533.1
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 534.3
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 532.6
-    },
-    {
-      "action": "mine_at",
-      "arguments": {
-        "handle": "h3",
-        "count": 5
-      },
-      "status": "rejected",
-      "error": "busy",
-      "terminated": false,
-      "truncated": false,
-      "ms": 534.0
-    },
-    {
-      "action": "craft_recipe",
-      "arguments": {
-        "recipe": "iron-gear-wheel",
-        "count": 1
-      },
-      "status": "running",
       "error": null,
       "terminated": false,
       "truncated": false,
@@ -3506,8 +3662,302 @@
       "terminated": false,
       "truncated": false,
       "condition_met": true,
+      "waited_steps": 1,
+      "ms": 533.1
+    },
+    {
+      "action": "walk_to_position",
+      "arguments": {
+        "destination": [
+          -28.5,
+          0.5
+        ]
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.9
+    },
+    {
+      "action": "wait_for",
+      "arguments": {
+        "until": "nothing_in_flight",
+        "seconds": 10
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "condition_met": true,
+      "waited_steps": 5,
+      "ms": 2670.9
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h1",
+        "count": 5
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h1",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h1",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.9
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h1",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.3
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h1",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.2
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h1",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.5
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h1",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.7
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h1",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.9
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.0
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.9
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.9
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.3
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.6
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 533.4
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 534.3
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.8
+    },
+    {
+      "action": "mine_at",
+      "arguments": {
+        "handle": "h2",
+        "count": 5
+      },
+      "status": "rejected",
+      "error": "busy",
+      "terminated": false,
+      "truncated": false,
+      "ms": 532.4
+    },
+    {
+      "action": "craft_recipe",
+      "arguments": {
+        "recipe": "iron-gear-wheel",
+        "count": 1
+      },
+      "status": "running",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "ms": 534.0
+    },
+    {
+      "action": "wait_for",
+      "arguments": {
+        "until": "nothing_in_flight",
+        "seconds": 10
+      },
+      "status": "completed",
+      "error": null,
+      "terminated": false,
+      "truncated": false,
+      "condition_met": true,
       "waited_steps": 6,
-      "ms": 3199.8
+      "ms": 3200.0
     },
     {
       "action": "place_at",
@@ -3523,12 +3973,12 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.2
+      "ms": 533.7
     },
     {
       "action": "give_to",
       "arguments": {
-        "to": "h103",
+        "to": "h145",
         "item": "wood",
         "count": 1
       },
@@ -3536,12 +3986,12 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.5
+      "ms": 532.7
     },
     {
       "action": "give_to",
       "arguments": {
-        "to": "h103",
+        "to": "h145",
         "item": "iron-ore",
         "count": 5
       },
@@ -3549,7 +3999,7 @@
       "error": null,
       "terminated": false,
       "truncated": false,
-      "ms": 533.0
+      "ms": 533.4
     },
     {
       "action": "wait_for",
@@ -3563,7 +4013,7 @@
       "truncated": false,
       "condition_met": true,
       "waited_steps": 30,
-      "ms": 16000.7
+      "ms": 16000.8
     },
     {
       "action": "wait_for",
@@ -3577,12 +4027,12 @@
       "truncated": false,
       "condition_met": false,
       "waited_steps": 60,
-      "ms": 32017.8
+      "ms": 32009.2
     },
     {
       "action": "inspect",
       "arguments": {
-        "handle": "h103"
+        "handle": "h145"
       },
       "status": "completed",
       "error": null,
@@ -3590,7 +4040,7 @@
       "truncated": false,
       "inspected": {
         "seen": "now",
-        "h": "h103",
+        "h": "h145",
         "name": "stone-furnace",
         "type": "furnace",
         "p": [
@@ -3606,7 +4056,7 @@
         },
         "at_step": 130
       },
-      "ms": 533.2
+      "ms": 543.2
     },
     {
       "action": "wait_for",
@@ -3620,7 +4070,7 @@
       "truncated": false,
       "condition_met": true,
       "waited_steps": 11,
-      "ms": 1041.0
+      "ms": 1042.7
     },
     {
       "action": "wait_for",
@@ -3634,16 +4084,16 @@
       "truncated": false,
       "condition_met": true,
       "waited_steps": 1,
-      "ms": 535.1
+      "ms": 534.8
     },
     {
       "action": "mine_at",
       "arguments": {
         "handle": "h9999"
       },
-      "refused": "ValueError: mine_at: handle='h9999' is not in domain 'targets' (94 values)",
-      "client_error": "mine_at: handle='h9999' is not in domain 'targets' (94 values)",
-      "ms": 0.1
+      "refused": "ValueError: mine_at: handle='h9999' is not in domain 'targets' (144 values)",
+      "client_error": "mine_at: handle='h9999' is not in domain 'targets' (144 values)",
+      "ms": 0.2
     },
     {
       "action": "place_at",
@@ -3657,7 +4107,7 @@
       },
       "refused": "ValueError: place_at: item='stone-furnace' is not in domain 'items' (6 values)",
       "client_error": "place_at: item='stone-furnace' is not in domain 'items' (6 values)",
-      "ms": 0.1
+      "ms": 0.2
     },
     {
       "action": "craft_recipe",
@@ -3667,7 +4117,7 @@
       },
       "refused": "ValueError: craft_recipe: recipe='electronic-circuit' is not in domain 'recipes' (12 values)",
       "client_error": "craft_recipe: recipe='electronic-circuit' is not in domain 'recipes' (12 values)",
-      "ms": 0.1
+      "ms": 0.2
     },
     {
       "action": "walk_to_position",
@@ -3679,7 +4129,7 @@
       },
       "refused": "ValueError: walk_to_position: destination=[9999.5, 9999.5] is not in domain 'destinations' (19 values)",
       "client_error": "walk_to_position: destination=[9999.5, 9999.5] is not in domain 'destinations' (19 values)",
-      "ms": 0.1
+      "ms": 0.2
     },
     {
       "action": "research_technology",
@@ -3688,19 +4138,19 @@
       },
       "refused": "ValueError: research_technology: technology='rocket-silo' is not in domain 'technologies' (0 values)",
       "client_error": "research_technology: technology='rocket-silo' is not in domain 'technologies' (0 values)",
-      "ms": 0.1
+      "ms": 0.2
     },
     {
       "action": "mine_at",
       "arguments": {
         "handle": "h1"
       },
-      "refused": "ValueError: mine_at needs argument 'count'",
-      "client_error": "mine_at needs argument 'count'",
-      "ms": 0.4
+      "refused": "ValueError: mine_at: handle='h1' is not in domain 'targets' (144 values)",
+      "client_error": "mine_at: handle='h1' is not in domain 'targets' (144 values)",
+      "ms": 0.5
     }
   ],
-  "wall_seconds": 90.3,
+  "wall_seconds": 91.0,
   "verdict": {
     "walked_to_ore_by_tool": true,
     "gathered_ore": true,

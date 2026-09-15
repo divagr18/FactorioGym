@@ -1,7 +1,7 @@
 {
   "id": "act_transfer_no_items",
   "protocol": 2,
-  "description": "Overdraw is rejected with a structured reason and no mutation.",
+  "description": "A transfer from a source holding none of the item is rejected with a structured reason and no mutation. This fixture used to overdraw iron plates (999 from a chest of 50); since transfer clamps to what is available that request succeeds, and act_transfer_clamped pins it.",
   "setup": [
     "reset"
   ],
@@ -14,7 +14,7 @@
       "action": "transfer",
       "from": "src",
       "to": "character",
-      "item": "iron-plate",
+      "item": "copper-plate",
       "count": 999
     }
   },

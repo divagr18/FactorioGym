@@ -70,7 +70,7 @@
       "reward": 0.0
     }
   },
-  "wall_seconds": 41.9,
+  "wall_seconds": 57.3,
   "verdict": {
     "reference_built_a_line": true,
     "reference_ended_by_budget_and_was_verified": true,

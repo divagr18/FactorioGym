@@ -27,7 +27,7 @@ end
 -- unbounded, order-varying list would make two identical scenes encode
 -- differently between steps.
 local RECIPE_CAP = 64
-local function enabled_recipes()
+local function enabled_recipes(with_detail)
   local force = game.forces.player
   if not force then return {} end
   local names = {}
@@ -69,7 +69,15 @@ local function enabled_recipes()
       -- Only for recipes that cannot be crafted, so the common case costs
       -- nothing, and the recipe list is already capped by `RECIPE_CAP`.
       local missing = nil
-      if craftable == 0 and ch and ch.valid then
+      --
+      -- Only where a consumer reads it. The field went into every profile that
+      -- carries `recipes`, including `local-v2`, whose whole purpose is to ship
+      -- only what Python reads -- and the RL encoder reads no recipe at all. It
+      -- made `local-v2` larger than `local-v1` on four more benchmark families
+      -- (`mine_smelt`: 118,841 bytes against 95,054), which the profile-parity
+      -- engine test exists to catch and nobody ran. The language-model
+      -- summary, which is what reads it, runs on `open-v1`.
+      if with_detail and craftable == 0 and ch and ch.valid then
         for _, ingredient in ipairs(recipe.ingredients or {}) do
           if ingredient.type == "item" then
             local held = ch.get_item_count(ingredient.name)
@@ -84,13 +92,24 @@ local function enabled_recipes()
           end
         end
       end
-      names[#names + 1] = { name = name, craftable = craftable, missing = missing }
+      if with_detail then
+        names[#names + 1] = { name = name, craftable = craftable, missing = missing }
+      else
+        -- Plain names where nothing reads the counts. `env.argument_domains`
+        -- and the language-model summary both accept either form. Measured on
+        -- the `navigate` profile-parity episode, the `{name, craftable}` records
+        -- were 10,878 of the 21 frames' bytes -- all of `local-v2`'s excess over
+        -- `local-v1`, a profile that exists to ship only what Python reads.
+        names[#names + 1] = name
+      end
     end
   end
   -- Sorted by name, as before: the entries are tables now, so the comparator
   -- has to say which field orders them or `table.sort` compares tables and
   -- errors.
-  table.sort(names, function(a, b) return a.name < b.name end)
+  table.sort(names, function(a, b)
+    return (type(a) == "table" and a.name or a) < (type(b) == "table" and b.name or b)
+  end)
   if #names > RECIPE_CAP then
     local capped = {}
     for index = 1, RECIPE_CAP do capped[index] = names[index] end
@@ -196,7 +215,10 @@ function observations.snapshot(state)
 
   local swept = sensor.sweep(surface, origin, observation_profile)
   local remembered = observation_profile.memory
-    and memory.update(swept.entities, origin, observation_profile.radius)
+    and memory.update(
+      swept.entities, origin, observation_profile.radius,
+      observation_profile.deterministic_order
+    )
     or {}
 
   -- Built only for a profile that declares it, so a benchmark observation is
@@ -337,13 +359,13 @@ function observations.snapshot(state)
     -- a success or failure predicate names" until R4.6, which had been false
     -- since v1.6.0. Decoys are in neither source and never appear.
     goal = world.public_markers(),
-    inflight = inflight.summary(),
+    inflight = inflight.summary(observation_profile.deterministic_order),
     events = state.events or {},
     -- What the force can actually make. Never sent before, so `craft` and
     -- `set_recipe` had no observable vocabulary and a policy could not name a
     -- legal value for either. Enabled recipes only, so this states a
     -- capability rather than leaking the tech tree.
-    recipes = enabled_recipes(),
+    recipes = enabled_recipes(observation_profile.recipe_detail),
     -- The researchable frontier, when the profile declares it. Filtered out
     -- for every benchmark profile, which neither declares nor needs it.
     researchable = profiles.declares(observation_profile, "researchable")

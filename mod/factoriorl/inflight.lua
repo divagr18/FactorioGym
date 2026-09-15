@@ -46,7 +46,7 @@ local function state()
 end
 
 function inflight.reset()
-  storage.frrl_inflight = { entries = {}, slots = {} }
+  storage.frrl_inflight = { entries = {}, slots = {}, next_seq = 0 }
 end
 
 function inflight.get(request_id)
@@ -54,8 +54,9 @@ function inflight.get(request_id)
 end
 
 --- Everything currently running, for observations and `describe`.
-function inflight.summary()
+function inflight.summary(ordered)
   local out = {}
+  local seqs = {}
   for request_id, entry in pairs(state().entries) do
     if not entry.terminal then
       out[#out + 1] = {
@@ -65,7 +66,20 @@ function inflight.summary()
         progress = inflight.progress(entry),
         target = entry.target_handle,
       }
+      seqs[request_id] = entry.seq or 0
     end
+  end
+  if ordered then
+    -- Start order, for a profile with `deterministic_order`. A character that
+    -- walks while it crafts has two entries, so this is not a rare tie, and
+    -- `pairs()` order is specified nowhere outside the engine. `seq` is kept out
+    -- of the published record so the shape stays what it was.
+    table.sort(out, function(a, b)
+      if seqs[a.request_id] ~= seqs[b.request_id] then
+        return seqs[a.request_id] < seqs[b.request_id]
+      end
+      return a.request_id < b.request_id
+    end)
   end
   return out
 end
@@ -87,8 +101,12 @@ end
 --- Register a new ongoing operation.
 function inflight.start(request_id, action, fields)
   local s = state()
+  -- Start order, recorded so polling can follow it. `next_seq` is absent in a
+  -- state restored from a save that predates it, which is why it defaults.
+  s.next_seq = (s.next_seq or 0) + 1
   local entry = {
     request_id = request_id,
+    seq = s.next_seq,
     action = action,
     kind = fields.kind or action,
     started_tick = game.tick,
@@ -256,7 +274,21 @@ end
 function inflight.on_tick()
   local s = state()
   local settled = {}
-  for request_id, entry in pairs(s.entries) do
+  -- Poll in the order operations started, not in `pairs()` order. The order
+  -- matters beyond the event log: polls act on the world -- a mine re-asserts
+  -- `mining_state` and counts an inventory change that a craft settling the
+  -- same tick can alter -- and `pairs()` over request-id keys is stable in
+  -- Factorio but specified nowhere, so nothing outside the engine could
+  -- reproduce which of two same-tick completions came first.
+  local running = {}
+  for _, entry in pairs(s.entries) do
+    running[#running + 1] = entry
+  end
+  table.sort(running, function(a, b)
+    if (a.seq or 0) ~= (b.seq or 0) then return (a.seq or 0) < (b.seq or 0) end
+    return a.request_id < b.request_id
+  end)
+  for _, entry in ipairs(running) do
     if not entry.terminal then
       local poll = POLLS[entry.kind]
       if poll then

@@ -421,15 +421,32 @@ function sensor.sweep(surface, origin, profile)
         entity = entity,
         d2 = dx * dx + dy * dy,
         i = candidate_count,
+        x = entity.position.x,
+        y = entity.position.y,
+        name = entity.name,
       }
     end
   end
-  -- `table.sort` is not stable, so equal distances fall back to sweep order.
-  -- Without that tie-break two observations of an unchanged scene could order
-  -- co-located entities differently, and `test_protocol_fixtures` asserts the
-  -- `entities` block of two consecutive observations is equal.
+  -- `table.sort` is not stable, so equal distances need a tie-break. Without one
+  -- two observations of an unchanged scene could order co-located entities
+  -- differently, and `test_protocol_fixtures` asserts the `entities` block of
+  -- two consecutive observations is equal.
+  --
+  -- The sweep index was that tie-break, and it is stable but not *specified*:
+  -- it is whatever order `find_entities_filtered` returns. A profile with
+  -- `deterministic_order` breaks ties on the world instead -- (y, x, name) --
+  -- which anything that has to reproduce this observation, such as a
+  -- simulator, can compute. The sweep index stays as the last resort for two
+  -- same-named entities on one position, and as the whole rule for profiles
+  -- frozen without the flag (`local-v1`).
+  local ordered = profile.deterministic_order
   table.sort(candidates, function(a, b)
     if a.d2 ~= b.d2 then return a.d2 < b.d2 end
+    if ordered then
+      if a.y ~= b.y then return a.y < b.y end
+      if a.x ~= b.x then return a.x < b.x end
+      if a.name ~= b.name then return a.name < b.name end
+    end
     return a.i < b.i
   end)
 
@@ -480,7 +497,7 @@ function sensor.sweep(surface, origin, profile)
         patch.nearest_d = d
         patch.nearest = { resource.position.x, resource.position.y }
       end
-      if d <= profile.resource_detail_radius then
+      if not ordered and d <= profile.resource_detail_radius then
         if #resource_tiles >= profile.resource_cap then
           truncated = true
         else
@@ -492,6 +509,60 @@ function sensor.sweep(surface, origin, profile)
           }
         end
       end
+    end
+  end
+
+  if ordered then
+    -- Per-tile detail from its own sweep, bounded by area rather than by a
+    -- count, then sorted before any handle is minted.
+    --
+    -- The sweep above is capped at `resource_cap + 1` over the whole 32-tile
+    -- radius and returns tiles in the engine's order, so a large patch inside
+    -- the radius decided *which* near tiles were kept, and the order they were
+    -- kept in decided their handle numbers. Neither is something a simulator
+    -- can reproduce. The detail radius bounds this sweep on its own (a
+    -- 12-tile disc holds a few hundred tiles), and distance is measured to the
+    -- tile centre exactly as before; `d2 <= r * r` agrees with `sqrt(d2) <= r`
+    -- because positions are multiples of 1/256 and both sides are exact.
+    local detail = profile.resource_detail_radius
+    local near = {}
+    for _, resource in pairs(surface.find_entities_filtered({
+      position = origin,
+      radius = detail + 1,
+      type = "resource",
+    })) do
+      if resource.valid then
+        local dx = resource.position.x - origin.x
+        local dy = resource.position.y - origin.y
+        local d2 = dx * dx + dy * dy
+        if d2 <= detail * detail then
+          near[#near + 1] = {
+            resource = resource,
+            d2 = d2,
+            x = resource.position.x,
+            y = resource.position.y,
+            name = resource.name,
+          }
+        end
+      end
+    end
+    table.sort(near, function(a, b)
+      if a.d2 ~= b.d2 then return a.d2 < b.d2 end
+      if a.y ~= b.y then return a.y < b.y end
+      if a.x ~= b.x then return a.x < b.x end
+      return a.name < b.name
+    end)
+    for index, item in ipairs(near) do
+      if index > profile.resource_cap then
+        truncated = true
+        break
+      end
+      resource_tiles[index] = {
+        h = handles.mint(item.resource),
+        name = item.name,
+        p = { item.x, item.y },
+        amount = item.resource.amount,
+      }
     end
   end
 
