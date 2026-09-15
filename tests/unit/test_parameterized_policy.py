@@ -155,6 +155,38 @@ class TestDecode:
         assert failure is None and arguments == {} and operation == op
 
 
+class TestEncode:
+    """`encode` is `decode` run backwards, so a scripted action has a vector."""
+
+    def test_every_decodable_vector_round_trips(self):
+        env = _env(inventory={"transport-belt": 5, "coal": 3})
+        values = env._domain_values()
+        coal = encoders.ITEMS.index("coal") + 1
+        for key, choices in (
+            ("place_at", {"placement": 3, "direction": 4, "item": coal}),
+            ("give_to", {"target": 2, "item": coal, "amount": 2}),
+            ("mine_at", {"target": 3}),
+            ("wait", {}),
+        ):
+            op = env.env.catalog.keys().index(key)
+            vector = _vector(env, operation=op, **choices)
+            operation, arguments, failure = env.decode(vector)
+            assert failure is None, (key, failure)
+            assert list(env.encode(operation, arguments)) == vector, key
+        assert values["target"][2] == "r1"
+
+    def test_an_argument_no_dimension_offers_raises(self):
+        env = _env()
+        op = env.env.catalog.keys().index("mine_at")
+        with pytest.raises(ValueError, match="not among"):
+            env.encode(op, {"handle": "h999"})
+
+    def test_a_missing_argument_raises(self):
+        env = _env()
+        with pytest.raises(ValueError, match="needs argument"):
+            env.encode(env.env.catalog.keys().index("place_at"), {"item": "transport-belt"})
+
+
 class TestEquivalenceWithTheAddressedPath:
     """The gate: both clients issue equivalent semantic actions."""
 

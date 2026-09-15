@@ -164,6 +164,38 @@ function handles.count()
   return n
 end
 
+--- The registry in mint order, for a simulator to load in sync mode.
+-- A unit is named by prototype and fixed-point position rather than by
+-- `unit_number`, which is the engine's own counter and means nothing elsewhere.
+function handles.export()
+  local s = state()
+  local order = {}
+  for _, handle in ipairs(s.order) do
+    local entry = s.by_handle[handle]
+    if entry then
+      local record = {
+        handle = handle,
+        kind = entry.kind,
+        name = entry.name,
+        first_seen = entry.first_seen,
+        destroyed_tick = entry.destroyed_tick,
+      }
+      if entry.kind == "unit" then
+        if entry.entity and entry.entity.valid then
+          record.position = {
+            math.floor(entry.entity.position.x * 256 + 0.5),
+            math.floor(entry.entity.position.y * 256 + 0.5),
+          }
+        end
+      else
+        record.tile = { entry.tx, entry.ty }
+      end
+      order[#order + 1] = record
+    end
+  end
+  return { next_id = s.next_id, order = order }
+end
+
 function handles.generation()
   return state().generation
 end

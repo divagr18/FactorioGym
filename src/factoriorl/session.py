@@ -333,12 +333,18 @@ class WorkerSession:
         )
         return self._request(request)
 
-    def world_digest(self) -> TimedResponse:
-        """Evaluator-only: everything a reset must restore, as sorted lines."""
+    def world_digest(self, hidden: bool = False) -> TimedResponse:
+        """Evaluator-only: everything a reset must restore, as sorted lines.
+
+        `hidden` adds the exact state a simulator needs to step in lockstep with
+        the engine -- machine progress, energy, slot layouts, handles, running
+        operations -- under `result["hidden"]`.
+        """
         request = Request(
             request_id=self._next_request_id("digest"),
             episode_id=self.episode_id or "",
             type=RequestType.WORLD_DIGEST,
+            payload={"hidden": True} if hidden else {},
         )
         return self._request(request)
 

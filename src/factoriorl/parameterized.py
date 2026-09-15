@@ -214,6 +214,42 @@ class ParameterizedEnv(gym.Env):
             arguments[argument] = legal[index - 1]
         return operation, arguments, None
 
+    def encode(self, operation: int, arguments: dict) -> np.ndarray:
+        """The action vector that `decode` turns into this operation and arguments.
+
+        For recording a scripted action in the form a policy emits it, so a
+        second backend can replay the vector rather than the semantic call. It
+        raises when no vector exists -- a target past `max_targets`, an item
+        outside `encoders.ITEMS` -- because that action is one a policy cannot
+        take, and a trace that silently substituted a nearby one would compare
+        two backends on different actions.
+        """
+        vector = [UNUSED] * len(DIMENSIONS)
+        vector[0] = int(operation)
+        names = [name for name, _ in DIMENSIONS]
+        values = self._domain_values()
+        template = self.env.catalog.templates[int(operation)]
+        for argument in template.arguments:
+            dimension = ARGUMENT_DIMENSION.get(argument)
+            if dimension not in self._sizes:
+                raise ValueError(f"{template.key}: {argument} has no dimension")
+            if argument not in arguments:
+                raise ValueError(f"{template.key} needs argument {argument!r}")
+            legal = values.get(dimension, [])
+            if arguments[argument] not in legal:
+                raise ValueError(
+                    f"{template.key}: {argument}={arguments[argument]!r} is not among the "
+                    f"{len(legal)} values the {dimension} dimension offers"
+                )
+            index = legal.index(arguments[argument]) + 1
+            position = names.index(dimension)
+            if vector[position] not in (UNUSED, index):
+                # `from` and `to` share the target dimension. No template in
+                # `parameterized-v1` takes both, and this is where one would show.
+                raise ValueError(f"{template.key}: two arguments need the {dimension} dimension")
+            vector[position] = index
+        return np.asarray(vector, dtype=np.int64)
+
     def step(self, action):
         operation, arguments, failure = self.decode(action)
         if failure is not None:

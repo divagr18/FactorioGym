@@ -202,8 +202,21 @@ end
 -- `force.reset`, which additionally unchartes the map that `on_init`
 -- deliberately charts. Un-researching directly and reapplying effects is the
 -- surgical version.
+--
+-- It was not enough, and `force.reset` is now the first step. A trigger
+-- technology counts its items in a per-force counter the API does not expose
+-- (`saved_progress` reads 0) and that neither un-researching, toggling
+-- `researched`, disabling the technology nor clearing production statistics
+-- touches. `steam-power` is "craft 50 iron plates", so a line that smelted 27
+-- plates in one episode researched it 23 plates into the next -- mid-episode,
+-- on a worker with history, and never on a fresh one. The M2 parity recorder
+-- caught it as a recording and its replay disagreeing at one decision. Measured
+-- on 2.0.60: after `force.reset` the same 27 + 27 plates research nothing.
+-- It also unchartes the map, which only the open world uses, and the open world
+-- does not come through here.
 function world.reset_force()
   local force = game.forces["player"]
+  force.reset()
   for _, tech in pairs(force.technologies) do
     if tech.researched then tech.researched = false end
   end
@@ -1070,6 +1083,183 @@ function world.digest()
     "task|transfers=%d|items=%d", task.transfers or 0, task.items_moved or 0)
 
   return lines
+end
+
+
+-- ---------------------------------------------------------------- hidden state
+
+-- Exact floats as strings. A progress or energy value is state a simulator
+-- must load and reproduce, and a JSON number's formatting is the encoder's
+-- choice; "%.17g" round-trips an IEEE double exactly.
+local function exact(value)
+  if value == nil then return nil end
+  return string.format("%.17g", value)
+end
+
+-- Positions in 256ths of a tile: the engine stores them fixed-point, so this is
+-- an integer and loses nothing.
+local function fixed(position)
+  return { math.floor(position.x * 256 + 0.5), math.floor(position.y * 256 + 0.5) }
+end
+
+local STATUS_NAMES = nil
+local function status_name(entity)
+  if STATUS_NAMES == nil then
+    STATUS_NAMES = {}
+    for name, value in pairs(defines.entity_status) do STATUS_NAMES[value] = name end
+  end
+  local ok, code = pcall(function() return entity.status end)
+  return ok and code and STATUS_NAMES[code] or nil
+end
+
+local function try(fn)
+  local ok, value = pcall(fn)
+  if ok then return value end
+  return nil
+end
+
+-- Slot by slot, not `get_contents()`: which slot a stack sits in decides whether
+-- the next insert fits, and a total cannot say.
+local function slots(inv)
+  if not inv then return nil end
+  local out = {}
+  for index = 1, #inv do
+    local stack = inv[index]
+    if stack.valid_for_read then
+      out[#out + 1] = { index, stack.name, stack.count }
+    end
+  end
+  return { size = #inv, stacks = out }
+end
+
+-- 2.0 reports the item mid-burn as a prototype pair; older builds as a
+-- prototype. Either way only the name is state.
+local function burning_name(burner)
+  local current = try(function() return burner.currently_burning end)
+  if not current then return nil end
+  local name = try(function() return current.name end)
+  if type(name) == "table" or type(name) == "userdata" then
+    name = try(function() return name.name end)
+  end
+  return type(name) == "string" and name or nil
+end
+
+local function by_position(a, b)
+  if a.position[2] ~= b.position[2] then return a.position[2] < b.position[2] end
+  if a.position[1] ~= b.position[1] then return a.position[1] < b.position[1] end
+  return a.name < b.name
+end
+
+--- Everything a one-step sync needs that neither the observation nor the
+--- digest carries exactly: machine progress, stored energy, the item mid-burn,
+--- slot layouts, the character's mining and walking state, ground items and
+--- resource amounts. Evaluator-only, like the digest, and ordered by world
+--- position so two engines -- or an engine and a simulator -- list it the same.
+function world.hidden_state()
+  local srf = surface()
+  local out = { tick = game.tick }
+
+  -- Player entities anywhere, and neutral ones inside the scene's box: a scene's
+  -- walls are neutral, and a simulator that lost them would walk through them.
+  -- Only inside the box, because outside it is map generation the reset never
+  -- touches -- rocks, and fish that swim, so two recordings of one scene
+  -- disagreed about a fish 60 tiles away. Resources and ground items are listed
+  -- separately below.
+  local radius = (storage.frrl_scene and storage.frrl_scene.radius) or 64
+  local candidates = srf.find_entities_filtered({ force = "player" })
+  for _, entity in pairs(srf.find_entities_filtered({
+    force = "neutral", area = { { -radius, -radius }, { radius, radius } },
+  })) do
+    candidates[#candidates + 1] = entity
+  end
+  local entities = {}
+  for _, entity in pairs(candidates) do
+    if entity.valid and entity.type ~= "character" and entity.type ~= "resource"
+        and entity.type ~= "item-entity" then
+      local record = {
+        name = entity.name,
+        force = entity.force.name,
+        position = fixed(entity.position),
+        direction = entity.direction,
+        status = status_name(entity),
+        energy = exact(try(function() return entity.energy end)),
+        mining_progress = exact(try(function() return entity.mining_progress end)),
+        bonus_mining_progress = exact(try(function() return entity.bonus_mining_progress end)),
+        crafting_progress = exact(try(function() return entity.crafting_progress end)),
+        bonus_progress = exact(try(function() return entity.bonus_progress end)),
+        products_finished = try(function() return entity.products_finished end),
+      }
+      local burner = try(function() return entity.burner end)
+      if burner then
+        record.remaining_burning_fuel = exact(burner.remaining_burning_fuel)
+        record.currently_burning = burning_name(burner)
+      end
+      -- By entity type, not by index: `defines.inventory.chest` and `fuel` are
+      -- both 1, so asking every entity for both listed a furnace's fuel twice.
+      local inventories = {
+        fuel = slots(try(function() return entity.get_fuel_inventory() end)),
+        burnt_result = slots(try(function() return entity.get_burnt_result_inventory() end)),
+      }
+      if entity.type == "container" or entity.type == "logistic-container" then
+        inventories.chest = slots(entity.get_inventory(defines.inventory.chest))
+      elseif entity.type == "furnace" then
+        inventories.furnace_source = slots(entity.get_inventory(defines.inventory.furnace_source))
+        inventories.furnace_result = slots(entity.get_inventory(defines.inventory.furnace_result))
+      end
+      record.inventories = inventories
+      entities[#entities + 1] = record
+    end
+  end
+  table.sort(entities, by_position)
+  out.entities = entities
+
+  local ground = {}
+  for _, entity in pairs(srf.find_entities_filtered({ type = "item-entity" })) do
+    if entity.valid and entity.stack and entity.stack.valid_for_read then
+      ground[#ground + 1] = {
+        name = entity.stack.name,
+        count = entity.stack.count,
+        position = fixed(entity.position),
+      }
+    end
+  end
+  table.sort(ground, by_position)
+  out.ground_items = ground
+
+  local resources = {}
+  for _, entity in pairs(srf.find_entities_filtered({ type = "resource" })) do
+    if entity.valid then
+      resources[#resources + 1] = {
+        name = entity.name,
+        position = fixed(entity.position),
+        amount = entity.amount or 0,
+      }
+    end
+  end
+  table.sort(resources, by_position)
+  out.resources = resources
+
+  local ch = storage.frrl_character
+  if ch and ch.valid then
+    local mining = try(function() return ch.mining_state end) or {}
+    local walking = try(function() return ch.walking_state end) or {}
+    local selected = try(function() return ch.selected end)
+    out.character = {
+      position = fixed(ch.position),
+      direction = ch.direction,
+      mining = mining.mining or false,
+      mining_position = mining.position and fixed(mining.position) or nil,
+      mining_progress = exact(try(function() return ch.character_mining_progress end)),
+      walking = walking.walking or false,
+      walking_direction = walking.direction,
+      selected = selected and selected.valid and {
+        name = selected.name, position = fixed(selected.position),
+      } or nil,
+      crafting_queue_size = try(function() return ch.crafting_queue_size end) or 0,
+      main = slots(ch.get_inventory(defines.inventory.character_main)),
+    }
+  end
+  return out
 end
 
 return world

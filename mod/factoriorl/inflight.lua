@@ -84,6 +84,35 @@ function inflight.summary(ordered)
   return out
 end
 
+--- Running operations with the fields their pollers read, in start order.
+-- Evaluator-only: a simulator in sync mode loads these, because a mine's
+-- completion depends on `baseline`, which no observation carries.
+function inflight.export()
+  local s = state()
+  local out = {}
+  for _, entry in pairs(s.entries) do
+    if not entry.terminal then
+      out[#out + 1] = {
+        request_id = entry.request_id,
+        seq = entry.seq or 0,
+        action = entry.action,
+        kind = entry.kind,
+        started_tick = entry.started_tick,
+        deadline_tick = entry.deadline_tick,
+        target = entry.target_handle,
+        goal = entry.goal,
+        baseline = entry.baseline,
+        recipe = entry.recipe,
+      }
+    end
+  end
+  table.sort(out, function(a, b)
+    if a.seq ~= b.seq then return a.seq < b.seq end
+    return a.request_id < b.request_id
+  end)
+  return { next_seq = s.next_seq or 0, entries = out }
+end
+
 --- Is `slot` occupied, and by which request?
 function inflight.occupant(action)
   local slot = SLOT_OF[action]

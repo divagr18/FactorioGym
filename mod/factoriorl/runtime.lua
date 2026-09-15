@@ -409,7 +409,7 @@ end
 --- Evaluator-only leakage probe: sorted lines describing everything a reset
 --- must restore, plus growth proxies that catch unbounded state.
 local function handle_world_digest(request)
-  return respond(request, CODE.OK, {
+  local result = {
     lines = world.digest(),
     growth = {
       handles = handles.count(),
@@ -418,7 +418,17 @@ local function handle_world_digest(request)
       events = #state.events,
       inflight = #inflight.summary(),
     },
-  })
+  }
+  -- Opt-in, so the Phase 3 reset loop does not pay for it. What the parity
+  -- recorder loads into a simulator for one-step sync: see `world.hidden_state`.
+  if (request.payload or {}).hidden then
+    local hidden = world.hidden_state()
+    hidden.handles = handles.export()
+    hidden.inflight = inflight.export()
+    hidden.event_seq = state.event_seq
+    result.hidden = hidden
+  end
+  return respond(request, CODE.OK, result)
 end
 
 --- Apply one declared disruption. Evaluator-only, like `truth` and
