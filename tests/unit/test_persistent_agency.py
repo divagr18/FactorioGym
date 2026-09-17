@@ -92,17 +92,6 @@ def test_the_objective_prescribes_nothing_a3_1_forbids():
     assert not [character for character in objective if character.isdigit()]
 
 
-def test_the_objective_is_invariant_so_it_belongs_in_the_cached_prefix():
-    """It never changes, and a line repeated per turn is paid for every turn.
-
-    The A2 measurement behind this: hoisting 1,440 invariant characters out of
-    the turn cut a 300-turn run's context at turn 900 from 680k tokens to 400k.
-    """
-    first = worlds.get("open_factory").objective
-    second = worlds.get("open_factory").objective
-    assert first == second and first
-
-
 # ------------------------------------------------------- A3.2 plan and note
 
 

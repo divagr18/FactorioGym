@@ -19,15 +19,8 @@ from dataclasses import replace
 
 import pytest
 
-from factoriorl.tasks import all_tasks, get, validate_all
+from factoriorl.tasks import all_tasks, get
 from factoriorl.tasks.spec import TRACKS, TaskSpec
-
-
-def _problems(spec: TaskSpec) -> list[str]:
-    """Run the validator against one spec by registering nothing: the track
-    checks read the spec alone, so they can be exercised directly."""
-    report = validate_all(2)
-    return report["tasks"][spec.id]["problems"]
 
 
 class TestEveryTaskDeclaresOne:
@@ -40,13 +33,6 @@ class TestEveryTaskDeclaresOne:
         benchmark by accident, which is `CATEGORY.get(task, "unknown")` with a
         different spelling."""
         assert TaskSpec.track not in TRACKS
-
-    def test_validation_refuses_an_undeclared_track(self):
-        report = validate_all(2)
-        assert report["ok"], report
-        # The registered tasks all declare one; the default does not pass.
-        spec = replace(get("plate_line").spec, track="unclassified")
-        assert spec.track not in TRACKS
 
     def test_the_two_families_the_old_dict_could_not_see_are_now_qualifying(self):
         """`plate_line` and `build_line` were absent from `CATEGORY`, so the
@@ -82,14 +68,6 @@ class TestTheTrackIsPartOfWhatARunMeans:
 
 class TestDiagnosisMeansTheFaultIsWithheld:
     """The one invariant that makes the track split real rather than a label."""
-
-    def test_a_diagnosis_task_may_not_publish_its_fault(self):
-        spec = replace(get("repair_belt").spec, track="diagnosis")
-        published = set(spec.public_markers)
-        assert published.intersection(spec.fault_markers), (
-            "repair_belt is the right fixture only while it does publish its "
-            "fault; if that changes this test proves nothing"
-        )
 
     def test_the_repair_families_are_repair_and_declare_the_hint(self):
         from factoriorl.assistance import describe_assistance

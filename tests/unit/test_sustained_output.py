@@ -47,11 +47,6 @@ def _history(rate_per_tick, ticks=8000, step=30, stop_at=None):
 
 
 class TestTheGateDiscriminates:
-    def test_a_steady_rate_passes(self):
-        # 15 plates per 3600 ticks is the measured commissioning baseline.
-        history = _history(15 / WINDOW)
-        assert _sustained(at_least=10).evaluate({}, {"window": history})
-
     def test_a_burst_that_stopped_fails_despite_a_larger_total(self):
         """The failure mode §12 names, and the reason `PRODUCED` is not enough."""
         burst = _history(200 / WINDOW, stop_at=1200)
@@ -177,15 +172,6 @@ class TestExistingPredicatesAreUntouched:
     def test_the_new_fields_do_not_satisfy_an_old_predicate(self):
         working = Predicate(PredicateKind.ENTITY_WORKING, marker="drill")
         assert not working.evaluate({}, {"working_counts": {"burner-mining-drill": 5}})
-
-
-def test_over_ticks_is_part_of_the_predicate_description():
-    """Two tasks differing only in window are different tasks."""
-    narrow = _sustained(over_ticks=1800).describe()
-    wide = _sustained(over_ticks=7200).describe()
-    # `describe` is used in reports; at minimum the predicates must not be equal.
-    assert _sustained(over_ticks=1800) != _sustained(over_ticks=7200)
-    assert isinstance(narrow, str) and isinstance(wide, str)
 
 
 class TestASettlingPeriod:

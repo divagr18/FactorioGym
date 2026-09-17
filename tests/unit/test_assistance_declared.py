@@ -148,13 +148,6 @@ class TestTheCodeHonoursTheDeclaration:
         assert selecting != static
 
 
-def test_the_goal_encoding_version_was_bumped_for_the_behaviour_change():
-    """Version 3 documented "the nearest published marker", which is not what
-    the code does on a selecting task. Leaving it at 3 meant a v3 checkpoint and
-    a v3 run could mean different things in the same three slots."""
-    assert encoders.GOAL_ENCODING_VERSION >= 4
-
-
 def test_both_clients_pin_their_own_encoding():
     """The LLM client had no encoding version while the RL client had two."""
     from factoriorl.agent.summary import SUMMARY_ENCODING_VERSION
@@ -162,6 +155,9 @@ def test_both_clients_pin_their_own_encoding():
 
     assert SUMMARY_ENCODING_VERSION >= 1
     assert EXTRACTOR_VERSION >= 4
+    # Version 3 documented "the nearest published marker", which is not what
+    # the code does on a selecting task, so a v3 checkpoint and a v3 run could
+    # mean different things in the same three slots.
     assert encoders.GOAL_ENCODING_VERSION >= 4
 
 

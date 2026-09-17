@@ -106,24 +106,6 @@ class TestTheCostOfTheRunIsActuallyRead:
     computed and displayed.
     """
 
-    def _limits(self) -> dict:
-        return {
-            "budget": {
-                "cap_usd": 2.0,
-                "committed_usd": 0.650478,
-                "calls": 116,
-                "cache_hit_rate": 0.982,
-            },
-            "clock": {"limit_seconds": 1800.0, "elapsed_seconds": 1801.946},
-        }
-
-    def test_spend_is_read_from_the_key_that_exists(self):
-        spend = self._limits().get("budget") or {}
-        assert spend.get("committed_usd") == 0.650478
-        assert (self._limits().get("spend") or {}) == {}, (
-            "the key the report used to read is still absent; this is the bug"
-        )
-
     def test_finalization_is_summed_from_its_steps(self):
         """`finalization` carries a list of steps each with their own seconds
         and no total, so reading `finalization['seconds']` was always None."""

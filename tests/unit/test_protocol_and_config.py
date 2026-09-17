@@ -19,14 +19,6 @@ from factoriorl.rcon import encode_packet, lua_string, wrap_lua
 from factoriorl.worker_config import MAP_SETTINGS, WorkerPorts, WorkerSpec
 
 
-def test_protocol_version_is_current():
-    # v2 added the ten-action matrix, fused stepping, entity handles and
-    # profiles. Bumping this is the deliberate act CONTRIBUTING.md describes:
-    # both sides move together, the previous fixture corpus is kept, and a
-    # refusal test proves the old version is now rejected.
-    assert PROTOCOL_VERSION == 2
-
-
 def test_request_roundtrip_carries_identifiers():
     req = Request("r-1", "ep-1", RequestType.ACT, {"action": "wait"})
     raw = json.loads(req.to_json())

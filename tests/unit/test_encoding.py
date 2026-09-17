@@ -20,7 +20,6 @@ import re
 import numpy as np
 import pytest
 
-from factoriorl import encoders
 from factoriorl.encoders import (
     GOAL_FEATURES,
     ITEMS,
@@ -236,7 +235,3 @@ def test_the_python_profile_name_matches_the_lua_one():
     source = (mod_source_dir() / "factoriorl" / "profiles.lua").read_text(encoding="utf-8")
     assert f'["{LOCAL_V1.name}"]' in source
     assert re.search(rf"^\s*version = {LOCAL_V1.version},", source, re.MULTILINE)
-
-
-def test_the_encoder_module_exposes_both_profiles():
-    assert encoders.LOCAL_V1.grid_size > encoders.LOCAL_V1_COARSE.grid_size

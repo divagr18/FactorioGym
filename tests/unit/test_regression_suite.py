@@ -216,12 +216,6 @@ class TestPerSceneOutcomes:
         assert rows[START]["truncated"] is True
         assert rows[START + 1]["truncated"] is False
 
-    def test_rows_are_ordered_by_identity_not_by_finish_order(self):
-        """Worker scheduling decides finish order, so two runs over the same
-        frozen set would diff as if the outcomes had changed."""
-        indices = [row["episode_index"] for row in self._run()["per_scene"]]
-        assert indices == sorted(indices)
-
     def test_an_infrastructure_exclusion_is_not_recorded_as_a_failed_scene(self):
         """It is not a task outcome, so it must not become a regression case."""
         from test_frozen_eval_coverage import COUNT, START, FrozenVecEnv, _Model

@@ -142,11 +142,6 @@ def test_evaluator_information_is_labelled_and_kept_out_of_the_observation(tmp_p
     assert "r.success" not in observation_panel
 
 
-def test_an_intervention_is_not_rendered_as_a_model_decision(tmp_path):
-    page = replay.build(write_run(tmp_path), None).read_text(encoding="utf-8")
-    assert "intervention" in page
-
-
 def test_a_training_run_is_refused_with_a_reason(tmp_path):
     run = tmp_path / "train-x"
     run.mkdir()

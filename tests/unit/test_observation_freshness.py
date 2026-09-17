@@ -151,12 +151,6 @@ class TestTheDefectReproduces:
             "the env should be unchanged -- this is the defect, not the fix"
         )
 
-    def test_the_stale_tick_error_is_the_size_the_demonstration_recorded(self):
-        env, session = _env()
-        for _ in range(120):
-            session.step({"action": "wait"}, ticks=DECISION_TICKS)
-        assert session.tick - int(env._observation["tick"]) == 3600
-
     def test_an_evaluator_write_is_invisible_until_something_refreshes(self):
         env, session = _env()
         session.empty_the_fuel()

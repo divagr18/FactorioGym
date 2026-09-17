@@ -46,6 +46,10 @@ def _known_request_types() -> set[str]:
 
 
 def test_live_corpus_is_the_current_version():
+    # v2 added the ten-action matrix, fused stepping, entity handles and
+    # profiles. Bumping this is the deliberate act CONTRIBUTING.md describes:
+    # both sides move together, the previous fixture corpus is kept, and a
+    # refusal test proves the old version is now rejected.
     assert PROTOCOL_VERSION == 2
     assert V2_DIR.is_dir(), "the live fixture corpus must exist"
 
