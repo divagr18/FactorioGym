@@ -18,9 +18,13 @@ obstacle, walks it at the obstacle, and records its position every tick. Two
 directions, west and north, check that the rule is the same on both axes.
 Offsets are in 1/256 tiles, the engine's position resolution.
 
-Writes docs/evidence/sim-mechanics-m5-slide.json.
+Writes docs/evidence/sim-mechanics-m5-slide.json. With `--gaps` it runs the
+second set instead, and writes sim-mechanics-m5-slide-gaps.json:
+- what passes between two adjacent walls, two walls a tile apart, and two
+  adjacent furnaces;
+- which way a centred walker slides, in all four directions.
 
-    uv run python tools/probe_corner_slide.py
+    uv run python tools/probe_corner_slide.py [--gaps]
 """
 
 from __future__ import annotations
@@ -48,6 +52,8 @@ OX, OY = -160, 160
 TICKS = 64
 #: Start this many tiles from the obstacle's centre, then walk back at it.
 DIRECTIONS = {"west": (6, 0), "north": (0, 6)}
+#: All four, for the rigs that check which way a centred walker slides.
+ALL_DIRECTIONS = {"west": (6, 0), "north": (0, 6), "east": (-6, 0), "south": (0, -6)}
 
 #: Each rig: the entities it builds, as (prototype, dx, dy) from the origin,
 #: and the start offsets across it, in 1/256 tiles from its centre.
@@ -61,6 +67,25 @@ RIGS = {
     ),
     "furnace": ([("stone-furnace", 0, 0)], list(range(-256, 257, 16))),
 }
+
+#: Second probe (`--gaps`): what passes between two obstacles, and ties.
+GAP_RIGS = {
+    # Two adjacent walls: the gap between their boxes is 108/256, wider than
+    # the character's 102, yet the column rig was blocked mid-gap. Offsets
+    # across the gap at full resolution, relative to the pair's centre.
+    "walls_adjacent": ([("stone-wall", 0, 0), ("stone-wall", 0, 1)], list(range(-70, 71, 2))),
+    # One empty tile between them: a 364/256 gap.
+    "walls_one_apart": ([("stone-wall", 0, 0), ("stone-wall", 0, 2)], list(range(-256, 257, 8))),
+    # Two furnaces side by side: a 154/256 gap between their boxes.
+    "furnaces_adjacent": (
+        [("stone-furnace", 0, 0), ("stone-furnace", 0, 2)],
+        list(range(-192, 193, 8)),
+    ),
+    # A centred walker, and just off centre, in all four directions.
+    "wall_ties": ([("stone-wall", 0, 0)], [-4, -1, 0, 1, 4]),
+    "furnace_ties": ([("stone-furnace", 0, 0)], [-1, 0, 1]),
+}
+TIE_RIGS = {"wall_ties", "furnace_ties"}
 
 SETUP = """
 local s = game.surfaces[1]
@@ -96,10 +121,10 @@ return {ch.position.x, ch.position.y}
 """
 
 
-def walk_rig(client, env, rig: dict, centre: tuple[float, float], offsets: list[int]) -> None:
-    """Walk at the rig from each offset, west and north, tick by tick."""
+def walk_rig(client, env, rig, centre, offsets, directions=DIRECTIONS) -> None:
+    """Walk at the rig from each offset, in each direction, tick by tick."""
     cx, cy = centre
-    for name, (away_x, away_y) in DIRECTIONS.items():
+    for name, (away_x, away_y) in directions.items():
         runs = []
         for offset in offsets:
             if away_x:
@@ -117,6 +142,9 @@ def walk_rig(client, env, rig: dict, centre: tuple[float, float], offsets: list[
 
 
 def main() -> int:
+    gaps = "--gaps" in sys.argv
+    rigs = GAP_RIGS if gaps else RIGS
+    out = OUT.with_name("sim-mechanics-m5-slide-gaps.json") if gaps else OUT
     manager = WorkerManager()
     handle = manager.launch("corner-slide")
     report: dict = {
@@ -140,7 +168,7 @@ def main() -> int:
                 split="train",
             )
             env.reset(options={"scene_index": 0})
-            for name, (specs, offsets) in RIGS.items():
+            for name, (specs, offsets) in rigs.items():
                 lua_specs = "{" + ",".join(f'{{"{p}", {dx}, {dy}}}' for p, dx, dy in specs) + "}"
                 code = SETUP.replace("SPECS", lua_specs)
                 placed = client.lua(code.replace("OX", str(OX)).replace("OY", str(OY)))
@@ -150,16 +178,17 @@ def main() -> int:
                 )
                 rig = {"placed": placed, "centre": centre, "offsets_256": offsets, "runs": {}}
                 report["rigs"][name] = rig
-                walk_rig(client, env, rig, centre, offsets)
+                directions = ALL_DIRECTIONS if name in TIE_RIGS else DIRECTIONS
+                walk_rig(client, env, rig, centre, offsets, directions)
                 # Written after every rig, so a run cut short keeps what it measured.
-                OUT.write_text(json.dumps(report, indent=0, sort_keys=True) + "\n", "utf-8")
+                out.write_text(json.dumps(report, indent=0, sort_keys=True) + "\n", "utf-8")
                 print(f"rig {name} done", flush=True)
             session.close()
     finally:
         manager.cleanup(handle)
     report["wall_seconds"] = round(time.perf_counter() - started, 1)
-    OUT.write_text(json.dumps(report, indent=0, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"wrote {OUT}")
+    out.write_text(json.dumps(report, indent=0, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"wrote {out}")
     return 0
 
 
