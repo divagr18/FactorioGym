@@ -30,7 +30,7 @@
       "informative_components": [],
       "has_gradient": true,
       "terminal_verifier": true,
-      "version": "1.1.0",
+      "version": "1.1.1",
       "budget": 600,
       "step_cost_weight": 0.0,
       "pressure": 0.0,
