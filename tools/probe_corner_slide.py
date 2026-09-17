@@ -24,7 +24,11 @@ second set instead, and writes sim-mechanics-m5-slide-gaps.json:
   adjacent furnaces;
 - which way a centred walker slides, in all four directions.
 
-    uv run python tools/probe_corner_slide.py [--gaps]
+With `--creep`, writes sim-mechanics-m5-slide-creep.json:
+- how far a blocked walker creeps each tick, from every start phase;
+- the 131/256 gap between a wall and a furnace.
+
+    uv run python tools/probe_corner_slide.py [--gaps | --creep]
 """
 
 from __future__ import annotations
@@ -87,6 +91,23 @@ GAP_RIGS = {
 }
 TIE_RIGS = {"wall_ties", "furnace_ties"}
 
+#: Third probe (`--creep`): how far a blocked walker creeps each tick, from
+#: every start phase, where no slide is possible; and one more gap width.
+CREEP_RIGS = {
+    # Dead centre on a furnace: the needed slide (231) is over the limit.
+    "furnace_creep": ([("stone-furnace", 0, 0)], [0]),
+    # Mid-gap on two adjacent walls: blocked, and no slide.
+    "walls_adjacent_creep": ([("stone-wall", 0, 0), ("stone-wall", 0, 1)], [0]),
+    # A wall beside a furnace, centres 1.5 tiles apart: a 131/256 gap.
+    "wall_furnace_gap": (
+        [("stone-furnace", 0, 0), ("stone-wall", 0, 1)],
+        list(range(-160, 161, 8)),
+    ),
+}
+CREEP_RIGS_PHASED = {"furnace_creep", "walls_adjacent_creep"}
+#: Start distance offsets for the phased rigs: one stride, unit by unit.
+PHASES = list(range(38))
+
 SETUP = """
 local s = game.surfaces[1]
 for _, e in pairs(s.find_entities_filtered({area = {{OX - 12, OY - 12}, {OX + 12, OY + 12}}})) do
@@ -121,30 +142,30 @@ return {ch.position.x, ch.position.y}
 """
 
 
-def walk_rig(client, env, rig, centre, offsets, directions=DIRECTIONS) -> None:
-    """Walk at the rig from each offset, in each direction, tick by tick."""
+def walk_rig(client, env, rig, centre, offsets, directions=DIRECTIONS, phases=(0,)) -> None:
+    """Walk at the rig from each offset (and start phase), in each direction."""
     cx, cy = centre
     for name, (away_x, away_y) in directions.items():
         runs = []
-        for offset in offsets:
+        for offset, phase in [(o, ph) for o in offsets for ph in phases]:
             if away_x:
-                x, y = cx + away_x, cy + offset / 256
+                x, y = cx + away_x + phase / 256, cy + offset / 256
             else:
-                x, y = cx + offset / 256, cy + away_y
+                x, y = cx + offset / 256, cy + away_y + phase / 256
             start = client.lua(START.replace("X", repr(x)).replace("Y", repr(y)))
             path = []
             for _ in range(TICKS):
                 path.append(client.lua(WALK.replace("DIR", name)))
                 env.advance(1)
             path.append(client.lua(STOP))
-            runs.append({"offset_256": offset, "start": start, "path": path})
+            runs.append({"offset_256": offset, "phase_256": phase, "start": start, "path": path})
         rig["runs"][name] = runs
 
 
 def main() -> int:
-    gaps = "--gaps" in sys.argv
-    rigs = GAP_RIGS if gaps else RIGS
-    out = OUT.with_name("sim-mechanics-m5-slide-gaps.json") if gaps else OUT
+    mode = "gaps" if "--gaps" in sys.argv else "creep" if "--creep" in sys.argv else ""
+    rigs = {"gaps": GAP_RIGS, "creep": CREEP_RIGS}.get(mode, RIGS)
+    out = OUT.with_name(f"sim-mechanics-m5-slide-{mode}.json") if mode else OUT
     manager = WorkerManager()
     handle = manager.launch("corner-slide")
     report: dict = {
@@ -179,7 +200,8 @@ def main() -> int:
                 rig = {"placed": placed, "centre": centre, "offsets_256": offsets, "runs": {}}
                 report["rigs"][name] = rig
                 directions = ALL_DIRECTIONS if name in TIE_RIGS else DIRECTIONS
-                walk_rig(client, env, rig, centre, offsets, directions)
+                phases = PHASES if name in CREEP_RIGS_PHASED else (0,)
+                walk_rig(client, env, rig, centre, offsets, directions, phases)
                 # Written after every rig, so a run cut short keeps what it measured.
                 out.write_text(json.dumps(report, indent=0, sort_keys=True) + "\n", "utf-8")
                 print(f"rig {name} done", flush=True)
