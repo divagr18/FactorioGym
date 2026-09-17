@@ -67,7 +67,8 @@ profiles.OBSERVATION = {
   --   * `force` -- researched / current_research / research_progress. The
   --     technology list is the single largest block and is rebuilt and sorted
   --     from scratch every observation.
-  --   * `events` -- carried but never inspected.
+  --   * `events` -- dropped in v1 and restored in v3 (see its version notes);
+  --     trimmed to the last few, flattened, in v7.
   --   * `resources.patches`, `sensor.handles`, `sensor.remembered`,
   --     `sensor.truncated`, `character.health`, `character.reach` and
   --     `terrain.detail`, all handled by `slim` below since they are nested.
@@ -122,7 +123,15 @@ profiles.OBSERVATION = {
     --    this observation cannot reproduce the engine's internal order, and
     --    before this a large patch within the 32-tile sweep could also push near
     --    tiles out of the capped resource sweep entirely.
-    version = 6,
+    -- 7: `events` is the last `event_window` records, flat and fixed once
+    --    written, instead of all 256 live ones -- 62% of every frame, resent
+    --    each step, holding result tables that changed after they were
+    --    published. `event_counts` carries the settled and refused counts over
+    --    the full buffer, so the encoder's refusal rate is unchanged and the
+    --    tensors are identical to v6's.
+    version = 7,
+    event_window = 8,
+    flat_events = true,
     deterministic_order = true,
     radius = 32,
     entity_cap = 48,
@@ -140,7 +149,8 @@ profiles.OBSERVATION = {
       -- that, so without this a *failed* mine has no observable outcome
       -- anywhere -- and the language-model prompt's "recent action outcomes"
       -- section was empty on every run.
-      "remembered", "task", "inflight", "goal", "events", "recipes",
+      "remembered", "task", "inflight", "goal", "events", "event_counts",
+      "recipes",
     },
   },
 
@@ -166,7 +176,11 @@ profiles.OBSERVATION = {
     -- 2: `deterministic_order`, for the same reason as `local-v2` v6, and
     --    `recipe_detail` (craftable counts and missing ingredients), which only
     --    this profile's consumer, the language-model summary, reads.
-    version = 2,
+    -- 3: `events` is the last `event_window` records rather than all 256. They
+    --    stay live, full records: the summary prints their action detail, and
+    --    shows six. `event_counts` as in `local-v2` v7.
+    version = 3,
+    event_window = 8,
     deterministic_order = true,
     recipe_detail = true,
     radius = 32,
@@ -184,8 +198,8 @@ profiles.OBSERVATION = {
       -- The researchable frontier, which no benchmark profile carries. It is
       -- what makes `research` selectable at all: the argument domain was empty
       -- and an argument whose values the policy cannot see is not selectable.
-      "remembered", "task", "inflight", "goal", "events", "recipes",
-      "researchable",
+      "remembered", "task", "inflight", "goal", "events", "event_counts",
+      "recipes", "researchable",
       -- A tile-by-tile picture of the immediate surroundings. Open worlds
       -- only: it is the observation that lets an agent see that two machines
       -- are five tiles apart rather than touching, and no benchmark profile

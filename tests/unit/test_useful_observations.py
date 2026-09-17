@@ -100,6 +100,24 @@ class TestActionOutcomesReachThePolicy:
         ]
         assert _encode(events=events)["self"][11] == pytest.approx(2 / 3)
 
+    def test_a_trimmed_window_encodes_as_the_whole_buffer_did(self):
+        """`local-v2` v7 sends 8 events plus the buffer's counts; the tensor must
+        equal what the full buffer gave, or v1 and v2 stop encoding alike."""
+        buffer = [
+            {"seq": i, "status": "failed" if i % 5 == 0 else "completed"} for i in range(1, 41)
+        ]
+        full = _encode(events=buffer)["self"]
+        trimmed = _encode(
+            events=buffer[-8:],
+            event_counts={
+                "settled": len(buffer),
+                "refused": sum(1 for e in buffer if e["status"] == "failed"),
+            },
+        )["self"]
+        assert np.array_equal(full, trimmed)
+        # And the window alone would not have: 1 refusal in the last 8, not 8 in 40.
+        assert _encode(events=buffer[-8:])["self"][11] != full[11]
+
     def test_a_running_action_does_not_count_as_settled(self):
         assert _encode(events=[{"seq": 1, "status": "running"}])["self"][11] == 0.0
 

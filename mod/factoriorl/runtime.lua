@@ -43,6 +43,7 @@ local function new_state()
     ledger = {},
     ledger_order = {},
     events = {},
+    flat_events = {},
     event_seq = 0,
     observation_profile = profiles.DEFAULT_OBSERVATION,
     action_profile = profiles.DEFAULT_ACTION,
@@ -62,6 +63,7 @@ local function begin_episode()
   state.ledger = {}
   state.ledger_order = {}
   state.events = {}
+  state.flat_events = {}
   state.event_seq = 0
   handles.reset()
   memory.reset()
@@ -106,7 +108,7 @@ local function ledger_store(request_id, request_type, response)
   state.ledger[request_id] = { request_type = request_type, response = response }
 end
 
-local function record_event(request_id, action, status)
+local function record_event(request_id, action, status, error_code)
   state.event_seq = state.event_seq + 1
   state.events[#state.events + 1] = {
     seq = state.event_seq,
@@ -116,6 +118,30 @@ local function record_event(request_id, action, status)
     tick = episode_tick(),
   }
   while #state.events > EVENT_LIMIT do table.remove(state.events, 1) end
+
+  -- The same event, flattened and copied now. A step's event holds the inner
+  -- action's result table *by reference*, and that table is merged into again
+  -- when the action settles later -- so the "same" event read differently on
+  -- later frames, and a copy of the observation had to be taken at the right
+  -- moment to mean anything. A flat record is fixed once written, carries only
+  -- names and codes, and is what a profile with `flat_events` publishes.
+  local flat = {
+    seq = state.event_seq,
+    request_id = request_id,
+    tick = episode_tick(),
+    status = status,
+    error = error_code,
+  }
+  if type(action) == "table" then
+    flat.action = action.action
+    flat.result = action.status
+    flat.error = flat.error or (type(action.error) == "table" and action.error.code or nil)
+  else
+    flat.action = action
+  end
+  state.flat_events = state.flat_events or {}
+  state.flat_events[#state.flat_events + 1] = flat
+  while #state.flat_events > EVENT_LIMIT do table.remove(state.flat_events, 1) end
 end
 
 --- The one place a terminal status is written.
@@ -135,7 +161,7 @@ local function ledger_settle(request_id, status, result, error_code, error_messa
   if error_code then
     stored.error = { code = error_code, message = error_message or status }
   end
-  record_event(request_id, merged.action, status)
+  record_event(request_id, merged.action, status, error_code)
   return true
 end
 
@@ -780,6 +806,7 @@ function runtime.on_object_destroyed(event)
 end
 
 function runtime.on_tick(_)
+  local snapshot = nil
   local settled = inflight.on_tick()
   for _, item in ipairs(settled) do
     local entry = item.entry
@@ -790,6 +817,7 @@ function runtime.on_tick(_)
       local stored = state.ledger[entry.request_id]
       if stored and stored.request_type == "step" then
         result.observation = observations.snapshot(state)
+        snapshot = result.observation
         -- Evaluator truth rides along: fetching it separately cost a third
         -- round trip on every single RL step.
         result.truth = world.truth()
@@ -814,6 +842,14 @@ function runtime.on_tick(_)
     ledger_settle(cancelled.request_id, STATUS.CANCELLED, cancelled.result)
     storage.frrl_cancelled = nil
   end
+
+  -- The snapshot is taken before this tick's settles are recorded, including
+  -- the step's own. A full-buffer profile still shows them, because it
+  -- publishes `state.events` itself and the table is serialised later; a
+  -- windowed profile publishes a copy, so it is refreshed here, once every
+  -- event of the tick is in. Without this the two profiles disagreed about
+  -- the last settled outcome on the first frame of every episode.
+  if snapshot then observations.refresh_events(snapshot, state) end
 end
 
 return runtime

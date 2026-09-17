@@ -118,6 +118,52 @@ local function enabled_recipes(with_detail)
   return names
 end
 
+-- The events a profile publishes. Without `event_window`, the whole buffer of
+-- up to 256 live records, as `local-v1` always has. With it, only the most
+-- recent few -- every frame used to resend the whole buffer, 62% of a
+-- `local-v2` frame -- flattened if the profile asks (see `record_event`).
+local function published_events(state, observation_profile)
+  local window = observation_profile.event_window
+  if not window then return state.events or {} end
+  local source = observation_profile.flat_events and state.flat_events or state.events
+  source = source or {}
+  local out = {}
+  for index = math.max(1, #source - window + 1), #source do
+    out[#out + 1] = source[index]
+  end
+  return out
+end
+
+-- What the dropped events still told the encoder: how many of the buffer's
+-- events settled, and how many of those were refusals. `encoders.encode`
+-- reads its refusal rate from here when present, so a trimmed profile encodes
+-- exactly as the full buffer did.
+local REFUSED = { failed = true, cancelled = true, rejected = true }
+local SETTLED = { completed = true, failed = true, cancelled = true, rejected = true }
+local function event_counts(state, observation_profile)
+  if not observation_profile.event_window then return nil end
+  local settled, refused = 0, 0
+  for _, event in ipairs(state.events or {}) do
+    if SETTLED[event.status] then
+      settled = settled + 1
+      if REFUSED[event.status] then refused = refused + 1 end
+    end
+  end
+  return { settled = settled, refused = refused }
+end
+
+--- Re-read the event window into an observation built earlier in this tick.
+function observations.refresh_events(observation, state)
+  local observation_profile = profiles.observation(state.observation_profile)
+  if not (observation_profile and observation_profile.event_window) then return end
+  if observation.events ~= nil then
+    observation.events = published_events(state, observation_profile)
+  end
+  if observation.event_counts ~= nil then
+    observation.event_counts = event_counts(state, observation_profile)
+  end
+end
+
 local function character_state(ch, observation_profile)
   if not ch or not ch.valid then return { present = false } end
   local record = {
@@ -360,7 +406,8 @@ function observations.snapshot(state)
     -- since v1.6.0. Decoys are in neither source and never appear.
     goal = world.public_markers(),
     inflight = inflight.summary(observation_profile.deterministic_order),
-    events = state.events or {},
+    events = published_events(state, observation_profile),
+    event_counts = event_counts(state, observation_profile),
     -- What the force can actually make. Never sent before, so `craft` and
     -- `set_recipe` had no observable vocabulary and a policy could not name a
     -- legal value for either. Enabled recipes only, so this states a

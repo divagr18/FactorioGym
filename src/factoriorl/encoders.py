@@ -299,6 +299,12 @@ def encode(
         self_vector[10] = 1.0 if last.get("status") == "completed" else 0.0
         refused = sum(1 for e in settled if e.get("status") in _REFUSED_STATUS)
         self_vector[11] = refused / len(settled)
+    # A profile that publishes only the last few events (`local-v2` v7,
+    # `open-v1` v3) sends the counts over the full buffer alongside, so the
+    # rate means what it meant when every event was sent.
+    counts = observation.get("event_counts")
+    if isinstance(counts, dict) and counts.get("settled"):
+        self_vector[11] = float(counts.get("refused") or 0) / float(counts["settled"])
 
     inventory = np.zeros(len(ITEMS), dtype=np.float32)
     for index, item in enumerate(ITEMS):
