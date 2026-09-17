@@ -1,0 +1,2727 @@
+{
+ "drills": {
+  "chunk_corner_north_x": {
+   "centre": [
+    224,
+    256
+   ],
+   "creation_order": "x",
+   "facing": "north",
+   "sequence": [
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     0,
+     -1
+    ]
+   ]
+  },
+  "chunk_corner_south_x": {
+   "centre": [
+    224,
+    224
+   ],
+   "creation_order": "x",
+   "facing": "south",
+   "sequence": [
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     0,
+     -1
+    ]
+   ]
+  },
+  "in_chunk_east_x": {
+   "centre": [
+    210,
+    210
+   ],
+   "creation_order": "x",
+   "facing": "east",
+   "sequence": [
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     0,
+     -1
+    ]
+   ]
+  },
+  "in_chunk_north_x": {
+   "centre": [
+    200,
+    210
+   ],
+   "creation_order": "x",
+   "facing": "north",
+   "sequence": [
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     0,
+     -1
+    ]
+   ]
+  },
+  "in_chunk_south_x": {
+   "centre": [
+    200,
+    200
+   ],
+   "creation_order": "x",
+   "facing": "south",
+   "sequence": [
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     0,
+     -1
+    ]
+   ]
+  },
+  "in_chunk_south_y": {
+   "centre": [
+    210,
+    200
+   ],
+   "creation_order": "y",
+   "facing": "south",
+   "sequence": [
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     0,
+     -1
+    ]
+   ]
+  },
+  "in_chunk_west_x": {
+   "centre": [
+    200,
+    220
+   ],
+   "creation_order": "x",
+   "facing": "west",
+   "sequence": [
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     0,
+     -1
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     -1
+    ],
+    [
+     0,
+     -1
+    ]
+   ]
+  }
+ },
+ "engine": {
+  "build": 83512,
+  "executable": "D:\\Factorio\\bin\\x64\\factorio.exe",
+  "platform": "win64",
+  "version": "2.0.60"
+ },
+ "trigger": {
+  "fiftieth_plate_t": 2498,
+  "recipes_enabled_t": 2522,
+  "researched_at_enable": true,
+  "samples_near": [
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2310,
+    "tick": 2310
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2311,
+    "tick": 2311
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2312,
+    "tick": 2312
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2313,
+    "tick": 2313
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2314,
+    "tick": 2314
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2315,
+    "tick": 2315
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2316,
+    "tick": 2316
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2317,
+    "tick": 2317
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2318,
+    "tick": 2318
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2319,
+    "tick": 2319
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2320,
+    "tick": 2320
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2321,
+    "tick": 2321
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2322,
+    "tick": 2322
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2323,
+    "tick": 2323
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2324,
+    "tick": 2324
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2325,
+    "tick": 2325
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2326,
+    "tick": 2326
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2327,
+    "tick": 2327
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2328,
+    "tick": 2328
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2329,
+    "tick": 2329
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2330,
+    "tick": 2330
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2331,
+    "tick": 2331
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2332,
+    "tick": 2332
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2333,
+    "tick": 2333
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2334,
+    "tick": 2334
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2335,
+    "tick": 2335
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2336,
+    "tick": 2336
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2337,
+    "tick": 2337
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2338,
+    "tick": 2338
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2339,
+    "tick": 2339
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2340,
+    "tick": 2340
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2341,
+    "tick": 2341
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2342,
+    "tick": 2342
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2343,
+    "tick": 2343
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2344,
+    "tick": 2344
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2345,
+    "tick": 2345
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2346,
+    "tick": 2346
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2347,
+    "tick": 2347
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2348,
+    "tick": 2348
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2349,
+    "tick": 2349
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2350,
+    "tick": 2350
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2351,
+    "tick": 2351
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2352,
+    "tick": 2352
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2353,
+    "tick": 2353
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2354,
+    "tick": 2354
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2355,
+    "tick": 2355
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2356,
+    "tick": 2356
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2357,
+    "tick": 2357
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2358,
+    "tick": 2358
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2359,
+    "tick": 2359
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2360,
+    "tick": 2360
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2361,
+    "tick": 2361
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2362,
+    "tick": 2362
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2363,
+    "tick": 2363
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2364,
+    "tick": 2364
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2365,
+    "tick": 2365
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2366,
+    "tick": 2366
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2367,
+    "tick": 2367
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2368,
+    "tick": 2368
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2369,
+    "tick": 2369
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2370,
+    "tick": 2370
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2371,
+    "tick": 2371
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2372,
+    "tick": 2372
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2373,
+    "tick": 2373
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2374,
+    "tick": 2374
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2375,
+    "tick": 2375
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2376,
+    "tick": 2376
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2377,
+    "tick": 2377
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2378,
+    "tick": 2378
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2379,
+    "tick": 2379
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2380,
+    "tick": 2380
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2381,
+    "tick": 2381
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2382,
+    "tick": 2382
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2383,
+    "tick": 2383
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2384,
+    "tick": 2384
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2385,
+    "tick": 2385
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2386,
+    "tick": 2386
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2387,
+    "tick": 2387
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2388,
+    "tick": 2388
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2389,
+    "tick": 2389
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2390,
+    "tick": 2390
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2391,
+    "tick": 2391
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2392,
+    "tick": 2392
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2393,
+    "tick": 2393
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2394,
+    "tick": 2394
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2395,
+    "tick": 2395
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2396,
+    "tick": 2396
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2397,
+    "tick": 2397
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2398,
+    "tick": 2398
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2399,
+    "tick": 2399
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2400,
+    "tick": 2400
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2401,
+    "tick": 2401
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2402,
+    "tick": 2402
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2403,
+    "tick": 2403
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2404,
+    "tick": 2404
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2405,
+    "tick": 2405
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2406,
+    "tick": 2406
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2407,
+    "tick": 2407
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2408,
+    "tick": 2408
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2409,
+    "tick": 2409
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2410,
+    "tick": 2410
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2411,
+    "tick": 2411
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2412,
+    "tick": 2412
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2413,
+    "tick": 2413
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2414,
+    "tick": 2414
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2415,
+    "tick": 2415
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2416,
+    "tick": 2416
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2417,
+    "tick": 2417
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2418,
+    "tick": 2418
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2419,
+    "tick": 2419
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2420,
+    "tick": 2420
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2421,
+    "tick": 2421
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2422,
+    "tick": 2422
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2423,
+    "tick": 2423
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2424,
+    "tick": 2424
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2425,
+    "tick": 2425
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2426,
+    "tick": 2426
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2427,
+    "tick": 2427
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2428,
+    "tick": 2428
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2429,
+    "tick": 2429
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2430,
+    "tick": 2430
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2431,
+    "tick": 2431
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2432,
+    "tick": 2432
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2433,
+    "tick": 2433
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2434,
+    "tick": 2434
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2435,
+    "tick": 2435
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2436,
+    "tick": 2436
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2437,
+    "tick": 2437
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2438,
+    "tick": 2438
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2439,
+    "tick": 2439
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2440,
+    "tick": 2440
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2441,
+    "tick": 2441
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2442,
+    "tick": 2442
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2443,
+    "tick": 2443
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2444,
+    "tick": 2444
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2445,
+    "tick": 2445
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2446,
+    "tick": 2446
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2447,
+    "tick": 2447
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2448,
+    "tick": 2448
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2449,
+    "tick": 2449
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2450,
+    "tick": 2450
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2451,
+    "tick": 2451
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2452,
+    "tick": 2452
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2453,
+    "tick": 2453
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2454,
+    "tick": 2454
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2455,
+    "tick": 2455
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2456,
+    "tick": 2456
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2457,
+    "tick": 2457
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2458,
+    "tick": 2458
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2459,
+    "tick": 2459
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2460,
+    "tick": 2460
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2461,
+    "tick": 2461
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2462,
+    "tick": 2462
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2463,
+    "tick": 2463
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2464,
+    "tick": 2464
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2465,
+    "tick": 2465
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2466,
+    "tick": 2466
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2467,
+    "tick": 2467
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2468,
+    "tick": 2468
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2469,
+    "tick": 2469
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2470,
+    "tick": 2470
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2471,
+    "tick": 2471
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2472,
+    "tick": 2472
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2473,
+    "tick": 2473
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2474,
+    "tick": 2474
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2475,
+    "tick": 2475
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2476,
+    "tick": 2476
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2477,
+    "tick": 2477
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2478,
+    "tick": 2478
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2479,
+    "tick": 2479
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2480,
+    "tick": 2480
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2481,
+    "tick": 2481
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2482,
+    "tick": 2482
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2483,
+    "tick": 2483
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2484,
+    "tick": 2484
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2485,
+    "tick": 2485
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2486,
+    "tick": 2486
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2487,
+    "tick": 2487
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2488,
+    "tick": 2488
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2489,
+    "tick": 2489
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2490,
+    "tick": 2490
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2491,
+    "tick": 2491
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2492,
+    "tick": 2492
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2493,
+    "tick": 2493
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2494,
+    "tick": 2494
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2495,
+    "tick": 2495
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2496,
+    "tick": 2496
+   },
+   {
+    "engine_enabled": false,
+    "plates": 48,
+    "researched": false,
+    "t": 2497,
+    "tick": 2497
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2498,
+    "tick": 2498
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2499,
+    "tick": 2499
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2500,
+    "tick": 2500
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2501,
+    "tick": 2501
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2502,
+    "tick": 2502
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2503,
+    "tick": 2503
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2504,
+    "tick": 2504
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2505,
+    "tick": 2505
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2506,
+    "tick": 2506
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2507,
+    "tick": 2507
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2508,
+    "tick": 2508
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2509,
+    "tick": 2509
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2510,
+    "tick": 2510
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2511,
+    "tick": 2511
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2512,
+    "tick": 2512
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2513,
+    "tick": 2513
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2514,
+    "tick": 2514
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2515,
+    "tick": 2515
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2516,
+    "tick": 2516
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2517,
+    "tick": 2517
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2518,
+    "tick": 2518
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2519,
+    "tick": 2519
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2520,
+    "tick": 2520
+   },
+   {
+    "engine_enabled": false,
+    "plates": 52,
+    "researched": false,
+    "t": 2521,
+    "tick": 2521
+   },
+   {
+    "engine_enabled": true,
+    "plates": 52,
+    "researched": true,
+    "t": 2522,
+    "tick": 2522
+   }
+  ]
+ },
+ "wall_seconds": 26.4
+}
