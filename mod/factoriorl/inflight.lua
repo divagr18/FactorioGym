@@ -102,6 +102,7 @@ function inflight.export()
         target = entry.target_handle,
         goal = entry.goal,
         baseline = entry.baseline,
+        queued = entry.queued,
         recipe = entry.recipe,
       }
     end
@@ -111,6 +112,80 @@ function inflight.export()
     return a.request_id < b.request_id
   end)
   return { next_seq = s.next_seq or 0, entries = out }
+end
+
+-- ---------------------------------------------------------------- mine baseline
+--
+-- A mine is complete when the character holds `goal.count` more of the mined
+-- item than at `baseline`. That is a count of the inventory, not of mining, so
+-- anything else that moved the item in or out was read as mining: a
+-- `take_from` of iron ore during a hand-mine completed the mine and tallied
+-- the taken ore as `mined_by_action`, and a `give_to` did the reverse. The
+-- tally feeds `machine_produced`, which caps `construct_smelting_line`'s
+-- verified plates, so a working line could be scored nothing. The M2 parity
+-- trace `transfer_clamping` recorded exactly that.
+--
+-- The count stays; the baseline moves with every change that is not mining.
+-- Two sources exist: actions (measured around each one in
+-- `actions.dispatch`) and the engine's crafting queue delivering a product
+-- (measured each tick, before the mine is polled).
+
+local function held(item)
+  local ch = storage.frrl_character
+  if not (ch and ch.valid and item) then return 0 end
+  local inv = ch.get_inventory(defines.inventory.character_main)
+  return inv and inv.get_item_count(item) or 0
+end
+
+--- How many of `item` the crafting queue will still deliver.
+function inflight.queued(item)
+  local ch = storage.frrl_character
+  if not (ch and ch.valid and item) then return 0 end
+  local total = 0
+  for _, entry in pairs(ch.crafting_queue or {}) do
+    local recipe = prototypes.recipe[entry.recipe]
+    for _, product in pairs(recipe and recipe.products or {}) do
+      if product.name == item then
+        total = total + entry.count * (product.amount or 1)
+      end
+    end
+  end
+  return total
+end
+
+--- The running mine, or nil.
+function inflight.running_mine()
+  local request_id = inflight.occupant("mine")
+  return request_id and state().entries[request_id] or nil
+end
+
+--- Snapshot before something that is not mining touches the inventory.
+function inflight.mine_guard()
+  local entry = inflight.running_mine()
+  if not entry or not entry.goal then return nil end
+  return { entry = entry, held = held(entry.goal.item) }
+end
+
+--- Move the baseline by whatever that something did to the mined item.
+function inflight.mine_unguard(guard)
+  if not guard then return end
+  local entry = guard.entry
+  if entry.terminal then return end
+  entry.baseline = (entry.baseline or 0) + held(entry.goal.item) - guard.held
+  -- An action can also change the queue (crafting, cancelling a craft), and
+  -- that is not a delivery.
+  entry.queued = inflight.queued(entry.goal.item)
+end
+
+--- Credit items the crafting queue delivered since the last tick to the
+--- baseline, not to mining.
+local function account_crafting(entry)
+  local now = inflight.queued(entry.goal.item)
+  local before = entry.queued or now
+  if now < before then
+    entry.baseline = (entry.baseline or 0) + (before - now)
+  end
+  entry.queued = now
 end
 
 --- Is `slot` occupied, and by which request?
@@ -153,6 +228,11 @@ function inflight.start(request_id, action, fields)
     data = fields.data,
     terminal = false,
   }
+  if action == "mine" and entry.goal then
+    -- What the crafting queue still owes, so a delivery during the mine is
+    -- credited to the baseline rather than to mining. See `mine_guard`.
+    entry.queued = inflight.queued(entry.goal.item)
+  end
   s.entries[request_id] = entry
   local slot = SLOT_OF[action]
   if slot then s.slots[slot] = request_id end
@@ -192,6 +272,7 @@ POLLS.mine = function(entry)
   if not ch then
     return STATUS.FAILED, { reason = "character missing" }, ERR.TARGET_MISSING
   end
+  account_crafting(entry)
   local inv = ch.get_inventory(defines.inventory.character_main)
   local produced = inv and inv.get_item_count(entry.goal.item) or 0
   local gained = produced - (entry.baseline or 0)

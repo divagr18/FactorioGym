@@ -16,6 +16,13 @@ ten hand-mined ore scored 1.0 with no drill. With actions locked during the
 window, ore mined in it came from a drill, so a drill-less line now scores 0.
 The measured drill-to-furnace line is drill-limited at about fifteen plates a
 minute, so a working line still clears the target.
+
+**1.1.1** changes no rule, only a measurement under it. The mod's hand-mine
+counted any change in held iron ore as mining, so taking ore out of a furnace
+during a mine was tallied as mined, and giving ore away was the reverse. The
+tally is subtracted from ``machine_produced``, which the cap reads, so a
+working line could score 0 after such a transfer. The mod now counts only what
+a mine mined (``tests/engine/test_mine_counts_only_mining.py``).
 """
 
 from __future__ import annotations
@@ -48,7 +55,7 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="construct_smelting_line",
-    version="1.1.0",
+    version="1.1.1",
     description=(
         "Build and fuel an iron-smelting line, then finish. Success is at least "
         "ten iron plates made by machines during an action-locked verification minute."

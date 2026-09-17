@@ -868,7 +868,14 @@ function actions.dispatch(state, request, respond, err)
     return respond(request, CODE.REJECTED, nil, err(code, message, details))
   end
   local payload = matrix.with_defaults(name, request.payload)
-  return handler(state, request, payload, respond, err)
+  -- Anything but a mine that moves the mined item moves the mine's baseline
+  -- with it, so a transfer, a placement or a craft is never counted as mining.
+  -- A `mine` is left out: it is refused while one runs, and starting one sets
+  -- its own baseline. See `inflight.mine_guard`.
+  local guard = name ~= "mine" and inflight.mine_guard() or nil
+  local response = handler(state, request, payload, respond, err)
+  inflight.mine_unguard(guard)
+  return response
 end
 
 function actions.on_init()
