@@ -106,7 +106,15 @@ HIDDEN_LISTS = ("entities", "ground_items", "resources")
 
 #: Keys under which the mod publishes an absolute `game.tick` in an observation.
 ABSOLUTE_TICKS = frozenset(
-    {"started_tick", "deadline_tick", "cancelled_at_tick", "observed_tick", "last_seen", "seen"}
+    {
+        "started_tick",
+        "deadline_tick",
+        "cancelled_at_tick",
+        "observed_tick",
+        "last_seen",
+        "last_tick",
+        "seen",
+    }
 )
 
 
@@ -863,10 +871,10 @@ SCENARIOS: tuple[Scenario, ...] = (
 # ---------------------------------------------------------------- running
 
 
-def make_env(scenario: Scenario, session: WorkerSession) -> tuple[FactorioEnv, dict]:
+def make_env(scenario: Scenario, session: WorkerSession, task=None) -> tuple[FactorioEnv, dict]:
     """A fresh env whose next reset installs the scenario's scene."""
     env = FactorioEnv(
-        get(scenario.task),
+        task or get(scenario.task),
         session,
         SeedPlan(master=MASTER_SEED, run_id=f"sim-parity-{scenario.name}"),
         branch=Branch.TRAIN,
@@ -952,6 +960,92 @@ def record(scenario: Scenario, session: WorkerSession, replay: list[dict] | None
     return header, recorder.records, error
 
 
+#: Scenarios replayed tick by tick with `--tick-resolution`: the mechanics ones.
+#: The three long ones are a 600-decision reference, an exploit and a random
+#: rollout, whose mechanics these already cover, at 18,000 ticks apiece.
+TICK_SCENARIOS = (
+    "walk_and_reach",
+    "hand_mine_exhaustion",
+    "placement_footprints",
+    "drill_furnace_facings",
+    "drill_jam_and_build_over_pile",
+    "burner_run_on",
+    "transfer_clamping",
+    "mine_machine_returns_contents",
+)
+
+
+def comparable_hidden(hidden: dict) -> dict:
+    """Hidden state without what a one-tick replay changes by construction.
+
+    The replay issues 29 extra `wait` steps per decision. They settle events and
+    take in-flight sequence numbers, and so shift request renaming, but touch
+    nothing in the world.
+    """
+    body = {k: v for k, v in hidden.items() if k not in ("event_seq",)}
+    inflight = dict(body.get("inflight") or {})
+    inflight.pop("next_seq", None)
+    inflight["entries"] = [
+        {k: v for k, v in entry.items() if k not in ("request_id", "seq")}
+        for entry in inflight.get("entries") or []
+        if entry.get("action") != "advance"
+    ]
+    body["inflight"] = inflight
+    # A handle is minted when an observation first sees its entity, and the
+    # replay observes every tick: a pile that appears at tick 273 is first
+    # seen at 273 here and at 300 in the decision trace. Names and order must
+    # still agree; the tick they were first seen need not.
+    handles = dict(body.get("handles") or {})
+    handles["order"] = [
+        {k: v for k, v in entry.items() if k not in ("first_seen", "destroyed_tick")}
+        for entry in handles.get("order") or []
+    ]
+    body["handles"] = handles
+    return body
+
+
+def record_ticks(scenario: Scenario, session: WorkerSession, actions: list[dict]):
+    """Replay recorded actions one tick at a time, keeping hidden state per tick.
+
+    Each decision becomes its action on a one-tick step, then `wait` steps to
+    make up the decision's ticks. `wait` changes nothing in the world, so the
+    state at every decision boundary must equal the decision trace's; the
+    caller checks that before trusting the ticks in between.
+    """
+    base = get(scenario.task)
+    ticks_per_decision = base.spec.decision_ticks
+    spec = dataclasses.replace(base.spec, decision_ticks=1, max_decision_steps=10**9)
+    env, installed = make_env(scenario, session, task=dataclasses.replace(base, spec=spec))
+    env.reset(options={"scene_index": scenario.episode_index})
+    normaliser = Normaliser()
+    normaliser.begin(env._observation)
+
+    def hidden() -> dict:
+        digest = session.world_digest(hidden=True).response.result or {}
+        return normaliser.hidden(digest.get("hidden") or {})
+
+    rows = [hidden()]
+    script = Script(env)
+    for action in actions:
+        if script.over:
+            break
+        script.do(action["key"], **action["arguments"])
+        rows.append(hidden())
+        for _ in range(ticks_per_decision - 1):
+            if script.over:
+                break
+            script.do("wait")
+            rows.append(hidden())
+    header = {
+        "scenario": scenario.name,
+        "task": base.spec.id,
+        "task_version": base.spec.version,
+        "ticks_per_decision": ticks_per_decision,
+        "blueprint": installed["payload"],
+    }
+    return header, rows
+
+
 def write_trace(path: Path, header: dict, records: list[dict]) -> None:
     """One JSON line for the header, then one per decision, xz-compressed.
 
@@ -1024,6 +1118,44 @@ def locate_difference(header, records, header2, records2) -> dict:
     return {"decision": at, "path": f"lengths {len(records)} != {len(records2)}"}
 
 
+def tick_resolution(scenario: Scenario, session: WorkerSession, index: dict) -> int:
+    """Record one scenario tick by tick, twice, and check it against its trace."""
+    started = time.perf_counter()
+    decision_header, decisions = read_trace(OUT_DIR / f"{scenario.name}.jsonl.xz")
+    actions = [r["transition"]["action"] for r in decisions if r["transition"]]
+    header, rows = record_ticks(scenario, session, actions)
+    header2, rows2 = record_ticks(scenario, session, actions)
+    first, second = trace_hash(header, rows), trace_hash(header2, rows2)
+    step = header["ticks_per_decision"]
+    mismatch = None
+    for record in decisions:
+        at = record["decision"] * step
+        if at >= len(rows):
+            break
+        found = first_difference(comparable_hidden(record["hidden"]), comparable_hidden(rows[at]))
+        if found:
+            mismatch = {"decision": record["decision"], "tick": at, "path": found}
+            break
+    name = f"{scenario.name}.ticks.jsonl.xz"
+    write_trace(OUT_DIR / name, header, rows)
+    entry = index.setdefault(scenario.name, {})
+    entry["ticks"] = {
+        "trace": name,
+        "trace_sha256": first,
+        "ticks": len(rows) - 1,
+        "repeat_identical": first == second,
+        "matches_decision_trace": mismatch is None,
+        "first_mismatch": mismatch,
+        "wall_seconds": round(time.perf_counter() - started, 1),
+    }
+    print(
+        f"{scenario.name:36} ticks={len(rows) - 1:5d} repeat={first == second} "
+        f"matches_decisions={mismatch or True}",
+        flush=True,
+    )
+    return 0 if first == second and mismatch is None else 1
+
+
 def replay_note(entry: dict) -> str:
     if "replay_identical" not in entry:
         return "skipped"
@@ -1037,6 +1169,11 @@ def main() -> int:
     parser.add_argument("--list", action="store_true", help="list scenarios and exit")
     parser.add_argument(
         "--no-replay", action="store_true", help="skip the second, vector-replayed recording"
+    )
+    parser.add_argument(
+        "--tick-resolution",
+        action="store_true",
+        help="replay the mechanics scenarios one tick at a time and record hidden state",
     )
     parser.add_argument(
         "--check",
@@ -1066,6 +1203,12 @@ def main() -> int:
         session = WorkerSession(handle, timeout=120.0)
         session.status()
         engine = manager.engine.to_dict()
+        if args.tick_resolution:
+            names = args.scenarios or list(TICK_SCENARIOS)
+            for name in names:
+                failures += tick_resolution(by_name[name], session, index)
+                index_path.write_text(json.dumps(index, indent=2, sort_keys=True) + "\n", "utf-8")
+            chosen = []
         for scenario in chosen:
             started = time.perf_counter()
             header, records, error = record(scenario, session)

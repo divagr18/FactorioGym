@@ -146,6 +146,19 @@ class TestCommittedTraces:
             assert tool.trace_hash(header, records) == entry["trace_sha256"], name
             assert len(records) == entry["decisions"] + 1, name
 
+    def test_every_tick_trace_repeats_and_agrees_with_its_decision_trace(self, tool):
+        index = json.loads((EVIDENCE / "index.json").read_text(encoding="utf-8"))
+        ticked = {name for name, entry in index.items() if entry.get("ticks")}
+        assert ticked == set(tool.TICK_SCENARIOS)
+        for name in ticked:
+            ticks = index[name]["ticks"]
+            assert ticks["repeat_identical"] is True, name
+            assert ticks["matches_decision_trace"] is True, name
+            header, rows = tool.read_trace(EVIDENCE / ticks["trace"])
+            assert tool.trace_hash(header, rows) == ticks["trace_sha256"], name
+            assert len(rows) == ticks["ticks"] + 1, name
+            assert ticks["ticks"] == index[name]["decisions"] * header["ticks_per_decision"], name
+
     def test_the_verifier_scores_the_reference_and_refuses_the_exploit(self):
         index = json.loads((EVIDENCE / "index.json").read_text(encoding="utf-8"))
         reference = index["construct_smelting_line_reference"]["verification"]

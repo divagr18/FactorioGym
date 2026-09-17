@@ -21,6 +21,23 @@ local function surface()
   return game.surfaces[SURFACE_NAME]
 end
 
+-- A declared inventory is a JSON object, so `pairs` over it follows the Lua
+-- table's hash layout -- stable inside Factorio and specified nowhere else. It
+-- decides which slot each stack lands in, which a simulator has to reproduce
+-- and could not: a scene declaring coal, iron ore and a furnace was installed
+-- furnace, coal, ore. Items go in by name instead.
+local function sorted_pairs(map)
+  local keys = {}
+  for key in pairs(map) do keys[#keys + 1] = key end
+  table.sort(keys)
+  local index = 0
+  return function()
+    index = index + 1
+    local key = keys[index]
+    if key ~= nil then return key, map[key] end
+  end
+end
+
 --- Destroy everything the episode may have created.
 -- Player-force entities are swept across the whole surface, not just a box:
 -- the old +-16 clear left anything built further out to survive a reset, which
@@ -473,7 +490,7 @@ function world.build_blueprint(hash)
   srf.always_day = true
 
   local aliases = {}
-  for _, spec in pairs(blueprint.resources or {}) do
+  for _, spec in ipairs(blueprint.resources or {}) do
     local position = { spec.position[1], spec.position[2] }
     if srf.can_place_entity({ name = spec.name, position = position }) then
       srf.create_entity({
@@ -491,7 +508,7 @@ function world.build_blueprint(hash)
   -- asserted the *declaration* all failed to see it. So the shortfall is
   -- reported now, and `install` carries it back to Python.
   local undelivered = {}
-  for _, spec in pairs(blueprint.entities or {}) do
+  for _, spec in ipairs(blueprint.entities or {}) do
     local created = srf.create_entity({
       name = spec.name,
       position = { spec.position[1], spec.position[2] },
@@ -500,7 +517,7 @@ function world.build_blueprint(hash)
     })
     if created then
       if spec.contents then
-        for item, count in pairs(spec.contents) do
+        for item, count in sorted_pairs(spec.contents) do
           local placed = created.insert({ name = item, count = count })
           if placed < count then
             -- The result slot, explicitly. `insert` picks an inventory by what
@@ -530,7 +547,7 @@ function world.build_blueprint(hash)
   end
   if character.inventory then
     local inv = ch.get_inventory(defines.inventory.character_main)
-    for item, count in pairs(character.inventory) do
+    for item, count in sorted_pairs(character.inventory) do
       inv.insert({ name = item, count = count })
     end
   end
