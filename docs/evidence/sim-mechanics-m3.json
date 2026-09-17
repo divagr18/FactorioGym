@@ -1,0 +1,17144 @@
+{
+"burner": {
+"d_chest_arrivals": [
+243,
+483,
+723,
+963,
+1203,
+1443
+],
+"e_result_arrivals": [
+194,
+386,
+578,
+770,
+962,
+1154,
+1346,
+1538,
+1730,
+1922,
+2114,
+2306,
+2498
+],
+"fuelled_tick": 1,
+"kept_windows": [
+[
+0,
+20
+],
+[
+236,
+250
+],
+[
+476,
+490
+],
+[
+1592,
+1610
+],
+[
+2300,
+2312
+],
+[
+2658,
+2676
+]
+],
+"samples": [
+{
+"a": {
+"energy": "0",
+"fuel": 1,
+"heat": "0",
+"progress": "0",
+"remaining": "0",
+"status": "working"
+},
+"b": {
+"energy": "0",
+"fuel": 1,
+"heat": "0",
+"progress": "0",
+"remaining": "0",
+"status": "working"
+},
+"c": {
+"energy": "0",
+"fuel": 1,
+"heat": "0",
+"progress": "0",
+"remaining": "0",
+"status": "no_ingredients"
+},
+"c_result": 0,
+"c_source": 12,
+"d": {
+"energy": "0",
+"fuel": 1,
+"heat": "0",
+"progress": "0",
+"remaining": "0",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"energy": "0",
+"fuel": 1,
+"heat": "0",
+"progress": "0",
+"remaining": "0",
+"status": "no_ingredients"
+},
+"e_result": 0,
+"e_source": 30,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 0,
+"tick": 1
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0",
+"remaining": "3997333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0",
+"remaining": "3997333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0",
+"remaining": "3998400",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 12,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0",
+"remaining": "3997333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0",
+"remaining": "3998400",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 30,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1,
+"tick": 2
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666666661",
+"remaining": "3994833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666666661",
+"remaining": "3994833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.0052083333333333321",
+"remaining": "3996900",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666666661",
+"remaining": "3994833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.0052083333333333321",
+"remaining": "3996900",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2,
+"tick": 3
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0083333333333333321",
+"remaining": "3992333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0083333333333333321",
+"remaining": "3992333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.010416666666666665",
+"remaining": "3995400",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0083333333333333321",
+"remaining": "3992333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.010416666666666665",
+"remaining": "3995400",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 3,
+"tick": 4
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0125",
+"remaining": "3989833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0125",
+"remaining": "3989833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.015625",
+"remaining": "3993900",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0125",
+"remaining": "3989833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.015625",
+"remaining": "3993900",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 4,
+"tick": 5
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.016666666666666665",
+"remaining": "3987333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.016666666666666665",
+"remaining": "3987333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.02083333333333333",
+"remaining": "3992400",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.016666666666666665",
+"remaining": "3987333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.02083333333333333",
+"remaining": "3992400",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 5,
+"tick": 6
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.02083333333333333",
+"remaining": "3984833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.02083333333333333",
+"remaining": "3984833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.026041666666666661",
+"remaining": "3990900",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.02083333333333333",
+"remaining": "3984833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.026041666666666661",
+"remaining": "3990900",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 6,
+"tick": 7
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.024999999999999996",
+"remaining": "3982333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.024999999999999996",
+"remaining": "3982333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.031249999999999996",
+"remaining": "3989400",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.024999999999999996",
+"remaining": "3982333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.031249999999999996",
+"remaining": "3989400",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 7,
+"tick": 8
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.029166666666666661",
+"remaining": "3979833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.029166666666666661",
+"remaining": "3979833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.036458333333333326",
+"remaining": "3987900",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.029166666666666661",
+"remaining": "3979833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.036458333333333326",
+"remaining": "3987900",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 8,
+"tick": 9
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.03333333333333333",
+"remaining": "3977333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.03333333333333333",
+"remaining": "3977333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.041666666666666661",
+"remaining": "3986400",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.03333333333333333",
+"remaining": "3977333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.041666666666666661",
+"remaining": "3986400",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 9,
+"tick": 10
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0375",
+"remaining": "3974833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0375",
+"remaining": "3974833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.046874999999999991",
+"remaining": "3984900",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0375",
+"remaining": "3974833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.046874999999999991",
+"remaining": "3984900",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 10,
+"tick": 11
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.041666666666666661",
+"remaining": "3972333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.041666666666666661",
+"remaining": "3972333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.052083333333333321",
+"remaining": "3983400",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.041666666666666661",
+"remaining": "3972333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.052083333333333321",
+"remaining": "3983400",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 11,
+"tick": 12
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.04583333333333333",
+"remaining": "3969833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.04583333333333333",
+"remaining": "3969833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.057291666666666652",
+"remaining": "3981900",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.04583333333333333",
+"remaining": "3969833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.057291666666666652",
+"remaining": "3981900",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 12,
+"tick": 13
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.049999999999999991",
+"remaining": "3967333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.049999999999999991",
+"remaining": "3967333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.062499999999999991",
+"remaining": "3980400",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.049999999999999991",
+"remaining": "3967333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.062499999999999991",
+"remaining": "3980400",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 13,
+"tick": 14
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.054166666666666661",
+"remaining": "3964833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.054166666666666661",
+"remaining": "3964833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.067708333333333321",
+"remaining": "3978900",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.054166666666666661",
+"remaining": "3964833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.067708333333333321",
+"remaining": "3978900",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 14,
+"tick": 15
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.058333333333333321",
+"remaining": "3962333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.058333333333333321",
+"remaining": "3962333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.072916666666666652",
+"remaining": "3977400",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.058333333333333321",
+"remaining": "3962333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.072916666666666652",
+"remaining": "3977400",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 15,
+"tick": 16
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.062499999999999991",
+"remaining": "3959833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.062499999999999991",
+"remaining": "3959833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.078124999999999991",
+"remaining": "3975900",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.062499999999999991",
+"remaining": "3959833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.078124999999999991",
+"remaining": "3975900",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 16,
+"tick": 17
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.066666666666666661",
+"remaining": "3957333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.066666666666666661",
+"remaining": "3957333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.083333333333333321",
+"remaining": "3974400",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.066666666666666661",
+"remaining": "3957333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.083333333333333321",
+"remaining": "3974400",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 17,
+"tick": 18
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.070833333333333321",
+"remaining": "3954833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.070833333333333321",
+"remaining": "3954833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.088541666666666643",
+"remaining": "3972900",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.070833333333333321",
+"remaining": "3954833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.088541666666666643",
+"remaining": "3972900",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 18,
+"tick": 19
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.075",
+"remaining": "3952333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.075",
+"remaining": "3952333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.093749999999999982",
+"remaining": "3971400",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.075",
+"remaining": "3952333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.093749999999999982",
+"remaining": "3971400",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 19,
+"tick": 20
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.079166666666666661",
+"remaining": "3949833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.079166666666666661",
+"remaining": "3949833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.098958333333333321",
+"remaining": "3969900",
+"status": "working"
+},
+"c_result": 0,
+"c_source": 11,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.079166666666666661",
+"remaining": "3949833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.098958333333333321",
+"remaining": "3969900",
+"status": "working"
+},
+"e_result": 0,
+"e_source": 29,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 20,
+"tick": 21
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.97916666666666448",
+"remaining": "3409833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.97916666666666448",
+"remaining": "3409833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.22395833333333144",
+"remaining": "3645900",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.97916666666666448",
+"remaining": "3409833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.22395833333333144",
+"remaining": "3645900",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 236,
+"tick": 237
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.98333333333333108",
+"remaining": "3407333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.98333333333333108",
+"remaining": "3407333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.22916666666666479",
+"remaining": "3644400",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.98333333333333108",
+"remaining": "3407333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.22916666666666479",
+"remaining": "3644400",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 237,
+"tick": 238
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.98749999999999769",
+"remaining": "3404833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.98749999999999769",
+"remaining": "3404833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.23437499999999813",
+"remaining": "3642900",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.98749999999999769",
+"remaining": "3404833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.23437499999999813",
+"remaining": "3642900",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 238,
+"tick": 239
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.9916666666666643",
+"remaining": "3402333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.9916666666666643",
+"remaining": "3402333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.23958333333333144",
+"remaining": "3641400",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.9916666666666643",
+"remaining": "3402333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.23958333333333144",
+"remaining": "3641400",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 239,
+"tick": 240
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99583333333333108",
+"remaining": "3399833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99583333333333108",
+"remaining": "3399833.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.24479166666666483",
+"remaining": "3639900",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99583333333333108",
+"remaining": "3399833.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.24479166666666483",
+"remaining": "3639900",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 240,
+"tick": 241
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99999999999999769",
+"remaining": "3397333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99999999999999769",
+"remaining": "3397333.3333333335",
+"status": "working"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.24999999999999818",
+"remaining": "3638400",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99999999999999769",
+"remaining": "3397333.3333333335",
+"status": "working"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.24999999999999818",
+"remaining": "3638400",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 241,
+"tick": 242
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.25520833333333148",
+"remaining": "3636900",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"d_chest": 0,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.25520833333333148",
+"remaining": "3636900",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 242,
+"tick": 243
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0083333333333310975",
+"remaining": "3392333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.26041666666666483",
+"remaining": "3635400",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0083333333333310975",
+"remaining": "3392333.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.26041666666666483",
+"remaining": "3635400",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 243,
+"tick": 244
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.012499999999997762",
+"remaining": "3389833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.26562499999999822",
+"remaining": "3633900",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.012499999999997762",
+"remaining": "3389833.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.26562499999999822",
+"remaining": "3633900",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 244,
+"tick": 245
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.01666666666666443",
+"remaining": "3387333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.27083333333333153",
+"remaining": "3632400",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.01666666666666443",
+"remaining": "3387333.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.27083333333333153",
+"remaining": "3632400",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 245,
+"tick": 246
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.020833333333331092",
+"remaining": "3384833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.27604166666666492",
+"remaining": "3630900",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.020833333333331092",
+"remaining": "3384833.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.27604166666666492",
+"remaining": "3630900",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 246,
+"tick": 247
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.024999999999997762",
+"remaining": "3382333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.28124999999999826",
+"remaining": "3629400",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.024999999999997762",
+"remaining": "3382333.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.28124999999999826",
+"remaining": "3629400",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 247,
+"tick": 248
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.029166666666664426",
+"remaining": "3379833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.28645833333333162",
+"remaining": "3627900",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.029166666666664426",
+"remaining": "3379833.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.28645833333333162",
+"remaining": "3627900",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 248,
+"tick": 249
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.033333333333331092",
+"remaining": "3377333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.29166666666666497",
+"remaining": "3626400",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.033333333333331092",
+"remaining": "3377333.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.29166666666666497",
+"remaining": "3626400",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 249,
+"tick": 250
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.037499999999997757",
+"remaining": "3374833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.29687499999999826",
+"remaining": "3624900",
+"status": "working"
+},
+"c_result": 1,
+"c_source": 10,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.037499999999997757",
+"remaining": "3374833.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.29687499999999826",
+"remaining": "3624900",
+"status": "working"
+},
+"e_result": 1,
+"e_source": 28,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 250,
+"tick": 251
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.97916666666666217",
+"remaining": "2809833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.47395833333332922",
+"remaining": "3285900",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.97916666666666217",
+"remaining": "2809833.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.47395833333332922",
+"remaining": "3285900",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 476,
+"tick": 477
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.98333333333332877",
+"remaining": "2807333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.47916666666666252",
+"remaining": "3284400",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.98333333333332877",
+"remaining": "2807333.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.47916666666666252",
+"remaining": "3284400",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 477,
+"tick": 478
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.98749999999999556",
+"remaining": "2804833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.48437499999999583",
+"remaining": "3282900",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.98749999999999556",
+"remaining": "2804833.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.48437499999999583",
+"remaining": "3282900",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 478,
+"tick": 479
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99166666666666217",
+"remaining": "2802333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.48958333333332913",
+"remaining": "3281400",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99166666666666217",
+"remaining": "2802333.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.48958333333332913",
+"remaining": "3281400",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 479,
+"tick": 480
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99583333333332877",
+"remaining": "2799833.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.49479166666666243",
+"remaining": "3279900",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99583333333332877",
+"remaining": "2799833.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.49479166666666243",
+"remaining": "3279900",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 480,
+"tick": 481
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99999999999999538",
+"remaining": "2797333.3333333335",
+"status": "working"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.49999999999999574",
+"remaining": "3278400",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.99999999999999538",
+"remaining": "2797333.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.49999999999999574",
+"remaining": "3278400",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 481,
+"tick": 482
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.50520833333332904",
+"remaining": "3276900",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "working"
+},
+"d_chest": 1,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.50520833333332904",
+"remaining": "3276900",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 482,
+"tick": 483
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.51041666666666243",
+"remaining": "3275400",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.008333333333328877",
+"remaining": "2792333.3333333335",
+"status": "working"
+},
+"d_chest": 2,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.51041666666666243",
+"remaining": "3275400",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 483,
+"tick": 484
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.51562499999999565",
+"remaining": "3273900",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.012499999999995541",
+"remaining": "2789833.3333333335",
+"status": "working"
+},
+"d_chest": 2,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.51562499999999565",
+"remaining": "3273900",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 484,
+"tick": 485
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.52083333333332904",
+"remaining": "3272400",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.016666666666662209",
+"remaining": "2787333.3333333335",
+"status": "working"
+},
+"d_chest": 2,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.52083333333332904",
+"remaining": "3272400",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 485,
+"tick": 486
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.52604166666666234",
+"remaining": "3270900",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.020833333333328872",
+"remaining": "2784833.3333333335",
+"status": "working"
+},
+"d_chest": 2,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.52604166666666234",
+"remaining": "3270900",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 486,
+"tick": 487
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.53124999999999565",
+"remaining": "3269400",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.024999999999995541",
+"remaining": "2782333.3333333335",
+"status": "working"
+},
+"d_chest": 2,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.53124999999999565",
+"remaining": "3269400",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 487,
+"tick": 488
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.53645833333332895",
+"remaining": "3267900",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.029166666666662206",
+"remaining": "2779833.3333333335",
+"status": "working"
+},
+"d_chest": 2,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.53645833333332895",
+"remaining": "3267900",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 488,
+"tick": 489
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.54166666666666234",
+"remaining": "3266400",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.033333333333328872",
+"remaining": "2777333.3333333335",
+"status": "working"
+},
+"d_chest": 2,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.54166666666666234",
+"remaining": "3266400",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 489,
+"tick": 490
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.54687499999999556",
+"remaining": "3264900",
+"status": "working"
+},
+"c_result": 2,
+"c_source": 9,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.037499999999995537",
+"remaining": "2774833.3333333335",
+"status": "working"
+},
+"d_chest": 2,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.54687499999999556",
+"remaining": "3264900",
+"status": "working"
+},
+"e_result": 2,
+"e_source": 27,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 490,
+"tick": 491
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.28645833333331797",
+"remaining": "1611900",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.62916666666665231",
+"remaining": "19833.333333333489",
+"status": "working"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.28645833333331797",
+"remaining": "1611900",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1592,
+"tick": 1593
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.29166666666665137",
+"remaining": "1610400",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.633333333333319",
+"remaining": "17333.333333333489",
+"status": "working"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.29166666666665137",
+"remaining": "1610400",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1593,
+"tick": 1594
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.29687499999998469",
+"remaining": "1608900",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.63749999999998561",
+"remaining": "14833.333333333489",
+"status": "working"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.29687499999998469",
+"remaining": "1608900",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1594,
+"tick": 1595
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.30208333333331803",
+"remaining": "1607400",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.64166666666665231",
+"remaining": "12333.333333333489",
+"status": "working"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.30208333333331803",
+"remaining": "1607400",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1595,
+"tick": 1596
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.30729166666665142",
+"remaining": "1605900",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.64583333333331892",
+"remaining": "9833.3333333334886",
+"status": "working"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.30729166666665142",
+"remaining": "1605900",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1596,
+"tick": 1597
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.31249999999998472",
+"remaining": "1604400",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.64999999999998561",
+"remaining": "7333.3333333334886",
+"status": "working"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.31249999999998472",
+"remaining": "1604400",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1597,
+"tick": 1598
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.31770833333331812",
+"remaining": "1602900",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.65416666666665222",
+"remaining": "4833.3333333334886",
+"status": "working"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.31770833333331812",
+"remaining": "1602900",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1598,
+"tick": 1599
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.32291666666665142",
+"remaining": "1601400",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.65833333333331892",
+"remaining": "2333.3333333334886",
+"status": "working"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.32291666666665142",
+"remaining": "1601400",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1599,
+"tick": 1600
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.32812499999998472",
+"remaining": "1599900",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "2500.0000000001551",
+"fuel": 0,
+"heat": "2500.0000000001551",
+"progress": "0.66249999999998552",
+"remaining": "0",
+"status": "working"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.32812499999998472",
+"remaining": "1599900",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1600,
+"tick": 1601
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.33333333333331803",
+"remaining": "1598400",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "1.5506884665228426e-10",
+"fuel": 0,
+"heat": "1.5506884665228426e-10",
+"progress": "0.66666666666665222",
+"remaining": "0",
+"status": "working"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.33333333333331803",
+"remaining": "1598400",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1601,
+"tick": 1602
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.33854166666665138",
+"remaining": "1596900",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.33854166666665138",
+"remaining": "1596900",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1602,
+"tick": 1603
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.34374999999998468",
+"remaining": "1595400",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.34374999999998468",
+"remaining": "1595400",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1603,
+"tick": 1604
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.34895833333331798",
+"remaining": "1593900",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.34895833333331798",
+"remaining": "1593900",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1604,
+"tick": 1605
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.35416666666665133",
+"remaining": "1592400",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.35416666666665133",
+"remaining": "1592400",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1605,
+"tick": 1606
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.35937499999998463",
+"remaining": "1590900",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.35937499999998463",
+"remaining": "1590900",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1606,
+"tick": 1607
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.36458333333331794",
+"remaining": "1589400",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.36458333333331794",
+"remaining": "1589400",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1607,
+"tick": 1608
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.36979166666665124",
+"remaining": "1587900",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.36979166666665124",
+"remaining": "1587900",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1608,
+"tick": 1609
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.37499999999998455",
+"remaining": "1586400",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.37499999999998455",
+"remaining": "1586400",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1609,
+"tick": 1610
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.3802083333333179",
+"remaining": "1584900",
+"status": "working"
+},
+"c_result": 8,
+"c_source": 3,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.3802083333333179",
+"remaining": "1584900",
+"status": "working"
+},
+"e_result": 8,
+"e_source": 21,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 1610,
+"tick": 1611
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.97395833333330994",
+"remaining": "549900",
+"status": "working"
+},
+"c_result": 11,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.97395833333330994",
+"remaining": "549900",
+"status": "working"
+},
+"e_result": 11,
+"e_source": 18,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2300,
+"tick": 2301
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.97916666666664334",
+"remaining": "548400",
+"status": "working"
+},
+"c_result": 11,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.97916666666664334",
+"remaining": "548400",
+"status": "working"
+},
+"e_result": 11,
+"e_source": 18,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2301,
+"tick": 2302
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.98437499999997655",
+"remaining": "546900",
+"status": "working"
+},
+"c_result": 11,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.98437499999997655",
+"remaining": "546900",
+"status": "working"
+},
+"e_result": 11,
+"e_source": 18,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2302,
+"tick": 2303
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.98958333333330994",
+"remaining": "545400",
+"status": "working"
+},
+"c_result": 11,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.98958333333330994",
+"remaining": "545400",
+"status": "working"
+},
+"e_result": 11,
+"e_source": 18,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2303,
+"tick": 2304
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.99479166666664316",
+"remaining": "543900",
+"status": "working"
+},
+"c_result": 11,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.99479166666664316",
+"remaining": "543900",
+"status": "working"
+},
+"e_result": 11,
+"e_source": 18,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2304,
+"tick": 2305
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.99999999999997655",
+"remaining": "542400",
+"status": "working"
+},
+"c_result": 11,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.99999999999997655",
+"remaining": "542400",
+"status": "working"
+},
+"e_result": 11,
+"e_source": 18,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2305,
+"tick": 2306
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.0052083333333098789",
+"remaining": "540900",
+"status": "working"
+},
+"e_result": 12,
+"e_source": 17,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2306,
+"tick": 2307
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.010416666666643213",
+"remaining": "539400",
+"status": "working"
+},
+"e_result": 12,
+"e_source": 17,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2307,
+"tick": 2308
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.015624999999976548",
+"remaining": "537900",
+"status": "working"
+},
+"e_result": 12,
+"e_source": 17,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2308,
+"tick": 2309
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.020833333333309878",
+"remaining": "536400",
+"status": "working"
+},
+"e_result": 12,
+"e_source": 17,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2309,
+"tick": 2310
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.026041666666643208",
+"remaining": "534900",
+"status": "working"
+},
+"e_result": 12,
+"e_source": 17,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2310,
+"tick": 2311
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.031249999999976543",
+"remaining": "533400",
+"status": "working"
+},
+"e_result": 12,
+"e_source": 17,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2311,
+"tick": 2312
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.036458333333309878",
+"remaining": "531900",
+"status": "working"
+},
+"e_result": 12,
+"e_source": 17,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2312,
+"tick": 2313
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.83854166666663978",
+"remaining": "12900",
+"status": "working"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2658,
+"tick": 2659
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.84374999999997318",
+"remaining": "11400",
+"status": "working"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2659,
+"tick": 2660
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.84895833333330657",
+"remaining": "9900",
+"status": "working"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2660,
+"tick": 2661
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.85416666666663978",
+"remaining": "8400",
+"status": "working"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2661,
+"tick": 2662
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.85937499999997318",
+"remaining": "6900",
+"status": "working"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2662,
+"tick": 2663
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.86458333333330657",
+"remaining": "5400",
+"status": "working"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2663,
+"tick": 2664
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.86979166666663978",
+"remaining": "3900",
+"status": "working"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2664,
+"tick": 2665
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.87499999999997318",
+"remaining": "2400",
+"status": "working"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2665,
+"tick": 2666
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"burning": "coal",
+"energy": "1600",
+"fuel": 0,
+"heat": "1600",
+"progress": "0.88020833333330639",
+"remaining": "900",
+"status": "working"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2666,
+"tick": 2667
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"energy": "1000",
+"fuel": 0,
+"heat": "1000",
+"progress": "0.88541666666663978",
+"remaining": "0",
+"status": "working"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2667,
+"tick": 2668
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.88888888888886193",
+"remaining": "0",
+"status": "no_fuel"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2668,
+"tick": 2669
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.88888888888886193",
+"remaining": "0",
+"status": "no_fuel"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2669,
+"tick": 2670
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.88888888888886193",
+"remaining": "0",
+"status": "no_fuel"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2670,
+"tick": 2671
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.88888888888886193",
+"remaining": "0",
+"status": "no_fuel"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2671,
+"tick": 2672
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.88888888888886193",
+"remaining": "0",
+"status": "no_fuel"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2672,
+"tick": 2673
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.88888888888886193",
+"remaining": "0",
+"status": "no_fuel"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2673,
+"tick": 2674
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.88888888888886193",
+"remaining": "0",
+"status": "no_fuel"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2674,
+"tick": 2675
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.88888888888886193",
+"remaining": "0",
+"status": "no_fuel"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2675,
+"tick": 2676
+},
+{
+"a": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.004166666666662211",
+"remaining": "2794833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"b": {
+"burning": "coal",
+"energy": "2666.6666666666665",
+"fuel": 0,
+"heat": "2666.6666666666665",
+"progress": "0.0041666666666644314",
+"remaining": "3394833.3333333335",
+"status": "waiting_for_space_in_destination"
+},
+"c": {
+"burning": "coal",
+"energy": "100",
+"fuel": 0,
+"heat": "100",
+"progress": "0",
+"remaining": "542400",
+"status": "no_ingredients"
+},
+"c_result": 12,
+"c_source": 0,
+"d": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.6666666666666524",
+"remaining": "0",
+"status": "no_fuel"
+},
+"d_chest": 6,
+"e": {
+"energy": "0",
+"fuel": 0,
+"heat": "0",
+"progress": "0.88888888888886193",
+"remaining": "0",
+"status": "no_fuel"
+},
+"e_result": 13,
+"e_source": 16,
+"piles": [
+[
+"iron-ore",
+1,
+159.5,
+158.703125
+],
+[
+"coal",
+1,
+167.5,
+158.703125
+]
+],
+"t": 2676,
+"tick": 2677
+}
+],
+"transitions": {
+"a": [
+[
+0,
+"working"
+],
+[
+482,
+"waiting_for_space_in_destination"
+]
+],
+"b": [
+[
+0,
+"working"
+],
+[
+242,
+"waiting_for_space_in_destination"
+]
+],
+"c": [
+[
+0,
+"no_ingredients"
+],
+[
+1,
+"working"
+],
+[
+2306,
+"no_ingredients"
+]
+],
+"d": [
+[
+0,
+"working"
+],
+[
+242,
+"waiting_for_space_in_destination"
+],
+[
+243,
+"working"
+],
+[
+1602,
+"no_fuel"
+]
+],
+"e": [
+[
+0,
+"no_ingredients"
+],
+[
+1,
+"working"
+],
+[
+2668,
+"no_fuel"
+]
+]
+}
+},
+"burner_rigs": {
+"a": {
+"burnt_slots": 0,
+"drop_position": [
+159.5,
+158.703125
+],
+"effectivity": 1,
+"energy_usage": 2500,
+"fuel_slots": 1,
+"position": [
+160,
+160
+]
+},
+"b": {
+"burnt_slots": 0,
+"drop_position": [
+167.5,
+158.703125
+],
+"effectivity": 1,
+"energy_usage": 2500,
+"fuel_slots": 1,
+"position": [
+168,
+160
+]
+},
+"b_pile": 1,
+"c": {
+"burnt_slots": 0,
+"effectivity": 1,
+"energy_usage": 1500,
+"fuel_slots": 1,
+"position": [
+176,
+160
+]
+},
+"chest": [
+159.5,
+166.5
+],
+"d": {
+"burnt_slots": 0,
+"drop_position": [
+159.5,
+166.703125
+],
+"effectivity": 1,
+"energy_usage": 2500,
+"fuel_slots": 1,
+"position": [
+160,
+168
+]
+},
+"e": {
+"burnt_slots": 0,
+"effectivity": 1,
+"energy_usage": 1500,
+"fuel_slots": 1,
+"position": [
+176,
+168
+]
+}
+},
+"collision": {
+"boxes": {
+"burner-mining-drill": {
+"collision": [
+-0.69921875,
+-0.69921875,
+0.69921875,
+0.69921875
+],
+"mining_time": 0.3,
+"radius": 0.99,
+"selection": [
+-1,
+-1,
+1,
+1
+],
+"tile_height": 2,
+"tile_width": 2,
+"vector_to_place_result": [
+-0.5,
+-1.3
+]
+},
+"character": {
+"collision": [
+-0.19921875,
+-0.19921875,
+0.19921875,
+0.19921875
+],
+"mining_time": 0,
+"selection": [
+-0.3984375,
+-1.3984375,
+0.3984375,
+0.19921875
+],
+"tile_height": 1,
+"tile_width": 1
+},
+"iron-ore": {
+"collision": [
+-0.09765625,
+-0.09765625,
+0.09765625,
+0.09765625
+],
+"mining_time": 1,
+"selection": [
+-0.5,
+-0.5,
+0.5,
+0.5
+],
+"tile_height": 1,
+"tile_width": 1
+},
+"item-on-ground": {
+"collision": [
+-0.13671875,
+-0.13671875,
+0.13671875,
+0.13671875
+],
+"mining_time": 0.025,
+"selection": [
+-0.16796875,
+-0.16796875,
+0.16796875,
+0.16796875
+],
+"tile_height": 1,
+"tile_width": 1
+},
+"stone-furnace": {
+"collision": [
+-0.69921875,
+-0.69921875,
+0.69921875,
+0.69921875
+],
+"mining_time": 0.2,
+"selection": [
+-0.796875,
+-1,
+0.796875,
+1
+],
+"tile_height": 2,
+"tile_width": 2
+},
+"stone-wall": {
+"collision": [
+-0.2890625,
+-0.2890625,
+0.2890625,
+0.2890625
+],
+"mining_time": 0.2,
+"selection": [
+-0.5,
+-0.5,
+0.5,
+0.5
+],
+"tile_height": 1,
+"tile_width": 1
+}
+},
+"sweep": [
+[
+"stone-wall",
+31.5,
+31.5,
+true
+],
+[
+"stone-wall",
+31.9,
+31.5,
+true
+],
+[
+"stone-wall",
+32,
+32.5,
+false
+],
+[
+"stone-wall",
+32.1,
+32.5,
+false
+],
+[
+"stone-wall",
+32.4,
+32.5,
+false
+],
+[
+"stone-wall",
+32.5,
+32.5,
+false
+],
+[
+"stone-wall",
+32.6,
+32.5,
+false
+],
+[
+"stone-wall",
+33,
+33.5,
+false
+],
+[
+"stone-wall",
+33.5,
+33.5,
+false
+],
+[
+"stone-furnace",
+31.5,
+32,
+true
+],
+[
+"stone-furnace",
+31.9,
+32,
+true
+],
+[
+"stone-furnace",
+32,
+32,
+true
+],
+[
+"stone-furnace",
+32.1,
+32,
+true
+],
+[
+"stone-furnace",
+32.4,
+32,
+true
+],
+[
+"stone-furnace",
+32.5,
+33,
+false
+],
+[
+"stone-furnace",
+32.6,
+33,
+false
+],
+[
+"stone-furnace",
+33,
+33,
+false
+],
+[
+"stone-furnace",
+33.5,
+34,
+false
+]
+],
+"sweep_fine": [
+[
+"stone-wall",
+"32.5",
+false
+],
+[
+"stone-wall",
+"32.46875",
+false
+],
+[
+"stone-wall",
+"32.4375",
+false
+],
+[
+"stone-wall",
+"32.40625",
+false
+],
+[
+"stone-wall",
+"32.375",
+false
+],
+[
+"stone-wall",
+"32.34375",
+false
+],
+[
+"stone-wall",
+"32.3125",
+false
+],
+[
+"stone-wall",
+"32.28125",
+false
+],
+[
+"stone-wall",
+"32.25",
+false
+],
+[
+"stone-wall",
+"32.21875",
+false
+],
+[
+"stone-wall",
+"32.1875",
+false
+],
+[
+"stone-wall",
+"32.15625",
+false
+],
+[
+"stone-wall",
+"32.125",
+false
+],
+[
+"stone-wall",
+"32.09375",
+false
+],
+[
+"stone-wall",
+"32.0625",
+false
+],
+[
+"stone-wall",
+"32.03125",
+false
+],
+[
+"stone-wall",
+"32",
+true
+],
+[
+"stone-wall",
+"31.96875",
+true
+],
+[
+"stone-wall",
+"31.9375",
+true
+],
+[
+"stone-wall",
+"31.90625",
+true
+],
+[
+"stone-wall",
+"31.875",
+true
+],
+[
+"stone-wall",
+"31.84375",
+true
+],
+[
+"stone-wall",
+"31.8125",
+true
+],
+[
+"stone-wall",
+"31.78125",
+true
+],
+[
+"stone-wall",
+"31.75",
+true
+],
+[
+"stone-wall",
+"31.71875",
+true
+],
+[
+"stone-wall",
+"31.6875",
+true
+],
+[
+"stone-wall",
+"31.65625",
+true
+],
+[
+"stone-wall",
+"31.625",
+true
+],
+[
+"stone-wall",
+"31.59375",
+true
+],
+[
+"stone-wall",
+"31.5625",
+true
+],
+[
+"stone-wall",
+"31.53125",
+true
+],
+[
+"stone-wall",
+"31.5",
+true
+],
+[
+"stone-furnace",
+"32",
+true
+],
+[
+"stone-furnace",
+"31.96875",
+true
+],
+[
+"stone-furnace",
+"31.9375",
+true
+],
+[
+"stone-furnace",
+"31.90625",
+true
+],
+[
+"stone-furnace",
+"31.875",
+true
+],
+[
+"stone-furnace",
+"31.84375",
+true
+],
+[
+"stone-furnace",
+"31.8125",
+true
+],
+[
+"stone-furnace",
+"31.78125",
+true
+],
+[
+"stone-furnace",
+"31.75",
+true
+],
+[
+"stone-furnace",
+"31.71875",
+true
+],
+[
+"stone-furnace",
+"31.6875",
+true
+],
+[
+"stone-furnace",
+"31.65625",
+true
+],
+[
+"stone-furnace",
+"31.625",
+true
+],
+[
+"stone-furnace",
+"31.59375",
+true
+],
+[
+"stone-furnace",
+"31.5625",
+true
+],
+[
+"stone-furnace",
+"31.53125",
+true
+],
+[
+"stone-furnace",
+"31.5",
+true
+],
+[
+"stone-furnace",
+"31.46875",
+true
+],
+[
+"stone-furnace",
+"31.4375",
+true
+],
+[
+"stone-furnace",
+"31.40625",
+true
+],
+[
+"stone-furnace",
+"31.375",
+true
+],
+[
+"stone-furnace",
+"31.34375",
+true
+],
+[
+"stone-furnace",
+"31.3125",
+true
+],
+[
+"stone-furnace",
+"31.28125",
+true
+],
+[
+"stone-furnace",
+"31.25",
+true
+],
+[
+"stone-furnace",
+"31.21875",
+true
+],
+[
+"stone-furnace",
+"31.1875",
+true
+],
+[
+"stone-furnace",
+"31.15625",
+true
+],
+[
+"stone-furnace",
+"31.125",
+true
+],
+[
+"stone-furnace",
+"31.09375",
+true
+],
+[
+"stone-furnace",
+"31.0625",
+true
+],
+[
+"stone-furnace",
+"31.03125",
+true
+],
+[
+"stone-furnace",
+"31",
+true
+],
+[
+"item-on-ground",
+"32.296875",
+false
+],
+[
+"item-on-ground",
+"32.265625",
+false
+],
+[
+"item-on-ground",
+"32.234375",
+false
+],
+[
+"item-on-ground",
+"32.203125",
+false
+],
+[
+"item-on-ground",
+"32.171875",
+false
+],
+[
+"item-on-ground",
+"32.140625",
+false
+],
+[
+"item-on-ground",
+"32.109375",
+false
+],
+[
+"item-on-ground",
+"32.078125",
+false
+],
+[
+"item-on-ground",
+"32.046875",
+false
+],
+[
+"item-on-ground",
+"32.015625",
+false
+],
+[
+"item-on-ground",
+"31.984375",
+true
+],
+[
+"item-on-ground",
+"31.953125",
+true
+],
+[
+"item-on-ground",
+"31.921875",
+true
+],
+[
+"item-on-ground",
+"31.890625",
+true
+],
+[
+"item-on-ground",
+"31.859375",
+true
+],
+[
+"item-on-ground",
+"31.828125",
+true
+],
+[
+"item-on-ground",
+"31.796875",
+true
+],
+[
+"item-on-ground",
+"31.765625",
+true
+],
+[
+"item-on-ground",
+"31.734375",
+true
+],
+[
+"item-on-ground",
+"31.703125",
+true
+],
+[
+"item-on-ground",
+"31.671875",
+true
+],
+[
+"item-on-ground",
+"31.640625",
+true
+],
+[
+"item-on-ground",
+"31.609375",
+true
+],
+[
+"item-on-ground",
+"31.578125",
+true
+],
+[
+"item-on-ground",
+"31.546875",
+true
+],
+[
+"item-on-ground",
+"31.515625",
+true
+],
+[
+"item-on-ground",
+"31.484375",
+true
+],
+[
+"item-on-ground",
+"31.453125",
+true
+],
+[
+"item-on-ground",
+"31.421875",
+true
+],
+[
+"item-on-ground",
+"31.390625",
+true
+],
+[
+"item-on-ground",
+"31.359375",
+true
+],
+[
+"item-on-ground",
+"31.328125",
+true
+],
+[
+"item-on-ground",
+"31.296875",
+true
+]
+]
+},
+"engine": {
+"build": 83512,
+"executable": "D:\\Factorio\\bin\\x64\\factorio.exe",
+"platform": "win64",
+"version": "2.0.60"
+},
+"insertion": {
+"drill_inventories": [
+{
+"coal": true,
+"exists": true,
+"index": 1,
+"ore": false
+},
+{
+"coal": false,
+"exists": true,
+"index": 2,
+"ore": false
+},
+{
+"coal": false,
+"exists": false,
+"index": 3,
+"ore": false
+}
+],
+"full_fuel": {
+"can": false,
+"can_20": false,
+"insert": 0,
+"size": 1
+},
+"furnace_inventories": [
+{
+"coal": true,
+"exists": true,
+"index": 1,
+"ore": false,
+"plate": false
+},
+{
+"coal": false,
+"exists": true,
+"index": 2,
+"ore": true,
+"plate": false
+},
+{
+"coal": true,
+"exists": true,
+"index": 3,
+"ore": true,
+"plate": true
+}
+],
+"source_49": {
+"can_20": true,
+"insert_20": 5,
+"inserted_49": 49,
+"now": 54
+},
+"source_size": 1
+},
+"insertion_limit": {
+"max_source": 54,
+"samples": [
+{
+"progress": "0.49583333333321287",
+"source": 54,
+"status": "working",
+"tick": 15881
+},
+{
+"progress": "0.74583333333321198",
+"source": 54,
+"status": "working",
+"tick": 15941
+},
+{
+"progress": "0.99583333333321118",
+"source": 54,
+"status": "working",
+"tick": 16001
+},
+{
+"progress": "0.0041666666665445273",
+"source": 54,
+"status": "waiting_for_space_in_destination",
+"tick": 16061
+},
+{
+"progress": "0.0041666666665445273",
+"source": 54,
+"status": "waiting_for_space_in_destination",
+"tick": 16121
+},
+{
+"progress": "0.0041666666665445273",
+"source": 54,
+"status": "waiting_for_space_in_destination",
+"tick": 16181
+},
+{
+"progress": "0.0041666666665445273",
+"source": 54,
+"status": "waiting_for_space_in_destination",
+"tick": 16241
+},
+{
+"progress": "0.0041666666665445273",
+"source": 54,
+"status": "waiting_for_space_in_destination",
+"tick": 16301
+}
+],
+"statuses": [
+"waiting_for_space_in_destination",
+"working"
+]
+},
+"insertion_limit_rig": {
+"drop": [
+260.5,
+161.296875
+],
+"furnace": [
+260,
+162
+]
+},
+"numbers": "{\"a\":0.1,\"b\":0.333333333333333303727386009995825588703155517578125,\"c\":0.2499999999999999555910790149937383830547332763671875,\"d\":0.50000000000000017763568394002504646778106689453125,\"e\":1e-07,\"f\":123456.789000000004307366907596588134765625,\"g\":9007199254740992,\"h\":1000000000000000000000,\"i\":-0,\"j\":5,\"k\":3.000000000000000444089209850062616169452667236328125,\"l\":0.1484375,\"m\":-1.796875,\"n\":1e+300,\"o\":12345678901234568488}",
+"reach": {
+"build_distance": 10,
+"drill": {
+"box": [
+199.30078125,
+165.30078125,
+200.69921875,
+166.69921875
+],
+"rows": [
+{
+"axis": [
+1,
+0
+],
+"first_false": [
+10.71875,
+"10.71875",
+"10.01953125"
+],
+"last_true": [
+10.6875,
+"10.6875",
+"9.98828125"
+]
+},
+{
+"axis": [
+0.7071067811865476,
+0.7071067811865476
+],
+"first_false": [
+11,
+"10.998825010487625",
+"10.009980371172063"
+],
+"last_true": [
+10.96875,
+"10.965679380119507",
+"9.9768347408039446"
+]
+}
+]
+},
+"furnace": {
+"box": [
+199.30078125,
+147.30078125,
+200.69921875,
+148.69921875
+],
+"rows": [
+{
+"axis": [
+1,
+0
+],
+"first_false": [
+10.71875,
+"10.71875",
+"10.01953125"
+],
+"last_true": [
+10.6875,
+"10.6875",
+"9.98828125"
+]
+},
+{
+"axis": [
+0.7071067811865476,
+0.7071067811865476
+],
+"first_false": [
+11,
+"10.998825010487625",
+"10.009980371172063"
+],
+"last_true": [
+10.96875,
+"10.965679380119507",
+"9.9768347408039446"
+]
+}
+]
+},
+"reach_distance": 10,
+"resource": {
+"box": [
+200.40234375,
+160.40234375,
+200.59765625,
+160.59765625
+],
+"rows": [
+{
+"axis": [
+1,
+0
+],
+"first_false": [
+2.8125,
+"2.8125",
+"2.71484375"
+],
+"last_true": [
+2.78125,
+"2.78125",
+"2.68359375"
+]
+},
+{
+"axis": [
+0.7071067811865476,
+0.7071067811865476
+],
+"first_false": [
+2.84375,
+"2.8394756682022297",
+"2.7013688750017324"
+],
+"last_true": [
+2.8125,
+"2.8118543095621305",
+"2.6737475163616327"
+]
+}
+]
+},
+"resource_reach_distance": 2.7,
+"wall": {
+"box": [
+200.2109375,
+154.2109375,
+200.7890625,
+154.7890625
+],
+"rows": [
+{
+"axis": [
+1,
+0
+],
+"first_false": [
+10.3125,
+"10.3125",
+"10.0234375"
+],
+"last_true": [
+10.28125,
+"10.28125",
+"9.9921875"
+]
+},
+{
+"axis": [
+0.7071067811865476,
+0.7071067811865476
+],
+"first_false": [
+10.4375,
+"10.435349294229596",
+"10.026553186356123"
+],
+"last_true": [
+10.40625,
+"10.402203663861476",
+"9.9934075559880036"
+]
+}
+]
+}
+},
+"scripted_state": {
+"mining_after_stop": false,
+"mining_before": false,
+"mining_next_tick": true,
+"mining_same_tick": true,
+"progress": "0.0083333333333333321",
+"stopped_same_tick": [
+false,
+0
+],
+"walking_next_tick": false,
+"walking_same_tick": [
+false,
+0
+]
+},
+"terrain": {
+"area_rule": [
+{
+"bounds": [
+0,
+1
+],
+"xs": [
+0
+],
+"ys": [
+0
+]
+},
+{
+"bounds": [
+0.25,
+1.25
+],
+"xs": [
+0,
+1
+],
+"ys": [
+0,
+1
+]
+},
+{
+"bounds": [
+0.5,
+1.5
+],
+"xs": [
+0,
+1
+],
+"ys": [
+0,
+1
+]
+},
+{
+"bounds": [
+0.75,
+1.75
+],
+"xs": [
+0,
+1
+],
+"ys": [
+0,
+1
+]
+},
+{
+"bounds": [
+0.99,
+1.01
+],
+"xs": [
+0,
+1
+],
+"ys": [
+0,
+1
+]
+},
+{
+"bounds": [
+-0.25,
+0.75
+],
+"xs": [
+-1,
+0
+],
+"ys": [
+-1,
+0
+]
+},
+{
+"bounds": [
+-1.5,
+-0.5
+],
+"xs": [
+-2,
+-1
+],
+"ys": [
+-2,
+-1
+]
+},
+{
+"bounds": [
+2,
+2
+],
+"xs": [
+2
+],
+"ys": {}
+},
+{
+"bounds": [
+2.5,
+2.5
+],
+"xs": [
+2
+],
+"ys": [
+2
+]
+}
+],
+"seed": 424242,
+"water": [
+[
+-75,
+-64
+],
+[
+-74,
+-64
+],
+[
+-76,
+-63
+],
+[
+-75,
+-63
+],
+[
+-74,
+-63
+],
+[
+-73,
+-63
+],
+[
+-72,
+-63
+],
+[
+-71,
+-63
+],
+[
+-76,
+-62
+],
+[
+-75,
+-62
+],
+[
+-74,
+-62
+],
+[
+-73,
+-62
+],
+[
+-72,
+-62
+],
+[
+-71,
+-62
+],
+[
+-70,
+-62
+],
+[
+-69,
+-62
+],
+[
+-68,
+-62
+],
+[
+-67,
+-62
+],
+[
+-66,
+-62
+],
+[
+-65,
+-62
+],
+[
+-64,
+-62
+],
+[
+-63,
+-62
+],
+[
+-62,
+-62
+],
+[
+-61,
+-62
+],
+[
+-77,
+-61
+],
+[
+-76,
+-61
+],
+[
+-75,
+-61
+],
+[
+-74,
+-61
+],
+[
+-73,
+-61
+],
+[
+-72,
+-61
+],
+[
+-71,
+-61
+],
+[
+-70,
+-61
+],
+[
+-69,
+-61
+],
+[
+-68,
+-61
+],
+[
+-67,
+-61
+],
+[
+-66,
+-61
+],
+[
+-65,
+-61
+],
+[
+-64,
+-61
+],
+[
+-63,
+-61
+],
+[
+-62,
+-61
+],
+[
+-61,
+-61
+],
+[
+-60,
+-61
+],
+[
+-59,
+-61
+],
+[
+-77,
+-60
+],
+[
+-76,
+-60
+],
+[
+-75,
+-60
+],
+[
+-74,
+-60
+],
+[
+-73,
+-60
+],
+[
+-72,
+-60
+],
+[
+-71,
+-60
+],
+[
+-70,
+-60
+],
+[
+-69,
+-60
+],
+[
+-68,
+-60
+],
+[
+-67,
+-60
+],
+[
+-66,
+-60
+],
+[
+-65,
+-60
+],
+[
+-64,
+-60
+],
+[
+-63,
+-60
+],
+[
+-62,
+-60
+],
+[
+-61,
+-60
+],
+[
+-60,
+-60
+],
+[
+-59,
+-60
+],
+[
+-58,
+-60
+],
+[
+-57,
+-60
+],
+[
+-79,
+-59
+],
+[
+-78,
+-59
+],
+[
+-77,
+-59
+],
+[
+-76,
+-59
+],
+[
+-75,
+-59
+],
+[
+-74,
+-59
+],
+[
+-73,
+-59
+],
+[
+-72,
+-59
+],
+[
+-71,
+-59
+],
+[
+-70,
+-59
+],
+[
+-69,
+-59
+],
+[
+-68,
+-59
+],
+[
+-67,
+-59
+],
+[
+-66,
+-59
+],
+[
+-65,
+-59
+],
+[
+-64,
+-59
+],
+[
+-63,
+-59
+],
+[
+-62,
+-59
+],
+[
+-61,
+-59
+],
+[
+-60,
+-59
+],
+[
+-59,
+-59
+],
+[
+-58,
+-59
+],
+[
+-57,
+-59
+],
+[
+-56,
+-59
+],
+[
+-55,
+-59
+],
+[
+-51,
+-59
+],
+[
+-50,
+-59
+],
+[
+-82,
+-58
+],
+[
+-81,
+-58
+],
+[
+-80,
+-58
+],
+[
+-79,
+-58
+],
+[
+-78,
+-58
+],
+[
+-77,
+-58
+],
+[
+-76,
+-58
+],
+[
+-75,
+-58
+],
+[
+-74,
+-58
+],
+[
+-73,
+-58
+],
+[
+-72,
+-58
+],
+[
+-71,
+-58
+],
+[
+-70,
+-58
+],
+[
+-69,
+-58
+],
+[
+-68,
+-58
+],
+[
+-67,
+-58
+],
+[
+-66,
+-58
+],
+[
+-65,
+-58
+],
+[
+-64,
+-58
+],
+[
+-63,
+-58
+],
+[
+-62,
+-58
+],
+[
+-61,
+-58
+],
+[
+-60,
+-58
+],
+[
+-59,
+-58
+],
+[
+-58,
+-58
+],
+[
+-57,
+-58
+],
+[
+-56,
+-58
+],
+[
+-55,
+-58
+],
+[
+-54,
+-58
+],
+[
+-53,
+-58
+],
+[
+-52,
+-58
+],
+[
+-51,
+-58
+],
+[
+-50,
+-58
+],
+[
+-49,
+-58
+],
+[
+-84,
+-57
+],
+[
+-83,
+-57
+],
+[
+-82,
+-57
+],
+[
+-81,
+-57
+],
+[
+-80,
+-57
+],
+[
+-79,
+-57
+],
+[
+-78,
+-57
+],
+[
+-77,
+-57
+],
+[
+-76,
+-57
+],
+[
+-75,
+-57
+],
+[
+-74,
+-57
+],
+[
+-73,
+-57
+],
+[
+-72,
+-57
+],
+[
+-71,
+-57
+],
+[
+-70,
+-57
+],
+[
+-69,
+-57
+],
+[
+-68,
+-57
+],
+[
+-67,
+-57
+],
+[
+-66,
+-57
+],
+[
+-65,
+-57
+],
+[
+-64,
+-57
+],
+[
+-63,
+-57
+],
+[
+-62,
+-57
+],
+[
+-61,
+-57
+],
+[
+-60,
+-57
+],
+[
+-59,
+-57
+],
+[
+-58,
+-57
+],
+[
+-57,
+-57
+],
+[
+-56,
+-57
+],
+[
+-55,
+-57
+],
+[
+-54,
+-57
+],
+[
+-53,
+-57
+],
+[
+-52,
+-57
+],
+[
+-51,
+-57
+],
+[
+-50,
+-57
+],
+[
+-49,
+-57
+],
+[
+-85,
+-56
+],
+[
+-84,
+-56
+],
+[
+-83,
+-56
+],
+[
+-82,
+-56
+],
+[
+-81,
+-56
+],
+[
+-80,
+-56
+],
+[
+-79,
+-56
+],
+[
+-78,
+-56
+],
+[
+-77,
+-56
+],
+[
+-76,
+-56
+],
+[
+-75,
+-56
+],
+[
+-74,
+-56
+],
+[
+-73,
+-56
+],
+[
+-72,
+-56
+],
+[
+-71,
+-56
+],
+[
+-70,
+-56
+],
+[
+-69,
+-56
+],
+[
+-68,
+-56
+],
+[
+-67,
+-56
+],
+[
+-66,
+-56
+],
+[
+-65,
+-56
+],
+[
+-64,
+-56
+],
+[
+-63,
+-56
+],
+[
+-62,
+-56
+],
+[
+-61,
+-56
+],
+[
+-60,
+-56
+],
+[
+-59,
+-56
+],
+[
+-58,
+-56
+],
+[
+-57,
+-56
+],
+[
+-56,
+-56
+],
+[
+-55,
+-56
+],
+[
+-54,
+-56
+],
+[
+-53,
+-56
+],
+[
+-52,
+-56
+],
+[
+-51,
+-56
+],
+[
+-50,
+-56
+],
+[
+-49,
+-56
+],
+[
+-87,
+-55
+],
+[
+-86,
+-55
+],
+[
+-85,
+-55
+],
+[
+-84,
+-55
+],
+[
+-83,
+-55
+],
+[
+-82,
+-55
+],
+[
+-81,
+-55
+],
+[
+-80,
+-55
+],
+[
+-79,
+-55
+],
+[
+-78,
+-55
+],
+[
+-77,
+-55
+],
+[
+-76,
+-55
+],
+[
+-75,
+-55
+],
+[
+-74,
+-55
+],
+[
+-73,
+-55
+],
+[
+-72,
+-55
+],
+[
+-71,
+-55
+],
+[
+-70,
+-55
+],
+[
+-69,
+-55
+],
+[
+-68,
+-55
+],
+[
+-67,
+-55
+],
+[
+-66,
+-55
+],
+[
+-65,
+-55
+],
+[
+-64,
+-55
+],
+[
+-63,
+-55
+],
+[
+-62,
+-55
+],
+[
+-61,
+-55
+],
+[
+-60,
+-55
+],
+[
+-59,
+-55
+],
+[
+-58,
+-55
+],
+[
+-57,
+-55
+],
+[
+-56,
+-55
+],
+[
+-55,
+-55
+],
+[
+-54,
+-55
+],
+[
+-53,
+-55
+],
+[
+-52,
+-55
+],
+[
+-51,
+-55
+],
+[
+-50,
+-55
+],
+[
+-49,
+-55
+],
+[
+-88,
+-54
+],
+[
+-87,
+-54
+],
+[
+-86,
+-54
+],
+[
+-85,
+-54
+],
+[
+-84,
+-54
+],
+[
+-83,
+-54
+],
+[
+-82,
+-54
+],
+[
+-81,
+-54
+],
+[
+-80,
+-54
+],
+[
+-79,
+-54
+],
+[
+-78,
+-54
+],
+[
+-77,
+-54
+],
+[
+-76,
+-54
+],
+[
+-75,
+-54
+],
+[
+-74,
+-54
+],
+[
+-73,
+-54
+],
+[
+-72,
+-54
+],
+[
+-71,
+-54
+],
+[
+-70,
+-54
+],
+[
+-69,
+-54
+],
+[
+-68,
+-54
+],
+[
+-67,
+-54
+],
+[
+-66,
+-54
+],
+[
+-65,
+-54
+],
+[
+-64,
+-54
+],
+[
+-63,
+-54
+],
+[
+-62,
+-54
+],
+[
+-61,
+-54
+],
+[
+-60,
+-54
+],
+[
+-59,
+-54
+],
+[
+-58,
+-54
+],
+[
+-57,
+-54
+],
+[
+-56,
+-54
+],
+[
+-55,
+-54
+],
+[
+-54,
+-54
+],
+[
+-53,
+-54
+],
+[
+-52,
+-54
+],
+[
+-51,
+-54
+],
+[
+-50,
+-54
+],
+[
+-49,
+-54
+],
+[
+-88,
+-53
+],
+[
+-87,
+-53
+],
+[
+-86,
+-53
+],
+[
+-85,
+-53
+],
+[
+-84,
+-53
+],
+[
+-83,
+-53
+],
+[
+-82,
+-53
+],
+[
+-81,
+-53
+],
+[
+-80,
+-53
+],
+[
+-79,
+-53
+],
+[
+-78,
+-53
+],
+[
+-77,
+-53
+],
+[
+-76,
+-53
+],
+[
+-75,
+-53
+],
+[
+-74,
+-53
+],
+[
+-73,
+-53
+],
+[
+-72,
+-53
+],
+[
+-71,
+-53
+],
+[
+-70,
+-53
+],
+[
+-69,
+-53
+],
+[
+-68,
+-53
+],
+[
+-67,
+-53
+],
+[
+-66,
+-53
+],
+[
+-65,
+-53
+],
+[
+-64,
+-53
+],
+[
+-63,
+-53
+],
+[
+-62,
+-53
+],
+[
+-61,
+-53
+],
+[
+-60,
+-53
+],
+[
+-59,
+-53
+],
+[
+-58,
+-53
+],
+[
+-57,
+-53
+],
+[
+-56,
+-53
+],
+[
+-55,
+-53
+],
+[
+-54,
+-53
+],
+[
+-53,
+-53
+],
+[
+-52,
+-53
+],
+[
+-51,
+-53
+],
+[
+-50,
+-53
+],
+[
+-49,
+-53
+],
+[
+-88,
+-52
+],
+[
+-87,
+-52
+],
+[
+-86,
+-52
+],
+[
+-85,
+-52
+],
+[
+-84,
+-52
+],
+[
+-83,
+-52
+],
+[
+-82,
+-52
+],
+[
+-81,
+-52
+],
+[
+-80,
+-52
+],
+[
+-79,
+-52
+],
+[
+-78,
+-52
+],
+[
+-77,
+-52
+],
+[
+-76,
+-52
+],
+[
+-75,
+-52
+],
+[
+-74,
+-52
+],
+[
+-73,
+-52
+],
+[
+-72,
+-52
+],
+[
+-71,
+-52
+],
+[
+-70,
+-52
+],
+[
+-69,
+-52
+],
+[
+-68,
+-52
+],
+[
+-67,
+-52
+],
+[
+-66,
+-52
+],
+[
+-65,
+-52
+],
+[
+-64,
+-52
+],
+[
+-63,
+-52
+],
+[
+-62,
+-52
+],
+[
+-61,
+-52
+],
+[
+-60,
+-52
+],
+[
+-59,
+-52
+],
+[
+-58,
+-52
+],
+[
+-57,
+-52
+],
+[
+-56,
+-52
+],
+[
+-55,
+-52
+],
+[
+-54,
+-52
+],
+[
+-53,
+-52
+],
+[
+-52,
+-52
+],
+[
+-51,
+-52
+],
+[
+-50,
+-52
+],
+[
+-49,
+-52
+],
+[
+-88,
+-51
+],
+[
+-87,
+-51
+],
+[
+-86,
+-51
+],
+[
+-85,
+-51
+],
+[
+-84,
+-51
+],
+[
+-83,
+-51
+],
+[
+-82,
+-51
+],
+[
+-81,
+-51
+],
+[
+-80,
+-51
+],
+[
+-79,
+-51
+],
+[
+-78,
+-51
+],
+[
+-77,
+-51
+],
+[
+-76,
+-51
+],
+[
+-75,
+-51
+],
+[
+-74,
+-51
+],
+[
+-73,
+-51
+],
+[
+-72,
+-51
+],
+[
+-71,
+-51
+],
+[
+-70,
+-51
+],
+[
+-69,
+-51
+],
+[
+-68,
+-51
+],
+[
+-67,
+-51
+],
+[
+-66,
+-51
+],
+[
+-65,
+-51
+],
+[
+-64,
+-51
+],
+[
+-63,
+-51
+],
+[
+-62,
+-51
+],
+[
+-61,
+-51
+],
+[
+-60,
+-51
+],
+[
+-59,
+-51
+],
+[
+-58,
+-51
+],
+[
+-57,
+-51
+],
+[
+-56,
+-51
+],
+[
+-55,
+-51
+],
+[
+-54,
+-51
+],
+[
+-53,
+-51
+],
+[
+-52,
+-51
+],
+[
+-51,
+-51
+],
+[
+-50,
+-51
+],
+[
+-49,
+-51
+],
+[
+-48,
+-51
+],
+[
+-88,
+-50
+],
+[
+-87,
+-50
+],
+[
+-86,
+-50
+],
+[
+-85,
+-50
+],
+[
+-84,
+-50
+],
+[
+-83,
+-50
+],
+[
+-82,
+-50
+],
+[
+-81,
+-50
+],
+[
+-80,
+-50
+],
+[
+-79,
+-50
+],
+[
+-78,
+-50
+],
+[
+-77,
+-50
+],
+[
+-76,
+-50
+],
+[
+-75,
+-50
+],
+[
+-74,
+-50
+],
+[
+-73,
+-50
+],
+[
+-72,
+-50
+],
+[
+-71,
+-50
+],
+[
+-70,
+-50
+],
+[
+-69,
+-50
+],
+[
+-68,
+-50
+],
+[
+-67,
+-50
+],
+[
+-66,
+-50
+],
+[
+-65,
+-50
+],
+[
+-64,
+-50
+],
+[
+-63,
+-50
+],
+[
+-62,
+-50
+],
+[
+-61,
+-50
+],
+[
+-60,
+-50
+],
+[
+-59,
+-50
+],
+[
+-58,
+-50
+],
+[
+-57,
+-50
+],
+[
+-56,
+-50
+],
+[
+-55,
+-50
+],
+[
+-54,
+-50
+],
+[
+-53,
+-50
+],
+[
+-52,
+-50
+],
+[
+-51,
+-50
+],
+[
+-50,
+-50
+],
+[
+-49,
+-50
+],
+[
+-48,
+-50
+],
+[
+-47,
+-50
+],
+[
+-88,
+-49
+],
+[
+-87,
+-49
+],
+[
+-86,
+-49
+],
+[
+-85,
+-49
+],
+[
+-84,
+-49
+],
+[
+-83,
+-49
+],
+[
+-82,
+-49
+],
+[
+-81,
+-49
+],
+[
+-80,
+-49
+],
+[
+-79,
+-49
+],
+[
+-78,
+-49
+],
+[
+-77,
+-49
+],
+[
+-76,
+-49
+],
+[
+-75,
+-49
+],
+[
+-74,
+-49
+],
+[
+-73,
+-49
+],
+[
+-72,
+-49
+],
+[
+-71,
+-49
+],
+[
+-70,
+-49
+],
+[
+-69,
+-49
+],
+[
+-68,
+-49
+],
+[
+-67,
+-49
+],
+[
+-66,
+-49
+],
+[
+-65,
+-49
+],
+[
+-64,
+-49
+],
+[
+-63,
+-49
+],
+[
+-62,
+-49
+],
+[
+-61,
+-49
+],
+[
+-60,
+-49
+],
+[
+-59,
+-49
+],
+[
+-58,
+-49
+],
+[
+-57,
+-49
+],
+[
+-56,
+-49
+],
+[
+-55,
+-49
+],
+[
+-54,
+-49
+],
+[
+-53,
+-49
+],
+[
+-52,
+-49
+],
+[
+-51,
+-49
+],
+[
+-50,
+-49
+],
+[
+-49,
+-49
+],
+[
+-48,
+-49
+],
+[
+-47,
+-49
+],
+[
+-46,
+-49
+],
+[
+-88,
+-48
+],
+[
+-87,
+-48
+],
+[
+-86,
+-48
+],
+[
+-85,
+-48
+],
+[
+-84,
+-48
+],
+[
+-83,
+-48
+],
+[
+-82,
+-48
+],
+[
+-81,
+-48
+],
+[
+-80,
+-48
+],
+[
+-79,
+-48
+],
+[
+-78,
+-48
+],
+[
+-77,
+-48
+],
+[
+-76,
+-48
+],
+[
+-75,
+-48
+],
+[
+-74,
+-48
+],
+[
+-73,
+-48
+],
+[
+-72,
+-48
+],
+[
+-71,
+-48
+],
+[
+-70,
+-48
+],
+[
+-69,
+-48
+],
+[
+-68,
+-48
+],
+[
+-67,
+-48
+],
+[
+-66,
+-48
+],
+[
+-65,
+-48
+],
+[
+-64,
+-48
+],
+[
+-63,
+-48
+],
+[
+-62,
+-48
+],
+[
+-61,
+-48
+],
+[
+-60,
+-48
+],
+[
+-59,
+-48
+],
+[
+-58,
+-48
+],
+[
+-57,
+-48
+],
+[
+-56,
+-48
+],
+[
+-55,
+-48
+],
+[
+-54,
+-48
+],
+[
+-53,
+-48
+],
+[
+-52,
+-48
+],
+[
+-51,
+-48
+],
+[
+-50,
+-48
+],
+[
+-49,
+-48
+],
+[
+-48,
+-48
+],
+[
+-47,
+-48
+],
+[
+-46,
+-48
+],
+[
+-45,
+-48
+],
+[
+-89,
+-47
+],
+[
+-88,
+-47
+],
+[
+-87,
+-47
+],
+[
+-86,
+-47
+],
+[
+-85,
+-47
+],
+[
+-84,
+-47
+],
+[
+-83,
+-47
+],
+[
+-82,
+-47
+],
+[
+-81,
+-47
+],
+[
+-80,
+-47
+],
+[
+-79,
+-47
+],
+[
+-78,
+-47
+],
+[
+-77,
+-47
+],
+[
+-76,
+-47
+],
+[
+-75,
+-47
+],
+[
+-74,
+-47
+],
+[
+-73,
+-47
+],
+[
+-72,
+-47
+],
+[
+-71,
+-47
+],
+[
+-70,
+-47
+],
+[
+-69,
+-47
+],
+[
+-68,
+-47
+],
+[
+-67,
+-47
+],
+[
+-66,
+-47
+],
+[
+-65,
+-47
+],
+[
+-64,
+-47
+],
+[
+-63,
+-47
+],
+[
+-62,
+-47
+],
+[
+-61,
+-47
+],
+[
+-60,
+-47
+],
+[
+-59,
+-47
+],
+[
+-58,
+-47
+],
+[
+-57,
+-47
+],
+[
+-56,
+-47
+],
+[
+-55,
+-47
+],
+[
+-54,
+-47
+],
+[
+-53,
+-47
+],
+[
+-52,
+-47
+],
+[
+-51,
+-47
+],
+[
+-50,
+-47
+],
+[
+-49,
+-47
+],
+[
+-48,
+-47
+],
+[
+-47,
+-47
+],
+[
+-46,
+-47
+],
+[
+-45,
+-47
+],
+[
+-44,
+-47
+],
+[
+-89,
+-46
+],
+[
+-88,
+-46
+],
+[
+-87,
+-46
+],
+[
+-86,
+-46
+],
+[
+-85,
+-46
+],
+[
+-84,
+-46
+],
+[
+-83,
+-46
+],
+[
+-82,
+-46
+],
+[
+-81,
+-46
+],
+[
+-80,
+-46
+],
+[
+-79,
+-46
+],
+[
+-78,
+-46
+],
+[
+-77,
+-46
+],
+[
+-76,
+-46
+],
+[
+-75,
+-46
+],
+[
+-74,
+-46
+],
+[
+-73,
+-46
+],
+[
+-72,
+-46
+],
+[
+-71,
+-46
+],
+[
+-70,
+-46
+],
+[
+-69,
+-46
+],
+[
+-68,
+-46
+],
+[
+-67,
+-46
+],
+[
+-66,
+-46
+],
+[
+-65,
+-46
+],
+[
+-64,
+-46
+],
+[
+-63,
+-46
+],
+[
+-62,
+-46
+],
+[
+-61,
+-46
+],
+[
+-60,
+-46
+],
+[
+-59,
+-46
+],
+[
+-58,
+-46
+],
+[
+-57,
+-46
+],
+[
+-56,
+-46
+],
+[
+-55,
+-46
+],
+[
+-54,
+-46
+],
+[
+-53,
+-46
+],
+[
+-52,
+-46
+],
+[
+-51,
+-46
+],
+[
+-50,
+-46
+],
+[
+-49,
+-46
+],
+[
+-48,
+-46
+],
+[
+-47,
+-46
+],
+[
+-46,
+-46
+],
+[
+-45,
+-46
+],
+[
+-44,
+-46
+],
+[
+-88,
+-45
+],
+[
+-87,
+-45
+],
+[
+-86,
+-45
+],
+[
+-85,
+-45
+],
+[
+-84,
+-45
+],
+[
+-83,
+-45
+],
+[
+-82,
+-45
+],
+[
+-81,
+-45
+],
+[
+-80,
+-45
+],
+[
+-79,
+-45
+],
+[
+-78,
+-45
+],
+[
+-77,
+-45
+],
+[
+-76,
+-45
+],
+[
+-75,
+-45
+],
+[
+-74,
+-45
+],
+[
+-73,
+-45
+],
+[
+-72,
+-45
+],
+[
+-71,
+-45
+],
+[
+-70,
+-45
+],
+[
+-69,
+-45
+],
+[
+-68,
+-45
+],
+[
+-67,
+-45
+],
+[
+-66,
+-45
+],
+[
+-65,
+-45
+],
+[
+-64,
+-45
+],
+[
+-63,
+-45
+],
+[
+-62,
+-45
+],
+[
+-61,
+-45
+],
+[
+-60,
+-45
+],
+[
+-59,
+-45
+],
+[
+-58,
+-45
+],
+[
+-57,
+-45
+],
+[
+-56,
+-45
+],
+[
+-55,
+-45
+],
+[
+-54,
+-45
+],
+[
+-53,
+-45
+],
+[
+-52,
+-45
+],
+[
+-51,
+-45
+],
+[
+-50,
+-45
+],
+[
+-49,
+-45
+],
+[
+-48,
+-45
+],
+[
+-47,
+-45
+],
+[
+-46,
+-45
+],
+[
+-45,
+-45
+],
+[
+-44,
+-45
+],
+[
+-88,
+-44
+],
+[
+-87,
+-44
+],
+[
+-86,
+-44
+],
+[
+-85,
+-44
+],
+[
+-84,
+-44
+],
+[
+-83,
+-44
+],
+[
+-82,
+-44
+],
+[
+-81,
+-44
+],
+[
+-80,
+-44
+],
+[
+-79,
+-44
+],
+[
+-78,
+-44
+],
+[
+-77,
+-44
+],
+[
+-76,
+-44
+],
+[
+-75,
+-44
+],
+[
+-74,
+-44
+],
+[
+-73,
+-44
+],
+[
+-72,
+-44
+],
+[
+-71,
+-44
+],
+[
+-70,
+-44
+],
+[
+-69,
+-44
+],
+[
+-68,
+-44
+],
+[
+-67,
+-44
+],
+[
+-66,
+-44
+],
+[
+-65,
+-44
+],
+[
+-64,
+-44
+],
+[
+-63,
+-44
+],
+[
+-62,
+-44
+],
+[
+-61,
+-44
+],
+[
+-60,
+-44
+],
+[
+-59,
+-44
+],
+[
+-58,
+-44
+],
+[
+-57,
+-44
+],
+[
+-56,
+-44
+],
+[
+-55,
+-44
+],
+[
+-54,
+-44
+],
+[
+-53,
+-44
+],
+[
+-52,
+-44
+],
+[
+-51,
+-44
+],
+[
+-50,
+-44
+],
+[
+-49,
+-44
+],
+[
+-48,
+-44
+],
+[
+-47,
+-44
+],
+[
+-46,
+-44
+],
+[
+-45,
+-44
+],
+[
+-44,
+-44
+],
+[
+-88,
+-43
+],
+[
+-87,
+-43
+],
+[
+-86,
+-43
+],
+[
+-85,
+-43
+],
+[
+-84,
+-43
+],
+[
+-83,
+-43
+],
+[
+-82,
+-43
+],
+[
+-81,
+-43
+],
+[
+-80,
+-43
+],
+[
+-79,
+-43
+],
+[
+-78,
+-43
+],
+[
+-77,
+-43
+],
+[
+-76,
+-43
+],
+[
+-75,
+-43
+],
+[
+-74,
+-43
+],
+[
+-73,
+-43
+],
+[
+-72,
+-43
+],
+[
+-71,
+-43
+],
+[
+-70,
+-43
+],
+[
+-69,
+-43
+],
+[
+-68,
+-43
+],
+[
+-67,
+-43
+],
+[
+-66,
+-43
+],
+[
+-65,
+-43
+],
+[
+-64,
+-43
+],
+[
+-63,
+-43
+],
+[
+-62,
+-43
+],
+[
+-61,
+-43
+],
+[
+-60,
+-43
+],
+[
+-59,
+-43
+],
+[
+-58,
+-43
+],
+[
+-57,
+-43
+],
+[
+-56,
+-43
+],
+[
+-55,
+-43
+],
+[
+-54,
+-43
+],
+[
+-53,
+-43
+],
+[
+-52,
+-43
+],
+[
+-51,
+-43
+],
+[
+-50,
+-43
+],
+[
+-49,
+-43
+],
+[
+-48,
+-43
+],
+[
+-47,
+-43
+],
+[
+-46,
+-43
+],
+[
+-45,
+-43
+],
+[
+-44,
+-43
+],
+[
+-43,
+-43
+],
+[
+-88,
+-42
+],
+[
+-87,
+-42
+],
+[
+-86,
+-42
+],
+[
+-85,
+-42
+],
+[
+-84,
+-42
+],
+[
+-83,
+-42
+],
+[
+-82,
+-42
+],
+[
+-81,
+-42
+],
+[
+-80,
+-42
+],
+[
+-79,
+-42
+],
+[
+-78,
+-42
+],
+[
+-77,
+-42
+],
+[
+-76,
+-42
+],
+[
+-75,
+-42
+],
+[
+-74,
+-42
+],
+[
+-73,
+-42
+],
+[
+-72,
+-42
+],
+[
+-71,
+-42
+],
+[
+-70,
+-42
+],
+[
+-69,
+-42
+],
+[
+-68,
+-42
+],
+[
+-67,
+-42
+],
+[
+-66,
+-42
+],
+[
+-65,
+-42
+],
+[
+-64,
+-42
+],
+[
+-63,
+-42
+],
+[
+-62,
+-42
+],
+[
+-61,
+-42
+],
+[
+-60,
+-42
+],
+[
+-59,
+-42
+],
+[
+-58,
+-42
+],
+[
+-57,
+-42
+],
+[
+-56,
+-42
+],
+[
+-55,
+-42
+],
+[
+-54,
+-42
+],
+[
+-53,
+-42
+],
+[
+-52,
+-42
+],
+[
+-51,
+-42
+],
+[
+-50,
+-42
+],
+[
+-49,
+-42
+],
+[
+-48,
+-42
+],
+[
+-47,
+-42
+],
+[
+-46,
+-42
+],
+[
+-45,
+-42
+],
+[
+-44,
+-42
+],
+[
+-43,
+-42
+],
+[
+-89,
+-41
+],
+[
+-88,
+-41
+],
+[
+-87,
+-41
+],
+[
+-86,
+-41
+],
+[
+-85,
+-41
+],
+[
+-84,
+-41
+],
+[
+-83,
+-41
+],
+[
+-82,
+-41
+],
+[
+-81,
+-41
+],
+[
+-80,
+-41
+],
+[
+-79,
+-41
+],
+[
+-78,
+-41
+],
+[
+-77,
+-41
+],
+[
+-76,
+-41
+],
+[
+-75,
+-41
+],
+[
+-74,
+-41
+],
+[
+-73,
+-41
+],
+[
+-72,
+-41
+],
+[
+-71,
+-41
+],
+[
+-70,
+-41
+],
+[
+-69,
+-41
+],
+[
+-68,
+-41
+],
+[
+-67,
+-41
+],
+[
+-66,
+-41
+],
+[
+-65,
+-41
+],
+[
+-64,
+-41
+],
+[
+-63,
+-41
+],
+[
+-62,
+-41
+],
+[
+-61,
+-41
+],
+[
+-60,
+-41
+],
+[
+-59,
+-41
+],
+[
+-58,
+-41
+],
+[
+-57,
+-41
+],
+[
+-56,
+-41
+],
+[
+-55,
+-41
+],
+[
+-54,
+-41
+],
+[
+-53,
+-41
+],
+[
+-52,
+-41
+],
+[
+-51,
+-41
+],
+[
+-50,
+-41
+],
+[
+-49,
+-41
+],
+[
+-48,
+-41
+],
+[
+-47,
+-41
+],
+[
+-46,
+-41
+],
+[
+-45,
+-41
+],
+[
+-44,
+-41
+],
+[
+-43,
+-41
+],
+[
+-42,
+-41
+],
+[
+-91,
+-40
+],
+[
+-90,
+-40
+],
+[
+-89,
+-40
+],
+[
+-88,
+-40
+],
+[
+-87,
+-40
+],
+[
+-86,
+-40
+],
+[
+-85,
+-40
+],
+[
+-84,
+-40
+],
+[
+-83,
+-40
+],
+[
+-82,
+-40
+],
+[
+-81,
+-40
+],
+[
+-80,
+-40
+],
+[
+-79,
+-40
+],
+[
+-78,
+-40
+],
+[
+-77,
+-40
+],
+[
+-76,
+-40
+],
+[
+-75,
+-40
+],
+[
+-74,
+-40
+],
+[
+-73,
+-40
+],
+[
+-72,
+-40
+],
+[
+-71,
+-40
+],
+[
+-70,
+-40
+],
+[
+-69,
+-40
+],
+[
+-68,
+-40
+],
+[
+-67,
+-40
+],
+[
+-66,
+-40
+],
+[
+-65,
+-40
+],
+[
+-64,
+-40
+],
+[
+-63,
+-40
+],
+[
+-62,
+-40
+],
+[
+-61,
+-40
+],
+[
+-60,
+-40
+],
+[
+-59,
+-40
+],
+[
+-58,
+-40
+],
+[
+-57,
+-40
+],
+[
+-56,
+-40
+],
+[
+-55,
+-40
+],
+[
+-54,
+-40
+],
+[
+-53,
+-40
+],
+[
+-52,
+-40
+],
+[
+-51,
+-40
+],
+[
+-50,
+-40
+],
+[
+-49,
+-40
+],
+[
+-48,
+-40
+],
+[
+-47,
+-40
+],
+[
+-46,
+-40
+],
+[
+-45,
+-40
+],
+[
+-44,
+-40
+],
+[
+-43,
+-40
+],
+[
+-42,
+-40
+],
+[
+-92,
+-39
+],
+[
+-91,
+-39
+],
+[
+-90,
+-39
+],
+[
+-89,
+-39
+],
+[
+-88,
+-39
+],
+[
+-87,
+-39
+],
+[
+-86,
+-39
+],
+[
+-85,
+-39
+],
+[
+-84,
+-39
+],
+[
+-83,
+-39
+],
+[
+-82,
+-39
+],
+[
+-81,
+-39
+],
+[
+-80,
+-39
+],
+[
+-79,
+-39
+],
+[
+-78,
+-39
+],
+[
+-77,
+-39
+],
+[
+-76,
+-39
+],
+[
+-75,
+-39
+],
+[
+-74,
+-39
+],
+[
+-73,
+-39
+],
+[
+-72,
+-39
+],
+[
+-71,
+-39
+],
+[
+-70,
+-39
+],
+[
+-69,
+-39
+],
+[
+-68,
+-39
+],
+[
+-67,
+-39
+],
+[
+-66,
+-39
+],
+[
+-65,
+-39
+],
+[
+-64,
+-39
+],
+[
+-63,
+-39
+],
+[
+-62,
+-39
+],
+[
+-61,
+-39
+],
+[
+-60,
+-39
+],
+[
+-59,
+-39
+],
+[
+-58,
+-39
+],
+[
+-57,
+-39
+],
+[
+-56,
+-39
+],
+[
+-55,
+-39
+],
+[
+-54,
+-39
+],
+[
+-53,
+-39
+],
+[
+-52,
+-39
+],
+[
+-51,
+-39
+],
+[
+-50,
+-39
+],
+[
+-49,
+-39
+],
+[
+-48,
+-39
+],
+[
+-47,
+-39
+],
+[
+-46,
+-39
+],
+[
+-45,
+-39
+],
+[
+-44,
+-39
+],
+[
+-43,
+-39
+],
+[
+-42,
+-39
+],
+[
+-41,
+-39
+],
+[
+-93,
+-38
+],
+[
+-92,
+-38
+],
+[
+-91,
+-38
+],
+[
+-90,
+-38
+],
+[
+-89,
+-38
+],
+[
+-88,
+-38
+],
+[
+-87,
+-38
+],
+[
+-86,
+-38
+],
+[
+-85,
+-38
+],
+[
+-84,
+-38
+],
+[
+-83,
+-38
+],
+[
+-82,
+-38
+],
+[
+-81,
+-38
+],
+[
+-80,
+-38
+],
+[
+-79,
+-38
+],
+[
+-78,
+-38
+],
+[
+-77,
+-38
+],
+[
+-76,
+-38
+],
+[
+-75,
+-38
+],
+[
+-74,
+-38
+],
+[
+-73,
+-38
+],
+[
+-72,
+-38
+],
+[
+-71,
+-38
+],
+[
+-70,
+-38
+],
+[
+-69,
+-38
+],
+[
+-68,
+-38
+],
+[
+-67,
+-38
+],
+[
+-66,
+-38
+],
+[
+-65,
+-38
+],
+[
+-64,
+-38
+],
+[
+-63,
+-38
+],
+[
+-62,
+-38
+],
+[
+-61,
+-38
+],
+[
+-60,
+-38
+],
+[
+-59,
+-38
+],
+[
+-58,
+-38
+],
+[
+-57,
+-38
+],
+[
+-56,
+-38
+],
+[
+-55,
+-38
+],
+[
+-54,
+-38
+],
+[
+-53,
+-38
+],
+[
+-52,
+-38
+],
+[
+-51,
+-38
+],
+[
+-50,
+-38
+],
+[
+-49,
+-38
+],
+[
+-48,
+-38
+],
+[
+-47,
+-38
+],
+[
+-46,
+-38
+],
+[
+-45,
+-38
+],
+[
+-44,
+-38
+],
+[
+-43,
+-38
+],
+[
+-42,
+-38
+],
+[
+-41,
+-38
+],
+[
+-93,
+-37
+],
+[
+-92,
+-37
+],
+[
+-91,
+-37
+],
+[
+-90,
+-37
+],
+[
+-89,
+-37
+],
+[
+-88,
+-37
+],
+[
+-87,
+-37
+],
+[
+-86,
+-37
+],
+[
+-85,
+-37
+],
+[
+-84,
+-37
+],
+[
+-83,
+-37
+],
+[
+-82,
+-37
+],
+[
+-81,
+-37
+],
+[
+-80,
+-37
+],
+[
+-79,
+-37
+],
+[
+-78,
+-37
+],
+[
+-77,
+-37
+],
+[
+-76,
+-37
+],
+[
+-75,
+-37
+],
+[
+-74,
+-37
+],
+[
+-73,
+-37
+],
+[
+-72,
+-37
+],
+[
+-71,
+-37
+],
+[
+-70,
+-37
+],
+[
+-69,
+-37
+],
+[
+-68,
+-37
+],
+[
+-67,
+-37
+],
+[
+-66,
+-37
+],
+[
+-65,
+-37
+],
+[
+-64,
+-37
+],
+[
+-63,
+-37
+],
+[
+-62,
+-37
+],
+[
+-61,
+-37
+],
+[
+-60,
+-37
+],
+[
+-59,
+-37
+],
+[
+-58,
+-37
+],
+[
+-57,
+-37
+],
+[
+-56,
+-37
+],
+[
+-55,
+-37
+],
+[
+-54,
+-37
+],
+[
+-53,
+-37
+],
+[
+-52,
+-37
+],
+[
+-51,
+-37
+],
+[
+-50,
+-37
+],
+[
+-49,
+-37
+],
+[
+-48,
+-37
+],
+[
+-47,
+-37
+],
+[
+-46,
+-37
+],
+[
+-45,
+-37
+],
+[
+-44,
+-37
+],
+[
+-43,
+-37
+],
+[
+-42,
+-37
+],
+[
+-41,
+-37
+],
+[
+-92,
+-36
+],
+[
+-91,
+-36
+],
+[
+-90,
+-36
+],
+[
+-89,
+-36
+],
+[
+-88,
+-36
+],
+[
+-87,
+-36
+],
+[
+-86,
+-36
+],
+[
+-85,
+-36
+],
+[
+-84,
+-36
+],
+[
+-83,
+-36
+],
+[
+-82,
+-36
+],
+[
+-81,
+-36
+],
+[
+-80,
+-36
+],
+[
+-79,
+-36
+],
+[
+-78,
+-36
+],
+[
+-77,
+-36
+],
+[
+-76,
+-36
+],
+[
+-75,
+-36
+],
+[
+-74,
+-36
+],
+[
+-73,
+-36
+],
+[
+-72,
+-36
+],
+[
+-71,
+-36
+],
+[
+-70,
+-36
+],
+[
+-69,
+-36
+],
+[
+-68,
+-36
+],
+[
+-67,
+-36
+],
+[
+-66,
+-36
+],
+[
+-65,
+-36
+],
+[
+-64,
+-36
+],
+[
+-63,
+-36
+],
+[
+-62,
+-36
+],
+[
+-61,
+-36
+],
+[
+-60,
+-36
+],
+[
+-59,
+-36
+],
+[
+-58,
+-36
+],
+[
+-57,
+-36
+],
+[
+-56,
+-36
+],
+[
+-55,
+-36
+],
+[
+-54,
+-36
+],
+[
+-53,
+-36
+],
+[
+-52,
+-36
+],
+[
+-51,
+-36
+],
+[
+-50,
+-36
+],
+[
+-49,
+-36
+],
+[
+-48,
+-36
+],
+[
+-47,
+-36
+],
+[
+-46,
+-36
+],
+[
+-45,
+-36
+],
+[
+-44,
+-36
+],
+[
+-43,
+-36
+],
+[
+-42,
+-36
+],
+[
+-41,
+-36
+],
+[
+-92,
+-35
+],
+[
+-91,
+-35
+],
+[
+-90,
+-35
+],
+[
+-89,
+-35
+],
+[
+-88,
+-35
+],
+[
+-87,
+-35
+],
+[
+-86,
+-35
+],
+[
+-85,
+-35
+],
+[
+-84,
+-35
+],
+[
+-83,
+-35
+],
+[
+-82,
+-35
+],
+[
+-81,
+-35
+],
+[
+-80,
+-35
+],
+[
+-79,
+-35
+],
+[
+-78,
+-35
+],
+[
+-77,
+-35
+],
+[
+-76,
+-35
+],
+[
+-75,
+-35
+],
+[
+-74,
+-35
+],
+[
+-73,
+-35
+],
+[
+-72,
+-35
+],
+[
+-71,
+-35
+],
+[
+-70,
+-35
+],
+[
+-69,
+-35
+],
+[
+-68,
+-35
+],
+[
+-67,
+-35
+],
+[
+-66,
+-35
+],
+[
+-65,
+-35
+],
+[
+-64,
+-35
+],
+[
+-63,
+-35
+],
+[
+-62,
+-35
+],
+[
+-61,
+-35
+],
+[
+-60,
+-35
+],
+[
+-59,
+-35
+],
+[
+-58,
+-35
+],
+[
+-57,
+-35
+],
+[
+-56,
+-35
+],
+[
+-55,
+-35
+],
+[
+-54,
+-35
+],
+[
+-53,
+-35
+],
+[
+-52,
+-35
+],
+[
+-51,
+-35
+],
+[
+-50,
+-35
+],
+[
+-49,
+-35
+],
+[
+-48,
+-35
+],
+[
+-47,
+-35
+],
+[
+-46,
+-35
+],
+[
+-45,
+-35
+],
+[
+-44,
+-35
+],
+[
+-43,
+-35
+],
+[
+-42,
+-35
+],
+[
+-41,
+-35
+],
+[
+-92,
+-34
+],
+[
+-91,
+-34
+],
+[
+-90,
+-34
+],
+[
+-89,
+-34
+],
+[
+-88,
+-34
+],
+[
+-87,
+-34
+],
+[
+-86,
+-34
+],
+[
+-85,
+-34
+],
+[
+-84,
+-34
+],
+[
+-83,
+-34
+],
+[
+-82,
+-34
+],
+[
+-81,
+-34
+],
+[
+-80,
+-34
+],
+[
+-79,
+-34
+],
+[
+-78,
+-34
+],
+[
+-77,
+-34
+],
+[
+-76,
+-34
+],
+[
+-75,
+-34
+],
+[
+-74,
+-34
+],
+[
+-73,
+-34
+],
+[
+-72,
+-34
+],
+[
+-71,
+-34
+],
+[
+-70,
+-34
+],
+[
+-69,
+-34
+],
+[
+-68,
+-34
+],
+[
+-67,
+-34
+],
+[
+-66,
+-34
+],
+[
+-65,
+-34
+],
+[
+-64,
+-34
+],
+[
+-63,
+-34
+],
+[
+-62,
+-34
+],
+[
+-61,
+-34
+],
+[
+-60,
+-34
+],
+[
+-59,
+-34
+],
+[
+-58,
+-34
+],
+[
+-57,
+-34
+],
+[
+-56,
+-34
+],
+[
+-55,
+-34
+],
+[
+-54,
+-34
+],
+[
+-53,
+-34
+],
+[
+-52,
+-34
+],
+[
+-51,
+-34
+],
+[
+-50,
+-34
+],
+[
+-49,
+-34
+],
+[
+-48,
+-34
+],
+[
+-47,
+-34
+],
+[
+-46,
+-34
+],
+[
+-45,
+-34
+],
+[
+-44,
+-34
+],
+[
+-43,
+-34
+],
+[
+-42,
+-34
+],
+[
+-41,
+-34
+],
+[
+-40,
+-34
+],
+[
+-92,
+-33
+],
+[
+-91,
+-33
+],
+[
+-90,
+-33
+],
+[
+-89,
+-33
+],
+[
+-88,
+-33
+],
+[
+-87,
+-33
+],
+[
+-86,
+-33
+],
+[
+-85,
+-33
+],
+[
+-84,
+-33
+],
+[
+-83,
+-33
+],
+[
+-82,
+-33
+],
+[
+-81,
+-33
+],
+[
+-80,
+-33
+],
+[
+-79,
+-33
+],
+[
+-78,
+-33
+],
+[
+-77,
+-33
+],
+[
+-76,
+-33
+],
+[
+-75,
+-33
+],
+[
+-74,
+-33
+],
+[
+-73,
+-33
+],
+[
+-72,
+-33
+],
+[
+-71,
+-33
+],
+[
+-70,
+-33
+],
+[
+-69,
+-33
+],
+[
+-68,
+-33
+],
+[
+-67,
+-33
+],
+[
+-66,
+-33
+],
+[
+-65,
+-33
+],
+[
+-64,
+-33
+],
+[
+-63,
+-33
+],
+[
+-62,
+-33
+],
+[
+-61,
+-33
+],
+[
+-60,
+-33
+],
+[
+-59,
+-33
+],
+[
+-58,
+-33
+],
+[
+-57,
+-33
+],
+[
+-56,
+-33
+],
+[
+-55,
+-33
+],
+[
+-54,
+-33
+],
+[
+-53,
+-33
+],
+[
+-52,
+-33
+],
+[
+-51,
+-33
+],
+[
+-50,
+-33
+],
+[
+-49,
+-33
+],
+[
+-48,
+-33
+],
+[
+-47,
+-33
+],
+[
+-46,
+-33
+],
+[
+-45,
+-33
+],
+[
+-44,
+-33
+],
+[
+-43,
+-33
+],
+[
+-42,
+-33
+],
+[
+-41,
+-33
+],
+[
+-40,
+-33
+],
+[
+-93,
+-32
+],
+[
+-92,
+-32
+],
+[
+-91,
+-32
+],
+[
+-90,
+-32
+],
+[
+-89,
+-32
+],
+[
+-88,
+-32
+],
+[
+-87,
+-32
+],
+[
+-86,
+-32
+],
+[
+-85,
+-32
+],
+[
+-84,
+-32
+],
+[
+-83,
+-32
+],
+[
+-82,
+-32
+],
+[
+-81,
+-32
+],
+[
+-80,
+-32
+],
+[
+-79,
+-32
+],
+[
+-78,
+-32
+],
+[
+-77,
+-32
+],
+[
+-76,
+-32
+],
+[
+-75,
+-32
+],
+[
+-74,
+-32
+],
+[
+-73,
+-32
+],
+[
+-72,
+-32
+],
+[
+-71,
+-32
+],
+[
+-70,
+-32
+],
+[
+-69,
+-32
+],
+[
+-68,
+-32
+],
+[
+-67,
+-32
+],
+[
+-66,
+-32
+],
+[
+-65,
+-32
+],
+[
+-64,
+-32
+],
+[
+-63,
+-32
+],
+[
+-62,
+-32
+],
+[
+-61,
+-32
+],
+[
+-60,
+-32
+],
+[
+-59,
+-32
+],
+[
+-58,
+-32
+],
+[
+-57,
+-32
+],
+[
+-56,
+-32
+],
+[
+-55,
+-32
+],
+[
+-54,
+-32
+],
+[
+-53,
+-32
+],
+[
+-52,
+-32
+],
+[
+-51,
+-32
+],
+[
+-50,
+-32
+],
+[
+-49,
+-32
+],
+[
+-48,
+-32
+],
+[
+-47,
+-32
+],
+[
+-46,
+-32
+],
+[
+-45,
+-32
+],
+[
+-44,
+-32
+],
+[
+-43,
+-32
+],
+[
+-42,
+-32
+],
+[
+-41,
+-32
+],
+[
+-40,
+-32
+],
+[
+-39,
+-32
+],
+[
+-38,
+-32
+],
+[
+-93,
+-31
+],
+[
+-92,
+-31
+],
+[
+-91,
+-31
+],
+[
+-90,
+-31
+],
+[
+-89,
+-31
+],
+[
+-88,
+-31
+],
+[
+-87,
+-31
+],
+[
+-86,
+-31
+],
+[
+-85,
+-31
+],
+[
+-84,
+-31
+],
+[
+-83,
+-31
+],
+[
+-82,
+-31
+],
+[
+-81,
+-31
+],
+[
+-80,
+-31
+],
+[
+-79,
+-31
+],
+[
+-78,
+-31
+],
+[
+-77,
+-31
+],
+[
+-76,
+-31
+],
+[
+-75,
+-31
+],
+[
+-74,
+-31
+],
+[
+-73,
+-31
+],
+[
+-72,
+-31
+],
+[
+-71,
+-31
+],
+[
+-70,
+-31
+],
+[
+-69,
+-31
+],
+[
+-68,
+-31
+],
+[
+-67,
+-31
+],
+[
+-66,
+-31
+],
+[
+-65,
+-31
+],
+[
+-64,
+-31
+],
+[
+-63,
+-31
+],
+[
+-62,
+-31
+],
+[
+-61,
+-31
+],
+[
+-60,
+-31
+],
+[
+-59,
+-31
+],
+[
+-58,
+-31
+],
+[
+-57,
+-31
+],
+[
+-56,
+-31
+],
+[
+-55,
+-31
+],
+[
+-54,
+-31
+],
+[
+-53,
+-31
+],
+[
+-52,
+-31
+],
+[
+-51,
+-31
+],
+[
+-50,
+-31
+],
+[
+-49,
+-31
+],
+[
+-48,
+-31
+],
+[
+-47,
+-31
+],
+[
+-46,
+-31
+],
+[
+-45,
+-31
+],
+[
+-44,
+-31
+],
+[
+-43,
+-31
+],
+[
+-42,
+-31
+],
+[
+-41,
+-31
+],
+[
+-40,
+-31
+],
+[
+-39,
+-31
+],
+[
+-38,
+-31
+],
+[
+-37,
+-31
+],
+[
+-93,
+-30
+],
+[
+-92,
+-30
+],
+[
+-91,
+-30
+],
+[
+-90,
+-30
+],
+[
+-89,
+-30
+],
+[
+-88,
+-30
+],
+[
+-87,
+-30
+],
+[
+-86,
+-30
+],
+[
+-85,
+-30
+],
+[
+-84,
+-30
+],
+[
+-83,
+-30
+],
+[
+-82,
+-30
+],
+[
+-81,
+-30
+],
+[
+-80,
+-30
+],
+[
+-79,
+-30
+],
+[
+-78,
+-30
+],
+[
+-77,
+-30
+],
+[
+-76,
+-30
+],
+[
+-75,
+-30
+],
+[
+-74,
+-30
+],
+[
+-73,
+-30
+],
+[
+-72,
+-30
+],
+[
+-71,
+-30
+],
+[
+-70,
+-30
+],
+[
+-69,
+-30
+],
+[
+-68,
+-30
+],
+[
+-67,
+-30
+],
+[
+-66,
+-30
+],
+[
+-65,
+-30
+],
+[
+-64,
+-30
+],
+[
+-63,
+-30
+],
+[
+-62,
+-30
+],
+[
+-61,
+-30
+],
+[
+-60,
+-30
+],
+[
+-59,
+-30
+],
+[
+-58,
+-30
+],
+[
+-57,
+-30
+],
+[
+-56,
+-30
+],
+[
+-55,
+-30
+],
+[
+-54,
+-30
+],
+[
+-53,
+-30
+],
+[
+-52,
+-30
+],
+[
+-51,
+-30
+],
+[
+-50,
+-30
+],
+[
+-49,
+-30
+],
+[
+-48,
+-30
+],
+[
+-47,
+-30
+],
+[
+-46,
+-30
+],
+[
+-45,
+-30
+],
+[
+-44,
+-30
+],
+[
+-43,
+-30
+],
+[
+-42,
+-30
+],
+[
+-41,
+-30
+],
+[
+-40,
+-30
+],
+[
+-39,
+-30
+],
+[
+-38,
+-30
+],
+[
+-37,
+-30
+],
+[
+-36,
+-30
+],
+[
+-92,
+-29
+],
+[
+-91,
+-29
+],
+[
+-90,
+-29
+],
+[
+-89,
+-29
+],
+[
+-88,
+-29
+],
+[
+-87,
+-29
+],
+[
+-86,
+-29
+],
+[
+-85,
+-29
+],
+[
+-84,
+-29
+],
+[
+-83,
+-29
+],
+[
+-82,
+-29
+],
+[
+-81,
+-29
+],
+[
+-80,
+-29
+],
+[
+-79,
+-29
+],
+[
+-78,
+-29
+],
+[
+-77,
+-29
+],
+[
+-76,
+-29
+],
+[
+-75,
+-29
+],
+[
+-74,
+-29
+],
+[
+-73,
+-29
+],
+[
+-72,
+-29
+],
+[
+-71,
+-29
+],
+[
+-70,
+-29
+],
+[
+-69,
+-29
+],
+[
+-68,
+-29
+],
+[
+-67,
+-29
+],
+[
+-66,
+-29
+],
+[
+-65,
+-29
+],
+[
+-64,
+-29
+],
+[
+-63,
+-29
+],
+[
+-62,
+-29
+],
+[
+-61,
+-29
+],
+[
+-60,
+-29
+],
+[
+-59,
+-29
+],
+[
+-58,
+-29
+],
+[
+-57,
+-29
+],
+[
+-56,
+-29
+],
+[
+-55,
+-29
+],
+[
+-54,
+-29
+],
+[
+-53,
+-29
+],
+[
+-52,
+-29
+],
+[
+-51,
+-29
+],
+[
+-50,
+-29
+],
+[
+-49,
+-29
+],
+[
+-48,
+-29
+],
+[
+-47,
+-29
+],
+[
+-46,
+-29
+],
+[
+-45,
+-29
+],
+[
+-44,
+-29
+],
+[
+-43,
+-29
+],
+[
+-42,
+-29
+],
+[
+-41,
+-29
+],
+[
+-40,
+-29
+],
+[
+-39,
+-29
+],
+[
+-38,
+-29
+],
+[
+-37,
+-29
+],
+[
+-36,
+-29
+],
+[
+-92,
+-28
+],
+[
+-91,
+-28
+],
+[
+-90,
+-28
+],
+[
+-89,
+-28
+],
+[
+-88,
+-28
+],
+[
+-87,
+-28
+],
+[
+-86,
+-28
+],
+[
+-85,
+-28
+],
+[
+-84,
+-28
+],
+[
+-83,
+-28
+],
+[
+-82,
+-28
+],
+[
+-81,
+-28
+],
+[
+-80,
+-28
+],
+[
+-79,
+-28
+],
+[
+-78,
+-28
+],
+[
+-77,
+-28
+],
+[
+-76,
+-28
+],
+[
+-75,
+-28
+],
+[
+-74,
+-28
+],
+[
+-73,
+-28
+],
+[
+-72,
+-28
+],
+[
+-71,
+-28
+],
+[
+-70,
+-28
+],
+[
+-69,
+-28
+],
+[
+-68,
+-28
+],
+[
+-67,
+-28
+],
+[
+-66,
+-28
+],
+[
+-65,
+-28
+],
+[
+-64,
+-28
+],
+[
+-63,
+-28
+],
+[
+-62,
+-28
+],
+[
+-61,
+-28
+],
+[
+-60,
+-28
+],
+[
+-59,
+-28
+],
+[
+-58,
+-28
+],
+[
+-57,
+-28
+],
+[
+-56,
+-28
+],
+[
+-55,
+-28
+],
+[
+-54,
+-28
+],
+[
+-53,
+-28
+],
+[
+-52,
+-28
+],
+[
+-51,
+-28
+],
+[
+-50,
+-28
+],
+[
+-49,
+-28
+],
+[
+-48,
+-28
+],
+[
+-47,
+-28
+],
+[
+-46,
+-28
+],
+[
+-45,
+-28
+],
+[
+-44,
+-28
+],
+[
+-43,
+-28
+],
+[
+-42,
+-28
+],
+[
+-41,
+-28
+],
+[
+-40,
+-28
+],
+[
+-39,
+-28
+],
+[
+-38,
+-28
+],
+[
+-37,
+-28
+],
+[
+-36,
+-28
+],
+[
+-91,
+-27
+],
+[
+-90,
+-27
+],
+[
+-89,
+-27
+],
+[
+-88,
+-27
+],
+[
+-87,
+-27
+],
+[
+-86,
+-27
+],
+[
+-85,
+-27
+],
+[
+-84,
+-27
+],
+[
+-83,
+-27
+],
+[
+-82,
+-27
+],
+[
+-81,
+-27
+],
+[
+-80,
+-27
+],
+[
+-79,
+-27
+],
+[
+-78,
+-27
+],
+[
+-77,
+-27
+],
+[
+-76,
+-27
+],
+[
+-75,
+-27
+],
+[
+-74,
+-27
+],
+[
+-73,
+-27
+],
+[
+-72,
+-27
+],
+[
+-71,
+-27
+],
+[
+-70,
+-27
+],
+[
+-69,
+-27
+],
+[
+-68,
+-27
+],
+[
+-67,
+-27
+],
+[
+-66,
+-27
+],
+[
+-65,
+-27
+],
+[
+-64,
+-27
+],
+[
+-63,
+-27
+],
+[
+-62,
+-27
+],
+[
+-61,
+-27
+],
+[
+-60,
+-27
+],
+[
+-59,
+-27
+],
+[
+-58,
+-27
+],
+[
+-57,
+-27
+],
+[
+-56,
+-27
+],
+[
+-55,
+-27
+],
+[
+-54,
+-27
+],
+[
+-53,
+-27
+],
+[
+-52,
+-27
+],
+[
+-51,
+-27
+],
+[
+-50,
+-27
+],
+[
+-49,
+-27
+],
+[
+-48,
+-27
+],
+[
+-47,
+-27
+],
+[
+-46,
+-27
+],
+[
+-45,
+-27
+],
+[
+-44,
+-27
+],
+[
+-43,
+-27
+],
+[
+-42,
+-27
+],
+[
+-41,
+-27
+],
+[
+-40,
+-27
+],
+[
+-39,
+-27
+],
+[
+-38,
+-27
+],
+[
+-37,
+-27
+],
+[
+-36,
+-27
+],
+[
+-91,
+-26
+],
+[
+-90,
+-26
+],
+[
+-89,
+-26
+],
+[
+-88,
+-26
+],
+[
+-87,
+-26
+],
+[
+-86,
+-26
+],
+[
+-85,
+-26
+],
+[
+-84,
+-26
+],
+[
+-83,
+-26
+],
+[
+-82,
+-26
+],
+[
+-81,
+-26
+],
+[
+-80,
+-26
+],
+[
+-79,
+-26
+],
+[
+-78,
+-26
+],
+[
+-77,
+-26
+],
+[
+-76,
+-26
+],
+[
+-75,
+-26
+],
+[
+-74,
+-26
+],
+[
+-73,
+-26
+],
+[
+-72,
+-26
+],
+[
+-71,
+-26
+],
+[
+-70,
+-26
+],
+[
+-69,
+-26
+],
+[
+-68,
+-26
+],
+[
+-67,
+-26
+],
+[
+-66,
+-26
+],
+[
+-65,
+-26
+],
+[
+-64,
+-26
+],
+[
+-63,
+-26
+],
+[
+-62,
+-26
+],
+[
+-61,
+-26
+],
+[
+-60,
+-26
+],
+[
+-59,
+-26
+],
+[
+-58,
+-26
+],
+[
+-57,
+-26
+],
+[
+-56,
+-26
+],
+[
+-55,
+-26
+],
+[
+-54,
+-26
+],
+[
+-53,
+-26
+],
+[
+-52,
+-26
+],
+[
+-51,
+-26
+],
+[
+-50,
+-26
+],
+[
+-49,
+-26
+],
+[
+-48,
+-26
+],
+[
+-47,
+-26
+],
+[
+-46,
+-26
+],
+[
+-45,
+-26
+],
+[
+-44,
+-26
+],
+[
+-43,
+-26
+],
+[
+-42,
+-26
+],
+[
+-41,
+-26
+],
+[
+-40,
+-26
+],
+[
+-39,
+-26
+],
+[
+-38,
+-26
+],
+[
+-37,
+-26
+],
+[
+-36,
+-26
+],
+[
+-91,
+-25
+],
+[
+-90,
+-25
+],
+[
+-89,
+-25
+],
+[
+-88,
+-25
+],
+[
+-87,
+-25
+],
+[
+-86,
+-25
+],
+[
+-85,
+-25
+],
+[
+-84,
+-25
+],
+[
+-83,
+-25
+],
+[
+-82,
+-25
+],
+[
+-81,
+-25
+],
+[
+-80,
+-25
+],
+[
+-79,
+-25
+],
+[
+-78,
+-25
+],
+[
+-77,
+-25
+],
+[
+-76,
+-25
+],
+[
+-75,
+-25
+],
+[
+-74,
+-25
+],
+[
+-73,
+-25
+],
+[
+-72,
+-25
+],
+[
+-71,
+-25
+],
+[
+-70,
+-25
+],
+[
+-69,
+-25
+],
+[
+-68,
+-25
+],
+[
+-67,
+-25
+],
+[
+-66,
+-25
+],
+[
+-65,
+-25
+],
+[
+-64,
+-25
+],
+[
+-63,
+-25
+],
+[
+-62,
+-25
+],
+[
+-61,
+-25
+],
+[
+-60,
+-25
+],
+[
+-59,
+-25
+],
+[
+-58,
+-25
+],
+[
+-57,
+-25
+],
+[
+-56,
+-25
+],
+[
+-55,
+-25
+],
+[
+-54,
+-25
+],
+[
+-53,
+-25
+],
+[
+-52,
+-25
+],
+[
+-51,
+-25
+],
+[
+-50,
+-25
+],
+[
+-49,
+-25
+],
+[
+-48,
+-25
+],
+[
+-47,
+-25
+],
+[
+-46,
+-25
+],
+[
+-45,
+-25
+],
+[
+-44,
+-25
+],
+[
+-43,
+-25
+],
+[
+-42,
+-25
+],
+[
+-41,
+-25
+],
+[
+-40,
+-25
+],
+[
+-39,
+-25
+],
+[
+-38,
+-25
+],
+[
+-37,
+-25
+],
+[
+-36,
+-25
+],
+[
+-91,
+-24
+],
+[
+-90,
+-24
+],
+[
+-89,
+-24
+],
+[
+-88,
+-24
+],
+[
+-87,
+-24
+],
+[
+-86,
+-24
+],
+[
+-85,
+-24
+],
+[
+-84,
+-24
+],
+[
+-83,
+-24
+],
+[
+-82,
+-24
+],
+[
+-81,
+-24
+],
+[
+-80,
+-24
+],
+[
+-79,
+-24
+],
+[
+-78,
+-24
+],
+[
+-77,
+-24
+],
+[
+-76,
+-24
+],
+[
+-75,
+-24
+],
+[
+-74,
+-24
+],
+[
+-73,
+-24
+],
+[
+-72,
+-24
+],
+[
+-71,
+-24
+],
+[
+-70,
+-24
+],
+[
+-69,
+-24
+],
+[
+-68,
+-24
+],
+[
+-67,
+-24
+],
+[
+-66,
+-24
+],
+[
+-65,
+-24
+],
+[
+-64,
+-24
+],
+[
+-63,
+-24
+],
+[
+-62,
+-24
+],
+[
+-61,
+-24
+],
+[
+-60,
+-24
+],
+[
+-59,
+-24
+],
+[
+-58,
+-24
+],
+[
+-57,
+-24
+],
+[
+-56,
+-24
+],
+[
+-55,
+-24
+],
+[
+-54,
+-24
+],
+[
+-53,
+-24
+],
+[
+-52,
+-24
+],
+[
+-51,
+-24
+],
+[
+-50,
+-24
+],
+[
+-49,
+-24
+],
+[
+-48,
+-24
+],
+[
+-47,
+-24
+],
+[
+-46,
+-24
+],
+[
+-45,
+-24
+],
+[
+-44,
+-24
+],
+[
+-43,
+-24
+],
+[
+-42,
+-24
+],
+[
+-41,
+-24
+],
+[
+-40,
+-24
+],
+[
+-39,
+-24
+],
+[
+-38,
+-24
+],
+[
+-37,
+-24
+],
+[
+-92,
+-23
+],
+[
+-91,
+-23
+],
+[
+-90,
+-23
+],
+[
+-89,
+-23
+],
+[
+-88,
+-23
+],
+[
+-87,
+-23
+],
+[
+-86,
+-23
+],
+[
+-85,
+-23
+],
+[
+-84,
+-23
+],
+[
+-83,
+-23
+],
+[
+-82,
+-23
+],
+[
+-81,
+-23
+],
+[
+-80,
+-23
+],
+[
+-79,
+-23
+],
+[
+-78,
+-23
+],
+[
+-77,
+-23
+],
+[
+-76,
+-23
+],
+[
+-75,
+-23
+],
+[
+-74,
+-23
+],
+[
+-73,
+-23
+],
+[
+-72,
+-23
+],
+[
+-71,
+-23
+],
+[
+-70,
+-23
+],
+[
+-69,
+-23
+],
+[
+-68,
+-23
+],
+[
+-67,
+-23
+],
+[
+-66,
+-23
+],
+[
+-65,
+-23
+],
+[
+-64,
+-23
+],
+[
+-63,
+-23
+],
+[
+-62,
+-23
+],
+[
+-61,
+-23
+],
+[
+-60,
+-23
+],
+[
+-59,
+-23
+],
+[
+-58,
+-23
+],
+[
+-57,
+-23
+],
+[
+-56,
+-23
+],
+[
+-55,
+-23
+],
+[
+-54,
+-23
+],
+[
+-53,
+-23
+],
+[
+-52,
+-23
+],
+[
+-51,
+-23
+],
+[
+-50,
+-23
+],
+[
+-49,
+-23
+],
+[
+-48,
+-23
+],
+[
+-47,
+-23
+],
+[
+-46,
+-23
+],
+[
+-45,
+-23
+],
+[
+-44,
+-23
+],
+[
+-43,
+-23
+],
+[
+-42,
+-23
+],
+[
+-41,
+-23
+],
+[
+-40,
+-23
+],
+[
+-39,
+-23
+],
+[
+-38,
+-23
+],
+[
+-92,
+-22
+],
+[
+-91,
+-22
+],
+[
+-90,
+-22
+],
+[
+-89,
+-22
+],
+[
+-88,
+-22
+],
+[
+-87,
+-22
+],
+[
+-86,
+-22
+],
+[
+-85,
+-22
+],
+[
+-84,
+-22
+],
+[
+-83,
+-22
+],
+[
+-82,
+-22
+],
+[
+-81,
+-22
+],
+[
+-80,
+-22
+],
+[
+-79,
+-22
+],
+[
+-78,
+-22
+],
+[
+-77,
+-22
+],
+[
+-76,
+-22
+],
+[
+-75,
+-22
+],
+[
+-74,
+-22
+],
+[
+-73,
+-22
+],
+[
+-72,
+-22
+],
+[
+-71,
+-22
+],
+[
+-70,
+-22
+],
+[
+-69,
+-22
+],
+[
+-68,
+-22
+],
+[
+-67,
+-22
+],
+[
+-66,
+-22
+],
+[
+-65,
+-22
+],
+[
+-64,
+-22
+],
+[
+-63,
+-22
+],
+[
+-62,
+-22
+],
+[
+-61,
+-22
+],
+[
+-60,
+-22
+],
+[
+-59,
+-22
+],
+[
+-58,
+-22
+],
+[
+-57,
+-22
+],
+[
+-56,
+-22
+],
+[
+-55,
+-22
+],
+[
+-54,
+-22
+],
+[
+-53,
+-22
+],
+[
+-52,
+-22
+],
+[
+-51,
+-22
+],
+[
+-50,
+-22
+],
+[
+-49,
+-22
+],
+[
+-48,
+-22
+],
+[
+-47,
+-22
+],
+[
+-46,
+-22
+],
+[
+-45,
+-22
+],
+[
+-44,
+-22
+],
+[
+-43,
+-22
+],
+[
+-42,
+-22
+],
+[
+-92,
+-21
+],
+[
+-91,
+-21
+],
+[
+-90,
+-21
+],
+[
+-89,
+-21
+],
+[
+-88,
+-21
+],
+[
+-87,
+-21
+],
+[
+-86,
+-21
+],
+[
+-85,
+-21
+],
+[
+-84,
+-21
+],
+[
+-83,
+-21
+],
+[
+-82,
+-21
+],
+[
+-81,
+-21
+],
+[
+-80,
+-21
+],
+[
+-79,
+-21
+],
+[
+-78,
+-21
+],
+[
+-77,
+-21
+],
+[
+-76,
+-21
+],
+[
+-75,
+-21
+],
+[
+-74,
+-21
+],
+[
+-73,
+-21
+],
+[
+-72,
+-21
+],
+[
+-71,
+-21
+],
+[
+-70,
+-21
+],
+[
+-69,
+-21
+],
+[
+-68,
+-21
+],
+[
+-67,
+-21
+],
+[
+-66,
+-21
+],
+[
+-65,
+-21
+],
+[
+-64,
+-21
+],
+[
+-63,
+-21
+],
+[
+-62,
+-21
+],
+[
+-61,
+-21
+],
+[
+-60,
+-21
+],
+[
+-59,
+-21
+],
+[
+-58,
+-21
+],
+[
+-57,
+-21
+],
+[
+-56,
+-21
+],
+[
+-55,
+-21
+],
+[
+-54,
+-21
+],
+[
+-53,
+-21
+],
+[
+-52,
+-21
+],
+[
+-51,
+-21
+],
+[
+-50,
+-21
+],
+[
+-49,
+-21
+],
+[
+-48,
+-21
+],
+[
+-47,
+-21
+],
+[
+-46,
+-21
+],
+[
+-45,
+-21
+],
+[
+-44,
+-21
+],
+[
+-43,
+-21
+],
+[
+-92,
+-20
+],
+[
+-91,
+-20
+],
+[
+-90,
+-20
+],
+[
+-89,
+-20
+],
+[
+-88,
+-20
+],
+[
+-87,
+-20
+],
+[
+-86,
+-20
+],
+[
+-85,
+-20
+],
+[
+-84,
+-20
+],
+[
+-83,
+-20
+],
+[
+-82,
+-20
+],
+[
+-81,
+-20
+],
+[
+-80,
+-20
+],
+[
+-79,
+-20
+],
+[
+-78,
+-20
+],
+[
+-77,
+-20
+],
+[
+-76,
+-20
+],
+[
+-75,
+-20
+],
+[
+-74,
+-20
+],
+[
+-73,
+-20
+],
+[
+-72,
+-20
+],
+[
+-71,
+-20
+],
+[
+-70,
+-20
+],
+[
+-69,
+-20
+],
+[
+-68,
+-20
+],
+[
+-67,
+-20
+],
+[
+-66,
+-20
+],
+[
+-65,
+-20
+],
+[
+-64,
+-20
+],
+[
+-63,
+-20
+],
+[
+-62,
+-20
+],
+[
+-61,
+-20
+],
+[
+-60,
+-20
+],
+[
+-59,
+-20
+],
+[
+-58,
+-20
+],
+[
+-57,
+-20
+],
+[
+-56,
+-20
+],
+[
+-55,
+-20
+],
+[
+-54,
+-20
+],
+[
+-53,
+-20
+],
+[
+-52,
+-20
+],
+[
+-51,
+-20
+],
+[
+-50,
+-20
+],
+[
+-49,
+-20
+],
+[
+-48,
+-20
+],
+[
+-47,
+-20
+],
+[
+-46,
+-20
+],
+[
+-45,
+-20
+],
+[
+-44,
+-20
+],
+[
+-91,
+-19
+],
+[
+-90,
+-19
+],
+[
+-89,
+-19
+],
+[
+-88,
+-19
+],
+[
+-87,
+-19
+],
+[
+-86,
+-19
+],
+[
+-85,
+-19
+],
+[
+-84,
+-19
+],
+[
+-83,
+-19
+],
+[
+-82,
+-19
+],
+[
+-81,
+-19
+],
+[
+-80,
+-19
+],
+[
+-79,
+-19
+],
+[
+-78,
+-19
+],
+[
+-77,
+-19
+],
+[
+-76,
+-19
+],
+[
+-75,
+-19
+],
+[
+-74,
+-19
+],
+[
+-73,
+-19
+],
+[
+-72,
+-19
+],
+[
+-71,
+-19
+],
+[
+-70,
+-19
+],
+[
+-69,
+-19
+],
+[
+-68,
+-19
+],
+[
+-67,
+-19
+],
+[
+-66,
+-19
+],
+[
+-65,
+-19
+],
+[
+-64,
+-19
+],
+[
+-63,
+-19
+],
+[
+-62,
+-19
+],
+[
+-61,
+-19
+],
+[
+-60,
+-19
+],
+[
+-59,
+-19
+],
+[
+-58,
+-19
+],
+[
+-57,
+-19
+],
+[
+-56,
+-19
+],
+[
+-55,
+-19
+],
+[
+-54,
+-19
+],
+[
+-53,
+-19
+],
+[
+-52,
+-19
+],
+[
+-51,
+-19
+],
+[
+-50,
+-19
+],
+[
+-49,
+-19
+],
+[
+-48,
+-19
+],
+[
+-47,
+-19
+],
+[
+-46,
+-19
+],
+[
+-45,
+-19
+],
+[
+-44,
+-19
+],
+[
+-90,
+-18
+],
+[
+-89,
+-18
+],
+[
+-88,
+-18
+],
+[
+-87,
+-18
+],
+[
+-86,
+-18
+],
+[
+-85,
+-18
+],
+[
+-84,
+-18
+],
+[
+-83,
+-18
+],
+[
+-82,
+-18
+],
+[
+-81,
+-18
+],
+[
+-80,
+-18
+],
+[
+-79,
+-18
+],
+[
+-78,
+-18
+],
+[
+-77,
+-18
+],
+[
+-76,
+-18
+],
+[
+-75,
+-18
+],
+[
+-74,
+-18
+],
+[
+-73,
+-18
+],
+[
+-72,
+-18
+],
+[
+-71,
+-18
+],
+[
+-70,
+-18
+],
+[
+-69,
+-18
+],
+[
+-68,
+-18
+],
+[
+-67,
+-18
+],
+[
+-66,
+-18
+],
+[
+-65,
+-18
+],
+[
+-64,
+-18
+],
+[
+-63,
+-18
+],
+[
+-62,
+-18
+],
+[
+-61,
+-18
+],
+[
+-60,
+-18
+],
+[
+-59,
+-18
+],
+[
+-58,
+-18
+],
+[
+-57,
+-18
+],
+[
+-56,
+-18
+],
+[
+-55,
+-18
+],
+[
+-54,
+-18
+],
+[
+-53,
+-18
+],
+[
+-52,
+-18
+],
+[
+-51,
+-18
+],
+[
+-50,
+-18
+],
+[
+-49,
+-18
+],
+[
+-48,
+-18
+],
+[
+-47,
+-18
+],
+[
+-46,
+-18
+],
+[
+-45,
+-18
+],
+[
+-44,
+-18
+],
+[
+-90,
+-17
+],
+[
+-89,
+-17
+],
+[
+-88,
+-17
+],
+[
+-87,
+-17
+],
+[
+-86,
+-17
+],
+[
+-85,
+-17
+],
+[
+-84,
+-17
+],
+[
+-83,
+-17
+],
+[
+-82,
+-17
+],
+[
+-81,
+-17
+],
+[
+-80,
+-17
+],
+[
+-79,
+-17
+],
+[
+-78,
+-17
+],
+[
+-77,
+-17
+],
+[
+-76,
+-17
+],
+[
+-75,
+-17
+],
+[
+-74,
+-17
+],
+[
+-73,
+-17
+],
+[
+-72,
+-17
+],
+[
+-71,
+-17
+],
+[
+-70,
+-17
+],
+[
+-69,
+-17
+],
+[
+-68,
+-17
+],
+[
+-67,
+-17
+],
+[
+-66,
+-17
+],
+[
+-65,
+-17
+],
+[
+-64,
+-17
+],
+[
+-63,
+-17
+],
+[
+-62,
+-17
+],
+[
+-61,
+-17
+],
+[
+-60,
+-17
+],
+[
+-59,
+-17
+],
+[
+-58,
+-17
+],
+[
+-57,
+-17
+],
+[
+-56,
+-17
+],
+[
+-55,
+-17
+],
+[
+-50,
+-17
+],
+[
+-49,
+-17
+],
+[
+-48,
+-17
+],
+[
+-47,
+-17
+],
+[
+-46,
+-17
+],
+[
+-45,
+-17
+],
+[
+-44,
+-17
+],
+[
+-90,
+-16
+],
+[
+-89,
+-16
+],
+[
+-88,
+-16
+],
+[
+-87,
+-16
+],
+[
+-86,
+-16
+],
+[
+-85,
+-16
+],
+[
+-84,
+-16
+],
+[
+-83,
+-16
+],
+[
+-82,
+-16
+],
+[
+-81,
+-16
+],
+[
+-80,
+-16
+],
+[
+-79,
+-16
+],
+[
+-78,
+-16
+],
+[
+-77,
+-16
+],
+[
+-76,
+-16
+],
+[
+-75,
+-16
+],
+[
+-74,
+-16
+],
+[
+-73,
+-16
+],
+[
+-72,
+-16
+],
+[
+-71,
+-16
+],
+[
+-70,
+-16
+],
+[
+-69,
+-16
+],
+[
+-68,
+-16
+],
+[
+-67,
+-16
+],
+[
+-66,
+-16
+],
+[
+-65,
+-16
+],
+[
+-64,
+-16
+],
+[
+-63,
+-16
+],
+[
+-62,
+-16
+],
+[
+-61,
+-16
+],
+[
+-60,
+-16
+],
+[
+-59,
+-16
+],
+[
+-58,
+-16
+],
+[
+-57,
+-16
+],
+[
+-56,
+-16
+],
+[
+-47,
+-16
+],
+[
+-46,
+-16
+],
+[
+-45,
+-16
+],
+[
+-90,
+-15
+],
+[
+-89,
+-15
+],
+[
+-88,
+-15
+],
+[
+-87,
+-15
+],
+[
+-86,
+-15
+],
+[
+-85,
+-15
+],
+[
+-84,
+-15
+],
+[
+-83,
+-15
+],
+[
+-82,
+-15
+],
+[
+-81,
+-15
+],
+[
+-80,
+-15
+],
+[
+-79,
+-15
+],
+[
+-78,
+-15
+],
+[
+-77,
+-15
+],
+[
+-76,
+-15
+],
+[
+-71,
+-15
+],
+[
+-70,
+-15
+],
+[
+-69,
+-15
+],
+[
+-68,
+-15
+],
+[
+-67,
+-15
+],
+[
+-66,
+-15
+],
+[
+-65,
+-15
+],
+[
+-64,
+-15
+],
+[
+-63,
+-15
+],
+[
+-60,
+-15
+],
+[
+-59,
+-15
+],
+[
+-58,
+-15
+],
+[
+-57,
+-15
+],
+[
+-56,
+-15
+],
+[
+-90,
+-14
+],
+[
+-89,
+-14
+],
+[
+-88,
+-14
+],
+[
+-87,
+-14
+],
+[
+-86,
+-14
+],
+[
+-85,
+-14
+],
+[
+-84,
+-14
+],
+[
+-83,
+-14
+],
+[
+-82,
+-14
+],
+[
+-81,
+-14
+],
+[
+-80,
+-14
+],
+[
+-79,
+-14
+],
+[
+-78,
+-14
+],
+[
+-70,
+-14
+],
+[
+-69,
+-14
+],
+[
+-68,
+-14
+],
+[
+-67,
+-14
+],
+[
+-66,
+-14
+],
+[
+-65,
+-14
+],
+[
+-64,
+-14
+],
+[
+-59,
+-14
+],
+[
+-58,
+-14
+],
+[
+-57,
+-14
+],
+[
+-91,
+-13
+],
+[
+-90,
+-13
+],
+[
+-89,
+-13
+],
+[
+-88,
+-13
+],
+[
+-87,
+-13
+],
+[
+-86,
+-13
+],
+[
+-85,
+-13
+],
+[
+-84,
+-13
+],
+[
+-83,
+-13
+],
+[
+-82,
+-13
+],
+[
+-69,
+-13
+],
+[
+-68,
+-13
+],
+[
+-67,
+-13
+],
+[
+-66,
+-13
+],
+[
+-65,
+-13
+],
+[
+-91,
+-12
+],
+[
+-90,
+-12
+],
+[
+-89,
+-12
+],
+[
+-88,
+-12
+],
+[
+-87,
+-12
+],
+[
+-86,
+-12
+],
+[
+-85,
+-12
+],
+[
+-84,
+-12
+],
+[
+-83,
+-12
+],
+[
+-82,
+-12
+],
+[
+-69,
+-12
+],
+[
+-68,
+-12
+],
+[
+-67,
+-12
+],
+[
+-66,
+-12
+],
+[
+-91,
+-11
+],
+[
+-90,
+-11
+],
+[
+-89,
+-11
+],
+[
+-88,
+-11
+],
+[
+-87,
+-11
+],
+[
+-86,
+-11
+],
+[
+-85,
+-11
+],
+[
+-84,
+-11
+],
+[
+-83,
+-11
+],
+[
+-82,
+-11
+],
+[
+-69,
+-11
+],
+[
+-68,
+-11
+],
+[
+-91,
+-10
+],
+[
+-90,
+-10
+],
+[
+-89,
+-10
+],
+[
+-88,
+-10
+],
+[
+-87,
+-10
+],
+[
+-86,
+-10
+],
+[
+-85,
+-10
+],
+[
+-84,
+-10
+],
+[
+-83,
+-10
+],
+[
+-82,
+-10
+],
+[
+-91,
+-9
+],
+[
+-90,
+-9
+],
+[
+-89,
+-9
+],
+[
+-88,
+-9
+],
+[
+-87,
+-9
+],
+[
+-84,
+-9
+],
+[
+-83,
+-9
+],
+[
+-82,
+-9
+],
+[
+-90,
+-8
+],
+[
+-89,
+-8
+]
+]
+},
+"wall_seconds": 185.8
+}
