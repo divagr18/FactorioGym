@@ -1,0 +1,36 @@
+FactorioRL
+Copyright (c) 2026 FactorioRL contributors
+Licensed under the MIT License; see LICENSE.
+
+Factorio
+--------
+Factorio is a game by Wube Software Ltd. "Factorio" is a trademark of Wube
+Software Ltd. FactorioRL is an independent project. It is not affiliated with,
+sponsored by, or endorsed by Wube Software Ltd.
+
+What this repository contains
+-----------------------------
+Only original code and data written for this project. It contains no Factorio
+game files, source code, art, sound, fonts or save files, and none of those
+are covered by the MIT License. The Factorio source code is not public and
+none has been copied here.
+
+The Lua under mod/ is an original Factorio mod that uses Factorio's public
+modding API. Measurements under docs/evidence/ are numbers this project
+recorded by running the game: speeds, timings, counts and the internal names
+the game reports, such as "iron-plate".
+
+Using it
+--------
+Running the environment requires your own legitimate copy of Factorio, or
+Wube's headless server, used under Wube's terms of service:
+https://www.factorio.com/terms-of-service
+
+Rules for contributors
+----------------------
+- Never copy code, prototype definitions or data files from the game or from
+  other projects whose licence does not allow it.
+- Never commit game binaries, graphics, sounds, fonts, locale files, saves, or
+  dumps of the game's prototype data.
+- Any simulator of game mechanics is written from scratch, from this
+  project's own measurements, and draws nothing that imitates the game's look.

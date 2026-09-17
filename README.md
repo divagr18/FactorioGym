@@ -189,6 +189,9 @@ not a flagship release.
   reservations in `runtime/ports/`. The user's Factorio profile is never
   touched.
 
-## License / provenance
+## License
 
-Private research project; Factorio is property of Wube Software Ltd.
+MIT; see [LICENSE](LICENSE). Factorio is a game and trademark of Wube Software
+Ltd. This project is independent and not affiliated with or endorsed by Wube.
+It ships no game files, and running it needs your own copy of Factorio or
+Wube's headless server. See [NOTICE](NOTICE).
