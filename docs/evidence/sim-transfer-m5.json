@@ -496,20 +496,30 @@
     }
   },
   "simulator_replay": {
-    "closed_loop_identical_actions": 31,
+    "closed_loop_identical_actions": 32,
     "divergence": {
       "cause": "the engine slides a character around an obstacle corner when the overlap is small; factory-sim does not model that yet. Walls exist only in the held-out families, so no training scene exercised it.",
       "engine": "character slid from y -1.796875 to -1.9921875 and passed the wall's top corner, ending at x 2.1875",
       "episode": "test 6 (obstructed_patch)",
       "first_different_action": 5,
       "first_different_observation": "after decision 1 (a 30-tick move west into the wall column)",
-      "simulator": "character stopped at x 5.9921875, y unchanged"
+      "simulator": "character stopped at x 5.9921875, y unchanged",
+      "status": "fixed; kept as the record of what the first replay found"
     },
     "episodes": 32,
     "open_loop_same_outcome": 32,
+    "resolved": {
+      "by": "factory-sim 6e26cd2 (corner slides, solid narrow gaps, measured creep)",
+      "evidence": [
+        "docs/evidence/sim-mechanics-m5-slide.json",
+        "docs/evidence/sim-mechanics-m5-slide-gaps.json",
+        "docs/evidence/sim-mechanics-m5-slide-creep.json"
+      ],
+      "replay": "all 32 episodes identical action for action in closed loop, rerun on the desktop"
+    },
     "tool": "factory-sim tools/replay_transfer.py"
   },
-  "summary": "The policy (factory-sim progress-demo-s1, 1.8% sampled success in the simulator on the training split, 0% greedy) scores 0/16 greedy on both splits on the engine, as the simulator predicts. Every engine episode's outcome is reproduced by replaying its actions in the simulator; 31 of 32 are reproduced action for action in closed loop.",
+  "summary": "The policy (factory-sim progress-demo-s1, 1.8% sampled success in the simulator on the training split, 0% greedy) scores 0/16 greedy on both splits on the engine, as the simulator predicts. Replayed in the simulator, all 32 engine episodes reproduce their outcomes, and since the corner-slide fix all 32 reproduce action for action.",
   "task": "construct_smelting_line",
   "task_version": "1.1.1"
 }
