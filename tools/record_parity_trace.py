@@ -144,6 +144,12 @@ def _tensor_hashes(encoded: dict) -> dict:
     return out
 
 
+def _request_order(request_id: str) -> tuple[int, str]:
+    """`step-07d5db43-12:act` -> (12, ":act")."""
+    head, _, suffix = request_id.partition(":")
+    return int(head.rsplit("-", 1)[1]), suffix
+
+
 class Normaliser:
     """Removes what differs between two recordings of the same world."""
 
@@ -156,10 +162,36 @@ class Normaliser:
             observation.get("tick") or 0
         )
 
+    def claim(self, *values) -> None:
+        """Name every request id in `values` that has no name yet.
+
+        In the order the session issued them -- the counter in the id, then the
+        suffix -- not in the order a walk over the record meets them. A walk
+        follows each dict's key order, which is the engine's JSON order and not
+        something another backend reproduces; the counter order is the same in
+        any session that issued the same requests in the same order.
+        """
+        found: set[str] = set()
+
+        def walk(value):
+            if isinstance(value, str) and REQUEST_ID.match(value):
+                found.add(value)
+            elif isinstance(value, dict):
+                for item in value.values():
+                    walk(item)
+            elif isinstance(value, list):
+                for item in value:
+                    walk(item)
+
+        for value in values:
+            walk(value)
+        for value in sorted(found - set(self.request_ids), key=_request_order):
+            self.request_ids[value] = f"r{len(self.request_ids) + 1}"
+
     def _rename(self, value):
         if isinstance(value, str) and REQUEST_ID.match(value):
             if value not in self.request_ids:
-                self.request_ids[value] = f"r{len(self.request_ids) + 1}"
+                self.claim(value)
             return self.request_ids[value]
         if isinstance(value, dict):
             return {k: self._rename(v) for k, v in value.items()}
@@ -324,7 +356,10 @@ class Recorder:
             "decision": len(self.records),
             "transition": transition,
             "tick": int(self.env._observation.get("tick") or 0),
-            "observation": normaliser.observation(self.env._observation),
+            "observation": (
+                normaliser.claim(self.env._observation, self.env._truth, digest)
+                or normaliser.observation(self.env._observation)
+            ),
             "tensors": _tensor_hashes(encoded),
             "mask": "".join("1" if bit else "0" for bit in mask),
             "goal": [float(v) for v in self.env._goal_vector()],
@@ -1022,6 +1057,7 @@ def record_ticks(scenario: Scenario, session: WorkerSession, actions: list[dict]
 
     def hidden() -> dict:
         digest = session.world_digest(hidden=True).response.result or {}
+        normaliser.claim(digest)
         return normaliser.hidden(digest.get("hidden") or {})
 
     rows = [hidden()]

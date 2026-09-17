@@ -91,6 +91,24 @@ class TestNormalisation:
         )
         assert hidden["inflight"]["entries"][0]["request_id"] == "r2"
 
+    def test_names_follow_the_session_counter_not_the_key_order(self, tool):
+        """Two records holding the same ids under differently ordered keys get
+        the same names, so a backend need not reproduce engine JSON order."""
+        first = {
+            "events": [{"request_id": "step-07d5db43-9"}],
+            "inflight": [{"request_id": "step-07d5db43-7:act"}],
+        }
+        second = {
+            "inflight": [{"request_id": "step-197d6cb5-3:act"}],
+            "events": [{"request_id": "step-197d6cb5-5"}],
+        }
+        a = _normaliser(tool, absolute_tick=30)
+        b = _normaliser(tool, absolute_tick=30)
+        a.claim(first)
+        b.claim(second)
+        assert a.observation(first) == b.observation(second)
+        assert a.observation(first)["inflight"][0]["request_id"] == "r1"
+
     def test_a_string_that_only_resembles_an_id_is_kept(self, tool):
         normaliser = _normaliser(tool, absolute_tick=30)
         assert normaliser.observation({"name": "burner-mining-drill"})["name"] == (

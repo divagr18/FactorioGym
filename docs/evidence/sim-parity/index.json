@@ -28,18 +28,18 @@
     "layout_family": "square_patch",
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
-    "replay_sha256": "77eefff0915f78d662fc3d9b52a1966e1633668826c26d8726d440925e7bbaf0",
+    "replay_sha256": "1045062791853674d920eedd84887e12a705a882fd36a2bbcaf9b7f82da776f7",
     "return": 0.91,
     "success": true,
     "task": "build_line",
     "task_version": "1.1.0",
     "terminated": true,
     "trace": "build_line_reference.jsonl.xz",
-    "trace_sha256": "77eefff0915f78d662fc3d9b52a1966e1633668826c26d8726d440925e7bbaf0",
+    "trace_sha256": "1045062791853674d920eedd84887e12a705a882fd36a2bbcaf9b7f82da776f7",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": null,
-    "wall_seconds": 11.4
+    "wall_seconds": 11.2
   },
   "burner_run_on": {
     "about": "one coal each: slots empty, stored energy runs on, machines stop, refuel",
@@ -80,14 +80,14 @@
       "ticks": 3480,
       "trace": "burner_run_on.ticks.jsonl.xz",
       "trace_sha256": "5e78f95fd78adb0dc18428c85c44091a1c8c93680ca1d89d2d7a1f9aecc4c0ea",
-      "wall_seconds": 166.2
+      "wall_seconds": 153.6
     },
     "trace": "burner_run_on.jsonl.xz",
     "trace_sha256": "3732b954bcbbc3c5b0f6e6e7231da16384c3d86fb2091e2dbe6b94e3e0e1ef54",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": null,
-    "wall_seconds": 5.2
+    "wall_seconds": 5.0
   },
   "construct_smelting_line_exploit": {
     "about": "a hand-fed furnace and no drill, which verification must score zero",
@@ -115,14 +115,14 @@
     "layout_family": "open_patch",
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
-    "replay_sha256": "e75018953b26f98d91bb5e7317af0e3a5ab6e065d7d3998f39966e8d5ece8dee",
+    "replay_sha256": "cd5f6949b41f1d0f935cfd9796e80cc3e331f2e35b901a0ad52692166e9afc77",
     "return": 0.0,
     "success": false,
     "task": "construct_smelting_line",
     "task_version": "1.1.1",
     "terminated": true,
     "trace": "construct_smelting_line_exploit.jsonl.xz",
-    "trace_sha256": "e75018953b26f98d91bb5e7317af0e3a5ab6e065d7d3998f39966e8d5ece8dee",
+    "trace_sha256": "cd5f6949b41f1d0f935cfd9796e80cc3e331f2e35b901a0ad52692166e9afc77",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": {
@@ -132,7 +132,7 @@
       "success": false,
       "uncapped_output": 14.0
     },
-    "wall_seconds": 50.7
+    "wall_seconds": 45.1
   },
   "construct_smelting_line_reference": {
     "about": "the reference line, then the budget run out into automatic verification",
@@ -162,14 +162,14 @@
     "layout_family": "offset_patch",
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
-    "replay_sha256": "25adee8ab16d08927ff9d90f6af92af529481bb890a4a1547bffc56a79190fd3",
+    "replay_sha256": "37480b6ea23b038f758c6ea6c867ff2e85d691c54bd9d63ea1427b66d1064eb1",
     "return": 1.0,
     "success": true,
     "task": "construct_smelting_line",
     "task_version": "1.1.1",
     "terminated": true,
     "trace": "construct_smelting_line_reference.jsonl.xz",
-    "trace_sha256": "25adee8ab16d08927ff9d90f6af92af529481bb890a4a1547bffc56a79190fd3",
+    "trace_sha256": "37480b6ea23b038f758c6ea6c867ff2e85d691c54bd9d63ea1427b66d1064eb1",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": {
@@ -179,7 +179,7 @@
       "success": true,
       "uncapped_output": 15.0
     },
-    "wall_seconds": 54.2
+    "wall_seconds": 45.0
   },
   "drill_furnace_facings": {
     "about": "a drill feeding a furnace in each of four facings, fuelled and run",
@@ -244,14 +244,14 @@
       "ticks": 2280,
       "trace": "drill_furnace_facings.ticks.jsonl.xz",
       "trace_sha256": "adb114273a2277389a38e059afd618bcdb27c3662a3164c69eca114b9fcb02d1",
-      "wall_seconds": 116.2
+      "wall_seconds": 90.9
     },
     "trace": "drill_furnace_facings.jsonl.xz",
     "trace_sha256": "e697c336574ed966f9fdc7a6fb77c1ad39497838131c30dbdea22cf832ac8948",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": null,
-    "wall_seconds": 3.6
+    "wall_seconds": 3.2
   },
   "drill_jam_and_build_over_pile": {
     "about": "a drill stopped by its own ground pile, then a furnace built on the pile",
@@ -292,14 +292,14 @@
       "ticks": 1320,
       "trace": "drill_jam_and_build_over_pile.ticks.jsonl.xz",
       "trace_sha256": "8c5dc225dd82ad38ac8112a0a2835a8eeb2bf6be6c1087580fd4fce34ab21970",
-      "wall_seconds": 36.6
+      "wall_seconds": 37.2
     },
     "trace": "drill_jam_and_build_over_pile.jsonl.xz",
     "trace_sha256": "ebd5c7a98ccb67cd167c651539d0ede708a6132317a785658bc5a0fca6d0ef06",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": null,
-    "wall_seconds": 1.7
+    "wall_seconds": 1.6
   },
   "hand_mine_exhaustion": {
     "about": "hand-mining 121-tick ore, a second mine mid-mine, walking away, tiles to zero",
@@ -319,7 +319,7 @@
     "layout_family": "offset_patch",
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
-    "replay_sha256": "8f9e4db3cb1c6d637903da3e8a893c0432063e0ed3b25e7db3fb81dff2e3c512",
+    "replay_sha256": "3e71e4516f07fc149a476a07fd9aa22a41c6e77d1cf53aa94088e90c3bab7f11",
     "return": 0.0,
     "success": false,
     "task": "construct_smelting_line",
@@ -332,14 +332,14 @@
       "ticks": 1230,
       "trace": "hand_mine_exhaustion.ticks.jsonl.xz",
       "trace_sha256": "5c1cd6cce2186936ef1ac76dd726921891e63ef0f3734b34892d77ab01ae424b",
-      "wall_seconds": 20.6
+      "wall_seconds": 17.5
     },
     "trace": "hand_mine_exhaustion.jsonl.xz",
-    "trace_sha256": "8f9e4db3cb1c6d637903da3e8a893c0432063e0ed3b25e7db3fb81dff2e3c512",
+    "trace_sha256": "3e71e4516f07fc149a476a07fd9aa22a41c6e77d1cf53aa94088e90c3bab7f11",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": null,
-    "wall_seconds": 1.4
+    "wall_seconds": 1.0
   },
   "masked_random_rollout": {
     "about": "200 uniformly random legal vectors, decode failures included",
@@ -378,18 +378,18 @@
     "layout_family": "square_patch",
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
-    "replay_sha256": "56289526285beb9432f7a2cc1c0ac1afd92b03e8caf65d9008ae7ac99968e11c",
+    "replay_sha256": "3dcdeccd1df6ad76eb69e4a72d4344e61ef4b3af0f1cccc90ec0ddf51d799158",
     "return": -0.2,
     "success": false,
     "task": "build_line",
     "task_version": "1.1.0",
     "terminated": false,
     "trace": "masked_random_rollout.jsonl.xz",
-    "trace_sha256": "56289526285beb9432f7a2cc1c0ac1afd92b03e8caf65d9008ae7ac99968e11c",
+    "trace_sha256": "3dcdeccd1df6ad76eb69e4a72d4344e61ef4b3af0f1cccc90ec0ddf51d799158",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": null,
-    "wall_seconds": 11.5
+    "wall_seconds": 9.4
   },
   "mine_machine_returns_contents": {
     "about": "picking up a working furnace and drill returns them with their contents",
@@ -410,7 +410,7 @@
     "layout_family": "offset_patch",
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
-    "replay_sha256": "164a4d4a628d2464b3f8cde74a103695e893e8a3b4f41c0f349cb4e7eb3d93f4",
+    "replay_sha256": "ca26353b023439cc276ce22357dfd96f67ddfc7899024c27655ba50d2f433410",
     "return": 0.0,
     "success": false,
     "task": "construct_smelting_line",
@@ -423,14 +423,14 @@
       "ticks": 870,
       "trace": "mine_machine_returns_contents.ticks.jsonl.xz",
       "trace_sha256": "50f5cdbb8fcc264567b2d6418b46b1b404c4fd3547a5e5bdb2bd9537896248a0",
-      "wall_seconds": 22.2
+      "wall_seconds": 23.8
     },
     "trace": "mine_machine_returns_contents.jsonl.xz",
-    "trace_sha256": "164a4d4a628d2464b3f8cde74a103695e893e8a3b4f41c0f349cb4e7eb3d93f4",
+    "trace_sha256": "ca26353b023439cc276ce22357dfd96f67ddfc7899024c27655ba50d2f433410",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": null,
-    "wall_seconds": 1.2
+    "wall_seconds": 1.1
   },
   "placement_footprints": {
     "about": "2x2 snapping, refusals for the character's box, overlap and bare ground, rotation",
@@ -461,7 +461,7 @@
     "layout_family": "offset_patch",
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
-    "replay_sha256": "511c2de555a32c27a6ee9cca5681c38448d53a1c95416c7145a7a2a3d64cf653",
+    "replay_sha256": "9f1ce6f4ef97b07add7c1a0ab853a9ce6121d9b0d10eb3b70115468d6a0bd4f4",
     "return": 0.0,
     "success": false,
     "task": "construct_smelting_line",
@@ -474,14 +474,14 @@
       "ticks": 390,
       "trace": "placement_footprints.ticks.jsonl.xz",
       "trace_sha256": "98a817088014acdf0ced37d919c445cd0cc275f0c8022aae0ec88a1b17c6f723",
-      "wall_seconds": 10.1
+      "wall_seconds": 9.2
     },
     "trace": "placement_footprints.jsonl.xz",
-    "trace_sha256": "511c2de555a32c27a6ee9cca5681c38448d53a1c95416c7145a7a2a3d64cf653",
+    "trace_sha256": "9f1ce6f4ef97b07add7c1a0ab853a9ce6121d9b0d10eb3b70115468d6a0bd4f4",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": null,
-    "wall_seconds": 0.6
+    "wall_seconds": 0.5
   },
   "transfer_clamping": {
     "about": "gives and takes clamped to what is there, and a take during a hand-mine",
@@ -507,7 +507,7 @@
     "layout_family": "offset_patch",
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
-    "replay_sha256": "29e39284ec7fc24a86568908de017f657bad83b638586e2b7188f8b400cd23c3",
+    "replay_sha256": "23ce8c5a624b4acf012461b8bb3a322e526363937b6d3d46205b5f8c8f715aae",
     "return": 0.0,
     "success": false,
     "task": "construct_smelting_line",
@@ -520,14 +520,14 @@
       "ticks": 930,
       "trace": "transfer_clamping.ticks.jsonl.xz",
       "trace_sha256": "8a149a43be8c7bd2dc17e4a7dea097cdc7478297eec245eb135c624d14022b14",
-      "wall_seconds": 25.6
+      "wall_seconds": 25.9
     },
     "trace": "transfer_clamping.jsonl.xz",
-    "trace_sha256": "29e39284ec7fc24a86568908de017f657bad83b638586e2b7188f8b400cd23c3",
+    "trace_sha256": "23ce8c5a624b4acf012461b8bb3a322e526363937b6d3d46205b5f8c8f715aae",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": null,
-    "wall_seconds": 1.4
+    "wall_seconds": 1.2
   },
   "walk_and_reach": {
     "about": "strides into a wall, along its face and round it; resource reach",
@@ -554,7 +554,7 @@
     "layout_family": "obstructed_patch",
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
-    "replay_sha256": "77f7f287ae98ffd125c94287c5df005180e73eae71aa09e847d63bed8d8e33dd",
+    "replay_sha256": "722ccd3bcaf966f62d4fe7f3d03b7a540ec75204c3725afaece94711e94aeb25",
     "return": 0.0,
     "success": false,
     "task": "construct_smelting_line",
@@ -567,13 +567,13 @@
       "ticks": 630,
       "trace": "walk_and_reach.ticks.jsonl.xz",
       "trace_sha256": "ba9a803918c864bd3e030e667155621b7267762515c37de654f10d6425377338",
-      "wall_seconds": 15.0
+      "wall_seconds": 13.8
     },
     "trace": "walk_and_reach.jsonl.xz",
-    "trace_sha256": "77f7f287ae98ffd125c94287c5df005180e73eae71aa09e847d63bed8d8e33dd",
+    "trace_sha256": "722ccd3bcaf966f62d4fe7f3d03b7a540ec75204c3725afaece94711e94aeb25",
     "truncated": false,
     "unencodable_actions": 0,
     "verification": null,
-    "wall_seconds": 1.0
+    "wall_seconds": 0.8
   }
 }
