@@ -64,3 +64,8 @@ def test_fuel_and_throughput_pay_on_the_best_line():
     # a fuelled drill elsewhere does not lend its fuel to an unfuelled line
     split = observation(drill(1, 1), furnace(2, 3), drill(20, 20, fuel=5))
     assert line_potential(split, TRUTH, "patch") == pytest.approx(0.6)
+
+
+def test_a_drill_feeding_a_drill_is_not_a_line():
+    pair = observation(drill(1, 1), drill(2, 3, fuel=5))
+    assert line_potential(pair, TRUTH, "patch") == pytest.approx(0.3)
