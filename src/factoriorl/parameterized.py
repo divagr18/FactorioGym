@@ -26,6 +26,28 @@ placement candidates by their resulting local structure rather than giving each
 index an unrelated logit, which may generalize across translated and rotated
 layouts. That is a representation change on top of this interface, not a
 replacement for it, and it is left to a separate experiment with its own gate.
+
+**`parameterized-v2` is that experiment.** The vector's shape does not move --
+`MultiDiscrete[22, 33, 122, 5, 15, 4]`, the same operations, the same
+sentinel -- so the two profiles differ only in what two indices *mean*:
+
+* **target** *k* is row *k* of the entity table the observation shows
+  (`encoders.entity_row_order`), so the row a policy attends to and the entity
+  it names are the same thing. Under v1 the index is a position in the sensor's
+  sweep order, which the policy cannot see, so "fuel the drill" is a mapping it
+  must memorise per scene. Resource tiles have no row and so cannot be targeted
+  under v2; nothing in `construct_smelting_line` needs one, and a task that
+  hand-mines a named tile should stay on v1.
+* **placement** *p* is the fixed tile `((p - 1) // 11 - 5, (p - 1) % 11 - 5)`
+  from the character's own tile, and occupancy is expressed in the mask. Under
+  v1 the index skips occupied tiles, so index *k* names a different tile the
+  moment anything is built nearby -- "the tile below the drill" has no stable
+  index while you are building.
+
+Measured in the simulator that implements both (`factory-sim`, `csrc/fsim_rl.c`),
+v2 is what made the task learnable at all: combined shaping reached 14.8% on
+v2 at 20M steps against a flat 0% on v1, and 77.5% once the demonstration
+schedule was fixed too.
 """
 
 from __future__ import annotations
@@ -47,6 +69,11 @@ UNUSED = 0
 #: encoder's `MAX_ENTITIES` so a policy can address anything it can see.
 MAX_TARGETS = 32
 MAX_PLACEMENTS = 121
+
+#: The two meanings a `target` and a `placement` index can carry. The vector's
+#: shape is the same in both, so a policy written for one runs against the
+#: other -- it simply reads a different entity and builds on a different tile.
+PROFILES = ("v1", "v2")
 
 #: Which domain each dimension draws from, and the payload argument it fills.
 #: `operation` is the catalog index and takes no domain.
@@ -87,9 +114,17 @@ class ParameterizedEnv(gym.Env):
     metadata: dict = {}
 
     def __init__(
-        self, env: Any, max_targets: int = MAX_TARGETS, max_placements: int = MAX_PLACEMENTS
+        self,
+        env: Any,
+        max_targets: int = MAX_TARGETS,
+        max_placements: int = MAX_PLACEMENTS,
+        profile: str = "v1",
     ):
+        if profile not in PROFILES:
+            raise ValueError(f"unknown action-space profile {profile!r}")
         self.env = env
+        self.profile = profile
+        self.v2 = profile == "v2"
         self.max_targets = max_targets
         self.max_placements = max_placements
         self._sizes = {
@@ -127,9 +162,15 @@ class ParameterizedEnv(gym.Env):
         domains = self.env.argument_domains()
         from factoriorl import encoders
 
+        if self.v2:
+            targets = self.env.entity_row_handles()[: self.max_targets]
+            placements = self.env.placement_grid()[0][: self.max_placements]
+        else:
+            targets = list(domains["targets"])[: self.max_targets]
+            placements = list(domains["placements"])[: self.max_placements]
         return {
-            "target": list(domains["targets"])[: self.max_targets],
-            "placement": list(domains["placements"])[: self.max_placements],
+            "target": targets,
+            "placement": placements,
             "direction": list(domains["directions"]),
             # Fixed slots, so an item's index means the same thing in every
             # scene; availability is what the mask expresses.
@@ -179,6 +220,11 @@ class ParameterizedEnv(gym.Env):
                 nameable = set(available["items"]) | set(available.get("source_items") or ())
                 for index, item in enumerate(legal):
                     mask[index + 1] = item in nameable
+            elif name == "placement" and self.v2:
+                # Every slot names its tile whether or not anything stands
+                # there, so occupancy is what the mask carries.
+                for index, free in enumerate(self.env.placement_grid()[1][: size - 1]):
+                    mask[index + 1] = free
             else:
                 for index in range(min(len(legal), size - 1)):
                     mask[index + 1] = True
@@ -211,6 +257,9 @@ class ParameterizedEnv(gym.Env):
             legal = values.get(dimension, [])
             if index - 1 >= len(legal):
                 return operation, {}, f"{argument}: index {index} past the domain"
+            if self.v2 and dimension == "placement":
+                if not self.env.placement_grid()[1][index - 1]:
+                    return operation, {}, f"{argument}: slot {index} is occupied"
             arguments[argument] = legal[index - 1]
         return operation, arguments, None
 

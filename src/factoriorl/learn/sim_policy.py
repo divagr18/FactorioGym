@@ -1,8 +1,12 @@
 """A policy trained on factory-sim, run against the real engine.
 
 factory-sim (github.com/divagr18/factory-sim) reproduces this project's
-`parameterized-v1` action space and `local-v1` tensor layout tick for tick, and
-trains on them. Its `train.py` exports a TorchScript module taking the six
+parameterized action space -- `v1` or `v2`, which share a vector shape -- and
+its `local-v1` tensor layout, tick for tick, and trains on them. The profile is
+not encoded in the exported module, so the caller builds the `ParameterizedEnv`
+with the profile the policy was trained against; getting it wrong is silent,
+because a v2 policy reading v1 indices names a different entity and a different
+tile rather than failing. Its `train.py` exports a TorchScript module taking the six
 observation tensors, the flat 201-entry action mask and a `greedy` flag, and
 returning the MultiDiscrete vector. Nothing of factory-sim is imported here:
 the file is the whole interface, which is what makes this a transfer test and

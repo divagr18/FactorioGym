@@ -426,7 +426,12 @@ class FactorioEnv(gym.Env):
         return kept + by_distance(local.values())[:room]
 
     def _placement_candidates(self, origin, observation) -> list[list[float]]:
-        """Tile centres near the character with nothing visible standing there.
+        """The buildable tiles of the placement window, in window order."""
+        positions, legal = self._placement_window(origin, observation)
+        return [position for position, ok in zip(positions, legal, strict=True) if ok]
+
+    def _placement_window(self, origin, observation) -> tuple[list[list[float]], list[bool]]:
+        """Tile centres near the character, and whether each is free.
 
         Bounded to `PLACEMENT_RADIUS`, which is inside the character's build
         distance, so a candidate is never proposed only to be refused for
@@ -470,14 +475,42 @@ class FactorioEnv(gym.Env):
         # prompt could explain -- the map even draws `@` there, which reads as
         # "you are here", not as "this tile is unavailable".
         occupied.add(here)
-        candidates = []
+        positions, legal = [], []
         for dx in range(-PLACEMENT_RADIUS, PLACEMENT_RADIUS + 1):
             for dy in range(-PLACEMENT_RADIUS, PLACEMENT_RADIUS + 1):
                 tile = (here[0] + dx, here[1] + dy)
-                if tile in occupied:
-                    continue
-                candidates.append([tile[0] + 0.5, tile[1] + 0.5])
-        return candidates
+                positions.append([tile[0] + 0.5, tile[1] + 0.5])
+                legal.append(tile not in occupied)
+        return positions, legal
+
+    def placement_grid(self, observation=None) -> tuple[list[list[float]], list[bool]]:
+        """Every tile of the window, and which of them can be built on.
+
+        `parameterized-v1` hands the policy only the free tiles, so an index
+        names a different tile the moment anything is built nearby.
+        `parameterized-v2` addresses the window itself -- slot `(dx + 5) * 11 +
+        (dy + 5)` is always that tile -- and expresses occupancy in the mask.
+        Both read this, so the tile a slot names and the tile the decoder
+        places on cannot disagree.
+        """
+        observation = self._observation if observation is None else observation
+        origin = (observation.get("character") or {}).get("position") or [0.0, 0.0]
+        return self._placement_window(origin, observation)
+
+    def entity_row_handles(self, observation=None) -> list[str]:
+        """Target handles in the order the encoder lays the entity table out.
+
+        `parameterized-v2` names a target by its row, so this is the same list
+        `encoders.encode` builds its rows from. Resource tiles are absent
+        because they have no row: they live in the grid planes.
+        """
+        observation = self._observation if observation is None else observation
+        origin = (observation.get("character") or {}).get("position") or [0.0, 0.0]
+        return [
+            str(record["h"])
+            for _distance, record, _remembered in encoders.entity_row_order(observation, origin)
+            if record.get("h")
+        ]
 
     def step_arguments(self, action: int, arguments: dict):
         """Take a parameterized action, validating each argument's domain.

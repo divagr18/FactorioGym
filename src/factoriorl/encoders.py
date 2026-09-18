@@ -89,6 +89,37 @@ _SETTLED_STATUS = frozenset({"completed", "failed", "cancelled", "rejected"})
 _REFUSED_STATUS = frozenset({"failed", "cancelled", "rejected"})
 
 MAX_ENTITIES = 32
+
+
+def entity_row_order(observation, origin) -> list[tuple[float, dict, bool]]:
+    """The entity table's rows: `(distance, record, remembered)`, nearest first.
+
+    Visible entities and remembered ones together, sorted by distance from the
+    character and capped at `MAX_ENTITIES`. The sort is stable, so a visible
+    entity precedes a remembered one at the same distance.
+
+    It is a named function because `parameterized-v2` addresses a target *by
+    row of this table*, and a policy trained against one ordering and evaluated
+    against another would be reading a different entity than it chose. Both the
+    tensor encoder and that action space call this one.
+    """
+
+    def rows(source, remembered: bool):
+        for record in source:
+            position = record.get("p", [0, 0])
+            yield (
+                float(np.hypot(position[0] - origin[0], position[1] - origin[1])),
+                record,
+                remembered,
+            )
+
+    return sorted(
+        [
+            *rows(observation.get("entities", []), False),
+            *rows(observation.get("remembered", []), True),
+        ],
+        key=lambda row: row[0],
+    )[:MAX_ENTITIES]
 ENTITY_FEATURES = 16
 SELF_FEATURES = 12
 GOAL_FEATURES = 12
@@ -221,22 +252,7 @@ def encode(
     entities = np.zeros((MAX_ENTITIES, ENTITY_FEATURES), dtype=np.float32)
     mask = np.zeros((MAX_ENTITIES,), dtype=np.int8)
 
-    def entity_rows(source, remembered: bool):
-        for record in source:
-            position = record.get("p", [0, 0])
-            yield (
-                float(np.hypot(position[0] - origin[0], position[1] - origin[1])),
-                record,
-                remembered,
-            )
-
-    candidates = sorted(
-        [
-            *entity_rows(observation.get("entities", []), False),
-            *entity_rows(observation.get("remembered", []), True),
-        ],
-        key=lambda row: row[0],
-    )[:MAX_ENTITIES]
+    candidates = entity_row_order(observation, origin)
 
     for index, (distance, record, remembered) in enumerate(candidates):
         position = record.get("p", [0, 0])

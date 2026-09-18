@@ -51,7 +51,7 @@ def wilson(successes: int, n: int, z: float = 1.96) -> list[float]:
     return [round(max(0.0, centre - half), 4), round(min(1.0, centre + half), 4)]
 
 
-def run_split(task, session, policy, split, episodes, greedy, replays) -> dict:
+def run_split(task, session, policy, split, episodes, greedy, replays, profile="v1") -> dict:
     plan = SeedPlan(master=MASTER_SEED, run_id="sim-transfer-m5")
     env = FactorioEnv(task, session, plan, branch=Branch.EVAL, split=split)
     captured: dict = {}
@@ -65,7 +65,7 @@ def run_split(task, session, policy, split, episodes, greedy, replays) -> dict:
         return install(blueprint)
 
     env._install = capturing_install
-    penv = ParameterizedEnv(env)
+    penv = ParameterizedEnv(env, profile=profile)
     rows = []
     for index in range(episodes):
         observation, reset_info = penv.reset(options={"scene_index": index})
@@ -102,6 +102,7 @@ def run_split(task, session, policy, split, episodes, greedy, replays) -> dict:
                 "split": split,
                 "episode": index,
                 "task": task.spec.id,
+                "action_space": f"parameterized-{profile}",
                 "decision_ticks": task.spec.decision_ticks,
                 "max_decision_steps": task.spec.max_decision_steps,
                 "construction_tick_limit": env.construction_tick_limit,
@@ -144,6 +145,13 @@ def main() -> int:
     parser.add_argument("--episodes", type=int, default=32)
     parser.add_argument("--splits", default="train,test")
     parser.add_argument("--sampled", action="store_true", help="sample instead of greedy")
+    parser.add_argument(
+        "--profile",
+        choices=("v1", "v2"),
+        default="v1",
+        help="the action-space profile the policy was trained against; a v2 "
+        "policy read through v1 names a different entity and a different tile",
+    )
     parser.add_argument("--out", type=Path, default=OUT)
     args = parser.parse_args()
 
@@ -157,6 +165,10 @@ def main() -> int:
         "task": task.spec.id,
         "task_version": task.spec.version,
         "policy": policy.describe(),
+        # Which meaning the target and placement indices carried. A result that
+        # did not name it cannot be replayed, because the vectors are the same
+        # shape under either profile.
+        "action_space": f"parameterized-{args.profile}",
         "seed_plan": {"master": MASTER_SEED, "run_id": "sim-transfer-m5", "branch": "eval"},
         "engine": {k: v for k, v in manager.engine.to_dict().items() if k != "executable"},
         "real_engine": {},
@@ -174,7 +186,7 @@ def main() -> int:
                 continue
             key = f"{split}_{'greedy' if greedy else 'sampled'}"
             report["real_engine"][key] = run_split(
-                task, session, policy, split, args.episodes, greedy, replays
+                task, session, policy, split, args.episodes, greedy, replays, args.profile
             )
         session.close()
     finally:
