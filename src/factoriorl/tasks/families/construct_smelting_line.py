@@ -23,6 +23,15 @@ during a mine was tallied as mined, and giving ore away was the reverse. The
 tally is subtracted from ``machine_produced``, which the cap reads, so a
 working line could score 0 after such a transfer. The mod now counts only what
 a mine mined (``tests/engine/test_mine_counts_only_mining.py``).
+
+**1.2.0** adds two training families and changes no rule. ``open_patch`` and
+``offset_patch`` draw one patch shape between them and put nothing else on the
+map, and a policy trained on them learns that map rather than the task: it
+reaches 84% on unseen scenes of the trained shape and 0% on ``obstructed_patch``,
+which it has never seen an entity in. ``varied_patch`` draws the patch's
+dimensions and position, and ``cluttered_patch`` scatters short walls in the
+ring just off the ore. The held-out family is untouched, and neither training
+family reproduces it: it is now a test of the two variations *together*.
 """
 
 from __future__ import annotations
@@ -51,11 +60,13 @@ FAMILIES = (
     LayoutFamily("open_patch", "train"),
     LayoutFamily("offset_patch", "train"),
     LayoutFamily("obstructed_patch", "test"),
+    LayoutFamily("varied_patch", "train"),
+    LayoutFamily("cluttered_patch", "train"),
 )
 
 SPEC = TaskSpec(
     id="construct_smelting_line",
-    version="1.1.1",
+    version="1.2.0",
     description=(
         "Build and fuel an iron-smelting line, then finish. Success is at least "
         "ten iron plates made by machines during an action-locked verification minute."
@@ -88,6 +99,19 @@ def _ore_tiles(family: LayoutFamily, rng) -> list[tuple[int, int]]:
         # centres and the short wall requires an approach rather than a straight
         # walk. It never overlaps ore or the player start.
         return [(ox + x, oy + y) for x in range(-1, 2) for y in range(-5, 6)]
+    if family.name == "varied_patch":
+        # Rectangles from 3x3 to 9x9, anywhere in a wide box. Every one holds a
+        # 2x2 of ore, so every one is buildable; none is the held-out 3x11.
+        half_w, half_h = rng.randint(1, 4), rng.randint(1, 4)
+        ox, oy = rng.randint(-12, 12), rng.randint(-12, 12)
+        span = [
+            (ox + x, oy + y)
+            for x in range(-half_w, half_w + 1)
+            for y in range(-half_h, half_h + 1)
+        ]
+        return span
+    if family.name == "cluttered_patch":
+        ox, oy = rng.randint(-9, 9), rng.randint(-9, 9)
     return [(ox + x, oy + y) for x in range(-3, 4) for y in range(-3, 4)]
 
 
@@ -105,6 +129,26 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         # Deliberately off the patch; a legitimate route exists around either end.
         for y in range(int(cy) - 2, int(cy) + 3):
             entities.append(EntitySpec("stone-wall", (cx + 5, float(y)), force="neutral"))
+    if family.name == "cluttered_patch":
+        # One to three short walls in the ring just off the ore: never on the
+        # patch, never on the start, and close enough that some build sites are
+        # taken and others are not. A scene with something standing in it is
+        # also the only way the agent sees a machine-free entity before it
+        # builds one, which is the state the held-out family put it in.
+        seen: set[tuple[float, float]] = set()
+        for _ in range(rng.randint(1, 3)):
+            vertical = rng.random() < 0.5
+            away = rng.choice((-6, -5, -4, 4, 5, 6))
+            along = rng.randint(-6, 3)
+            length = rng.randint(2, 4)
+            for k in range(length):
+                x, y = (
+                    (cx + away, cy + along + k) if vertical else (cx + along + k, cy + away)
+                )
+                if (x, y) in seen:
+                    continue
+                seen.add((x, y))
+                entities.append(EntitySpec("stone-wall", (float(x), float(y)), force="neutral"))
     return Blueprint(
         entities=tuple(entities),
         resources=tuple(

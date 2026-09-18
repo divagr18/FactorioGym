@@ -155,7 +155,7 @@ class TestAHandFedFurnaceIsNotAProductionLine:
     def test_the_task_declares_its_source_and_its_new_version(self):
         spec = get("construct_smelting_line").spec
         assert spec.verification.source == "iron-ore"
-        assert spec.version == "1.1.1"
+        assert spec.version == "1.2.0"
         assert spec.verification.to_dict()["source"] == "iron-ore"
 
     def test_a_verification_without_a_source_keeps_its_old_serialized_shape(self):
