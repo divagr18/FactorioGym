@@ -70,7 +70,7 @@ def run_split(task, session, policy, split, episodes, greedy, replays, profile="
     for index in range(episodes):
         observation, reset_info = penv.reset(options={"scene_index": index})
         steps, total, decode_failures = 0, 0.0, 0
-        vectors = []
+        vectors, rejected = [], []
         started = time.perf_counter()
         while True:
             action, _ = policy.predict(observation, penv.action_masks(), greedy)
@@ -78,6 +78,12 @@ def run_split(task, session, policy, split, episodes, greedy, replays, profile="
             observation, reward, terminated, truncated, info = penv.step(action)
             steps += 1
             total += reward
+            # Which decisions this engine refused, not just how many. Replaying
+            # the same vectors in the simulator reproduced four of eight
+            # episodes exactly and diverged on the rest, and a count cannot say
+            # where two backends first disagree.
+            if info.get("decode_failure"):
+                rejected.append(steps - 1)
             decode_failures += int(bool(info.get("decode_failure")))
             if terminated or truncated:
                 break
@@ -108,6 +114,7 @@ def run_split(task, session, policy, split, episodes, greedy, replays, profile="
                 "construction_tick_limit": env.construction_tick_limit,
                 "blueprint": captured["payload"],
                 "vectors": vectors,
+                "rejected": rejected,
                 "outcome": {
                     "success": rows[-1]["success"],
                     "verified_output": rows[-1]["verified_output"],
