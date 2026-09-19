@@ -51,6 +51,37 @@ def wilson(successes: int, n: int, z: float = 1.96) -> list[float]:
     return [round(max(0.0, centre - half), 4), round(min(1.0, centre + half), 4)]
 
 
+def state_fingerprint(env) -> dict:
+    """The little of the engine's state a simulator must agree about.
+
+    Position to the hundredth of a tile, what the character carries, and every
+    machine with what is in it -- enough that a divergence in walking, in
+    mining, or in how fast a furnace burns shows up here and nowhere else.
+    """
+    observation = env._observation
+    character = observation.get("character") or {}
+    position = character.get("position") or [0.0, 0.0]
+    machines = []
+    for record in observation.get("entities") or []:
+        if record.get("type") == "item-entity":
+            continue
+        machines.append(
+            {
+                "p": [round(float(v), 2) for v in (record.get("p") or [0, 0])],
+                "h": record.get("h"),
+                "t": record.get("type"),
+                "n": record.get("n") or record.get("name"),
+                "c": {k: v for k, v in (record.get("contents") or {}).items() if v},
+                "o": {k: v for k, v in (record.get("output") or {}).items() if v},
+            }
+        )
+    return {
+        "xy": [round(float(v), 2) for v in position],
+        "inv": {k: v for k, v in (observation.get("inventory") or {}).items() if v},
+        "m": sorted(machines, key=lambda r: (r["p"][0], r["p"][1])),
+    }
+
+
 def run_split(task, session, policy, split, episodes, greedy, replays, profile="v1") -> dict:
     plan = SeedPlan(master=MASTER_SEED, run_id="sim-transfer-m5")
     env = FactorioEnv(task, session, plan, branch=Branch.EVAL, split=split)
@@ -70,9 +101,14 @@ def run_split(task, session, policy, split, episodes, greedy, replays, profile="
     for index in range(episodes):
         observation, reset_info = penv.reset(options={"scene_index": index})
         steps, total, decode_failures = 0, 0.0, 0
-        vectors, rejected = [], []
+        vectors, rejected, fingerprints = [], [], []
         started = time.perf_counter()
         while True:
+            # A fingerprint of the engine's world before each decision, so a
+            # replay can find the first state the simulator gets wrong rather
+            # than the first action it refuses. The two are not the same: a
+            # refusal is visible, a slow furnace is not.
+            fingerprints.append(state_fingerprint(env))
             action, _ = policy.predict(observation, penv.action_masks(), greedy)
             vectors.append([int(v) for v in action])
             observation, reward, terminated, truncated, info = penv.step(action)
@@ -115,6 +151,7 @@ def run_split(task, session, policy, split, episodes, greedy, replays, profile="
                 "blueprint": captured["payload"],
                 "vectors": vectors,
                 "rejected": rejected,
+                "fingerprints": fingerprints,
                 "outcome": {
                     "success": rows[-1]["success"],
                     "verified_output": rows[-1]["verified_output"],
