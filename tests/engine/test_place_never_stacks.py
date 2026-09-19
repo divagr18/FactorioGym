@@ -65,37 +65,34 @@ def env(module_session, module_worker):
     return env
 
 
-def _inside_the_drill(env, px, py):
-    """A placement the domain offers that lies within the drill's 2x2 footprint.
+def test_placing_a_turned_drill_onto_one_already_there_does_not_stack(env, module_worker):
+    """The exact request the guard caught in a live episode.
 
-    Occupancy is computed one tile per entity -- `math.floor` of its position --
-    but a burner mining drill covers four. So three of the tiles it stands on
-    are offered as legal placements, and that is the route by which a placement
-    request reaches the engine for a tile something is already on.
+    Measured against 2.0.60 (`tools/probe_duplicate_drill.py`): with a
+    south-facing drill at (px, py), asking to place a drill at
+    (px - 0.5, py - 0.5) is refused by `can_place_entity` facing *south* and
+    allowed facing north, east or west -- because a player doing that would
+    fast-replace the drill, turning it. `create_entity` does not fast-replace;
+    it builds a second drill on the same tile.
+
+    The request comes from the domain because occupancy is one tile per entity
+    -- `math.floor` of its position -- while a drill covers 2x2, so three of
+    the four tiles it stands on are offered as legal placements.
     """
-    covered = {(px - 1, py - 1), (px, py - 1), (px - 1, py)}
-    for candidate in env.argument_domains()["placements"]:
-        if (math.floor(candidate[0]), math.floor(candidate[1])) in covered:
-            return candidate
-    return None
-
-
-def test_a_placement_inside_an_existing_footprint_does_not_stack(env, module_worker):
     patch = env._truth["markers"]["patch"]
     px, py = math.floor(patch[0]), math.floor(patch[1])
+    target = [px - 0.5, py - 0.5]
     with RCONClient(module_worker.spec.rcon_endpoint, timeout=30.0) as client:
         client.lua(SETUP % (px, py))
-        env.resync("test setup: one drill already on the tile")
-
-        target = _inside_the_drill(env, px, py)
-        assert target is not None, (
-            "the placement domain offered no tile inside the drill's footprint; "
-            "if occupancy has learnt about entity size, this test needs rewriting"
+        env.resync("test setup: one south-facing drill already on the tile")
+        assert target in [list(p) for p in env.argument_domains()["placements"]], (
+            "the placement domain no longer offers a tile inside the drill's "
+            "footprint; if occupancy has learnt about entity size, rewrite this"
         )
         keys = [template.key for template in env.catalog.templates]
         env.step_arguments(
             keys.index("place_at"),
-            {"position": list(target), "direction": "south", "item": "burner-mining-drill"},
+            {"position": target, "direction": "west", "item": "burner-mining-drill"},
         )
         standing = int(client.lua(COUNT % (px, py, px, py)))
     assert standing == 1, f"{standing} drills share one tile; a player cannot reach that state"

@@ -219,6 +219,45 @@ return helpers.table_to_json({
 """
 
 
+#: The request the guard actually caught in a live episode, replayed exactly.
+#: The earlier sweep missed it because it only ever asked facing south.
+BY_DIRECTION = """
+local srf = game.surfaces[1]
+local box_all = { {-8, -8}, {8, 8} }
+for _, e in pairs(srf.find_entities_filtered({ area = box_all, name = "burner-mining-drill" })) do
+  e.destroy()
+end
+local first = srf.create_entity({
+  name = "burner-mining-drill", position = {0, -2},
+  direction = defines.direction.south, force = "player" })
+local out = {}
+local dirs = {
+  north = defines.direction.north, east = defines.direction.east,
+  south = defines.direction.south, west = defines.direction.west,
+}
+for name, d in pairs(dirs) do
+  local spec = {
+    name = "burner-mining-drill", position = {-0.5, -2.5},
+    direction = d, force = "player",
+    build_check_type = defines.build_check_type.manual,
+  }
+  local allowed = srf.can_place_entity(spec)
+  local landed = nil
+  if allowed then
+    local e = srf.create_entity({
+      name = "burner-mining-drill", position = {-0.5, -2.5},
+      direction = d, force = "player" })
+    if e and e.valid then
+      landed = { e.position.x, e.position.y }
+      e.destroy()
+    end
+  end
+  out[name] = { can_place = allowed, landed_at = landed }
+end
+return helpers.table_to_json({ standing_drill = { first.position.x, first.position.y }, asked = { -0.5, -2.5 }, by_direction = out })
+"""
+
+
 def main() -> int:
     manager = WorkerManager()
     handle = manager.launch("duplicate-drill")
@@ -234,11 +273,12 @@ def main() -> int:
             report["snap"] = json.loads(client.lua(SNAP))
             report["guard"] = json.loads(client.lua(GUARD))
             report["sweep"] = json.loads(client.lua(SWEEP))
+            report["by_direction"] = json.loads(client.lua(BY_DIRECTION))
     finally:
         manager.cleanup(handle)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"guard": report["guard"], "sweep": report["sweep"]}, indent=2))
+    print(json.dumps(report["by_direction"], indent=2))
     return 0
 
 

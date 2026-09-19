@@ -74,5 +74,41 @@
     ],
     "allowed_but_overlapping": {},
     "how_many": 0
+  },
+  "by_direction": {
+    "standing_drill": [
+      0,
+      -2
+    ],
+    "asked": [
+      -0.5,
+      -2.5
+    ],
+    "by_direction": {
+      "north": {
+        "can_place": true,
+        "landed_at": [
+          0,
+          -2
+        ]
+      },
+      "east": {
+        "can_place": true,
+        "landed_at": [
+          0,
+          -2
+        ]
+      },
+      "south": {
+        "can_place": false
+      },
+      "west": {
+        "can_place": true,
+        "landed_at": [
+          0,
+          -2
+        ]
+      }
+    }
   }
 }

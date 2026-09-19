@@ -462,17 +462,29 @@ H.place = function(_, request, payload, respond, err)
     return respond(request, CODE.REJECTED, nil,
       err(ERR.ENGINE, "create_entity returned nothing"))
   end
-  -- `create_entity` does not honour collisions. Measured against 2.0.60
-  -- (`docs/evidence/duplicate-drill.json`): with a drill already on a tile,
-  -- `can_place_entity` refuses a second one for every position nearby and
-  -- `create_entity` builds it anyway, leaving two drills with two unit numbers
-  -- on one tile -- a state no player can reach.
+  -- `can_place_entity` and `create_entity` disagree about turning a machine,
+  -- and the disagreement builds a second one on the same tile. Measured
+  -- against 2.0.60 (`docs/evidence/duplicate-drill.json`): with a
+  -- south-facing drill at (0, -2), a drill asked for at (-0.5, -2.5) snaps to
+  -- (0, -2), and the check answers
   --
-  -- The check above asks about the world as it was a moment ago. This one asks
-  -- about the entity that now exists, so however the two calls come apart,
-  -- nothing is left sharing a tile. It matters beyond tidiness: `local-v2`
-  -- addresses a target by its row in the entity table, so one duplicated row
-  -- moves every row after it and the policy names the wrong entity.
+  --     facing south              false
+  --     facing north, east, west  true
+  --
+  -- because a player doing that would *fast-replace* the drill, turning it.
+  -- `create_entity` does not fast-replace: it builds a second drill, and the
+  -- sweep then reports two with two unit numbers on one tile, which no player
+  -- can reach. One live episode did it five times.
+  --
+  -- The request reaches here because occupancy is one tile per entity -- the
+  -- floor of its position -- while a drill covers 2x2, so three of the four
+  -- tiles it stands on are offered as legal placements.
+  --
+  -- Refusing is the right answer rather than fast-replacing, because the
+  -- action space has `rotate` for turning a machine and `place` should not do
+  -- it silently. It matters beyond tidiness: `local-v2` addresses a target by
+  -- its row in the entity table, so one duplicated row moves every row after
+  -- it and the policy names an entity it did not choose.
   local box = created.bounding_box
   local shrunk = {
     { box.left_top.x + 0.05, box.left_top.y + 0.05 },
@@ -481,6 +493,23 @@ H.place = function(_, request, payload, respond, err)
   for _, other in pairs(surface.find_entities_filtered({ area = shrunk })) do
     if other.valid and other ~= created and other.type ~= "character"
       and other.type ~= "item-entity" and other.type ~= "resource" then
+      -- Keep what was caught. `can_place_entity` refuses every overlapping
+      -- position that can be constructed by hand, so how a live placement got
+      -- past it is not yet known; the guard is the only place that sees it
+      -- happen, and a count would not name the request.
+      storage.frrl_stacked = storage.frrl_stacked or {}
+      if #storage.frrl_stacked < 32 then
+        storage.frrl_stacked[#storage.frrl_stacked + 1] = {
+          tick = game.tick,
+          asked = { position[1], position[2] },
+          landed = { created.position.x, created.position.y },
+          item = payload.item,
+          direction = payload.direction,
+          occupied_by = other.name,
+          occupier_at = { other.position.x, other.position.y },
+          character_at = { ch.position.x, ch.position.y },
+        }
+      end
       created.destroy({ raise_destroy = true })
       return respond(request, CODE.REJECTED, nil,
         err(ERR.COLLISION, "cannot place " .. payload.item .. " there",
