@@ -29,6 +29,14 @@ valid answers wrong.
   makes the two tasks a matched pair: commissioning's time-to-first-output is
   construction's floor.
 
+**1.2.0** adds two training families and changes no rule. `square_patch` was
+the whole training split, and a policy trained on it reaches 99.2% there and
+17.2% on the held-out `narrow_patch` -- the shape of failure
+`construct_smelting_line` had before its own 1.2.0, from the same cause.
+`varied_patch` draws the patch's dimensions and position; `cluttered_patch`
+scatters short walls in the ring just off the ore. The held-out family is
+untouched, and neither training family reproduces its 2x10 strip.
+
 Why success is a conjunction
 ----------------------------
 `BUILT` alone would accept two machines dropped anywhere, and `PRODUCED` alone
@@ -100,6 +108,8 @@ FAMILIES = (
     LayoutFamily("square_patch", "train"),
     LayoutFamily("offset_patch", "val"),
     LayoutFamily("narrow_patch", "test"),
+    LayoutFamily("varied_patch", "train"),
+    LayoutFamily("cluttered_patch", "train"),
 )
 
 SPEC = TaskSpec(
@@ -107,7 +117,7 @@ SPEC = TaskSpec(
     # Build the line, then keep it producing. Also absent from the old
     # hard-coded category dict.
     track="production",
-    version="1.1.0",
+    version="1.2.0",
     description=(
         "Build a plate line from nothing: place a burner mining drill on the ore, "
         "place a stone furnace where the drill drops, fuel both, and keep the line "
@@ -188,6 +198,19 @@ def _patch_tiles(family: LayoutFamily, rng) -> list[tuple[float, float]]:
         ox = rng.choice([-8, 8])
         oy = rng.choice([-8, 8])
         return [(cx + ox + dx, cy + oy + dy) for dx in range(-3, 4) for dy in range(-3, 4)]
+    if family.name == "varied_patch":
+        # Rectangles from 3x3 to 9x9, anywhere in a wide box. Every one holds a
+        # 2x2 of ore, so every one is buildable; none is the held-out 2x10.
+        half_w, half_h = rng.randint(1, 4), rng.randint(1, 4)
+        ox, oy = rng.randint(-12, 12), rng.randint(-12, 12)
+        return [
+            (cx + ox + dx, cy + oy + dy)
+            for dx in range(-half_w, half_w + 1)
+            for dy in range(-half_h, half_h + 1)
+        ]
+    if family.name == "cluttered_patch":
+        ox, oy = rng.randint(-9, 9), rng.randint(-9, 9)
+        return [(cx + ox + dx, cy + oy + dy) for dx in range(-3, 4) for dy in range(-3, 4)]
     return [(cx + dx, cy + dy) for dx in range(-3, 4) for dy in range(-3, 4)]
 
 
@@ -227,6 +250,29 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
                     force="neutral",
                 )
             )
+
+    if family.name == "cluttered_patch":
+        # One to three short walls in the ring just off the ore: never on the
+        # patch, never on the start, and close enough that some build sites are
+        # taken and others are not. It is also the only way the agent meets an
+        # entity it did not build before it builds one, which is the state the
+        # held-out family puts it in.
+        seen: set[tuple[float, float]] = set()
+        for _ in range(rng.randint(1, 3)):
+            vertical = rng.random() < 0.5
+            away = rng.choice((-6, -5, -4, 4, 5, 6))
+            along = rng.randint(-6, 3)
+            length = rng.randint(2, 4)
+            for step in range(length):
+                x, y = (
+                    (centre[0] + away, centre[1] + along + step)
+                    if vertical
+                    else (centre[0] + along + step, centre[1] + away)
+                )
+                if (x, y) in seen:
+                    continue
+                seen.add((x, y))
+                entities.append(EntitySpec("stone-wall", (float(x), float(y)), force="neutral"))
 
     return Blueprint(
         entities=tuple(entities),
