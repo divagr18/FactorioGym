@@ -462,6 +462,31 @@ H.place = function(_, request, payload, respond, err)
     return respond(request, CODE.REJECTED, nil,
       err(ERR.ENGINE, "create_entity returned nothing"))
   end
+  -- `create_entity` does not honour collisions. Measured against 2.0.60
+  -- (`docs/evidence/duplicate-drill.json`): with a drill already on a tile,
+  -- `can_place_entity` refuses a second one for every position nearby and
+  -- `create_entity` builds it anyway, leaving two drills with two unit numbers
+  -- on one tile -- a state no player can reach.
+  --
+  -- The check above asks about the world as it was a moment ago. This one asks
+  -- about the entity that now exists, so however the two calls come apart,
+  -- nothing is left sharing a tile. It matters beyond tidiness: `local-v2`
+  -- addresses a target by its row in the entity table, so one duplicated row
+  -- moves every row after it and the policy names the wrong entity.
+  local box = created.bounding_box
+  local shrunk = {
+    { box.left_top.x + 0.05, box.left_top.y + 0.05 },
+    { box.right_bottom.x - 0.05, box.right_bottom.y - 0.05 },
+  }
+  for _, other in pairs(surface.find_entities_filtered({ area = shrunk })) do
+    if other.valid and other ~= created and other.type ~= "character"
+      and other.type ~= "item-entity" and other.type ~= "resource" then
+      created.destroy({ raise_destroy = true })
+      return respond(request, CODE.REJECTED, nil,
+        err(ERR.COLLISION, "cannot place " .. payload.item .. " there",
+          { position = position, occupied_by = other.name }))
+    end
+  end
   local removed = inv.remove({ name = payload.item, count = 1 })
   if removed < 1 then
     -- Never leave a built entity that was not paid for.
