@@ -66,5 +66,13 @@
     "guard_catches_the_stack": true,
     "occupied_by": "burner-mining-drill",
     "guard_allows_a_neighbour": true
+  },
+  "sweep": {
+    "drill_at": [
+      0,
+      -2
+    ],
+    "allowed_but_overlapping": {},
+    "how_many": 0
   }
 }

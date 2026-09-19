@@ -172,6 +172,53 @@ return helpers.table_to_json({
 """
 
 
+#: `place_at` offers tile centres and a 2x2 entity snaps to the integer centre
+#: one up, so `can_place_entity` may be judging a different box than the one
+#: `create_entity` then occupies. Sweep the neighbourhood of a standing drill
+#: and look for a position the check allows and the creation overlaps.
+SWEEP = """
+local srf = game.surfaces[1]
+local box_all = { {-8, -8}, {8, 8} }
+for _, e in pairs(srf.find_entities_filtered({ area = box_all, name = "burner-mining-drill" })) do
+  e.destroy()
+end
+local first = srf.create_entity({
+  name = "burner-mining-drill", position = {0, -2},
+  direction = defines.direction.south, force = "player" })
+local fb = first.bounding_box
+local out, n = {}, 0
+for gx = -3, 3 do
+  for gy = -5, 1 do
+    local p = { gx + 0.5, gy + 0.5 }
+    local allowed = srf.can_place_entity({
+      name = "burner-mining-drill", position = p,
+      direction = defines.direction.south, force = "player",
+      build_check_type = defines.build_check_type.manual })
+    if allowed then
+      local e = srf.create_entity({
+        name = "burner-mining-drill", position = p,
+        direction = defines.direction.south, force = "player" })
+      if e and e.valid then
+        local b = e.bounding_box
+        local overlaps = b.left_top.x < fb.right_bottom.x and b.right_bottom.x > fb.left_top.x
+                     and b.left_top.y < fb.right_bottom.y and b.right_bottom.y > fb.left_top.y
+        if overlaps then
+          n = n + 1
+          out[n] = { asked = { p[1], p[2] }, landed = { e.position.x, e.position.y } }
+        end
+        e.destroy()
+      end
+    end
+  end
+end
+return helpers.table_to_json({
+  drill_at = { first.position.x, first.position.y },
+  allowed_but_overlapping = out,
+  how_many = n,
+})
+"""
+
+
 def main() -> int:
     manager = WorkerManager()
     handle = manager.launch("duplicate-drill")
@@ -186,11 +233,12 @@ def main() -> int:
             report["attempt"] = json.loads(client.lua(ATTEMPT))
             report["snap"] = json.loads(client.lua(SNAP))
             report["guard"] = json.loads(client.lua(GUARD))
+            report["sweep"] = json.loads(client.lua(SWEEP))
     finally:
         manager.cleanup(handle)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"attempt": report["attempt"], "guard": report["guard"]}, indent=2))
+    print(json.dumps({"guard": report["guard"], "sweep": report["sweep"]}, indent=2))
     return 0
 
 
