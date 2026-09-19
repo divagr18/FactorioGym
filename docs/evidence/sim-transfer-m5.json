@@ -1,5 +1,6 @@
 {
   "about": "a factory-sim-trained policy evaluated on the real engine",
+  "action_space": "parameterized-v2",
   "engine": {
     "build": 83512,
     "platform": "win64",
@@ -9,175 +10,103 @@
   "policy": {
     "file": "policy.ts",
     "policy": "factory-sim TorchScript",
-    "sha256": "dc6eec01b03e3b2e"
+    "sha256": "e3fa3628afb6c316"
   },
   "real_engine": {
-    "test_greedy": {
+    "test_sampled": {
       "by_family": {
-        "obstructed_patch": 0.0
+        "obstructed_patch": 0.9062
       },
-      "episodes": 16,
+      "episodes": 32,
       "episodes_detail": [
         {
           "blueprint": "dfbd25c2f02f334c",
-          "decode_failures": 0,
+          "decode_failures": 28,
           "episode": 0,
           "excluded": false,
           "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 21.3,
+          "return": 1.0,
+          "seconds": 25.4,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
           "blueprint": "9a709ee1d37e8713",
-          "decode_failures": 0,
+          "decode_failures": 29,
           "episode": 1,
           "excluded": false,
           "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 22.3,
+          "return": 1.0,
+          "seconds": 25.1,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
           "blueprint": "5d0850e5a6e1c26e",
-          "decode_failures": 0,
+          "decode_failures": 50,
           "episode": 2,
           "excluded": false,
           "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 20.5,
+          "return": 1.0,
+          "seconds": 25.1,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
           "blueprint": "8125aadfbca26cc7",
-          "decode_failures": 0,
+          "decode_failures": 62,
           "episode": 3,
           "excluded": false,
           "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 20.8,
+          "return": 1.0,
+          "seconds": 24.3,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
           "blueprint": "b2fb36cac8ba7136",
-          "decode_failures": 0,
+          "decode_failures": 40,
           "episode": 4,
           "excluded": false,
           "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 22.1,
+          "return": 1.0,
+          "seconds": 22.4,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
           "blueprint": "4c22308bb0b7b808",
-          "decode_failures": 0,
+          "decode_failures": 48,
           "episode": 5,
           "excluded": false,
           "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 22.4,
+          "return": 1.0,
+          "seconds": 25.4,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
           "blueprint": "b2f0ec209eb32f9b",
-          "decode_failures": 0,
+          "decode_failures": 35,
           "episode": 6,
           "excluded": false,
           "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 23.0,
+          "return": 1.0,
+          "seconds": 24.6,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
           "blueprint": "128fb5d841f61135",
-          "decode_failures": 0,
+          "decode_failures": 24,
           "episode": 7,
-          "excluded": false,
-          "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 20.0,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "f3a64a670cd53bff",
-          "decode_failures": 0,
-          "episode": 8,
-          "excluded": false,
-          "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 21.3,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "8500b18797019d6a",
-          "decode_failures": 0,
-          "episode": 9,
-          "excluded": false,
-          "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 20.6,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "c79a1ad1f75803bf",
-          "decode_failures": 0,
-          "episode": 10,
-          "excluded": false,
-          "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 21.4,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "ffd4e9771a7d8468",
-          "decode_failures": 0,
-          "episode": 11,
-          "excluded": false,
-          "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 20.4,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "8074c4199879dd28",
-          "decode_failures": 0,
-          "episode": 12,
-          "excluded": false,
-          "family": "obstructed_patch",
-          "return": 0.0,
-          "seconds": 20.8,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "d10d12c0f446bef5",
-          "decode_failures": 0,
-          "episode": 13,
           "excluded": false,
           "family": "obstructed_patch",
           "return": 0.0,
@@ -187,105 +116,371 @@
           "verified_output": 0.0
         },
         {
+          "blueprint": "f3a64a670cd53bff",
+          "decode_failures": 32,
+          "episode": 8,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.2,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "8500b18797019d6a",
+          "decode_failures": 33,
+          "episode": 9,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 25.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "c79a1ad1f75803bf",
+          "decode_failures": 76,
+          "episode": 10,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 23.7,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "ffd4e9771a7d8468",
+          "decode_failures": 35,
+          "episode": 11,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 25.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "8074c4199879dd28",
+          "decode_failures": 35,
+          "episode": 12,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.9,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "d10d12c0f446bef5",
+          "decode_failures": 51,
+          "episode": 13,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 25.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
           "blueprint": "b472dbbdbc307664",
-          "decode_failures": 0,
+          "decode_failures": 32,
           "episode": 14,
           "excluded": false,
           "family": "obstructed_patch",
           "return": 0.0,
-          "seconds": 24.6,
+          "seconds": 24.8,
           "steps": 600,
           "success": false,
           "verified_output": 0.0
         },
         {
           "blueprint": "167ae389f7dd8019",
-          "decode_failures": 0,
+          "decode_failures": 28,
           "episode": 15,
           "excluded": false,
           "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 22.8,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "e9e0f7bb4d3bd44c",
+          "decode_failures": 47,
+          "episode": 16,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.3,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "813f880b6c33e37f",
+          "decode_failures": 55,
+          "episode": 17,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "45fa3a51703f7e1d",
+          "decode_failures": 19,
+          "episode": 18,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 23.8,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "a8a9489d8bd5012d",
+          "decode_failures": 31,
+          "episode": 19,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 25.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "6499689f35fc5b6a",
+          "decode_failures": 47,
+          "episode": 20,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 22.9,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "c1be0ca7d5baa893",
+          "decode_failures": 35,
+          "episode": 21,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.4,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "77c108bb28edbf3b",
+          "decode_failures": 32,
+          "episode": 22,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 22.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "d618cb837b554397",
+          "decode_failures": 47,
+          "episode": 23,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.5,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "7b74302a3d3ac5da",
+          "decode_failures": 62,
+          "episode": 24,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.2,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "17dbc5cac84aedd0",
+          "decode_failures": 23,
+          "episode": 25,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 23.8,
+          "steps": 600,
+          "success": true,
+          "verified_output": 12.0
+        },
+        {
+          "blueprint": "7a8ac4e69e5818c1",
+          "decode_failures": 37,
+          "episode": 26,
+          "excluded": false,
+          "family": "obstructed_patch",
           "return": 0.0,
-          "seconds": 23.0,
+          "seconds": 25.6,
           "steps": 600,
           "success": false,
           "verified_output": 0.0
+        },
+        {
+          "blueprint": "6f46a221c38b01e0",
+          "decode_failures": 25,
+          "episode": 27,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.6,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "e9917323d7a02063",
+          "decode_failures": 33,
+          "episode": 28,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.8,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "2eb32f1dd6ff6717",
+          "decode_failures": 28,
+          "episode": 29,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 23.9,
+          "steps": 600,
+          "success": true,
+          "verified_output": 10.0
+        },
+        {
+          "blueprint": "b52d733fb58641f9",
+          "decode_failures": 48,
+          "episode": 30,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.3,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "0d3fd2e898a46ab1",
+          "decode_failures": 52,
+          "episode": 31,
+          "excluded": false,
+          "family": "obstructed_patch",
+          "return": 1.0,
+          "seconds": 24.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 12.0
         }
       ],
       "excluded": 0,
-      "greedy": true,
+      "greedy": false,
       "split": "test",
-      "success": 0.0,
+      "success": 0.9062,
       "success_ci95": [
-        0.0,
-        0.1936
+        0.7578,
+        0.9676
       ]
     },
-    "train_greedy": {
+    "train_sampled": {
       "by_family": {
-        "offset_patch": 0.0,
-        "open_patch": 0.0
+        "cluttered_patch": 1.0,
+        "offset_patch": 0.8889,
+        "open_patch": 0.5,
+        "varied_patch": 0.625
       },
-      "episodes": 16,
+      "episodes": 32,
       "episodes_detail": [
         {
-          "blueprint": "0e420769c92f0d98",
-          "decode_failures": 0,
+          "blueprint": "44298bf7c980a34a",
+          "decode_failures": 1,
           "episode": 0,
           "excluded": false,
-          "family": "open_patch",
+          "family": "offset_patch",
           "return": 0.0,
-          "seconds": 22.9,
+          "seconds": 27.8,
           "steps": 600,
           "success": false,
           "verified_output": 0.0
         },
         {
-          "blueprint": "c06174949d36a713",
-          "decode_failures": 0,
+          "blueprint": "bd1d53b3f8982fbc",
+          "decode_failures": 26,
           "episode": 1,
           "excluded": false,
-          "family": "open_patch",
-          "return": 0.0,
-          "seconds": 23.3,
+          "family": "offset_patch",
+          "return": 1.0,
+          "seconds": 23.2,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
-          "blueprint": "0cd31d65fdd414a0",
-          "decode_failures": 0,
+          "blueprint": "11a2455ab764692d",
+          "decode_failures": 38,
           "episode": 2,
           "excluded": false,
-          "family": "offset_patch",
-          "return": 0.0,
-          "seconds": 22.3,
+          "family": "cluttered_patch",
+          "return": 1.0,
+          "seconds": 24.3,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
-          "blueprint": "fbd844d852b99e06",
-          "decode_failures": 0,
+          "blueprint": "38ac837cb6694d17",
+          "decode_failures": 56,
           "episode": 3,
           "excluded": false,
-          "family": "offset_patch",
-          "return": 0.0,
-          "seconds": 22.5,
+          "family": "cluttered_patch",
+          "return": 1.0,
+          "seconds": 24.6,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
-          "blueprint": "8fd8c0849d648fdd",
-          "decode_failures": 0,
+          "blueprint": "42661b5a7a55b442",
+          "decode_failures": 37,
           "episode": 4,
           "excluded": false,
-          "family": "open_patch",
-          "return": 0.0,
-          "seconds": 23.0,
+          "family": "offset_patch",
+          "return": 1.0,
+          "seconds": 24.3,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
           "blueprint": "fc5f8d9ffa8dc18f",
@@ -294,111 +489,27 @@
           "excluded": false,
           "family": "open_patch",
           "return": 0.0,
-          "seconds": 22.9,
+          "seconds": 33.4,
           "steps": 600,
           "success": false,
           "verified_output": 0.0
         },
         {
-          "blueprint": "c698b4ae17a47a68",
-          "decode_failures": 0,
+          "blueprint": "2478b9ff8e830b3c",
+          "decode_failures": 31,
           "episode": 6,
           "excluded": false,
-          "family": "offset_patch",
-          "return": 0.0,
-          "seconds": 22.7,
+          "family": "varied_patch",
+          "return": 1.0,
+          "seconds": 22.8,
           "steps": 600,
-          "success": false,
-          "verified_output": 0.0
+          "success": true,
+          "verified_output": 15.0
         },
         {
           "blueprint": "526d9aeaef37a66a",
-          "decode_failures": 0,
+          "decode_failures": 49,
           "episode": 7,
-          "excluded": false,
-          "family": "open_patch",
-          "return": 0.0,
-          "seconds": 19.9,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "0eb5772546c0eba1",
-          "decode_failures": 0,
-          "episode": 8,
-          "excluded": false,
-          "family": "open_patch",
-          "return": 0.0,
-          "seconds": 23.5,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "a49f62e17b595fb6",
-          "decode_failures": 0,
-          "episode": 9,
-          "excluded": false,
-          "family": "open_patch",
-          "return": 0.0,
-          "seconds": 22.7,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "d1a4be03684a474a",
-          "decode_failures": 0,
-          "episode": 10,
-          "excluded": false,
-          "family": "open_patch",
-          "return": 0.0,
-          "seconds": 23.0,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "adff43724f42a898",
-          "decode_failures": 0,
-          "episode": 11,
-          "excluded": false,
-          "family": "offset_patch",
-          "return": 0.0,
-          "seconds": 22.1,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "a13f39ebb0dd4d2e",
-          "decode_failures": 0,
-          "episode": 12,
-          "excluded": false,
-          "family": "offset_patch",
-          "return": 0.0,
-          "seconds": 24.9,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "027d8433529a80fe",
-          "decode_failures": 0,
-          "episode": 13,
-          "excluded": false,
-          "family": "offset_patch",
-          "return": 0.0,
-          "seconds": 23.0,
-          "steps": 600,
-          "success": false,
-          "verified_output": 0.0
-        },
-        {
-          "blueprint": "9428c528fb9cd9e0",
-          "decode_failures": 0,
-          "episode": 14,
           "excluded": false,
           "family": "open_patch",
           "return": 0.0,
@@ -408,25 +519,301 @@
           "verified_output": 0.0
         },
         {
-          "blueprint": "568c74ef6230efa0",
-          "decode_failures": 0,
-          "episode": 15,
+          "blueprint": "65bc033fc16f597f",
+          "decode_failures": 29,
+          "episode": 8,
+          "excluded": false,
+          "family": "offset_patch",
+          "return": 1.0,
+          "seconds": 23.2,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "a49f62e17b595fb6",
+          "decode_failures": 1,
+          "episode": 9,
           "excluded": false,
           "family": "open_patch",
           "return": 0.0,
-          "seconds": 21.7,
+          "seconds": 23.7,
           "steps": 600,
           "success": false,
           "verified_output": 0.0
+        },
+        {
+          "blueprint": "7b746cacf14861c0",
+          "decode_failures": 35,
+          "episode": 10,
+          "excluded": false,
+          "family": "offset_patch",
+          "return": 1.0,
+          "seconds": 25.3,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "19b0207f2aeb7048",
+          "decode_failures": 36,
+          "episode": 11,
+          "excluded": false,
+          "family": "varied_patch",
+          "return": 1.0,
+          "seconds": 23.2,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "e27fe52218049b12",
+          "decode_failures": 2,
+          "episode": 12,
+          "excluded": false,
+          "family": "varied_patch",
+          "return": 0.0,
+          "seconds": 24.6,
+          "steps": 600,
+          "success": false,
+          "verified_output": 0.0
+        },
+        {
+          "blueprint": "33ea7a36b8f370d3",
+          "decode_failures": 0,
+          "episode": 13,
+          "excluded": false,
+          "family": "varied_patch",
+          "return": 0.0,
+          "seconds": 27.1,
+          "steps": 600,
+          "success": false,
+          "verified_output": 0.0
+        },
+        {
+          "blueprint": "1ffc6838124e13fd",
+          "decode_failures": 34,
+          "episode": 14,
+          "excluded": false,
+          "family": "offset_patch",
+          "return": 1.0,
+          "seconds": 23.9,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "568c74ef6230efa0",
+          "decode_failures": 51,
+          "episode": 15,
+          "excluded": false,
+          "family": "open_patch",
+          "return": 1.0,
+          "seconds": 23.3,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "0d359e41c845f4ab",
+          "decode_failures": 41,
+          "episode": 16,
+          "excluded": false,
+          "family": "cluttered_patch",
+          "return": 1.0,
+          "seconds": 25.1,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "27a432c587acfccc",
+          "decode_failures": 1,
+          "episode": 17,
+          "excluded": false,
+          "family": "varied_patch",
+          "return": 0.0,
+          "seconds": 33.4,
+          "steps": 600,
+          "success": false,
+          "verified_output": 0.0
+        },
+        {
+          "blueprint": "7fbda4c900daef98",
+          "decode_failures": 37,
+          "episode": 18,
+          "excluded": false,
+          "family": "offset_patch",
+          "return": 1.0,
+          "seconds": 25.2,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "2c800e1e2dffdac2",
+          "decode_failures": 45,
+          "episode": 19,
+          "excluded": false,
+          "family": "cluttered_patch",
+          "return": 1.0,
+          "seconds": 25.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "8ce1da66652621be",
+          "decode_failures": 52,
+          "episode": 20,
+          "excluded": false,
+          "family": "cluttered_patch",
+          "return": 1.0,
+          "seconds": 25.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "45bde785a2526762",
+          "decode_failures": 6,
+          "episode": 21,
+          "excluded": false,
+          "family": "open_patch",
+          "return": 0.0,
+          "seconds": 30.1,
+          "steps": 600,
+          "success": false,
+          "verified_output": 0.0
+        },
+        {
+          "blueprint": "d275ba0dd713ba38",
+          "decode_failures": 32,
+          "episode": 22,
+          "excluded": false,
+          "family": "varied_patch",
+          "return": 1.0,
+          "seconds": 24.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "80fa070778bc9fac",
+          "decode_failures": 42,
+          "episode": 23,
+          "excluded": false,
+          "family": "varied_patch",
+          "return": 1.0,
+          "seconds": 25.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "01eb7abcd3bb8cad",
+          "decode_failures": 29,
+          "episode": 24,
+          "excluded": false,
+          "family": "varied_patch",
+          "return": 1.0,
+          "seconds": 24.2,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "6735f60aa03a5a90",
+          "decode_failures": 18,
+          "episode": 25,
+          "excluded": false,
+          "family": "offset_patch",
+          "return": 1.0,
+          "seconds": 24.7,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "402fef60f61edf70",
+          "decode_failures": 25,
+          "episode": 26,
+          "excluded": false,
+          "family": "open_patch",
+          "return": 1.0,
+          "seconds": 25.0,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "398db01e10d4a1a1",
+          "decode_failures": 46,
+          "episode": 27,
+          "excluded": false,
+          "family": "cluttered_patch",
+          "return": 1.0,
+          "seconds": 24.6,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "bb2ed870909a95f7",
+          "decode_failures": 50,
+          "episode": 28,
+          "excluded": false,
+          "family": "cluttered_patch",
+          "return": 1.0,
+          "seconds": 25.2,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "077c8f2b74a13bd8",
+          "decode_failures": 39,
+          "episode": 29,
+          "excluded": false,
+          "family": "open_patch",
+          "return": 1.0,
+          "seconds": 24.2,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "1b870bdf3b7bdd09",
+          "decode_failures": 34,
+          "episode": 30,
+          "excluded": false,
+          "family": "open_patch",
+          "return": 1.0,
+          "seconds": 23.2,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
+        },
+        {
+          "blueprint": "c0728c7fd366c850",
+          "decode_failures": 41,
+          "episode": 31,
+          "excluded": false,
+          "family": "offset_patch",
+          "return": 1.0,
+          "seconds": 23.9,
+          "steps": 600,
+          "success": true,
+          "verified_output": 15.0
         }
       ],
       "excluded": 0,
-      "greedy": true,
+      "greedy": false,
       "split": "train",
-      "success": 0.0,
+      "success": 0.75,
       "success_ci95": [
-        0.0,
-        0.1936
+        0.5789,
+        0.8675
       ]
     }
   },
@@ -436,90 +823,106 @@
     "run_id": "sim-transfer-m5"
   },
   "simulator": {
-    "test_greedy": {
+    "test_epsilon": {
       "by_family": {
-        "obstructed_patch": 0.0
+        "obstructed_patch": 0.423828125
       },
       "episodes": 512,
+      "epsilon": 0.05,
       "greedy": true,
       "split": "test",
-      "success": 0.0,
+      "success": 0.423828125,
       "success_ci95": [
-        0.0,
-        0.007447247372061501
+        0.38174655572947136,
+        0.4670442358623661
       ],
-      "verified_output_mean": 0.0
+      "verified_output_mean": 6.34375
+    },
+    "test_greedy": {
+      "by_family": {
+        "obstructed_patch": 0.02734375
+      },
+      "episodes": 512,
+      "epsilon": 0.0,
+      "greedy": true,
+      "split": "test",
+      "success": 0.02734375,
+      "success_ci95": [
+        0.016356573471934845,
+        0.04537090255946705
+      ],
+      "verified_output_mean": 0.41015625
     },
     "test_sampled": {
       "by_family": {
-        "obstructed_patch": 0.0
+        "obstructed_patch": 0.919921875
       },
       "episodes": 512,
+      "epsilon": null,
       "greedy": false,
       "split": "test",
-      "success": 0.0,
+      "success": 0.919921875,
       "success_ci95": [
-        0.0,
-        0.007447247372061501
+        0.8931644234400444,
+        0.9404248023998258
       ],
-      "verified_output_mean": 0.0
+      "verified_output_mean": 13.904296875
+    },
+    "train_epsilon": {
+      "by_family": {
+        "cluttered_patch": 0.5735294117647058,
+        "offset_patch": 0.33070866141732286,
+        "open_patch": 0.3333333333333333,
+        "varied_patch": 0.2845528455284553
+      },
+      "episodes": 512,
+      "epsilon": 0.05,
+      "greedy": true,
+      "split": "train",
+      "success": 0.384765625,
+      "success_ci95": [
+        0.3436278921278629,
+        0.4276197156649169
+      ],
+      "verified_output_mean": 5.759765625
     },
     "train_greedy": {
       "by_family": {
+        "cluttered_patch": 0.014705882352941176,
         "offset_patch": 0.0,
-        "open_patch": 0.0
+        "open_patch": 0.0,
+        "varied_patch": 0.008130081300813009
       },
       "episodes": 512,
+      "epsilon": 0.0,
       "greedy": true,
       "split": "train",
-      "success": 0.0,
+      "success": 0.005859375,
       "success_ci95": [
-        0.0,
-        0.007447247372061501
+        0.001994639685501602,
+        0.017084085256418552
       ],
-      "verified_output_mean": 0.0
+      "verified_output_mean": 0.087890625
     },
     "train_sampled": {
       "by_family": {
-        "offset_patch": 0.019305019305019305,
-        "open_patch": 0.015810276679841896
+        "cluttered_patch": 0.9558823529411765,
+        "offset_patch": 0.7637795275590551,
+        "open_patch": 0.7777777777777778,
+        "varied_patch": 0.6178861788617886
       },
       "episodes": 512,
+      "epsilon": null,
       "greedy": false,
       "split": "train",
-      "success": 0.017578125,
+      "success": 0.783203125,
       "success_ci95": [
-        0.00927482734548984,
-        0.03306685273614763
+        0.7454715627725407,
+        0.8167165197706278
       ],
-      "verified_output_mean": 0.26953125
+      "verified_output_mean": 11.861328125
     }
   },
-  "simulator_replay": {
-    "closed_loop_identical_actions": 32,
-    "divergence": {
-      "cause": "the engine slides a character around an obstacle corner when the overlap is small; factory-sim does not model that yet. Walls exist only in the held-out families, so no training scene exercised it.",
-      "engine": "character slid from y -1.796875 to -1.9921875 and passed the wall's top corner, ending at x 2.1875",
-      "episode": "test 6 (obstructed_patch)",
-      "first_different_action": 5,
-      "first_different_observation": "after decision 1 (a 30-tick move west into the wall column)",
-      "simulator": "character stopped at x 5.9921875, y unchanged",
-      "status": "fixed; kept as the record of what the first replay found"
-    },
-    "episodes": 32,
-    "open_loop_same_outcome": 32,
-    "resolved": {
-      "by": "factory-sim 6e26cd2 (corner slides, solid narrow gaps, measured creep)",
-      "evidence": [
-        "docs/evidence/sim-mechanics-m5-slide.json",
-        "docs/evidence/sim-mechanics-m5-slide-gaps.json",
-        "docs/evidence/sim-mechanics-m5-slide-creep.json"
-      ],
-      "replay": "all 32 episodes identical action for action in closed loop, rerun on the desktop"
-    },
-    "tool": "factory-sim tools/replay_transfer.py"
-  },
-  "summary": "The policy (factory-sim progress-demo-s1, 1.8% sampled success in the simulator on the training split, 0% greedy) scores 0/16 greedy on both splits on the engine, as the simulator predicts. Replayed in the simulator, all 32 engine episodes reproduce their outcomes, and since the corner-slide fix all 32 reproduce action for action.",
   "task": "construct_smelting_line",
-  "task_version": "1.1.1"
+  "task_version": "1.2.0"
 }
