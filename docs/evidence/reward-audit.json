@@ -179,7 +179,7 @@
       ],
       "has_gradient": true,
       "terminal_verifier": false,
-      "version": "1.2.0",
+      "version": "1.3.0",
       "budget": 400,
       "step_cost_weight": 0.001,
       "pressure": 0.4,

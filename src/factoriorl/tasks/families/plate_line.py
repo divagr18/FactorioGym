@@ -103,8 +103,34 @@ DRILL_POSITION = (1.0, 1.0)
 FURNACE_POSITION = (1.0, 3.0)
 ORE_RADIUS = 3
 
+#: `commissioning_crowded` 1.3.0. The other families hand the agent two
+#: machines and one item, so `give(target, item, amount)` has six to ten
+#: viable combinations and the task is solved in 0.13M simulator steps --
+#: measured, and by independent action heads as readily as by ordered ones.
+#: That made it useless as a test of whether ordering arguments matters when
+#: there is no placement to get right.
+#:
+#: This family enlarges the conjunction and nothing else. Four decoy machines
+#: join the entity table and two decoy items join the inventory, so the same
+#: action has 6 x 3 x 4 = 72 combinations against 8. Coal is cut to 50 --
+#: enough for the two real machines and little else -- because with 120 the
+#: agent can simply fuel everything and the choice of target stops mattering.
+#: No placement is added: the line still arrives built.
+DECOY_MACHINES = (
+    ("burner-mining-drill", (-5.0, -4.0), "north"),
+    ("burner-mining-drill", (6.0, 5.0), "east"),
+    ("stone-furnace", (-6.0, 4.0), "north"),
+    ("stone-furnace", (7.0, -3.0), "north"),
+)
+#: Enough for the drill and the furnace, and not enough to be careless with.
+CROWDED_COAL = 50
+#: Plausible wrong answers rather than filler: iron ore is what the furnace
+#: eats, so handing it over looks reasonable and does not commission anything.
+CROWDED_DECOY_ITEMS = {"iron-ore": 20, "stone": 20}
+
 FAMILIES = (
     LayoutFamily("commissioning", "train"),
+    LayoutFamily("commissioning_crowded", "train"),
     LayoutFamily("commissioning_far", "val"),
     LayoutFamily("commissioning_walled", "test"),
 )
@@ -115,7 +141,7 @@ SPEC = TaskSpec(
     # from `release_matrix.CATEGORY` entirely, so the release qualification
     # filter could not see it.
     track="production",
-    version="1.2.0",
+    version="1.3.0",
     description=(
         "Commission an automated plate line: fuel the mining drill and the furnace "
         "so the line produces iron plates without further help."
@@ -263,11 +289,36 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
             },
         )
 
+    inventory = {"coal": STARTING_COAL}
+    if family.name == "commissioning_crowded":
+        # The start is drawn at radius 5..9 and the decoys sit at radius 6..8,
+        # so the two independent draws collide: measured, 34 of 400 scenes put
+        # the character inside a decoy's 2x2 footprint. This is the same defect
+        # `_clear_of` was added for in 1.2.0, when the screen and the start
+        # could overlap, and it is fixed the same way -- push the start out
+        # along its own bearing, consuming no randomness and doing nothing at
+        # all when the start was already clear.
+        occupied = {
+            (int(position[0]) + dx, int(position[1]) + dy)
+            for _name, position, _direction in DECOY_MACHINES
+            for dx in (-1, 0)
+            for dy in (-1, 0)
+        }
+        start = _clear_of(start, angle, occupied)
+        # Four more machines to choose between and two more items to choose
+        # among, with coal scarce enough that choosing wrongly costs. The
+        # decoy drills sit off the ore and the decoy furnaces have nothing
+        # feeding them, so none of them can produce a plate however they are
+        # fuelled -- the task is unchanged, only the size of the decision.
+        for name, position, direction in DECOY_MACHINES:
+            entities.append(EntitySpec(name, position, direction=direction))
+        inventory = {"coal": CROWDED_COAL, **CROWDED_DECOY_ITEMS}
+
     return Blueprint(
         entities=tuple(entities),
         resources=tuple(resources),
         character_position=start,
-        character_inventory={"coal": STARTING_COAL},
+        character_inventory=inventory,
         markers={"line": DRILL_POSITION},
         radius=48,
     )

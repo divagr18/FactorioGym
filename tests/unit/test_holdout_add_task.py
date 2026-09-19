@@ -69,9 +69,16 @@ class TestTheSevenExistingEntriesAreUntouched:
         "mine_smelt": "a11e26d64afdd678",
         "navigate": "22088ee7c7b098ac",
         # plate_line reached v1.2.0 when the character-on-a-wall defect was
-        # fixed, so its entry was legitimately re-frozen; the other six are the
+        # fixed, and v1.3.0 when `commissioning_crowded` was added, so its
+        # entry has legitimately been re-frozen twice; the other six are the
         # pre-`build_line` values and must never move.
-        "plate_line": "18bdee7ecedcdc2a",
+        #
+        # 1.3.0 added a *train* family, so the 100 held-out scenes are
+        # untouched: their digests hash to e8e4b86403c5f11e496a82d11a6fba6f
+        # before and after, exactly as they did. Only `task_version` moved,
+        # which the entry hash covers and the held-out rate does not -- so a
+        # 1.2.0 result and a 1.3.0 result describe the same scenes.
+        "plate_line": "f2e3f9a29640316f",
         "repair_belt": "32f8a13a2b4772b1",
         "restore_power": "dcab54a130c4e091",
         "supply_furnace": "24eb644a3f90d3a6",
