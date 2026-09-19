@@ -254,7 +254,11 @@ for name, d in pairs(dirs) do
   end
   out[name] = { can_place = allowed, landed_at = landed }
 end
-return helpers.table_to_json({ standing_drill = { first.position.x, first.position.y }, asked = { -0.5, -2.5 }, by_direction = out })
+return helpers.table_to_json({
+  standing_drill = { first.position.x, first.position.y },
+  asked = { -0.5, -2.5 },
+  by_direction = out,
+})
 """
 
 
