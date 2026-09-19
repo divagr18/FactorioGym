@@ -8,7 +8,7 @@
       ],
       "has_gradient": true,
       "terminal_verifier": false,
-      "version": "1.1.0",
+      "version": "1.2.0",
       "budget": 600,
       "step_cost_weight": 0.001,
       "pressure": 0.6,
