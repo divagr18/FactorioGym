@@ -1,13 +1,81 @@
 # FactorioRL
 
-Embodied Factorio environment for training compact RL policies, developing
-language-model agents, and comparing hybrid systems in the same game world.
-Flagship target: an agent that builds a factory, recovers from disruption, and
-continues toward a peaceful base-game rocket launch.
+An embodied reinforcement-learning environment for **Factorio** — the real
+game, driven through a Lua mod over RCON, with a typed protocol rather than
+screen-scraping. An agent walks a character around, mines, places machines and
+moves items, and is scored on whether the factory it built actually produces.
 
-Status: **Phases 0–3 accepted**. Phase 4's RL baseline runs and its validity items are closing; its three-family mastery target (4.5) is **unmet** and recorded as such. Current work follows R0–R6 in [docs/DEVELOPMENT_REDIRECTION.md](docs/DEVELOPMENT_REDIRECTION.md).
-See `PLAN.md` for the strategy, `docs/LEDGER.md` for gate status and evidence,
-and `docs/ACTION_MATRIX.md` for the action contract.
+It is paired with [**factory-sim**](https://github.com/divagr18/factory-sim), a
+pure-C11 tick-exact simulator of the same tasks that runs ~3,600× faster than
+the engine. Policies train in the simulator; **the real game is the verifier**,
+never the training loop. That split is the point of the project: a fast
+environment is only worth having if something independent can check it.
+
+## Results
+
+Policies trained entirely in the simulator, then replayed in **real Factorio**
+on held-out scene families they never trained on:
+
+| task | simulator held-out | real engine held-out |
+|---|---|---|
+| `construct_smelting_line` | 86.8% (4 seeds) | **90.6%** |
+| `build_line` | 94.9% (3 seeds) | **90.6%** |
+| `plate_line` | 98.2 / 100 / 99.0% (3 seeds) | — |
+
+Held-out means a *structurally different* scene family — an ore patch behind a
+wall, a screen to walk around — not merely a different random seed.
+
+Two findings that moved those numbers, both measured over four seeds per arm:
+
+- **Draw an action's arguments in order.** Sampling target, item and amount
+  independently made "give 20 coal to the furnace" a 1-in-3,960 conjunction
+  whose reward sat at exactly 0.00 for 7M steps. Conditioning each argument on
+  the previous took held-out success **60.0% → 86.8%** and cut the spread
+  between seeds from 51 points to 10.
+- **Gate a reverse curriculum on evidence, not a clock.** Sliding the
+  demonstration window on a fixed schedule failed 3 runs in 4; advancing it
+  only when the policy solves the window's *deepest* cut failed 0 in 4.
+
+Negative results are recorded with the same care, in
+[factory-sim/docs/algorithms.md](https://github.com/divagr18/factory-sim):
+critic-free learners (GRPO, RLOO) and an ACCEL-style generated curriculum were
+both implemented, measured, and did not beat the baseline here.
+
+## What you can run without owning Factorio
+
+Most of this repository needs the game. The test suite does not:
+
+```
+uv sync
+uv run pytest tests/unit tests/contract -q     # 1,334 tests, ~70 s, no engine
+```
+
+That covers the protocol, the task engine, encoders, rewards, the action
+contract and the frozen-holdout machinery. Engine tests are marked `engine` and
+skip when the binary is absent — `--require-engine` turns that skip into a
+failure, because PLAN.md treats "skipped because Factorio was unavailable" as
+an incomplete state rather than a pass.
+
+## Where to look
+
+If you are reading this as a code sample, these are the parts worth your time:
+
+| | |
+|---|---|
+| `src/factoriorl/tasks/spec.py` | task contract: predicates, reward kinds, layout families, splits |
+| `src/factoriorl/tasks/families/` | the tasks themselves; `plate_line.py` documents *why* a task is shaped as it is |
+| `src/factoriorl/parameterized.py` | the `MultiDiscrete` action space and its per-dimension masks |
+| `src/factoriorl/encoders.py` | game state → tensors, and the ordering guarantees the policy depends on |
+| `src/factoriorl/pool.py` | multi-worker orchestration with guaranteed teardown |
+| `mod/factoriorl/actions.lua` | the Lua side; see the post-creation overlap guard and why it exists |
+| `tools/freeze_holdout.py` | makes "held-out" a checkable object instead of a phrase |
+| `tests/contract/` | the action and observation contracts, tested independently of the engine |
+
+`tools/freeze_holdout.py` is the one I would read first. It exists because
+"held-out success rate" meant nothing checkable: every run evaluated on
+whatever scenes it happened to generate, and three seeds scored three different
+sets. The tool enumerates the exact scenes for a fixed seed stream, hashes
+them, and regenerates from source to report drift.
 
 ## Requirements
 
@@ -36,7 +104,7 @@ built-in default; the first path that exists wins.
 
 `uv run factoriorl doctor` reports the build and **fails** if it is not 83512.
 
-Why so strict, and what it costs you: `docs/LIMITATIONS.md`. Short version --
+Why so strict, and what it costs you: `docs/LIMITATIONS.md`. Short version —
 the observation and action contracts are written against one build's
 prototypes, so a different build is a different environment rather than a
 slightly different one.
@@ -47,7 +115,6 @@ slightly different one.
 uv sync --extra rl --group train   # everything, including CUDA torch
 uv run factoriorl doctor           # engine present, and the pinned build
 uv run factoriorl doctor-train     # torch, CUDA and the GPU
-uv run pytest tests/unit tests/contract -q   # engine-free, ~30 s
 ```
 
 Lighter tiers exist if you do not need to train:
@@ -57,24 +124,15 @@ uv sync                 # stdlib only: `doctor` works, nothing else
 uv sync --extra rl      # + numpy, gymnasium: enough for FactorioEnv
 ```
 
-**A source checkout is the only supported install.** `pip install factoriorl`
-would give you the Python package without `mod/` or `tools/`, and neither a
-worker nor `demo`/`replay` can start without those — see `docs/LIMITATIONS.md`.
-An earlier version of this file claimed a unit test proved the runtime imports
-cleanly without numpy and gymnasium. There is no such test; the claim is
-withdrawn.
+**A source checkout is the only supported install.**
 
 ## Doing something with it
-
-Four things, in the order a newcomer wants them. Full walkthroughs in `docs/`.
 
 **Evaluate a checkpoint** — no API key, no network. **A fresh clone has no
 checkpoint**, so run the recipe below first, or obtain a `release/` bundle from
 whoever ran one. `runtime/` and `release/` are both gitignored and nothing is
 published for download; `docs/evidence/phase4-checkpoints.json` declares which
 checkpoints a result cites, and does not contain them.
-
-Once you have a run:
 
 ```
 uv run factoriorl evaluate --checkpoint <run_id> --episodes 100
@@ -85,10 +143,6 @@ match or a skill-trained policy is silently scored with a truncated catalog —
 refuses a checkpoint this tree cannot feed with a diagnosis rather than a shape
 error, and reports the random floor beside the rate.
 
-To hand a checkpoint to someone else, `tools/package_release.py --runs <ids>`
-assembles `release/` with hashes, the holdouts the runs cite, and every task
-version. It consumes runs you already have; it cannot produce the first one.
-
 **Run the short learning recipe** — ~20 minutes on one GPU. See
 [docs/RECIPE.md](docs/RECIPE.md) for the expected numbers and the random floor
 they must be read against.
@@ -98,17 +152,8 @@ uv run factoriorl train --task deliver --steps 25000 --skills \
     --holdout docs/evidence/holdout_v3.json --eval-episodes 100
 ```
 
-**Connect a language-model agent** — the only part that can cost money. See
-[docs/AGENT.md](docs/AGENT.md).
-
-```
-uv run factoriorl doctor-agent --base-url <url> --model <name> --api-key-env OPENAI_API_KEY
-uv run factoriorl demo
-uv run factoriorl replay runtime/runs/<run_id>
-```
-
-`replay` renders a self-contained HTML file with no network calls. It works on
-**agent** runs; a training run has no per-decision trace and is refused.
+**Connect a language-model agent** — the only part that can cost money, and
+every path through it is spend-capped. See [docs/AGENT.md](docs/AGENT.md).
 
 **Author a task** — see [docs/AUTHORING_TASKS.md](docs/AUTHORING_TASKS.md).
 
@@ -128,51 +173,38 @@ uv run factoriorl train --task deliver --steps 25000
 uv run factoriorl demo               # language-model agent on plate_line
 uv run factoriorl replay <run_dir>   # self-contained HTML, agent runs only
 uv run factoriorl bench transport    # round-trip decomposition
-uv run factoriorl bench speed        # game.speed changes pacing, not outcomes
 uv run factoriorl action-matrix      # regenerate docs/ACTION_MATRIX.md
-uv run factoriorl phase0-gate        # ... through phase4-gate
 ```
 
-The first four are the diagnostics, and they are deliberately separate: PLAN 6.1
-requires that a game-setup problem, a dependency problem, a connection problem
-and a model-provider problem be distinguishable rather than all arriving as one
+The first four are the diagnostics, and they are deliberately separate: a
+game-setup problem, a dependency problem, a connection problem and a
+model-provider problem must be distinguishable rather than all arriving as one
 traceback.
-
-## Tests
-
-```
-uv run pytest tests/unit tests/contract   # engine-free, fast
-uv run pytest tests/engine                # engine integration (real binary)
-uv run ruff check . && uv run ruff format --check .
-```
-
-Engine tests are marked `engine`; they skip when the executable is absent. Pass
-`--require-engine` (as the phase gates do) to turn that skip into a failure --
-PLAN.md treats "skipped because Factorio was unavailable" as an incomplete
-state, not a pass.
 
 ## What this does and does not do
 
 Read `docs/LIMITATIONS.md` before trusting any number here. It is long on
-purpose, and `docs/RELEASE_CHECKLIST.md` lists what is deferred and not
-available.
+purpose.
 
-The environment is real and the tasks are hard. The learning results are
-**weak, and reported separately from mastery**: one family (`deliver`) reaches
-about 0.89 on its structural holdout against a measured random floor of 0.01,
-which is learning. The three-family 80% mastery target is **unmet**. There is
-no demonstrated construction-and-recovery run. This is an environment alpha,
-not a flagship release.
+The environment is real and the tasks are hard. **The strong results above come
+through the simulator**, with the engine used to verify transfer. Training
+directly against the engine, in the older primitive action space, is much
+weaker: one family (`deliver`) reaches about 0.89 on its structural holdout
+against a measured random floor of 0.01, and the three-family 80% mastery
+target is **unmet**. There is no demonstrated end-to-end
+construction-and-recovery run. This is an environment alpha, not a flagship
+release.
 
 ## Measured characteristics
 
 | | |
 |---|---|
 | RCON round trip | 16.7 ms (sentinel-framed; was 267 ms) |
-| Env step | 24.0 ms → **41.6 steps/s** on one worker |
+| Engine step | 24.0 ms → **41.6 steps/s** on one worker |
+| Engine, 8 workers | 261 decisions/s |
+| Simulator, 16 CPU threads | **947,000 decisions/s** (~3,600× the engine) |
 | Reset | 6.2 ms |
 | Observation | 1.1–5.3 KB |
-| `advance(30)` at `game.speed=30` | 25.6 ms (was 819 ms) |
 
 ## Architecture
 
@@ -188,6 +220,10 @@ not a flagship release.
   under `runtime/workers/<id>/`. Ports are claimed through cross-process
   reservations in `runtime/ports/`. The user's Factorio profile is never
   touched.
+
+Project documents: `PLAN.md` for strategy, `docs/LEDGER.md` for gate status and
+evidence, `docs/ACTION_MATRIX.md` for the action contract, `docs/archive/` for
+superseded session notes.
 
 ## License
 
