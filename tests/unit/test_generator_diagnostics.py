@@ -1,4 +1,4 @@
-"""Engine-free coverage for the split-content diagnostics (PLAN.md section 3).
+"""Engine-free coverage for the split-content diagnostics (DESIGN.md section 3).
 
 The tool exists because a gate that compares layout-family *names* passed over
 three real defects: two families that were byte-identical copies of another, and
@@ -178,7 +178,7 @@ def test_overlap_ignores_unequal_sample_sizes():
 
 
 def test_a_shifted_holdout_falls_below_the_parity_threshold():
-    """The failure PLAN.md names: a holdout that is simply farther away."""
+    """The failure DESIGN.md names: a holdout that is simply farther away."""
     train = [12.0 + (v % 60) / 10 for v in range(300)]
     harder = [v + 12.0 for v in train]
     assert gd.overlap_coefficient(train, harder) < gd.PARITY_MIN_OVERLAP
@@ -270,7 +270,7 @@ def test_a_holdout_admitting_one_scene_fails():
     """`restore_power.gap_near_drill` in miniature: a constant generator.
 
     "A holdout whose generator admits one scene is evaluated once, no matter how
-    many episodes are run against it" (PLAN.md section 3).
+    many episodes are run against it" (DESIGN.md section 3).
     """
 
     def generate(family: LayoutFamily, rng) -> Blueprint:
@@ -410,7 +410,7 @@ def test_a_declared_difficulty_marker_makes_parity_measurable():
     Success is a production count, so no predicate names a position and every
     difficulty descriptor came back None. Declaring where the route ends is what
     turns "unmeasurable" into a published number; without this the task can never
-    support the transfer claim PLAN.md section 3 asks for.
+    support the transfer claim DESIGN.md section 3 asks for.
     """
     task = RegisteredTask(
         spec=_produced_only_spec("declared", "goal"), generate=_separated_generator

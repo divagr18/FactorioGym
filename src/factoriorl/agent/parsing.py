@@ -1,6 +1,6 @@
-"""Turning a provider response into a validated typed action (PLAN.md 5.3).
+"""Turning a provider response into a validated typed action (DESIGN.md 5.3).
 
-PLAN 5.3's first acceptance criterion is that "provider responses become
+DESIGN 5.3's first acceptance criterion is that "provider responses become
 validated typed actions", and its second is that "malformed outputs produce
 bounded retries or a recorded failure". Both need the same thing first: the
 ways a response can fail to become an action must be *distinguishable*, because
@@ -21,7 +21,7 @@ So parsing returns one of two values, and a failure names its kind:
 ``illegal_action``
     A real, in-range action that the environment's mask currently forbids. The
     model ignored the legality list it was given; the environment would reject
-    it, and PLAN section 2 forbids silently turning it into a different action.
+    it, and DESIGN section 2 forbids silently turning it into a different action.
 
 A provider-level failure -- timeout, HTTP error, empty response -- is
 deliberately *not* in this enum. It is carried by ``ModelReply.error`` and

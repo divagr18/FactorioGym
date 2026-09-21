@@ -1,4 +1,4 @@
-"""Task registry (PLAN.md 3.1).
+"""Task registry (DESIGN.md 3.1).
 
 Discovery-based, not entry-point based: a family module dropped into
 ``factoriorl.tasks.families`` registers itself on import, so adding a task never

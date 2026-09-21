@@ -1,6 +1,6 @@
 """Declare which checkpoints Phase 4's exit gate is about.
 
-PLAN.md:710 — *"another run can reproduce the learning procedure and evaluate
+DESIGN.md:710 — *"another run can reproduce the learning procedure and evaluate
 **the provided checkpoints** without manual intervention"*. Until this file
 existed, "the provided checkpoints" named nothing: `gate_phase4` scanned
 gitignored `runtime/runs/`, sorted alphabetically and took the last three. On
@@ -130,14 +130,14 @@ def main() -> int:
     if broken and not args.force:
         print(
             f"\nrefusing to declare {len(broken)} run(s) with problems. A declared "
-            "checkpoint that does not load makes PLAN.md:710's exit clause false "
+            "checkpoint that does not load makes DESIGN.md:710's exit clause false "
             "by inspection. Pass --force to record them anyway.",
             flush=True,
         )
         return 1
 
     body = {
-        "declares": "the checkpoints PLAN.md:710's exit gate evaluates",
+        "declares": "the checkpoints DESIGN.md:710's exit gate evaluates",
         "why": (
             "Before this file, `gate_phase4` scanned gitignored runtime/runs/, "
             "sorted alphabetically and took the last three, so its subject "

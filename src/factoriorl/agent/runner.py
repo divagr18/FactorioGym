@@ -1,4 +1,4 @@
-"""Wiring one agent run to a real worker (PLAN.md 5.3).
+"""Wiring one agent run to a real worker (DESIGN.md 5.3).
 
 Kept apart from :mod:`factoriorl.agent.loop` for one reason: the loop must be
 runnable without an engine, because every test of it runs offline and CI has no

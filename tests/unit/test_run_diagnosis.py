@@ -4,7 +4,7 @@ Three claims are worth a test here, and they are the three that would be
 silently wrong rather than loudly broken.
 
 **Pairing.** Two arms scored on one frozen holdout can post identical rates
-while disagreeing about which scenes they solve; `PLAN.md` section 3 requires
+while disagreeing about which scenes they solve; `DESIGN.md` section 3 requires
 the paired reading for exactly this reason. A comparison that pooled the two
 arms would report "no difference" for both a perfect agreement and a 50/50
 shuffle, so the discordant counts are the thing under test.

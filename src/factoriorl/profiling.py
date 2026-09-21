@@ -1,4 +1,4 @@
-"""Worker-count profiling (PLAN.md 4.3).
+"""Worker-count profiling (DESIGN.md 4.3).
 
     Benchmark 1, 2, 4, and 8 workers where resource limits permit.
     ...
@@ -14,7 +14,7 @@ observation, spending exactly the commit budget that is scarce here.
 
 **The memory ceiling is confronted, not crashed into.** Per-worker commit is
 measured at W=1 and any configuration projected past a threshold is *refused
-and recorded*. PLAN says "where resource limits permit", so a reasoned skip is
+and recorded*. DESIGN says "where resource limits permit", so a reasoned skip is
 a passing outcome and far better evidence than an OOM traceback.
 """
 
@@ -88,7 +88,7 @@ def commit_status() -> dict:
 
     Free RAM is not the limit: Windows fails an allocation when the *commit*
     charge reaches the limit, which is what produced the BadAllocation crash
-    recorded in HANDOFF.md.
+    recorded in the handover notes.
     """
     status = _MemoryStatus()
     status.dwLength = ctypes.sizeof(_MemoryStatus)

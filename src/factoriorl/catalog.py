@@ -1,4 +1,4 @@
-"""Bounded action catalogs (PLAN.md 3.4).
+"""Bounded action catalogs (DESIGN.md 3.4).
 
 A catalog is an **ordered list of fully-bound action templates**: file order is
 the action index. Reproducibility rests on three things, not on hoping the order

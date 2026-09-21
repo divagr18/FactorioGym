@@ -1,4 +1,4 @@
-"""Model adapters and the agent loop (PLAN.md 5.3).
+"""Model adapters and the agent loop (DESIGN.md 5.3).
 
 A language-model agent plays through the same contracts a compact policy uses:
 the same wire observation (rendered by :mod:`factoriorl.agent.summary` instead of

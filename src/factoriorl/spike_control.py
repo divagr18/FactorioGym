@@ -8,7 +8,7 @@ zero-player server has no player. The pinned build's API dump
 ``crafting_queue``, ``cursor_stack`` and the reach properties.
 
 Declaration is not the same as working with nobody controlling it. Mining and
-crafting are two of the ten actions in PLAN.md 2.1, and both depend on this, so
+crafting are two of the ten actions in DESIGN.md 2.1, and both depend on this, so
 it gets measured before the action matrix is designed rather than after.
 
 This deliberately uses the evaluator channel (``bridge.run``), not the typed

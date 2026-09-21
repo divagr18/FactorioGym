@@ -1,4 +1,4 @@
-"""Scripted reference solutions (PLAN.md 3.2).
+"""Scripted reference solutions (DESIGN.md 3.2).
 
     For each family provide: ... A scripted solution.
 
@@ -8,10 +8,10 @@ is given?** A solver that has full evaluator knowledge -- exact marker
 positions, exact container contents -- and still cannot finish has proved the
 task is unsolvable *through the catalog*, not merely unlearned. That
 distinguishes a task defect from a training shortfall, which is the distinction
-PLAN section 4 asks to be made before a gate is judged.
+DESIGN section 4 asks to be made before a gate is judged.
 
 They live in their own module so the training entrypoint provably never imports
-them; a unit test asserts that, because PLAN 4.2 forbids scripted solution
+them; a unit test asserts that, because DESIGN 4.2 forbids scripted solution
 labels reaching ordinary PPO training.
 """
 
@@ -175,7 +175,7 @@ class Driver:
         budget: int = 80,
         interact_range: float = 0.0,
     ) -> bool:
-        """Greedy axis-first walk. Phase 2 has no pathfinding (PLAN defers it
+        """Greedy axis-first walk. Phase 2 has no pathfinding (DESIGN defers it
         to 5.1), so an obstacle stops progress; detect that instead of spinning."""
         stalled = 0
         for _ in range(budget):
@@ -215,7 +215,7 @@ class Driver:
                 # along the blocking face instead of giving up: commit to the
                 # perpendicular axis for a few strides, alternating sides on
                 # each successive stall so a wall is escaped whichever end is
-                # nearer. This is still not pathfinding (PLAN defers that to
+                # nearer. This is still not pathfinding (DESIGN defers that to
                 # 5.1) -- it is enough to round a convex obstacle, and a
                 # reference solver is allowed to be more capable than the
                 # policy it validates the task for.
@@ -705,7 +705,7 @@ def solve_diagnose_line(driver: Driver) -> None:
 
     **This solver does not diagnose, and that is deliberate.** A reference
     solution exists to show that each generated scene is solvable inside its
-    budget -- PLAN 3.2's solvability check -- and nothing more. Reading truth to
+    budget -- DESIGN 3.2's solvability check -- and nothing more. Reading truth to
     find out which machine is dry and then fixing only that one would make the
     reference's success depend on privileged information, and would make "the
     reference solves it" read as evidence that the diagnosis is easy. It is

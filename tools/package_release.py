@@ -1,4 +1,4 @@
-"""Assemble a release bundle (PLAN.md 6.2).
+"""Assemble a release bundle (DESIGN.md 6.2).
 
     Include checkpoints, evaluation configurations, task versions, sample
     trajectories, and a concise limitations document.
@@ -43,7 +43,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 #: Artifacts at or above this are listed for separate download rather than
-#: copied into the bundle. PLAN 6.2 asks that large artifacts be downloadable
+#: copied into the bundle. DESIGN 6.2 asks that large artifacts be downloadable
 #: separately from source, and a checkpoint is the only thing here that grows.
 LARGE_BYTES = 8 * 1024 * 1024
 
@@ -60,7 +60,7 @@ DOCUMENTS = (
     "README.md",
     "docs/LIMITATIONS.md",
     "docs/ACTION_MATRIX.md",
-    "docs/LEDGER.md",
+    "the project ledger",
 )
 
 

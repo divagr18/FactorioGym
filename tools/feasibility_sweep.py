@@ -1,6 +1,6 @@
 """Short training runs across every family, to find which actually learn.
 
-PLAN 4.5 needs three families over the 80% bar with at least one production or
+DESIGN 4.5 needs three families over the 80% bar with at least one production or
 repair task. Committing a twelve-hour matrix before knowing which families are
 learnable at their current difficulty would be guessing; this is the cheap
 question that makes that an informed decision.

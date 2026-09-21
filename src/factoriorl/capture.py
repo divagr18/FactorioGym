@@ -1,4 +1,4 @@
-"""Optional screenshot capture (PLAN.md 5.6).
+"""Optional screenshot capture (DESIGN.md 5.6).
 
     Capture selected frames for agent requests and replay checkpoints.
 
@@ -29,7 +29,7 @@ than assumed, and the file must appear -- with a fresh mtime and a non-zero size
 Not part of the protocol
 ------------------------
 Capture is deliberately not an action in ``matrix.lua``. An action would be
-reachable from a policy's catalog, and PLAN 5.6 requires capture to be off in
+reachable from a policy's catalog, and DESIGN 5.6 requires capture to be off in
 ordinary RL training; keeping it a separate client-side facility means a
 training run cannot request a frame even by accident, and the action-mask purity
 tests keep meaning what they say.
@@ -81,7 +81,7 @@ class Frame:
 def viewport_zoom(radius: int, resolution: tuple[int, int]) -> float:
     """Zoom that makes the frame cover exactly the sensor's square.
 
-    PLAN 5.6 asks that the viewport respect the observation profile. A frame
+    DESIGN 5.6 asks that the viewport respect the observation profile. A frame
     wider than the sensor would show a reader terrain the agent could not see
     and invite conclusions the agent had no basis for; a narrower one would hide
     what it acted on.

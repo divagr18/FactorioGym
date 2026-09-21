@@ -1,4 +1,4 @@
--- Episode-scoped entity identity (PLAN.md 2.4).
+-- Episode-scoped entity identity (DESIGN.md 2.4).
 --
 -- Handles are short opaque strings ("h1", "h2", ...) because they appear once
 -- per entity in every observation, so their length is a payload cost.

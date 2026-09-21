@@ -97,7 +97,9 @@ class FactorioBridge:
             if template.key not in targetable_actions(self.env):
                 raise BridgeRequestError(f"action {template.key} does not accept a target")
             if target not in visible_handles(self.env._observation):
-                raise BridgeRequestError(f"target {target!r} is not visible in the current observation")
+                raise BridgeRequestError(
+                    f"target {target!r} is not visible in the current observation"
+                )
         try:
             if target is None:
                 _observation, reward, terminated, truncated, info = self.env.step_arguments(

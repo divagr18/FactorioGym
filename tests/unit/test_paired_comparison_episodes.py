@@ -1,4 +1,4 @@
-"""Both comparison arms must score the *whole* frozen set (PLAN 4.4, 4b.3).
+"""Both comparison arms must score the *whole* frozen set (DESIGN 4.4, 4b.3).
 
 `tools/shaping_comparison.py` and `tools/skill_ablation.py` carry a
 byte-identical `pairing()` guard that compares each arm's recorded

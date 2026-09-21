@@ -1,4 +1,4 @@
-"""Training and evaluation (PLAN.md 4.1-4.2).
+"""Training and evaluation (DESIGN.md 4.1-4.2).
 
 CSV is the source of truth for curves, not TensorBoard: release curves must be
 diffable across runs, and event files are not.
@@ -89,7 +89,7 @@ class TrainConfig:
     ent_coef: float = 0.01
     shaping: bool = True
     eval_episodes: int = 20
-    #: PLAN section 3: validation supports debugging and model selection;
+    #: DESIGN section 3: validation supports debugging and model selection;
     #: test results use frozen layouts *excluded from tuning*. Routine runs
     #: and sweeps therefore report `val`; only a declared release evaluation
     #: passes `test`, and every result records which split produced it. The
@@ -105,7 +105,7 @@ class TrainConfig:
     #: cite a holdout it never evaluated a single episode of, and no check
     #: downstream could tell -- a manifest can carry any hash you like.
     holdout: str | None = None
-    #: Add temporally extended actions to the primitive catalog (PLAN 4b).
+    #: Add temporally extended actions to the primitive catalog (DESIGN 4b).
     #: The 4b.3 ablation runs two arms that differ in this flag alone.
     skills: bool = False
     device: str = "auto"
@@ -128,7 +128,7 @@ class TrainConfig:
     #:
     #: A run using this is **not comparable to a scratch PPO run** and records
     #: its own `training_mode` so it cannot be reported in the same column.
-    #: PLAN 4.2 forbids scripted-solution labels during ordinary PPO training,
+    #: DESIGN 4.2 forbids scripted-solution labels during ordinary PPO training,
     #: and a policy initialised from a cloned checkpoint inherits parameters
     #: fitted on exactly those labels -- the prohibition is on the training
     #: signal, and this arm exists to measure what those parameters are worth,
@@ -387,7 +387,7 @@ def evaluate(env: FactorioEnv, model, episodes: int, deterministic: bool = True)
 
 
 def _wilson(successes: int, total: int, z: float = 1.96) -> list[float]:
-    """PLAN.md section 3 wants aggregate uncertainty, not a bare point estimate."""
+    """DESIGN.md section 3 wants aggregate uncertainty, not a bare point estimate."""
     if total == 0:
         return [0.0, 0.0]
     p = successes / total
@@ -946,7 +946,7 @@ def train(config: TrainConfig) -> dict:
         # validated at the top of `train`; see `_load_frozen_holdout`.
 
         # Three rows, because one number cannot say which failure happened.
-        # PLAN section 3 puts the threshold on unfamiliar *structures* and
+        # DESIGN section 3 puts the threshold on unfamiliar *structures* and
         # requires the unfamiliar-*seed* rate published beside it: a policy
         # that scores well on seeds and badly on structures learned the task
         # and failed to transfer, while one that fails both never learned it.

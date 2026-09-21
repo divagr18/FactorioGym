@@ -1,4 +1,4 @@
-"""Port allocation and reservation (PLAN.md 1.3: ports are not accidentally
+"""Port allocation and reservation (DESIGN.md 1.3: ports are not accidentally
 shared across workers).
 
 These run without Factorio on purpose. Port correctness used to be provable

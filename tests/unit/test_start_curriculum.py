@@ -4,7 +4,7 @@ A run may start a fraction of its *training* episodes beside the task's focus
 marker, so that a family whose success is a conjunction -- `repair_belt` needs
 the right tile and one of four belt facings -- actually reaches the placement
 and can compare the facings. The risk is one-directional and is exactly the
-contamination PLAN section 3 forbids: leaked into an evaluated stream, the
+contamination DESIGN section 3 forbids: leaked into an evaluated stream, the
 held-out number would describe an easier task than the benchmark claims.
 
 The subtle case is the unfamiliar-seed row, measured with `Branch.EVAL` over

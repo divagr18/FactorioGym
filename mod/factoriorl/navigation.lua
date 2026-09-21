@@ -1,4 +1,4 @@
--- Known-terrain navigation (PLAN.md 5.1).
+-- Known-terrain navigation (DESIGN.md 5.1).
 --
 -- Three decisions shape this file, and each of them is a decision *not* to
 -- take an easier route that would have been wrong.
@@ -6,7 +6,7 @@
 -- 1. The pathfinder is ours, over `memory`'s explored-terrain store, and the
 --    engine's is not used at all. `surface.request_path` consults the true
 --    map: it would happily route the agent around a wall it has never seen,
---    which fails PLAN 5.1's first criterion silently and in exactly the way
+--    which fails DESIGN 5.1's first criterion silently and in exactly the way
 --    that is hardest to notice from a successful-looking trace. (It is also
 --    asynchronous -- it returns a handle and fires an event later -- so it
 --    would not fit the in-flight registry without a second settle path.)
@@ -629,7 +629,7 @@ function navigation.poll(entry)
   if d.handle then
     local target, why = handles.resolve(d.handle)
     if not target then
-      -- The thing we were walking to is gone. PLAN 2.2: a target becoming
+      -- The thing we were walking to is gone. DESIGN 2.2: a target becoming
       -- unavailable is a recorded failure, not a silent stop.
       navigation.stop(ch)
       return STATUS.FAILED,

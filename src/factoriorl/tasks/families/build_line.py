@@ -180,7 +180,7 @@ def _patch_tiles(family: LayoutFamily, rng) -> list[tuple[float, float]]:
     """Ore tiles. The patch's *shape* is the structural split.
 
     A drill needs ore under it, so the shape decides which drill positions and
-    facings exist -- which makes it structure in the sense PLAN section 3
+    facings exist -- which makes it structure in the sense DESIGN section 3
     means, rather than a reskin.
     """
     cx, cy = PATCH_CENTRE

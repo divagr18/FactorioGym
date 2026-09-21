@@ -1,4 +1,4 @@
-"""Engine-free coverage for the observation encoder (PLAN.md 3.4).
+"""Engine-free coverage for the observation encoder (DESIGN.md 3.4).
 
 ``encoders.encode`` rasterises sparse wire lists into the dense tensors the
 policy consumes, and until now the only thing checking its output was the

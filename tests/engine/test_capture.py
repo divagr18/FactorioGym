@@ -1,4 +1,4 @@
-"""Optional screenshot capture (PLAN.md 5.6), against a real engine."""
+"""Optional screenshot capture (DESIGN.md 5.6), against a real engine."""
 
 from __future__ import annotations
 

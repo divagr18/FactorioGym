@@ -1,4 +1,4 @@
-"""Can a policy get paid for stopping? (PLAN.md 3.3, 4.4)
+"""Can a policy get paid for stopping? (DESIGN.md 3.3, 4.4)
 
 `deliver` seed 3 converged on `take_iron-plate_20` and never delivered: it ran
 95.9 steps of a 120 budget for +0.062 and scored 0.00 on every evaluation row.

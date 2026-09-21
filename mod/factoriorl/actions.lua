@@ -1,4 +1,4 @@
--- The ten typed embodied actions (PLAN.md 2.1).
+-- The ten typed embodied actions (DESIGN.md 2.1).
 --
 -- Dispatch is matrix-driven: payload presence, types, ranges and defaults are
 -- validated once against `matrix.ACTIONS[name].payload` before any handler
@@ -180,7 +180,7 @@ H.move = function(_, request, payload, respond, err)
   })
 end
 
---- Known-terrain navigation (PLAN.md 5.1).
+--- Known-terrain navigation (DESIGN.md 5.1).
 ---
 -- The route is planned here, at the paused tick the request is handled, so a
 -- rejection carries no partial change: nothing has been touched and the body
@@ -426,7 +426,7 @@ H.place = function(_, request, payload, respond, err)
   end
   -- Base Factorio gates technology at the recipe layer, not at placement, so
   -- holding an item is normally enough. The action profile declares a stricter
-  -- rule so PLAN 2.1's "placement cannot bypass technology restrictions" is
+  -- rule so DESIGN 2.1's "placement cannot bypass technology restrictions" is
   -- directly testable rather than argued transitively.
   local recipe = ch.force.recipes[payload.item]
   if recipe and not recipe.enabled then
@@ -759,7 +759,7 @@ H.wait = function(_, request, _payload, respond, _err)
   return respond(request, CODE.OK, { status = STATUS.COMPLETED, action = "wait" })
 end
 
---- PLAN 5.2: a bounded sequence of typed interactions.
+--- DESIGN 5.2: a bounded sequence of typed interactions.
 --
 -- Execution stops at the first failure and the response names both halves: the
 -- operations that completed and the index that did not. An agent that only

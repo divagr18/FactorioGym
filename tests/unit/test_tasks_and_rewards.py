@@ -47,7 +47,7 @@ def test_every_task_validates():
 
 @pytest.mark.parametrize("task_id", FAMILIES)
 def test_each_task_declares_a_held_out_layout_family(task_id):
-    """PLAN.md section 3: structural holdouts, not merely unseen seeds."""
+    """DESIGN.md section 3: structural holdouts, not merely unseen seeds."""
     spec = get(task_id).spec
     assert spec.families("train"), f"{task_id} has no training family"
     assert spec.families("test"), f"{task_id} has no held-out family"
@@ -326,7 +326,7 @@ def test_potential_shaping_telescopes_to_a_policy_independent_constant():
 
 @pytest.mark.parametrize("task_id", FAMILIES)
 def test_every_high_water_component_is_capped_below_success(task_id):
-    """PLAN section 3: no shaping component's achievable total may reach the
+    """DESIGN section 3: no shaping component's achievable total may reach the
     sparse success weight. `mine_smelt` paid 0.2 per mined ore against a
     success weight of 1.0, so a policy that mined and never smelted could
     out-earn finishing the task several times over."""
@@ -501,7 +501,7 @@ def _unshaped_accountant(*components):
 
 
 def test_step_cost_survives_disabling_shaping():
-    """PLAN 4.4 separates 'shaping made learning faster' from 'shaping changed
+    """DESIGN 4.4 separates 'shaping made learning faster' from 'shaping changed
     the problem'. It cannot do that if one flag moves several variables, and
     step cost is not shaping: it is the task's requirement that the goal be
     reached promptly, present in the sparse formulation too."""

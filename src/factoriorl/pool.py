@@ -1,4 +1,4 @@
-"""Multi-worker orchestration (PLAN.md 1.4).
+"""Multi-worker orchestration (DESIGN.md 1.4).
 
 A :class:`WorkerPool` owns a set of supervised workers and guarantees they are
 released -- ports, processes, and directories -- however the parent run ends.

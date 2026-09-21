@@ -7,7 +7,7 @@ Two blockers R3 could not clear:
   use. `BUILT` and `ANY_WORKING` key on the prototype instead.
 * `PRODUCED` is a monotone counter with no timestamp, so "30 plates, 15 in the
   final window" and "30 plates, line dead since tick 4000" are the same number.
-  That is exactly the distinction book-synthesis §12's gate is made of: "a
+  That is exactly the distinction the literature synthesis §12's gate is made of: "a
   policy that produces a small burst then stops cannot pass a
   sustained-operation objective".
 """

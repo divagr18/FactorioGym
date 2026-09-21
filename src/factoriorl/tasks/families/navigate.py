@@ -1,4 +1,4 @@
-"""Navigate to a work site (PLAN.md 3.2, family 1).
+"""Navigate to a work site (DESIGN.md 3.2, family 1).
 
 The simplest family, and deliberately so: it is the vertical slice every other
 family copies, and the one that answers "does the whole pipeline work" in the

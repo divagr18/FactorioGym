@@ -7,7 +7,7 @@ uv run factoriorl train --task deliver --steps 25000 --skills \
     --holdout docs/evidence/holdout_v3.json --eval-episodes 100
 ```
 
-This exists because PLAN 6.1 asks for a one-command demonstration entrypoint
+This exists because DESIGN 6.1 asks for a one-command demonstration entrypoint
 and R6's gate asks that a stranger be able to run it. It is deliberately the
 *smallest* thing that learns rather than the best thing we have.
 
@@ -75,7 +75,7 @@ R6's gate says to "report actual learning separately from mastery", so:
   across three seeds and two machines, against a random floor measured between
   0.01 and 0.11. It clears the high end of that spread comfortably. That is the
   reproducible learning result R6 asks for.
-- **Mastery:** PLAN 4.5 wants three families at 0.80 on the structural split
+- **Mastery:** DESIGN 4.5 wants three families at 0.80 on the structural split
   with at least one production or repair family. That is **unmet**, and
   recorded as budget-limited rather than as a finding: the published cells are
   0.2–0.3% of the steps a defensible negative would need for the long-horizon

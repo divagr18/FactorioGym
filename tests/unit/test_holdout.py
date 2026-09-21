@@ -1,6 +1,6 @@
-"""Engine-free coverage for the frozen release holdout (PLAN.md 4.5).
+"""Engine-free coverage for the frozen release holdout (DESIGN.md 4.5).
 
-PLAN 4.5 asks for "frozen held-out evaluation" and for the candidate family set
+DESIGN 4.5 asks for "frozen held-out evaluation" and for the candidate family set
 to be declared before any held-out result is read. A JSON file full of digests
 does not deliver either of those on its own -- it delivers them only if something
 fails loudly when the file stops describing the generators. These tests are that
@@ -40,7 +40,7 @@ from factoriorl.tasks.spec import Blueprint, EntitySpec  # noqa: E402
 def document() -> dict:
     if not fh.OUTPUT_PATH.is_file():
         pytest.fail(
-            f"{fh.OUTPUT_PATH} is missing. PLAN 4.5 requires the frozen holdout to be "
+            f"{fh.OUTPUT_PATH} is missing. DESIGN 4.5 requires the frozen holdout to be "
             "committed; regenerate it with `uv run python tools/freeze_holdout.py --write`."
         )
     return json.loads(fh.OUTPUT_PATH.read_text(encoding="utf-8"))
@@ -69,7 +69,7 @@ def test_committed_holdout_still_verifies(document):
 
 
 def test_no_manifest_cites_a_stale_holdout_hash(document):
-    """PLAN 4.5: the hash must match every manifest citing it.
+    """DESIGN 4.5: the hash must match every manifest citing it.
 
     A run that names this holdout under a different hash reports numbers measured
     on other scenes. Passes vacuously while no run cites the holdout, which is
@@ -324,7 +324,7 @@ def test_every_registered_family_is_frozen(document):
 
     Freezing the whole set costs one file and removes the temptation to re-freeze
     when a fourth family later looks promising -- a re-freeze after results are
-    known is precisely the selection PLAN 4.5 forbids.
+    known is precisely the selection DESIGN 4.5 forbids.
     """
     from factoriorl.tasks import all_tasks
 
@@ -334,7 +334,7 @@ def test_every_registered_family_is_frozen(document):
 def test_frozen_families_admit_enough_distinct_scenes(document):
     """A holdout that admits few scenes is evaluated few times, whatever N says.
 
-    PLAN section 3: "a holdout whose generator admits one scene is evaluated
+    DESIGN section 3: "a holdout whose generator admits one scene is evaluated
     once, no matter how many episodes are run against it". Publishing a Wilson
     interval over 100 correlated draws would overstate confidence, so the frozen
     file is checked against the same floor the split audit uses.

@@ -168,7 +168,7 @@ uv run factoriorl demo
 `demo` is **hardwired to `plate_line`** and to the OpenAI-compatible adapter.
 It is not a plain agent run: it drives five phases — commission, measure a
 production window, inject a fuel outage, recover, measure again — which is what
-PLAN 5.7's evidence *is*, so it was not folded into `factoriorl agent`.
+DESIGN 5.7's evidence *is*, so it was not folded into `factoriorl agent`.
 
 It used to write `docs/evidence/phase5-demonstration.json` unconditionally, with
 no `--out`, so running it dirtied the working tree and destroyed committed

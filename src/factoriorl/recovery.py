@@ -16,7 +16,7 @@ report did.
 
 **Machine status is not an outage either.** A *healthy* plate line reads
 `working` on 7.5% of sampled ticks over 102,451 samples
-(`docs/LEDGER.md`): one burner drill outpaces one stone furnace, so the drill
+(the project ledger): one burner drill outpaces one stone furnace, so the drill
 sits in `waiting_for_space_in_destination` most of the time. An instantaneous
 status check on a working line is false 92.5% of the time.
 

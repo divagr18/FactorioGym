@@ -1,4 +1,4 @@
-"""Replay inspection (PLAN.md 5.5), checked without an engine or a provider."""
+"""Replay inspection (DESIGN.md 5.5), checked without an engine or a provider."""
 
 from __future__ import annotations
 
@@ -158,7 +158,7 @@ def test_no_credential_reaches_the_page(tmp_path):
 
 
 def test_capture_is_not_reachable_from_a_policy_action_space():
-    """PLAN 5.6: 'screenshot capture is disabled in ordinary RL training'.
+    """DESIGN 5.6: 'screenshot capture is disabled in ordinary RL training'.
 
     Capture is a client-side facility rather than an action in the matrix, so a
     training run cannot request a frame even by accident and the action-mask
@@ -221,7 +221,7 @@ def test_the_map_draws_where_the_character_has_been(tmp_path):
 
 
 def test_limitations_document_covers_every_deferred_or_broken_thing():
-    """PLAN 6.4: 'deferred functionality is not advertised as available'.
+    """DESIGN 6.4: 'deferred functionality is not advertised as available'.
 
     A limitations file that drifts is worse than none, because a reader cannot
     tell which entries are still true. This pins the ones that are load-bearing
@@ -294,7 +294,7 @@ def test_every_subcommand_has_a_handler():
 
 
 def test_the_provider_diagnostic_names_the_variable_and_never_the_value(monkeypatch):
-    """PLAN 6.1 wants four distinguishable failure classes and the
+    """DESIGN 6.1 wants four distinguishable failure classes and the
     model-provider one had no diagnostic at all -- a missing key, an unreachable
     endpoint and a wrong model name all surfaced as the same stalled agent run.
 

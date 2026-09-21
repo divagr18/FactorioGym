@@ -1,4 +1,4 @@
-"""Engine discovery and version pinning (PLAN.md 0.2).
+"""Engine discovery and version pinning (DESIGN.md 0.2).
 
 The actual game build used for integration is pinned: it is recorded in every
 run manifest and never silently switched. Resolution order:
@@ -46,7 +46,7 @@ DEFAULT_WINDOWS_EXE = r"D:\Factorio\bin\x64\factorio.exe"
 #: steps/s for 90 against 120, no difference, with five times the spread.
 DEFAULT_GAME_SPEED = 90.0
 
-#: Pinned engine build (PLAN.md 0.2). Verified on this workstation.
+#: Pinned engine build (DESIGN.md 0.2). Verified on this workstation.
 EXPECTED_VERSION = "2.0.60"
 EXPECTED_BUILD = 83512
 MINIMUM_SUPPORTED_BUILD = 83512

@@ -1,7 +1,7 @@
 """Shared pytest fixtures.
 
 Engine tests need a real Factorio binary. When it is absent they are skipped
-with a clear reason -- but PLAN.md section 4 is explicit that "tests skipped
+with a clear reason -- but DESIGN.md section 4 is explicit that "tests skipped
 because Factorio was unavailable" is an *incomplete* state for engine-dependent
 work, so the phase gates run with ``--require-engine``, which turns that skip
 into a failure. A gate can then never pass by quietly skipping its evidence.

@@ -105,9 +105,7 @@ def _ore_tiles(family: LayoutFamily, rng) -> list[tuple[int, int]]:
         half_w, half_h = rng.randint(1, 4), rng.randint(1, 4)
         ox, oy = rng.randint(-12, 12), rng.randint(-12, 12)
         span = [
-            (ox + x, oy + y)
-            for x in range(-half_w, half_w + 1)
-            for y in range(-half_h, half_h + 1)
+            (ox + x, oy + y) for x in range(-half_w, half_w + 1) for y in range(-half_h, half_h + 1)
         ]
         return span
     if family.name == "cluttered_patch":
@@ -142,9 +140,7 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
             along = rng.randint(-6, 3)
             length = rng.randint(2, 4)
             for k in range(length):
-                x, y = (
-                    (cx + away, cy + along + k) if vertical else (cx + along + k, cy + away)
-                )
+                x, y = (cx + away, cy + along + k) if vertical else (cx + along + k, cy + away)
                 if (x, y) in seen:
                     continue
                 seen.add((x, y))

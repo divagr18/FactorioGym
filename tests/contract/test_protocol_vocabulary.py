@@ -1,4 +1,4 @@
-"""Python and Lua must share one protocol vocabulary (PLAN.md 1.1, 2.1).
+"""Python and Lua must share one protocol vocabulary (DESIGN.md 1.1, 2.1).
 
 The two sides declare the wire contract independently: Python as enums in
 ``protocol.py`` and a mirror in ``action_matrix.py``, Lua as tables in

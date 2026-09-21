@@ -1,4 +1,4 @@
-"""Restore a power connection (PLAN.md 3.2, family 6).
+"""Restore a power connection (DESIGN.md 3.2, family 6).
 
 A steam setup drives an electric mining drill through a pole chain with one pole
 missing, so the drill is unpowered. Success is the drill reporting `working`,

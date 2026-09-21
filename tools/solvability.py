@@ -1,4 +1,4 @@
-"""Run every reference solution and report what it proves (PLAN.md 3.2).
+"""Run every reference solution and report what it proves (DESIGN.md 3.2).
 
     Reference solutions pass all fixed scenarios.
     Randomized generation passes a declared solvability suite.

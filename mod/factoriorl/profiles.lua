@@ -1,4 +1,4 @@
--- Observation and action profiles (PLAN.md 2.5).
+-- Observation and action profiles (DESIGN.md 2.5).
 --
 -- A profile is a name plus a version, echoed in every observation and every
 -- describe response, so a result cannot omit which profile produced it.
@@ -221,7 +221,7 @@ profiles.ACTION = {
     version = 1,
     assistance = "none",
     available = true,
-    -- Recorded because PLAN.md section 2 requires any approximation to be
+    -- Recorded because DESIGN.md section 2 requires any approximation to be
     -- documented in the action profile. The Phase 2.0 spike found mining and
     -- crafting are both native, so nothing here is approximated; placement is
     -- assembled only because build_from_cursor is LuaPlayer-only.
@@ -241,7 +241,7 @@ profiles.ACTION = {
     terrain_memory = false,
   },
   -- Available from Phase 5.1. `assistance` names what this profile actually
-  -- does, which is the point of the field: PLAN.md 6.4 forbids advertising
+  -- does, which is the point of the field: DESIGN.md 6.4 forbids advertising
   -- deferred functionality as available.
   --
   -- It said "navigation" alone, with a comment that bounded batches "are not"
@@ -260,7 +260,7 @@ profiles.ACTION = {
       mining = "native",
       crafting = "native",
       placement = "assembled",
-      -- Spelled out because PLAN.md section 2 requires any approximation to be
+      -- Spelled out because DESIGN.md section 2 requires any approximation to be
       -- documented in the action profile, and because the alternative -- the
       -- engine pathfinder, or a teleport -- is exactly what an assistance
       -- profile is most likely to be quietly implemented with.
@@ -288,7 +288,7 @@ end
 --- `actions.dispatch` asks before every action, so an assisted action sent to
 --- a primitive worker is rejected as unknown rather than executed. That is the
 --- mechanism behind "primitive and assisted capabilities are distinguishable"
---- (PLAN.md 2.5) and behind every Phase 3/4 result staying comparable: a
+--- (DESIGN.md 2.5) and behind every Phase 3/4 result staying comparable: a
 --- primitive run cannot reach `navigate` even if a client asks for it.
 function profiles.permits(action_profile, action_name)
   if not action_profile or not action_profile.actions then return true end

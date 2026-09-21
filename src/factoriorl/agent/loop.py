@@ -1,9 +1,9 @@
-"""The provider-independent agent loop (PLAN.md 5.3).
+"""The provider-independent agent loop (DESIGN.md 5.3).
 
 Reset, summarise, ask, validate, step, repeat. The loop owns everything that
 must be identical across providers -- the observation summary, the action
 contract, the validation, the retry bound and the record -- and adapters own
-nothing but the call. That split is what makes PLAN 5.3's "local and API models
+nothing but the call. That split is what makes DESIGN 5.3's "local and API models
 use the same observation and action contracts" a property of the code rather
 than a claim about it: an adapter has no way to reach the environment, and the
 loop has no provider-specific branch.
@@ -35,7 +35,6 @@ from factoriorl import assistance as assistance_module
 from factoriorl import manifest as manifest_module
 from factoriorl.agent.adapters import DEFAULT_MAX_TOKENS, ModelAdapter, ModelReply, ModelRequest
 from factoriorl.agent.memory import Memory
-from factoriorl.agent.policy import build_policy_turn, policy_static_prefix
 from factoriorl.agent.parsing import (
     MAX_ACTIONS_PER_SEQUENCE,
     DecisionFailure,
@@ -45,19 +44,15 @@ from factoriorl.agent.parsing import (
     check_against_state,
     parse_sequence,
 )
+from factoriorl.agent.policy import build_policy_turn, policy_static_prefix
 from factoriorl.agent.summary import (
     SUMMARY_ENCODING_VERSION,
     LegalAction,
     ObservationSummary,
     TaskBrief,
     action_vocabulary,
-    argument_domains,
     argument_requirements,
     legal_actions,
-    objective_block,
-    static_reference,
-    summarise,
-    survey_block,
     targetable_actions,
     visible_handles,
 )
@@ -68,7 +63,7 @@ from factoriorl.agent.transcript import Transcript
 _PROVENANCE_CONSUMED = frozenset({"engine", "assistance", "seeds", "workers"})
 
 #: How many times one decision may be asked for before the loop stops asking.
-#: Declared here rather than buried in the loop because PLAN 5.3 requires the
+#: Declared here rather than buried in the loop because DESIGN 5.3 requires the
 #: retry bound to exist; three is one honest attempt plus two corrections, and a
 #: model that cannot produce a catalog index after being told twice what was
 #: wrong with its answer is not going to on the fourth try -- it is a prompt or
@@ -77,7 +72,7 @@ _PROVENANCE_CONSUMED = frozenset({"engine", "assistance", "seeds", "workers"})
 MAX_ATTEMPTS_PER_DECISION = 3
 
 #: How many consecutive decisions may fall back before the run is stopped and
-#: recorded as failed. PLAN 5.3 permits "bounded retries **or** a recorded
+#: recorded as failed. DESIGN 5.3 permits "bounded retries **or** a recorded
 #: failure"; this is the second half. Without it a broken endpoint produces a
 #: 600-step episode of waiting that looks like a played episode in the results.
 MAX_CONSECUTIVE_FALLBACKS = 5
@@ -281,11 +276,11 @@ class AgentConfig:
     #: primitives and 0.04 over skills, and before today's hardening it was 0.80.
     skills: bool = False
     #: Keep a record of what has been observed and tried, and render it into the
-    #: prompt (PLAN 5.4). Per *episode*, never across them: memory that survived
+    #: prompt (DESIGN 5.4). Per *episode*, never across them: memory that survived
     #: an episode boundary would carry one evaluation scene's contents into the
     #: next, which is contamination rather than competence.
     memory: bool = True
-    #: Let the model name the entity an action acts on (PLAN 5.2's typed
+    #: Let the model name the entity an action acts on (DESIGN 5.2's typed
     #: interactions). The catalog binds `$target` to the *nearest* entity
     #: because a discrete index cannot carry an argument, which is why a policy
     #: oscillated between two chests, one skill solved `navigate` 99 times in
@@ -1124,7 +1119,7 @@ class AgentLoop:
                 "success": bool(info.get("success", False)),
                 "infrastructure_failure": info.get("infrastructure_failure"),
                 # An assisted action is one decision to the model and many to
-                # the engine. PLAN 5.5 requires the replay to expand it, so the
+                # the engine. DESIGN 5.5 requires the replay to expand it, so the
                 # primitives it actually issued travel with the decision rather
                 # than being summarised into a count.
                 "skill": info.get("skill"),
@@ -1244,7 +1239,7 @@ class AgentLoop:
             "stopped": stopped,
             "total_reward": round(total_reward, 4),
             "success": bool(info.get("success", False)),
-            # An infrastructure failure is not a task outcome (PLAN section 2),
+            # An infrastructure failure is not a task outcome (DESIGN section 2),
             # so it is carried through to the result rather than counted as a
             # loss the model earned.
             "excluded_from_metrics": bool(info.get("excluded_from_metrics", False)),

@@ -1,12 +1,12 @@
-"""Train a policy by cloning the scripted solver (PLAN.md 4.2 note, option C).
+"""Train a policy by cloning the scripted solver (DESIGN.md 4.2 note, option C).
 
     The scripted solvers we already have make this the cheapest budget in the
     whole program -- a few thousand demonstration episodes, hours not weeks. It
     is also the only mechanism in the book that can make `restore_power`
     learnable.
-    -- `docs/research/rl-theory.md`, R6, citing ABJKS Thm. 13.3/13.4.
+    -- the RL theory notes, R6, citing ABJKS Thm. 13.3/13.4.
 
-This is a *separate training mode*, not a variant of the baseline. PLAN 4.2
+This is a *separate training mode*, not a variant of the baseline. DESIGN 4.2
 forbids scripted-solution labels during ordinary PPO training, and that rule is
 what makes the Phase 4 baseline mean anything, so a run from here writes
 `training_mode: behaviour-cloning-v1` into its manifest and belongs in its own
@@ -258,7 +258,7 @@ def main() -> int:
                 # Stated here as well as in the module, because this file is what
                 # a reader of the results will open.
                 "not_comparable_to": (
-                    "a PPO baseline run. PLAN 4.2 forbids scripted-solution labels "
+                    "a PPO baseline run. DESIGN 4.2 forbids scripted-solution labels "
                     "during ordinary training; this run is built from them."
                 ),
                 "demonstrations": data.summary(),

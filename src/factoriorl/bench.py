@@ -1,4 +1,4 @@
-"""Transport measurement (PLAN.md 11.4: every optimization has a before/after).
+"""Transport measurement (DESIGN.md 11.4: every optimization has a before/after).
 
 This is the measurement that Phase T's optimizations are chosen and judged by.
 It answers four questions with numbers rather than reasoning:

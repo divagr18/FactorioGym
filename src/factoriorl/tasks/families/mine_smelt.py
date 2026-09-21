@@ -1,6 +1,6 @@
-"""Mine ore and produce plates (PLAN.md 3.2, family 3).
+"""Mine ore and produce plates (DESIGN.md 3.2, family 3).
 
-The production family, and the qualifying one for PLAN 4.5's "at least one must
+The production family, and the qualifying one for DESIGN 4.5's "at least one must
 involve production or repair".
 
 Success is measured from **force production statistics**, not from an inventory
@@ -77,7 +77,7 @@ SPEC = TaskSpec(
     max_game_ticks=24000,
     # Success is a force production statistic, so no predicate names a position
     # and the split audit had nothing to measure a route to: it reported this
-    # task's difficulty parity as unmeasurable, which PLAN.md section 3 requires
+    # task's difficulty parity as unmeasurable, which DESIGN.md section 3 requires
     # to be published before a held-out score can be read as transfer.
     #
     # The route is spawn -> ore patch -> furnace, and `patch` is its far end:

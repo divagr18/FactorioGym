@@ -1,6 +1,6 @@
 """What the base game actually puts in a new player's inventory.
 
-`docs/AGENTIC_ROADMAP-2026-09-10.md` A1.1: "Obtain the base game's ordinary
+the agent roadmap A1.1: "Obtain the base game's ordinary
 starting-item definition from the installed game's scenario source and mirror it
 for the controlled character; record the exact inventory and initialization
 version."

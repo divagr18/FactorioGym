@@ -1,4 +1,4 @@
-"""Worker supervision (PLAN.md 1.3).
+"""Worker supervision (DESIGN.md 1.3).
 
 Responsibilities:
 

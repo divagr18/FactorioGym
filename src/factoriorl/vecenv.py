@@ -1,4 +1,4 @@
-"""Threaded vectorised environment (PLAN.md 4.3).
+"""Threaded vectorised environment (DESIGN.md 4.3).
 
 A 30-tick decision interval costs ~5.5 ms of engine time on this machine and a
 round trip adds a couple of milliseconds, so a single worker steps in about

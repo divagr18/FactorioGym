@@ -1,11 +1,11 @@
-"""Engine-free coverage for the model-adapter agent loop (PLAN.md 5.3).
+"""Engine-free coverage for the model-adapter agent loop (DESIGN.md 5.3).
 
 Every test here runs offline: no network, no API key, no Factorio. That is not a
 concession -- it is the design. A scripted adapter lives in the package rather
 than in this file precisely so the loop can be exercised in CI, and the two HTTP
 adapters are tested by capturing the request they would have sent.
 
-The criteria being checked are PLAN 5.3's, verbatim:
+The criteria being checked are DESIGN 5.3's, verbatim:
 
 * provider responses become validated typed actions;
 * malformed outputs produce bounded retries or a recorded failure;
@@ -185,7 +185,7 @@ def loop_for(env: StubEnv, adapter, tmp_path, **config_kwargs) -> AgentLoop:
 
 
 def test_the_summary_offers_only_actions_the_environment_would_accept():
-    """PLAN 5.3: a model must never be offered an action the env would reject."""
+    """DESIGN 5.3: a model must never be offered an action the env would reject."""
     env = StubEnv(entities=False)
     rendered = summary_for(env).render()
     mask = env.action_masks()
@@ -270,7 +270,7 @@ def test_the_brief_carries_the_declared_description_not_the_success_predicate():
 
 
 def test_remembered_entities_are_marked_stale_with_their_age():
-    """PLAN section 2 forbids presenting distant machine state as current."""
+    """DESIGN section 2 forbids presenting distant machine state as current."""
     rendered = summary_for(StubEnv()).render()
     assert "REMEMBERED" in rendered
     assert "420 ticks ago" in rendered
@@ -374,7 +374,7 @@ def test_a_valid_response_is_executed_and_recorded(tmp_path):
 
 
 def test_retries_are_bounded_and_every_attempt_is_recorded(tmp_path):
-    """PLAN 5.3: malformed output produces bounded retries *or* a recorded
+    """DESIGN 5.3: malformed output produces bounded retries *or* a recorded
     failure. Here the bound is reached, so both halves are visible: three
     attempts with three distinguishable reasons, and a decision that is recorded
     as a fallback rather than as something the model chose."""
@@ -517,7 +517,7 @@ def test_the_run_artifact_carries_no_evaluator_state(tmp_path):
     iterate `(tmp_path / "run").iterdir()` and nothing else, which passes
     silently in two ways a refactor could easily produce: an empty run
     directory, and artifacts moved one level down, since `iterdir` does not
-    recurse. `docs/LEDGER.md` makes the general point about a different check
+    recurse. the project ledger makes the general point about a different check
     -- "a leakage check that never fires is not evidence of a clean reset" --
     and this is that check for the agent artifacts.
     """
@@ -572,7 +572,7 @@ class _EchoingEndpoint(OpenAICompatibleAdapter):
 
 
 def test_a_credential_is_read_from_the_environment_and_never_written(tmp_path, monkeypatch):
-    """PLAN 5.3: credentials remain outside run artifacts."""
+    """DESIGN 5.3: credentials remain outside run artifacts."""
     monkeypatch.setenv("FACTORIORL_TEST_MODEL_KEY", KEY_SENTINEL)
     adapter = _EchoingEndpoint(
         base_url="http://127.0.0.1:1/v1",
@@ -650,7 +650,7 @@ def _capture(adapter) -> dict:
 
 
 def test_a_local_endpoint_and_an_api_provider_send_the_same_observation():
-    """PLAN 5.3: local and API models use the same observation contract.
+    """DESIGN 5.3: local and API models use the same observation contract.
 
     Structural rather than aspirational: the loop builds one `ModelRequest` and
     both adapters carry its text through unchanged, so there is no route by
@@ -684,7 +684,7 @@ def test_the_api_adapter_omits_sampling_parameters():
 
 
 def test_usage_data_is_recorded_when_the_provider_returns_it():
-    """PLAN 5.3: available usage data is recorded."""
+    """DESIGN 5.3: available usage data is recorded."""
     api = AnthropicMessagesAdapter(api_key_env="FACTORIORL_UNSET_KEY")
     _capture(api)
     reply = api.complete(ModelRequest(system="s", user="u"))
@@ -770,7 +770,7 @@ def test_the_agent_loop_never_imports_the_training_stack():
 class _LocalServer:
     """A minimal OpenAI-compatible chat-completions endpoint on localhost.
 
-    PLAN 5.3 asks that "local and API models use the same observation and action
+    DESIGN 5.3 asks that "local and API models use the same observation and action
     contracts". Until this existed only the API path had ever run, so the claim
     rested on the adapters looking similar rather than on the local one having
     worked. This is a real HTTP server the real adapter really posts to, so the

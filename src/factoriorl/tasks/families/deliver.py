@@ -1,4 +1,4 @@
-"""Retrieve and deliver items (PLAN.md 3.2, family 2).
+"""Retrieve and deliver items (DESIGN.md 3.2, family 2).
 
 Success is measured on the destination container, by marker: not on the
 character's inventory, and not on "a container somewhere holds the goods". That

@@ -1,4 +1,4 @@
--- Ongoing actions (PLAN.md 2.2): one registry for every operation that spans
+-- Ongoing actions (DESIGN.md 2.2): one registry for every operation that spans
 -- decision intervals.
 --
 -- This replaces two single-purpose hacks: the advance's dedicated
@@ -281,7 +281,7 @@ POLLS.mine = function(entry)
   if not target then
     -- The patch tile emptied. Anything already mined still counts, but the
     -- operation cannot continue: a target becoming unavailable is a recorded
-    -- failure (PLAN.md 2.2), not a silent stop.
+    -- failure (DESIGN.md 2.2), not a silent stop.
     ch.mining_state = { mining = false }
     -- Counted here rather than from `on_player_mined_item`, because whether
     -- that event fires for the controlled character depends on whether the

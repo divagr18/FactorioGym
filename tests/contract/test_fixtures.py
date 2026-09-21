@@ -5,7 +5,7 @@ Two corpora live side by side:
 * ``protocol_v1/`` is **frozen history**. It is not migrated and not deleted;
   it is validated only against the shape it was written with, and the engine
   suite sends one of its requests verbatim to prove a v1 request is now
-  refused. That turns a dead directory into live evidence for PLAN.md 1.1's
+  refused. That turns a dead directory into live evidence for DESIGN.md 1.1's
   "unknown protocol versions fail clearly" -- against a real historical
   version rather than an invented one.
 * ``protocol_v2/`` is the live corpus, validated against the current Python
@@ -64,7 +64,7 @@ def test_frozen_v1_corpus_is_retained():
 
 def test_v2_covers_the_required_cases():
     names = {p.stem for p in _fixtures(V2_DIR)}
-    # PLAN.md 1.1: success, invalid action, ongoing operation, reset,
+    # DESIGN.md 1.1: success, invalid action, ongoing operation, reset,
     # observation -- plus what v2 adds.
     assert {
         "advance_success",

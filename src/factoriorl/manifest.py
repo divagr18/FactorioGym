@@ -1,4 +1,4 @@
-"""Run manifests (PLAN.md section 2).
+"""Run manifests (DESIGN.md section 2).
 
     Every run records the game build, mod version, protocol version, task
     version, observation profile, assistance profile, reward configuration,
@@ -32,7 +32,7 @@ from factoriorl.protocol import PROTOCOL_VERSION
 
 MANIFEST_VERSION = 1
 
-#: Fields PLAN.md section 2 requires. The schema test asserts each is present
+#: Fields DESIGN.md section 2 requires. The schema test asserts each is present
 #: and non-null, so "we record everything" is checkable rather than asserted.
 REQUIRED_FIELDS = (
     "engine",
@@ -102,7 +102,7 @@ def _git() -> dict:
 def host_info() -> dict:
     """Measured, never hardcoded.
 
-    PLAN.md names a Ryzen 5 5600 desktop as the training machine; the actual
+    DESIGN.md names a Ryzen 5 5600 desktop as the training machine; the actual
     host is this laptop. A manifest that claimed the desktop's figures would be
     a false provenance record, so the host is read at runtime.
     """

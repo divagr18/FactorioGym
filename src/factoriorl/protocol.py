@@ -94,7 +94,7 @@ class RequestType(StrEnum):
 
 
 class ActionType(StrEnum):
-    """The ten actions of PLAN.md 2.1, mirroring ``mod/factoriorl/matrix.lua``."""
+    """The ten actions of DESIGN.md 2.1, mirroring ``mod/factoriorl/matrix.lua``."""
 
     MOVE = "move"
     MINE = "mine"

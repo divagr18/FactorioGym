@@ -1,4 +1,4 @@
-"""Known-terrain navigation (PLAN.md 5.1), against a real engine.
+"""Known-terrain navigation (DESIGN.md 5.1), against a real engine.
 
 The assistance profile is the part of this system most likely to be quietly
 implemented with a teleport or with the engine's own pathfinder, and neither

@@ -1,4 +1,4 @@
-"""Reward accounting (PLAN.md 3.5).
+"""Reward accounting (DESIGN.md 3.5).
 
 Computed in **Python**, over monotone counters the Lua side maintains. Lua stays
 authoritative for world state; Python owns scoring. That split buys three
@@ -101,7 +101,7 @@ class RewardAccountant:
             # formulation any comparison is made against.
             #
             # Gating it here meant `--no-shaping` removed the shaping terms and
-            # the time pressure together. PLAN 4.4 exists to separate "shaping
+            # the time pressure together. DESIGN 4.4 exists to separate "shaping
             # made learning faster" from "shaping changed the problem", and it
             # cannot do that while a single flag moves several variables.
             if component.kind is RewardKind.STEP_COST:

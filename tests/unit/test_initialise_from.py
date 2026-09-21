@@ -27,7 +27,7 @@ neither scratch nor cloned, with a result attributable to nothing.
 after mean the flag was a no-op and the run is a scratch run wearing a label,
 which is worse than an error because it publishes.
 
-**The run says what it is.** PLAN 4.2 forbids scripted-solution labels during
+**The run says what it is.** DESIGN 4.2 forbids scripted-solution labels during
 ordinary PPO training. This arm inherits parameters fitted on exactly those
 labels, so it is not comparable to a scratch run, and that is only enforceable
 if the manifest records it.
@@ -171,7 +171,7 @@ def test_an_architecture_mismatch_is_refused_with_both_signatures(model, tmp_pat
 
 
 def test_the_record_names_what_it_is_not_comparable_to(model, checkpoints):
-    """PLAN 4.2's prohibition is on the training signal, and this arm inherits
+    """DESIGN 4.2's prohibition is on the training signal, and this arm inherits
     parameters fitted on exactly the labels it forbids. The arm is legitimate
     and must not share a column with scratch PPO, which only the label
     enforces."""

@@ -1,6 +1,6 @@
-"""Provider-independent model adapters (PLAN.md 5.3).
+"""Provider-independent model adapters (DESIGN.md 5.3).
 
-PLAN 5.3 asks for "a provider-independent agent loop with adapters for a
+DESIGN 5.3 asks for "a provider-independent agent loop with adapters for a
 configurable local inference endpoint and optional API providers", and lists as
 an acceptance criterion that "local and API models use the same observation and
 action contracts". The way that is made *structurally* true rather than merely
@@ -17,7 +17,7 @@ loop that dragged a provider SDK into it would undo that. Both HTTP adapters use
 ``urllib`` from the standard library.
 
 **Latency is measured around every call and reported even when the call fails.**
-A provider that times out is a result, not an absence of one: PLAN 5.3 wants
+A provider that times out is a result, not an absence of one: DESIGN 5.3 wants
 inference latency recorded, and a record that silently omitted the slow failures
 would misreport exactly the cases anyone reads the record to find.
 """
@@ -284,7 +284,7 @@ class _HTTPAdapter(ModelAdapter):
 
 
 class OpenAICompatibleAdapter(_HTTPAdapter):
-    """A configurable local inference endpoint (PLAN 5.3's first adapter).
+    """A configurable local inference endpoint (DESIGN 5.3's first adapter).
 
     The OpenAI chat-completions shape is what local servers speak -- llama.cpp,
     vLLM, LM Studio and Ollama all expose it -- so one adapter covers the whole
@@ -500,7 +500,7 @@ class OpenAICompatibleAdapter(_HTTPAdapter):
 
 
 class AnthropicMessagesAdapter(_HTTPAdapter):
-    """An API provider (PLAN 5.3's second adapter), over the Messages API.
+    """An API provider (DESIGN 5.3's second adapter), over the Messages API.
 
     Raw HTTP rather than the ``anthropic`` SDK, for the packaging reason above.
     Two provider-specific details are worth naming because getting them wrong

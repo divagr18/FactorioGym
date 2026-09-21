@@ -1,4 +1,4 @@
-"""Phase 2 exit gate (PLAN.md).
+"""Phase 2 exit gate (DESIGN.md).
 
     an embodied scripted agent can navigate, gather resources, produce an item,
     and interact with machinery without privileged mutations
@@ -11,7 +11,7 @@ setup does use the evaluator channel, but only before the agent starts, and
 every such call is recorded in the report with its tick -- so
 `privileged_calls_by_agent: 0` is a measurement, not a claim.
 
-Each step is cross-referenced to the PLAN.md acceptance criterion it satisfies.
+Each step is cross-referenced to the DESIGN.md acceptance criterion it satisfies.
 """
 
 from __future__ import annotations
@@ -129,7 +129,7 @@ def _walk_towards(session: WorkerSession, target, report: GateReport, budget: in
         timed = session.step({"action": "move", "direction": direction, "ticks": 30}, ticks=30)
         result = timed.response.result or {}
         observation = result.get("observation") or _observe(session)
-        # Movement is greedy: Phase 2 has no pathfinding (PLAN.md defers
+        # Movement is greedy: Phase 2 has no pathfinding (DESIGN.md defers
         # navigation to 5.1), so an obstacle stops progress entirely. Detect
         # that rather than spinning out the budget in silence.
         moved = observation["character"]["position"]

@@ -1,6 +1,6 @@
-"""A published number must name a scene set someone can find (PLAN 4.5).
+"""A published number must name a scene set someone can find (DESIGN 4.5).
 
-PLAN 4.5 requires the holdout's hash to "match every manifest citing it", and
+DESIGN 4.5 requires the holdout's hash to "match every manifest citing it", and
 `tools/freeze_holdout.manifests_citing` exists so that is checkable from the
 outside. But nothing checked the other direction: whether a published
 *release* file cites a holdout that still exists.
@@ -134,8 +134,8 @@ def test_the_live_holdout_is_cited_by_something():
     # every published release file predates the live freeze, so **no published
     # release number has ever been measured against `holdout_v3` as it stands
     # today**. When that changes this test fails, which is the point: it forces
-    # docs/CURRENT_STATUS.md to be updated in the same change.
+    # the published results to be updated in the same change.
     assert citing == [], (
         f"{citing} now cite the live holdout. That is progress -- update this "
-        "test and the results table in docs/CURRENT_STATUS.md together."
+        "test and the published results table together."
     )

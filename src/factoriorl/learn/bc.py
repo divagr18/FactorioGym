@@ -1,10 +1,10 @@
-"""Behaviour cloning from the scripted reference solutions (PLAN.md 4.2 note).
+"""Behaviour cloning from the scripted reference solutions (DESIGN.md 4.2 note).
 
     BC needs `M >~ ln(|Pi|/delta) gamma^2 / ((1-gamma)^4 eps^2)` expert
     state-action pairs, with **no exploration term at all** and no dependence
     on `|A|^H`.
     -- ABJKS Thm. 13.3 (p.162), Thm. 13.4 (p.163); see
-       `docs/research/rl-theory.md`.
+       the RL theory notes.
 
 Why this exists
 ---------------
@@ -24,7 +24,7 @@ program, and the only mechanism that makes `restore_power` learnable at all.
 
 The line this must not cross
 ----------------------------
-PLAN 4.2: "the agent receives no scripted solution labels during ordinary PPO
+DESIGN 4.2: "the agent receives no scripted solution labels during ordinary PPO
 training." That rule is what makes the Phase 4 baseline mean something, so BC is
 **a separate, declared training mode**: its own entrypoint, its own
 `training_mode` in the manifest, and its own column in any results table. It is

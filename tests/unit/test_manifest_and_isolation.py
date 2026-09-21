@@ -1,8 +1,8 @@
-"""Manifests and dependency isolation (PLAN.md sections 2 and 4.1).
+"""Manifests and dependency isolation (DESIGN.md sections 2 and 4.1).
 
 Two properties that are easy to claim and easy to break silently:
 
-* a run manifest records everything PLAN section 2 requires -- otherwise it is
+* a run manifest records everything DESIGN section 2 requires -- otherwise it is
   decoration, which is exactly what the old four-key report was;
 * the environment never imports the training stack, so evaluation cannot be
   changed by having torch installed.
@@ -42,7 +42,7 @@ def _manifest(tmp_path, monkeypatch) -> dict:
 def test_manifest_carries_every_required_field(tmp_path, monkeypatch):
     data = _manifest(tmp_path, monkeypatch)
     missing = [key for key in manifest_module.REQUIRED_FIELDS if not data.get(key)]
-    assert not missing, f"manifest is missing PLAN section 2 fields: {missing}"
+    assert not missing, f"manifest is missing DESIGN section 2 fields: {missing}"
 
 
 def test_manifest_records_the_protocol_and_mod_it_was_produced_with(tmp_path, monkeypatch):
@@ -111,7 +111,7 @@ print(",".join(banned))
 
 
 def test_the_environment_never_imports_the_training_stack():
-    """PLAN 4.1: evaluation must run without training dependencies changing
+    """DESIGN 4.1: evaluation must run without training dependencies changing
     environment behaviour. Import isolation is the mechanical form of that."""
     result = subprocess.run(
         [sys.executable, "-c", ENV_IMPORT_PROBE],
@@ -146,7 +146,7 @@ print(",".join(leaked))
     reason="training stack not installed",
 )
 def test_training_entrypoint_does_not_import_reference_solutions():
-    """PLAN 4.2: no scripted solution labels during ordinary PPO training."""
+    """DESIGN 4.2: no scripted solution labels during ordinary PPO training."""
     result = subprocess.run(
         [sys.executable, "-c", REFERENCE_SOLUTION_PROBE],
         capture_output=True,

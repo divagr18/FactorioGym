@@ -42,7 +42,7 @@ def cmd_doctor(_args) -> int:
     checking the pin. `WorkerManager.__init__` is the only caller of
     `assert_compatible`, so a user on the wrong build got a clean bill from the
     diagnostic and a refusal much later from a worker launch -- the opposite of
-    PLAN 6.1's requirement that diagnostics distinguish a game-setup problem
+    DESIGN 6.1's requirement that diagnostics distinguish a game-setup problem
     from a connection, dependency or provider one.
     """
     try:
@@ -198,7 +198,7 @@ def cmd_phase4_gate(args) -> int:
 
 
 def default_workers() -> int:
-    """PLAN 4.3: the default falls out of measurement, not out of taste.
+    """DESIGN 4.3: the default falls out of measurement, not out of taste.
 
     Read from the committed profiling report so the shipped default always
     cites a measurement someone can check, and fall back to one worker when no
@@ -483,7 +483,7 @@ def cmd_agent(args) -> int:
     `agent.runner.run_task` from Python. `docs/LIMITATIONS.md` recorded the gap.
 
     Two things this command owns that no earlier entrypoint did, both from
-    `docs/AGENTIC_ROADMAP-2026-09-10.md` A0.3: a spend cap that refuses to
+    the agent roadmap A0.3: a spend cap that refuses to
     dispatch a request it cannot afford, and a wall clock that starts at the
     first gameplay observation rather than at process start.
     """
@@ -701,7 +701,7 @@ def cmd_doctor_train(_args) -> int:
 
 
 def cmd_doctor_agent(args, collect: list | None = None) -> int:
-    """The fourth diagnostic PLAN 6.1 asks for, and the one that was missing.
+    """The fourth diagnostic DESIGN 6.1 asks for, and the one that was missing.
 
     6.1 requires diagnostics that distinguish game setup, connection, dependency
     and *model-provider* problems. The first three had `doctor` and
@@ -993,10 +993,10 @@ def cmd_preflight(args) -> int:
 
 
 def cmd_demo(args) -> int:
-    """One-command agent demonstration (PLAN 6.1).
+    """One-command agent demonstration (DESIGN 6.1).
 
     Still the five-phase driver -- commission, measure, disrupt, recover,
-    measure -- because that structure *is* PLAN 5.7's evidence. What changed is
+    measure -- because that structure *is* DESIGN 5.7's evidence. What changed is
     that it now runs under a spend cap and writes run-local by default.
     """
     # Each flag named explicitly rather than looped over a tuple of dest names.
@@ -1028,14 +1028,14 @@ def cmd_demo(args) -> int:
 
 
 def cmd_replay(args) -> int:
-    """Render a run's replay (PLAN 6.1, 5.5)."""
+    """Render a run's replay (DESIGN 6.1, 5.5)."""
     return _run_tool("replay", [args.run, *args.rest])
 
 
 def _run_tool(name: str, argv: list[str]) -> int:
     """Run a repository tool as a subcommand.
 
-    PLAN 6.1 asks for one-command entrypoints, and a user should not have to
+    DESIGN 6.1 asks for one-command entrypoints, and a user should not have to
     know that some capabilities live under `tools/` while others are
     subcommands. The tools stay where they are -- they are also run directly in
     development -- and this is the published surface.
@@ -1088,7 +1088,7 @@ def cmd_action_matrix(args) -> int:
 def cmd_phase1_gate(_args) -> int:
     """Run the engine suite and record its output as gate evidence.
 
-    PLAN.md 1 exit gate: protocol contract tests and lifecycle fault tests
+    DESIGN.md 1 exit gate: protocol contract tests and lifecycle fault tests
     passing against actual Factorio workers. Recording the transcript is part
     of the gate, not an afterthought -- a gate whose evidence is not written
     down cannot be re-checked later.
@@ -1102,7 +1102,7 @@ def cmd_phase1_gate(_args) -> int:
         "tests/engine",
         "-v",
         "--tb=short",
-        # A gate must never pass by skipping its own evidence (PLAN.md sec. 4).
+        # A gate must never pass by skipping its own evidence (DESIGN.md sec. 4).
         "--require-engine",
         "-p",
         "no:cacheprovider",
@@ -1211,7 +1211,7 @@ def main(argv: list[str] | None = None) -> int:
     train_cmd.add_argument(
         "--skills",
         action="store_true",
-        help="add temporally extended actions to the catalog (PLAN 4b)",
+        help="add temporally extended actions to the catalog (DESIGN 4b)",
     )
     train_cmd.add_argument("--prefix", default="train")
     train_cmd.add_argument(
@@ -1223,7 +1223,7 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("doctor-train", help="check the training stack and CUDA")
     agent_doctor = sub.add_parser(
-        "doctor-agent", help="check the model provider (PLAN 6.1's fourth failure class)"
+        "doctor-agent", help="check the model provider (DESIGN 6.1's fourth failure class)"
     )
     agent_doctor.add_argument("--base-url", default="http://127.0.0.1:8080/v1")
     agent_doctor.add_argument("--model", default="local-model")
@@ -1414,7 +1414,7 @@ def main(argv: list[str] | None = None) -> int:
     # printed nothing at all and the two flags that decide whether a run bills a
     # provider and whether it overwrites tracked evidence were invisible from the
     # command people are told to use.
-    demo_cmd = sub.add_parser("demo", help="run the agent demonstration (PLAN 5.7)")
+    demo_cmd = sub.add_parser("demo", help="run the agent demonstration (DESIGN 5.7)")
     demo_cmd.add_argument("--model", default=None)
     demo_cmd.add_argument("--base-url", default=None)
     demo_cmd.add_argument("--api-key-env", default=None)
@@ -1432,11 +1432,11 @@ def main(argv: list[str] | None = None) -> int:
     demo_cmd.add_argument("--max-cost-usd", type=float, default=None)
     demo_cmd.add_argument("--max-wall-seconds", type=float, default=None)
 
-    replay_cmd = sub.add_parser("replay", help="render a run's replay viewer (PLAN 5.5)")
+    replay_cmd = sub.add_parser("replay", help="render a run's replay viewer (DESIGN 5.5)")
     replay_cmd.add_argument("run")
     replay_cmd.add_argument("rest", nargs=argparse.REMAINDER)
 
-    prof = sub.add_parser("profile", help="worker-count throughput profiling (PLAN 4.3)")
+    prof = sub.add_parser("profile", help="worker-count throughput profiling (DESIGN 4.3)")
     prof.add_argument("--workers", default="1,2,4,8")
     prof.add_argument("--task", default="navigate")
     prof.add_argument("--steps", type=int, default=120)

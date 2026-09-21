@@ -283,7 +283,7 @@ class RCONClient:
         permanently -- the late reply arrived during the *next* call and every
         call after it raised "unexpected rcon packet id". Replies bearing an id
         older than the current call are now drained as the stale packets they
-        are, which is what PLAN.md section 2 means by resolving an uncertain
+        are, which is what DESIGN.md section 2 means by resolving an uncertain
         transport outcome rather than poisoning the transport.
 
         ``expect_response=False`` is for commands that end the session (``/quit``),

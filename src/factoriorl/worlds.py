@@ -1,6 +1,6 @@
 """Open worlds: generated maps with no declared scene and no success predicate.
 
-`docs/AGENTIC_ROADMAP-2026-09-10.md` A0.1 asks for an `open_factory` mode "without
+the agent roadmap A0.1 asks for an `open_factory` mode "without
 changing existing frozen task definitions or holdouts". This module is how that
 constraint is met: an open world is **not** a `RegisteredTask`.
 
@@ -111,7 +111,7 @@ class WorldMode:
 #: observed, will reasonably assume nothing is.
 #:
 #: Rewritten at 0.4.0 against two measured runs
-#: (`docs/HANDOFF-OBJECTIVE-AMBITION-2026-09-11.md`). The previous text had
+#: (the objective-ambition notes). The previous text had
 #: three defects, all of which the runs exercised: it listed hand-gathering and
 #: hand-crafting *first* among what is measured, contradicting its own bullet
 #: calling them bootstrap rather than production; it made research conditional

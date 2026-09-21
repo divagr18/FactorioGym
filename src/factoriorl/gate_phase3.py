@@ -1,4 +1,4 @@
-"""Phase 3 exit gate (PLAN.md).
+"""Phase 3 exit gate (DESIGN.md).
 
     all six task families run through Gymnasium with real workers, reference
     solutions, and clean resets
@@ -200,7 +200,7 @@ def run_phase3_gate(worker_id: str = "phase3-gate") -> dict:
             # promptly, and it is present in the sparse formulation any
             # comparison is drawn against. This check previously demanded that
             # every non-success reward vanish, which is what let `--no-shaping`
-            # quietly remove the time pressure as well and made PLAN 4.4's
+            # quietly remove the time pressure as well and made DESIGN 4.4's
             # comparison move several variables at once.
             step_cost = sum(
                 abs(c.weight) for c in task.spec.rewards if c.kind is RewardKind.STEP_COST
@@ -246,7 +246,7 @@ def run_phase3_gate(worker_id: str = "phase3-gate") -> dict:
                 examples=[c["example"] for c in cov["held_out_cells"]][:2],
             )
 
-        # ---- 2b. reference solutions (PLAN.md 3.2) ---------------------
+        # ---- 2b. reference solutions (DESIGN.md 3.2) ---------------------
         # The check this gate was missing. A task whose scripted solution
         # cannot finish is unsolvable *through the catalog the policy is
         # given* -- a task defect, not a training result. Without this the
@@ -333,7 +333,7 @@ def run_phase3_gate(worker_id: str = "phase3-gate") -> dict:
             end=growth_end,
         )
 
-        # ---- fresh-worker comparison (PLAN.md 3.3) ---------------------
+        # ---- fresh-worker comparison (DESIGN.md 3.3) ---------------------
         # The check that makes reset correctness meaningful: a long-running
         # worker and a brand-new process must agree on the same scene.
         reference_handle = manager.launch(f"{worker_id}-reference")

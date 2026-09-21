@@ -71,7 +71,7 @@ local function begin_episode()
   -- Re-pause explicitly. Clearing the bookkeeping is not enough: if a reset
   -- lands while an advance is still running, the world would keep ticking with
   -- nothing left to stop it, and the next observation would report a tick the
-  -- caller never asked for. PLAN.md section 2: the world pauses between
+  -- caller never asked for. DESIGN.md section 2: the world pauses between
   -- decisions.
   --
   -- Unless the caller declared `free_running` -- see `handle_configure`, which
@@ -431,7 +431,7 @@ end
 
 --- Evaluator-only ground truth. A separate request from `observe`, so the
 --- separation between what a policy may see and what the evaluator knows is
---- structural rather than a naming convention (PLAN.md section 2).
+--- structural rather than a naming convention (DESIGN.md section 2).
 --- Evaluator-only leakage probe: sorted lines describing everything a reset
 --- must restore, plus growth proxies that catch unbounded state.
 local function handle_world_digest(request)

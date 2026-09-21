@@ -1,4 +1,4 @@
-"""Phase 4 exit gate (PLAN.md).
+"""Phase 4 exit gate (DESIGN.md).
 
     another run can reproduce the learning procedure and evaluate the provided
     checkpoints without manual intervention
@@ -69,7 +69,7 @@ DECLARATION = "phase4-checkpoints.json"
 def _published_runs() -> list[Path]:
     """The checkpoints this gate is about, from a committed declaration.
 
-    PLAN 4.1's exit clause is about "**the provided** checkpoints", and until
+    DESIGN 4.1's exit clause is about "**the provided** checkpoints", and until
     this declaration existed that phrase named nothing. The previous
     implementation scanned gitignored `runtime/runs/`, sorted alphabetically
     and took the last three. Measured consequences on this machine:
@@ -201,7 +201,7 @@ def run_phase4_gate(mode: str = "reproduce") -> dict:
             try:
                 model = MaskablePPO.load(directory / "model", device="cpu")
                 report.check(f"{run_id}: checkpoint loads for inference", model is not None)
-                # PLAN 4.1 asks for "both inference and resumable training
+                # DESIGN 4.1 asks for "both inference and resumable training
                 # state", and this second half was unverified while the gate
                 # reported 15 of 15. The two fail differently: a checkpoint
                 # that deserialises but drops its optimizer state resumes with
@@ -249,7 +249,7 @@ def run_phase4_gate(mode: str = "reproduce") -> dict:
         data = manifest_module.load(runs[-1].name)
         missing = [key for key in manifest_module.REQUIRED_FIELDS if not data.get(key)]
         report.check(
-            "the newest manifest carries every field PLAN section 2 requires",
+            "the newest manifest carries every field DESIGN section 2 requires",
             not missing,
             missing=missing,
         )

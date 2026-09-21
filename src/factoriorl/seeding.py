@@ -1,4 +1,4 @@
-"""Deterministic seed derivation (PLAN.md section 2: every run records its seeds).
+"""Deterministic seed derivation (DESIGN.md section 2: every run records its seeds).
 
 Before this, the only seed in the project was ``map_seed = 424242``, a literal
 repeated in four files, with no RNG object and no per-episode seed.

@@ -1,6 +1,6 @@
-"""Credential handling for model adapters (PLAN.md 5.3).
+"""Credential handling for model adapters (DESIGN.md 5.3).
 
-PLAN 5.3 requires that "credentials remain outside run artifacts". Two rules
+DESIGN 5.3 requires that "credentials remain outside run artifacts". Two rules
 make that structural rather than a habit:
 
 * **A key is only ever read from the process environment.** There is no

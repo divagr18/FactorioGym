@@ -1,4 +1,4 @@
-"""Engine-free coverage for the skill layer (PLAN.md 4b.1, 4b.2).
+"""Engine-free coverage for the skill layer (DESIGN.md 4b.1, 4b.2).
 
 The criteria that matter here are not about whether skills help -- 4b.3 measures
 that -- but about whether they are *legitimate*. A skill library that names a
@@ -18,7 +18,7 @@ FAMILIES = ("navigate", "deliver", "mine_smelt", "supply_furnace", "repair_belt"
 
 
 def test_no_skill_names_a_task_or_a_marker():
-    """PLAN 4b.1: a skill may address the third-nearest entity; it may not
+    """DESIGN 4b.1: a skill may address the third-nearest entity; it may not
     'repair the belt gap'. Task ids and marker names are the vocabulary of the
     answer, so their appearance in a skill is the detectable form of cheating."""
     forbidden = set(all_tasks())
@@ -189,7 +189,7 @@ def test_wall_is_still_the_only_obstacle_the_name_proxy_has_to_cover():
 
 @pytest.mark.parametrize("task_id", FAMILIES)
 def test_addressable_field_is_pinned(task_id):
-    """PLAN 4b.1 forbids a skill that encodes a family's solution, and the
+    """DESIGN 4b.1 forbids a skill that encodes a family's solution, and the
     string test above cannot see the violation that matters.
 
     `approach_entity_k` addresses the k-th *nearest* entity. When a scene

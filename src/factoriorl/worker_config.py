@@ -2,7 +2,7 @@
 
 Each worker gets isolated write-data, mod directory, server settings, map
 generation settings, and ports. Nothing is shared across workers, and nothing
-touches the user's Factorio profile (PLAN.md 0.2, 1.3).
+touches the user's Factorio profile (DESIGN.md 0.2, 1.3).
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ show-tips-and-tricks=false
 #: Complete deterministic map settings. Partial files are rejected by the
 #: engine ("Key ... not found"), so every prototype key is spelled out with
 #: its default value; only pollution/enemy_evolution/enemy_expansion are
-#: switched off for a quiet peaceful world (PLAN.md: base-game target).
+#: switched off for a quiet peaceful world (DESIGN.md: base-game target).
 MAP_SETTINGS = {
     "asteroids": {
         "spawning_rate": 1,

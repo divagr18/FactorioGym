@@ -33,7 +33,7 @@ class TestBuildLineIsFrozenButNotDeclared:
         assert len(document["holdout"]["tasks"]["build_line"]["episodes"]) == 100
 
     def test_it_is_not_a_declared_release_candidate(self, document):
-        """Declaring a candidate after freezing it is what PLAN 4.5 forbids."""
+        """Declaring a candidate after freezing it is what DESIGN 4.5 forbids."""
         assert "build_line" not in (document["declaration"]["candidate_families"] or [])
 
     def test_the_declaration_timestamp_survived(self, document):

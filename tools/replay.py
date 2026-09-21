@@ -1,4 +1,4 @@
-"""Replay inspection for an agent run (PLAN.md 5.5).
+"""Replay inspection for an agent run (DESIGN.md 5.5).
 
     Create a local viewer with timeline, map view, character actions,
     inventories, throughput, errors, and interventions.
@@ -29,7 +29,7 @@ Evaluator information
 ---------------------
 `success` and `reward` are computed by the evaluator from ground truth the
 policy never sees. They are shown, because a replay without them is not useful,
-and they are labelled, because PLAN 5.5 requires debug overlays to be identified
+and they are labelled, because DESIGN 5.5 requires debug overlays to be identified
 as evaluator information rather than left to look like part of the observation.
 The observation panel contains only what was on the wire.
 

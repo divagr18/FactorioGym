@@ -1,4 +1,4 @@
--- The action matrix (PLAN.md 2.1), as data rather than prose.
+-- The action matrix (DESIGN.md 2.1), as data rather than prose.
 --
 -- This table is the authority the dispatcher reads, not documentation about
 -- the dispatcher. Three things are generated from it, so none of them can
@@ -63,7 +63,7 @@ matrix.ORDER = {
   "cancel",
 }
 
---- Assistance-profile actions (PLAN.md 5.1 onward). Not part of `ORDER`; see
+--- Assistance-profile actions (DESIGN.md 5.1 onward). Not part of `ORDER`; see
 --- the header for why the primitive catalog is frozen.
 matrix.ASSISTED_ORDER = {
   "batch",

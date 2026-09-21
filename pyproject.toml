@@ -14,7 +14,7 @@ factoriorl = "factoriorl.cli:main"
 [project.optional-dependencies]
 # A PEP 621 extra, not a dependency group: extras ship in wheel metadata, so
 # `pip install factoriorl[rl]` gives an outside researcher a working
-# FactorioEnv without cloning this repo (PLAN.md 6.1, 11.2).
+# FactorioEnv without cloning this repo.
 rl = ["numpy>=2.1,<3", "gymnasium>=1.0,<2"]
 
 [dependency-groups]

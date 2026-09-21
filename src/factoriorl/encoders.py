@@ -1,4 +1,4 @@
-"""Observation encoding for compact policies (PLAN.md 3.4).
+"""Observation encoding for compact policies (DESIGN.md 3.4).
 
 The wire format is compact JSON; the tensor layout is a Python-side concern, so
 the two can evolve independently. The space is a fixed-shape ``Dict`` per
@@ -120,6 +120,8 @@ def entity_row_order(observation, origin) -> list[tuple[float, dict, bool]]:
         ],
         key=lambda row: row[0],
     )[:MAX_ENTITIES]
+
+
 ENTITY_FEATURES = 16
 SELF_FEATURES = 12
 GOAL_FEATURES = 12

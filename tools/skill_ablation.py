@@ -1,4 +1,4 @@
-"""Flat versus skill-augmented action spaces (PLAN.md 4b.3).
+"""Flat versus skill-augmented action spaces (DESIGN.md 4b.3).
 
     Ablate the skill layer on at least one family: identical training budget,
     identical evaluation episodes, one variable -- whether the temporally

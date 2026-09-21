@@ -112,7 +112,7 @@ RELEASE_FILES = (
 
 ROWS = ("seeds", "val", "structures")
 
-#: PLAN 4.5's bar. Used here only to say which side of it a row falls on, never
+#: DESIGN 4.5's bar. Used here only to say which side of it a row falls on, never
 #: as a pass mark for this report -- nothing here is an acceptance claim.
 THRESHOLD = 0.8
 

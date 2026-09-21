@@ -134,7 +134,7 @@ end
 -- than the base game does. Base Factorio gates technology at the recipe layer
 -- only, so holding an item is normally enough to place it; the action profile
 -- refuses placement when a recipe of the same name exists and is disabled, so
--- PLAN 2.1's "placement cannot bypass technology restrictions" is directly
+-- DESIGN 2.1's "placement cannot bypass technology restrictions" is directly
 -- testable. An agent cannot predict that refusal without knowing which item
 -- names have a recipe behind them.
 --- The tiles a placement covers, as offsets from the tile the agent names.

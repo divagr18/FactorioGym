@@ -1,6 +1,6 @@
-"""Measure declared train/val/test splits as content (PLAN.md section 3, Generalization).
+"""Measure declared train/val/test splits as content (DESIGN.md section 3, Generalization).
 
-PLAN.md says a declared split "is a claim about content, so [it] must be measured
+DESIGN.md says a declared split "is a claim about content, so [it] must be measured
 as content rather than asserted by name", and asks for three published numbers per
 task family:
 
@@ -71,7 +71,7 @@ from factoriorl.tasks.spec import Blueprint, entity_tiles  # noqa: E402
 #:
 #: STARTING POINT, not a principled value. The rationale is only that below
 #: roughly this many scenes a "holdout" stops being a distribution and becomes a
-#: fixed test case: PLAN 3's acceptance target evaluates 100 episodes per
+#: fixed test case: DESIGN 3's acceptance target evaluates 100 episodes per
 #: training seed on the held-out split, and a generator admitting one scene
 #: reports that one scene 100 times while presenting a Wilson interval computed
 #: as if there were 100 independent draws. 32 is a round number below any
@@ -133,10 +133,10 @@ STRUCTURAL_DESCRIPTORS = (
     # missing pole from the middle to the end changes no count, no occupancy
     # and no footprint. The tool therefore reported "no structural descriptor
     # separates train from test" for a holdout whose whole point is a different
-    # fault position, which PLAN.md section 3 names as a holdout axis in its own
+    # fault position, which DESIGN.md section 3 names as a holdout axis in its own
     # right. Isolating the goal is exactly what a fault adjacent to it does.
     "goal_isolation",
-    # The four descriptors above see entities only, and PLAN.md section 3 lists
+    # The four descriptors above see entities only, and DESIGN.md section 3 lists
     # "resource arrangements" as a structural holdout axis in its own right.
     # `mine_smelt.screened_patch` varies nothing but the ore layout -- and ore is
     # walkable, so it changes neither the obstacle count nor the occupancy -- so
@@ -162,7 +162,7 @@ STRUCTURAL_DESCRIPTORS = (
 #: Difficulty descriptors whose *smaller* value is the harder scene. Slack is the
 #: budget left over after the walk, so more of it is easier -- reading a rise in
 #: slack as "the holdout is harder" would report the direction backwards, and the
-#: direction is the whole point of PLAN.md's parity requirement.
+#: direction is the whole point of DESIGN.md's parity requirement.
 HARDER_WHEN_SMALLER = frozenset({"budget_slack"})
 
 # ------------------------------------------------------------------ geometry
@@ -611,7 +611,7 @@ def _summarise(records: list[dict[str, float | None]], key: str) -> dict:
 
 
 def analyse_task(task_id: str, samples: int, plan: SeedPlan) -> dict:
-    """Everything PLAN.md section 3 asks to be published about one registered task."""
+    """Everything DESIGN.md section 3 asks to be published about one registered task."""
     return analyse_task_object(get(task_id), samples, plan)
 
 
@@ -719,7 +719,7 @@ def analyse_task_object(task, samples: int, plan: SeedPlan) -> dict:
         return entry
 
     # The overlapping coefficient is symmetric, so on its own it cannot tell a
-    # holdout that is *harder* than training -- the failure PLAN.md names -- from
+    # holdout that is *harder* than training -- the failure DESIGN.md names -- from
     # one whose difficulty is a strict subset of the training range, which is
     # merely narrow. The two means are recorded alongside it so a reader can see
     # which of the two a low overlap means.
@@ -777,7 +777,7 @@ def analyse_task_object(task, samples: int, plan: SeedPlan) -> dict:
     if entry["failures"]:
         entry["verdict"] = "fail"
     elif entry["difficulty_parity"] == "unavailable":
-        # Not a pass. PLAN.md requires difficulty parity to be *published*, and a
+        # Not a pass. DESIGN.md requires difficulty parity to be *published*, and a
         # task that names no position -- neither a `difficulty_marker` nor a
         # positional success predicate -- cannot produce the number. Reporting
         # that as a pass would reproduce the failure this tool exists to remove:
@@ -907,7 +907,7 @@ def main() -> int:
     #
     # Measured the hard way: a `--tasks keep_line_running` run during R4.3
     # replaced the whole-repo audit with a single task, and
-    # `docs/CURRENT_STATUS.md` went on claiming the split audit was "published
+    # the status note went on claiming the split audit was "published
     # for all eight" for a day. The eight-task version survived only in git.
     # Nothing noticed because the tool exits 0 and prints a pass.
     #
@@ -930,7 +930,7 @@ def main() -> int:
     print(f"wrote {out}")
     # Non-zero on any non-pass, following tools/solvability.py rather than
     # tools/feasibility_sweep.py: a feasibility sweep asks an open question and a
-    # split audit asserts a property PLAN.md requires. The intended consumer is a
+    # split audit asserts a property DESIGN.md requires. The intended consumer is a
     # future Phase 3 gate step, which will read the exit code before it reads the
     # JSON, and a tool that exits 0 while reporting a defect teaches that gate to
     # ignore it. `--exit-zero` covers editing a generator interactively.

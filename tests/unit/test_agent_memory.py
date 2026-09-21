@@ -1,4 +1,4 @@
-"""Persistent agent memory (PLAN.md 5.4)."""
+"""Persistent agent memory (DESIGN.md 5.4)."""
 
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ def test_a_tried_target_is_remembered_so_the_probe_loop_can_end():
 
 
 def test_a_failed_plan_survives_compaction():
-    """PLAN 5.4: 'a failed plan does not disappear from the record'. It is the
+    """DESIGN 5.4: 'a failed plan does not disappear from the record'. It is the
     only thing that stops the agent proposing it again."""
     memory = Memory()
     for step in range(20):

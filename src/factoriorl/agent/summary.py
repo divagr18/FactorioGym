@@ -1,6 +1,6 @@
-"""Rendering the canonical observation for a language model (PLAN.md 2, 5.3).
+"""Rendering the canonical observation for a language model (DESIGN.md 2, 5.3).
 
-PLAN section 2 requires *one* canonical structured observation that serves both
+DESIGN section 2 requires *one* canonical structured observation that serves both
 "a spatial tensor and padded entity representation for compact policies" and
 "typed objects and concise summaries for language-model agents". This module is
 the second half of that sentence. It is deliberately a sibling of
@@ -71,7 +71,7 @@ MAX_EVENTS_SHOWN = 6
 class TaskBrief:
     """What the agent is allowed to be told about its task.
 
-    Built from a task's *declared* fields only. PLAN section 2 lists the task
+    Built from a task's *declared* fields only. DESIGN section 2 lists the task
     description as part of the observation profile, so it is policy-visible;
     success predicates are not, because their markers name the answer.
     """
@@ -606,7 +606,7 @@ def _entity_row(record: dict, origin: list[float], remembered: bool) -> dict:
     if record.get("health") is not None:
         row["health"] = record["health"]
     if remembered:
-        # The age is the whole point of remembered observations: PLAN section 2
+        # The age is the whole point of remembered observations: DESIGN section 2
         # forbids presenting distant machine state as current, and a summary
         # that dropped the age would do exactly that in prose.
         row["age_ticks"] = record.get("age", 0)
@@ -759,7 +759,7 @@ def _resource_rows(observation: dict, origin: list[float]) -> list[dict]:
 
 @dataclass(frozen=True)
 class ObservationSummary:
-    """The typed-object half of PLAN section 2's language-model rendering."""
+    """The typed-object half of DESIGN section 2's language-model rendering."""
 
     task: dict
     step: int
@@ -1420,7 +1420,7 @@ def summarise(
 
     The signature is the boundary: an observation, a declared brief, the legal
     actions the environment published, and the decision counter. There is no
-    parameter for evaluator truth, so the leak PLAN section 2 forbids is not
+    parameter for evaluator truth, so the leak DESIGN section 2 forbids is not
     expressible here rather than merely avoided.
     """
     character = observation.get("character") or {}

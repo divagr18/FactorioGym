@@ -1,6 +1,6 @@
 """What an action was supposed to do, and whether it did it.
 
-`docs/research/book-synthesis-2026-09-09.md` §5 (Ghallab/Nau/Traverso, PDF
+the literature synthesis §5 (Ghallab/Nau/Traverso, PDF
 94-98): executing a command and observing its intended effect are different
 things, and a controller must verify the consequence appropriate to its goal.
 Its examples are exactly ours -- "a successful transfer means items moved; it

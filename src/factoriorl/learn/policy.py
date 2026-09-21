@@ -1,4 +1,4 @@
-"""Compact policy encoder (PLAN.md 4.1).
+"""Compact policy encoder (DESIGN.md 4.1).
 
 A small CNN over the spatial grid, a masked per-entity MLP, and an MLP over the
 inventory/self/goal vectors, concatenated into an SB3 features extractor driving
@@ -192,7 +192,7 @@ def checkpoint_signature(path) -> str:
 
 
 #: Recorded by a run started from someone else's weights. Not a cosmetic
-#: label: PLAN 4.2 forbids scripted-solution labels during ordinary PPO
+#: label: DESIGN 4.2 forbids scripted-solution labels during ordinary PPO
 #: training, and a BC-initialised run *inherits* parameters fitted on exactly
 #: those labels. It is therefore not comparable to a scratch PPO run and must
 #: never appear in the same column, which is only enforceable if the run says
@@ -275,7 +275,7 @@ def initialise_from(model, path) -> dict:
         "training_mode": INITIALISED_MODE,
         "not_comparable_to": (
             "a scratch PPO run. These parameters were fitted on scripted-solution "
-            "labels, which PLAN 4.2 forbids during ordinary PPO training"
+            "labels, which DESIGN 4.2 forbids during ordinary PPO training"
         ),
     }
 
@@ -372,7 +372,7 @@ def _action_signature(space) -> int | list[int] | None:
 
 
 def describe(model) -> dict:
-    """Model configuration for the run manifest (PLAN.md section 2)."""
+    """Model configuration for the run manifest (DESIGN.md section 2)."""
     parameters = sum(p.numel() for p in model.policy.parameters())
     return {
         "algorithm": type(model).__name__,

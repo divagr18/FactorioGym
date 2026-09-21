@@ -1,4 +1,4 @@
-"""Task specifications (PLAN.md 3.1).
+"""Task specifications (DESIGN.md 3.1).
 
 A task declares its scene, budgets, success and failure predicates, reward
 components and action catalog. Nothing here imports worker management -- an
@@ -15,7 +15,7 @@ Scenes are **blueprints built programmatically**, not map generation. Map-gen
 settings are written at worker launch and consumed by ``--create``, so a
 map-gen-driven task would need an engine relaunch to switch or randomise --
 which would put scenario selection squarely inside worker management. A
-blueprint also resets in milliseconds, which is what PLAN 3.3's 500 consecutive
+blueprint also resets in milliseconds, which is what DESIGN 3.3's 500 consecutive
 resets actually permits, and it is something a solvability check can reason
 about: "a 4x4 iron patch 18 tiles out with a walkable route" is a question you
 can ask a declaration and cannot ask Perlin noise.
@@ -218,7 +218,7 @@ class Blueprint:
             payload["extra_tracked_items"] = sorted(extra_tracked_items)
         return payload
 
-    # ---- engine-free structural validation (PLAN.md 3.2 solvability) -------
+    # ---- engine-free structural validation (DESIGN.md 3.2 solvability) -------
 
     def footprint_conflicts(self) -> list[str]:
         """Two entities sharing a tile is a generator bug.
@@ -674,7 +674,7 @@ class VerificationSpec:
 class LayoutFamily:
     """Structural variation, and the unit of held-out generalisation.
 
-    PLAN.md section 3 asks for "unfamiliar seeds and unfamiliar structures"
+    DESIGN.md section 3 asks for "unfamiliar seeds and unfamiliar structures"
     reported separately, so the split lives on the structure, not the seed.
     """
 
@@ -769,7 +769,7 @@ class TaskSpec:
     #: ore patch and back to the furnace; spawn to the ore chest and on to the
     #: furnace) but nothing in the predicate says so. Without this field
     #: `tools/generator_diagnostics.py` had no position to measure a route to and
-    #: reported both families' difficulty parity as unmeasurable, which PLAN.md
+    #: reported both families' difficulty parity as unmeasurable, which DESIGN.md
     #: section 3 requires to be published before a held-out score may be called a
     #: transfer score.
     #:

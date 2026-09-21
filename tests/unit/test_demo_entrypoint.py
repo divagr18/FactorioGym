@@ -2,7 +2,7 @@
 
 The demonstration is still the five-phase driver -- commission, measure a
 production window, inject a fuel outage, recover, measure again -- because that
-structure is what PLAN 5.7's published evidence *is*. These cover the three
+structure is what DESIGN 5.7's published evidence *is*. These cover the three
 defects around it, not the phases themselves.
 """
 

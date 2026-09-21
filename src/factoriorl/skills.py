@@ -1,4 +1,4 @@
-"""Temporally extended actions (PLAN.md 4b.1, 4b.2).
+"""Temporally extended actions (DESIGN.md 4b.1, 4b.2).
 
 A skill is a small closed-loop policy over the primitive catalog that runs to
 its own termination condition and reports one transition. The point is horizon,
@@ -6,7 +6,7 @@ not convenience: walking to a chest costs fifteen or twenty primitive decisions,
 and a policy that must discover that sequence by exploration spends its whole
 budget rediscovering it in every layout.
 
-**Skills must not encode a task's solution.** PLAN 4b.1 draws the line where
+**Skills must not encode a task's solution.** DESIGN 4b.1 draws the line where
 section 2 already draws it for action masks: a skill may say "approach the
 third-nearest entity", because rank-by-distance is something the observation
 states outright; it may not say "repair the belt gap", because that names the
@@ -283,7 +283,7 @@ class SkillRunner:
                 # walker's inability to round an obstacle. Commit to the
                 # perpendicular axis for a few strides, alternating sides on
                 # successive stalls so a wall is escaped whichever end is
-                # nearer. Still not pathfinding -- PLAN defers that to 5.1 --
+                # nearer. Still not pathfinding -- DESIGN defers that to 5.1 --
                 # but enough to round a convex obstacle.
                 if stalled > MAX_SIDESTEPS:
                     return self._finish(result, total, steps, "blocked")
@@ -352,7 +352,7 @@ class SkillRunner:
     def _primitive(self, action) -> dict:
         index = action if isinstance(action, int) else self.env.catalog.keys().index(action)
         observation, reward, terminated, truncated, info = self.env.step(index)
-        # PLAN 4b.2 requires a skill's underlying ticks and actions to survive
+        # DESIGN 4b.2 requires a skill's underlying ticks and actions to survive
         # in the trace, and 5.5 requires an assisted action to be expandable in
         # the replay. A step count satisfies neither: it says a skill took nine
         # decisions without saying it spent them walking back and forth. The

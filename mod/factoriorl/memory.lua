@@ -1,5 +1,5 @@
--- Remembered observations with age (PLAN.md 2.3), and the explored-terrain
--- store that known-terrain navigation plans over (PLAN.md 5.1, and the first
+-- Remembered observations with age (DESIGN.md 2.3), and the explored-terrain
+-- store that known-terrain navigation plans over (DESIGN.md 5.1, and the first
 -- piece of 5.4).
 --
 -- ------------------------------------------------------------ remembered
@@ -14,7 +14,7 @@
 --     sweep are deleted -- the agent looked, and it was not there.
 --
 -- Remembered records carry their last-seen contents only inside the
--- `remembered` block, never in `entities`. PLAN.md section 2 forbids
+-- `remembered` block, never in `entities`. DESIGN.md section 2 forbids
 -- presenting distant machine state as current, and putting the two in
 -- different arrays enforces that structurally rather than by a caveat.
 --
@@ -30,7 +30,7 @@
 --
 --   1. It is only ever written from a sensor-region observation. Nothing here
 --      queries a tile the agent was not standing close enough to see, which is
---      what makes PLAN 5.1's "routes use only known terrain" true by
+--      what makes DESIGN 5.1's "routes use only known terrain" true by
 --      construction rather than by inspection of the planner.
 --   2. "Blocked" is decided by intersecting the *character's own* collision
 --      mask with each candidate's, read off the prototypes at runtime. There
@@ -42,7 +42,7 @@
 --      moves a tile from "known blocked" to "unknown", never the other way.
 --      Unknown is optimistically passable, so the worst case of eviction is
 --      that the agent walks into a rediscovered obstacle and replans -- the
---      mechanism PLAN 5.1's second criterion already requires -- rather than
+--      mechanism DESIGN 5.1's second criterion already requires -- rather than
 --      believing a route is clear when the store says otherwise.
 --
 -- Occupancy is stored per 8x8 block, not per tile. A radius-32 observation
@@ -349,7 +349,7 @@ end
 --- Is this tile known to be blocked?
 ---
 --- An unexplored tile answers `false`. That is deliberate and it is the whole
---- of PLAN 5.1's second criterion: routes are allowed to run through the
+--- of DESIGN 5.1's second criterion: routes are allowed to run through the
 --- unknown, discover an obstacle by walking into it, and replan. The
 --- alternative -- refusing to route through unexplored ground -- would make
 --- the agent unable to leave the region it starts in, and refusing to route
@@ -378,7 +378,7 @@ function memory.terrain_explored(tx, ty)
 end
 
 --- The tick the block containing this tile was last observed, or nil. Stale
---- terrain stays distinguishable from current terrain (PLAN 5.4).
+--- terrain stays distinguishable from current terrain (DESIGN 5.4).
 function memory.terrain_seen_tick(tx, ty)
   local t = terrain()
   local block = t.blocks[block_key(math.floor(tx / BLOCK), math.floor(ty / BLOCK))]

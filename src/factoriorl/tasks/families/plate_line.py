@@ -1,4 +1,4 @@
-"""An automated plate line, for the Phase 5 demonstration (PLAN.md 5.7).
+"""An automated plate line, for the Phase 5 demonstration (DESIGN.md 5.7).
 
     Construct an automated plate line, inject a documented disruption, and
     restore sustained production.
@@ -259,7 +259,7 @@ def generate(family: LayoutFamily, rng) -> Blueprint:
         # where the character starts.
         side = 1 if math.cos(angle) >= 0 else -1
         # Three tiles, not nine. The reference solution walks axis-first with no
-        # pathfinding -- PLAN defers that to 5.1 -- so a screen long enough to
+        # pathfinding -- DESIGN defers that to 5.1 -- so a screen long enough to
         # need a real detour makes the *solver* fail rather than the task hard,
         # and a family its own reference cannot finish is a defect, not a
         # holdout. Three has to be rounded and can be.

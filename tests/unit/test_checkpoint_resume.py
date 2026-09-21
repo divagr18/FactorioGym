@@ -1,6 +1,6 @@
-"""A checkpoint has to restore training, not only inference (PLAN 4.1).
+"""A checkpoint has to restore training, not only inference (DESIGN 4.1).
 
-PLAN 4.1's acceptance reads: *"Model checkpoints restore both inference and
+DESIGN 4.1's acceptance reads: *"Model checkpoints restore both inference and
 resumable training state."* `gate_phase4.py` checks the first half --
 `MaskablePPO.load(...)` returns something -- and stops there, so the second
 half has been an unverified claim rather than a passing one, on a gate that

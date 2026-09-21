@@ -97,7 +97,7 @@ def test_fixture_agreement(module_session, fixture_path):
 def test_a_protocol_v1_request_is_refused(module_session):
     """The frozen v1 corpus is live evidence, not dead weight.
 
-    PLAN.md 1.1 requires unknown protocol versions to fail clearly. Sending a
+    DESIGN.md 1.1 requires unknown protocol versions to fail clearly. Sending a
     real historical request verbatim tests that against an actual previous
     version rather than an invented one.
     """

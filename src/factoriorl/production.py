@@ -1,6 +1,6 @@
 """Benchmark metrics for a production task, denominated in simulated ticks.
 
-`docs/research/book-synthesis-2026-09-09.md` §12 asks for time to first
+the literature synthesis §12 asks for time to first
 sustained output, cumulative delivered production, and final output rate. It is
 explicit that these are properties of *game time*, and that matters here for a
 concrete reason: the goal vector normalises progress by decisions

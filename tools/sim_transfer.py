@@ -234,9 +234,7 @@ def main() -> int:
             )
         session.close()
         with RCONClient(handle.spec.rcon_endpoint, timeout=30.0) as client:
-            caught = client.lua(
-                "return helpers.table_to_json(storage.frrl_stacked or {})"
-            )
+            caught = client.lua("return helpers.table_to_json(storage.frrl_stacked or {})")
         report["stacked_placements"] = json.loads(caught)
     finally:
         manager.cleanup(handle)

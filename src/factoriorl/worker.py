@@ -1,4 +1,4 @@
-"""Worker process lifecycle (PLAN.md 0.2).
+"""Worker process lifecycle (DESIGN.md 0.2).
 
 One Factorio headless server per worker: isolated write-data, mod directory,
 save, ports, and logs. Startup failures are classified; close releases the
@@ -52,7 +52,7 @@ _job_handle: int | None = None
 def _kill_on_close_job() -> int | None:
     """A Windows job object whose closure terminates every assigned process.
 
-    PLAN.md 1.4 requires workers to close cleanly "after a failed parent run".
+    DESIGN.md 1.4 requires workers to close cleanly "after a failed parent run".
     Normal shutdown paths and ``atexit`` cover an orderly exit, but neither
     runs when the parent is killed outright -- and an orphaned engine keeps
     its ``write-data/.lock``, blocking the next worker in that directory.
@@ -152,7 +152,7 @@ def allocate_ports(base: int = PORT_BASE) -> WorkerPorts:
     """Reserve a free game+rcon port pair on localhost.
 
     Three separate races can hand one pair to two engines; all three are
-    closed here (PLAN.md 1.3: ports are not accidentally shared across
+    closed here (DESIGN.md 1.3: ports are not accidentally shared across
     workers).
 
     * **Within a process** the offset advances monotonically. A freshly closed
@@ -375,7 +375,7 @@ class WorkerManager:
 
         ``save_source`` starts the worker from an existing save instead of
         generating a fresh world -- how :meth:`WorkerSupervisor.restart`
-        resumes a failed run from its known state (PLAN.md 1.3). The save is
+        resumes a failed run from its known state (DESIGN.md 1.3). The save is
         copied into the new worker's own directory, so the failed run's
         directory stays untouched as evidence.
         """
@@ -492,7 +492,7 @@ class WorkerManager:
     def _classify_engine_exit(log_tail: str) -> StartupFailureKind:
         """Separate "the port was taken" from a generic engine error.
 
-        PLAN.md 0.2 requires startup failures to name the unavailable port
+        DESIGN.md 0.2 requires startup failures to name the unavailable port
         rather than collapsing every early exit into one opaque kind.
         """
         lowered = log_tail.lower()

@@ -1,8 +1,8 @@
-"""Supply an existing furnace (PLAN.md 3.2, family 4).
+"""Supply an existing furnace (DESIGN.md 3.2, family 4).
 
 The furnace is already built and fuelled; the task is to keep it fed from a
 nearby ore chest so it keeps producing. Shorter causal chain than mine_smelt,
-which is why PLAN 4.2 reaches for this one first among production families.
+which is why DESIGN 4.2 reaches for this one first among production families.
 """
 
 from __future__ import annotations

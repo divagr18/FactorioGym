@@ -1,4 +1,4 @@
-"""Shaping dependence (PLAN.md 4.4).
+"""Shaping dependence (DESIGN.md 4.4).
 
     Compare sparse and shaped training on at least one tractable task.
     Both use the same success predicate.

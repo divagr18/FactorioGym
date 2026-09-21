@@ -14,7 +14,7 @@ diagnoses, and a failure at 17 decisions is a different diagnosis again from
 one at the 120th. Those live in `terminated` / `truncated` / `steps` /
 `action_error`, per scene.
 
-**It compares two arms on the scenes they actually shared.** PLAN.md section 3
+**It compares two arms on the scenes they actually shared.** DESIGN.md section 3
 requires this and gives the reason: *"Paired analysis whenever two arms are
 evaluated on the same generated scenes; analysing paired measurements as
 independent discards the pairing and widens intervals for no reason."* Two arms

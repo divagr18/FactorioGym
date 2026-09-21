@@ -1,4 +1,4 @@
--- Scene construction and reset (PLAN.md 2.x, and the seam Phase 3 builds on).
+-- Scene construction and reset (DESIGN.md 2.x, and the seam Phase 3 builds on).
 --
 -- Two scenarios today. "reference" is byte-identical to the Phase 0/1 scene, so
 -- the frozen protocol fixtures and gate_phase0 keep working unchanged.
@@ -6,7 +6,7 @@
 -- embodied agent needs -- the world otherwise contains no ore at all, because
 -- map generation disables every resource.
 --
--- Scenario initialisation is evaluator-only (PLAN.md section 2), which is why
+-- Scenario initialisation is evaluator-only (DESIGN.md section 2), which is why
 -- it lives here and not behind a typed action.
 
 local handles = require("handles")
@@ -586,7 +586,7 @@ function world.build_blueprint(hash)
   }
 end
 
---- Positions of the markers the task's objective names (PLAN.md 5.x).
+--- Positions of the markers the task's objective names (DESIGN.md 5.x).
 ---
 --- This is deliberately a *subset* of `truth().markers`. The separation
 --- between observation and evaluator state stays structural: an unpublished
@@ -613,7 +613,7 @@ end
 
 -- ---------------------------------------------------------------- truth
 
---- Evaluator-only ground truth (PLAN.md section 2: evaluator information must
+--- Evaluator-only ground truth (DESIGN.md section 2: evaluator information must
 --- not enter policy inputs). This is a separate request from `observe`, so the
 --- separation is structural: a policy reading observations cannot reach it.
 --- Apply one declared disruption to the running scene.
@@ -988,7 +988,7 @@ end
 
 --- A canonical description of everything a reset must restore.
 -- Returned as sorted lines rather than a hash, deliberately: a bare hash
--- mismatch tells you that something leaked but not what, and PLAN.md 3.3 wants
+-- mismatch tells you that something leaked but not what, and DESIGN.md 3.3 wants
 -- item, technology, timer and reward leakage distinguished. Python hashes it
 -- for the fast comparison and diffs the lines when they disagree.
 function world.digest()

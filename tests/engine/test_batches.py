@@ -1,4 +1,4 @@
-"""Bounded batches (PLAN.md 5.2), against a real engine.
+"""Bounded batches (DESIGN.md 5.2), against a real engine.
 
 A batch exists to save round trips, and the way it earns that is by failing
 informatively. An agent told only "the batch failed" has to re-observe the world

@@ -100,7 +100,7 @@ class WorkerSession:
         # this worker, not just within one. A reconnecting client restarting
         # its counter at 1 would otherwise collide with ids the worker already
         # recorded, and the dedup ledger would answer a genuinely new mutation
-        # with an old stored result -- silently dropping it (PLAN.md 1.2).
+        # with an old stored result -- silently dropping it (DESIGN.md 1.2).
         self._nonce = uuid.uuid4().hex[:8]
         self.settle_timeout = settle_timeout
         #: Worker pacing multiplier, kept in sync so `step` can predict how long
@@ -181,7 +181,7 @@ class WorkerSession:
 
         Returns once the advance is *settled*: the poll loop below waits for
         the worker to re-pause, so the caller observes the final tick state
-        (PLAN.md 0.3: observations report only after the interval completes).
+        (DESIGN.md 0.3: observations report only after the interval completes).
         """
         request = Request(
             request_id=self._next_request_id("advance"),

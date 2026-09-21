@@ -1,4 +1,4 @@
-"""Gymnasium environment (PLAN.md 3.4).
+"""Gymnasium environment (DESIGN.md 3.4).
 
 One transition is one fused ``step`` request: apply the action, run the decision
 interval, return the observation. Two round trips is the floor for exact
@@ -10,9 +10,9 @@ Three properties are enforced rather than hoped for:
 * **masks always leave a legal no-op**, asserted every step;
 * **masks use only policy-visible information** -- they are built from the
   observation, never from the blueprint, the task truth, or the reward state,
-  so PLAN section 3's "masks must not use hidden solutions" is checkable;
+  so DESIGN section 3's "masks must not use hidden solutions" is checkable;
 * **termination and truncation are exclusive**, and an infrastructure failure is
-  neither: a dead worker is not a task outcome (PLAN section 2), so it is
+  neither: a dead worker is not a task outcome (DESIGN section 2), so it is
   reported with ``excluded_from_metrics`` and the trainer must drop it.
 """
 
@@ -1147,7 +1147,7 @@ class FactorioEnv(gym.Env):
             timed = self.session.step(payload, ticks=self.spec_.decision_ticks)
         except (InfrastructureFailure, ProtocolError) as exc:
             # A worker crash is an infrastructure failure, never a task outcome
-            # (PLAN.md section 2).
+            # (DESIGN.md section 2).
             #
             # This comment used to claim the trainer "drops the transition
             # instead of learning from it". It did not. `excluded_from_metrics`

@@ -1,4 +1,4 @@
-"""Phase 0 exit gate (PLAN.md).
+"""Phase 0 exit gate (DESIGN.md).
 
 One command launches a worker, acts, steps, resets, verifies repeatability,
 and exits cleanly. Records latency and reset measurements as evidence:

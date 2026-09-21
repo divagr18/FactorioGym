@@ -21,7 +21,7 @@ sub-distributions come from one flat head and are sampled independently, and
 `log_prob` sums independent factors, so autoregressive sampling scored through
 it yields a wrong PPO ratio.
 
-`docs/research/book-synthesis-2026-09-09.md` §8 suggests a further step: score
+the literature synthesis §8 suggests a further step: score
 placement candidates by their resulting local structure rather than giving each
 index an unrelated logit, which may generalize across translated and rotated
 layouts. That is a representation change on top of this interface, not a

@@ -193,7 +193,7 @@ def test_two_workers_independent(worker_manager):
 
 
 def test_workers_close_when_the_parent_run_fails(worker_manager, tmp_path):
-    """PLAN.md 1.4: workers close cleanly after a *failed* parent run.
+    """DESIGN.md 1.4: workers close cleanly after a *failed* parent run.
 
     The child starts a pooled worker and then exits through ``os._exit``, so
     no ``finally``, no ``atexit``, and no shutdown call of ours runs -- the
@@ -273,7 +273,7 @@ def test_startup_failure_classification_missing_executable():
     from factoriorl.worker import WorkerManager
 
     bogus = EngineConfig(
-        executable=Path("D:/FactorioRL/runtime/nonexistent/factorio.exe"),
+        executable=Path("D:/FactorioGym/runtime/nonexistent/factorio.exe"),
         version=EXPECTED_VERSION,
         build=EXPECTED_BUILD,
     )

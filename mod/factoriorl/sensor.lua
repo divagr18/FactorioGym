@@ -1,4 +1,4 @@
--- The local sensor region (PLAN.md 2.3).
+-- The local sensor region (DESIGN.md 2.3).
 --
 -- Three engine queries per observation, never per-entity lookups. Measured in
 -- the Phase 2.0 spike at reference-scene scale: a radius-32 entity query costs

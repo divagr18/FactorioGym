@@ -1,4 +1,4 @@
-"""Release packaging (PLAN.md 6.2), checked without an engine."""
+"""Release packaging (DESIGN.md 6.2), checked without an engine."""
 
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ def test_a_windows_path_is_matched_and_a_url_is_not():
     which made the audit's first real run flag the uv documentation link.
     """
     assert pkg.ABSOLUTE_PATH.search(WINDOWS_PATH)
-    assert pkg.ABSOLUTE_PATH.search("D:/FactorioRL/runtime")
+    assert pkg.ABSOLUTE_PATH.search("D:/FactorioGym/runtime")
     assert not pkg.ABSOLUTE_PATH.search("see https://docs.astral.sh/uv/ for uv")
     assert not pkg.ABSOLUTE_PATH.search('"base_url": "https://api.openai.com/v1"')
 

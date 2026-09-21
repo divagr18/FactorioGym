@@ -2,7 +2,7 @@
 
 The user's global Factorio mod collection is never touched: workers get their
 own mod directory containing exactly ``factoriorl_<version>.zip`` plus a
-mod-list enabling it (PLAN.md 0.2, isolation).
+mod-list enabling it (DESIGN.md 0.2, isolation).
 """
 
 from __future__ import annotations

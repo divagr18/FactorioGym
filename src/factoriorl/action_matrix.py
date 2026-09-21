@@ -1,4 +1,4 @@
-"""Python mirror of ``mod/factoriorl/matrix.lua`` (PLAN.md 2.1).
+"""Python mirror of ``mod/factoriorl/matrix.lua`` (DESIGN.md 2.1).
 
 The Lua table is the authority the dispatcher reads; this is the Python view of
 the same contract. Two tests keep them from drifting: an engine-free contract

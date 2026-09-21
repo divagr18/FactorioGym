@@ -1,6 +1,6 @@
 """What a model call costs, snapshotted rather than guessed.
 
-`docs/AGENTIC_ROADMAP-2026-09-10.md` A0.3 requires a spend cap enforced *before*
+the agent roadmap A0.3 requires a spend cap enforced *before*
 dispatch, and says plainly what to do when the inputs to that arithmetic are not
 available: "If a safe input-token upper bound or current pricing cannot be
 established, fail the paid preflight instead of guessing."

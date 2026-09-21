@@ -1,6 +1,6 @@
 """Commanded, expected, observed -- three separate things.
 
-`docs/research/book-synthesis-2026-09-09.md` §5: executing a command and
+the literature synthesis §5: executing a command and
 observing its intended effect are different, and its gate asks that a delay and
 an actual failure be injected *separately* -- the monitor should wait through a
 plausible delay and eventually report failure under its declared deadline.

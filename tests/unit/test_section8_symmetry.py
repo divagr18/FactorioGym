@@ -117,6 +117,6 @@ class TestTranslation:
 
 def test_the_conclusion_is_recorded_where_a_scorer_author_will_read_it():
     """A finding nobody meets is a finding nobody uses."""
-    status = (ROOT / "docs" / "CURRENT_STATUS.md").read_text(encoding="utf-8")
-    assert "section8-symmetry.json" in status
-    assert "reflection" in status.lower()
+    limits = (ROOT / "docs" / "LIMITATIONS.md").read_text(encoding="utf-8")
+    assert "section8-symmetry.json" in limits
+    assert "reflection" in limits.lower()

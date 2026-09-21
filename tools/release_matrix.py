@@ -1,4 +1,4 @@
-"""The release learning result: families x training seeds (PLAN.md 4.5).
+"""The release learning result: families x training seeds (DESIGN.md 4.5).
 
     Run three training seeds and frozen held-out evaluation.
     At least three task families meet the agreed 80% threshold on the test
@@ -106,7 +106,7 @@ THRESHOLD = 0.80
 #: section 4 forbids relaxing a threshold, not tightening one.
 FLOOR_CEILING = 0.10
 
-# PLAN 4.5 requires at least one qualifying family to involve production or
+# DESIGN 4.5 requires at least one qualifying family to involve production or
 # repair. The category now comes from `TaskSpec.track` (R4.3), which is where
 # the sentence this comment used to carry -- "the task specs carry no category
 # field" -- stopped being true.
@@ -121,7 +121,7 @@ FLOOR_CEILING = 0.10
 # Consequence, stated rather than buried: with both now declared
 # `production`, they are inside the qualifying set and so inside the release
 # gate they were previously invisible to. That makes acceptance harder, which
-# is the only direction PLAN section 4 permits.
+# is the only direction DESIGN section 4 permits.
 QUALIFYING_CATEGORIES = {"production", "repair"}
 
 
@@ -297,7 +297,7 @@ def main() -> int:
     declared = (frozen.get("declaration") or {}).get("candidate_families")
     if not declared:
         print(
-            "the frozen holdout declares no candidate families. PLAN 4.5 requires the "
+            "the frozen holdout declares no candidate families. DESIGN 4.5 requires the "
             "candidate set to be declared before any held-out result is read:\n"
             "  uv run python tools/freeze_holdout.py --declare --candidates <ids>",
             file=sys.stderr,
@@ -464,7 +464,7 @@ def main() -> int:
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
-    print("\n--- PLAN 4.5 acceptance")
+    print("\n--- DESIGN 4.5 acceptance")
     for task, family in families.items():
         mean_rate = family["structural_success_rate_mean"]
         shown = "n/a" if mean_rate is None else f"{mean_rate:.2f}"

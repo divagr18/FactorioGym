@@ -4,7 +4,7 @@ Everything here is measured, not suspected. Each item says what was observed and
 where the evidence is, because a limitations document that hedges is worse than
 none: a reader cannot tell which entries are real.
 
-PLAN.md 6.4 requires that deferred functionality is not advertised as available.
+DESIGN.md 6.4 requires that deferred functionality is not advertised as available.
 This file is where that obligation is discharged.
 
 ---
@@ -17,7 +17,7 @@ This file is where that obligation is discharged.
 between builds -- but it means the environment does not run on whatever Factorio
 a user already has.
 
-**Headless only, and therefore no screenshots.** PLAN 5.6 is implemented and, on
+**Headless only, and therefore no screenshots.** DESIGN 5.6 is implemented and, on
 this build, always fails. Measured: `game.take_screenshot` is defined, accepts a
 well-formed request, returns success, and writes nothing, because a headless
 server has no renderer. `factoriorl.capture` verifies the frame appeared and
@@ -62,6 +62,33 @@ demonstration has the agent commission a placed line rather than build one from
 parts. `restore_power`'s solvability run shows the milder form:
 `place_small_electric_pole_south: collision`.
 
+**The placement symmetry is C4, not D4**, which constrains any future scorer
+that ranks placement candidates by their resulting local structure rather than
+by one unrelated logit per index. It was measured on a real engine before
+building such a scorer, with the candidate set (every integer offset within 4
+tiles), the information (`can_place_entity` plus measured production, no
+evaluator truth) and the budget (3600 ticks per candidate) held fixed:
+`docs/evidence/section8-symmetry.json`.
+
+- **Rotation is invariant.** Each drill facing admits exactly two productive
+  furnace centres, and all three rotations of south's set match exactly.
+- **Reflection is not.** Reflecting south's `{(0,2), (1,2)}` in y gives
+  `{(0,-2), (1,-2)}`, while north's measured set is `{(-1,-2), (0,-2)}` -- off
+  by exactly one tile in x.
+- **Translation is invariant**, checked at all four parities of drill centre,
+  so the productive offsets are a property of the local structure rather than
+  of where it sits in the world.
+
+The cause is a parity: a 2x2 entity at integer centre `(cx, cy)` occupies tiles
+`{cx-1, cx} x {cy-1, cy}`, extending one tile in the negative direction and
+none in the positive. That bias is relative to the entity, which is why
+translation survives it; it survives a 90 degree rotation, and it does not
+survive a flip. Such a scorer may therefore share parameters across
+**rotations and translations** of a local structure and must **not** share them
+across reflections: one assuming the full dihedral group would be wrong on half
+its orbit, scoring `(1,-2)` valid for a north-facing drill where the engine
+starves it.
+
 ---
 
 ## 3. The skill layer
@@ -100,7 +127,7 @@ skills-space result on it would demonstrate nothing.
 spaces -- 0.00 and 0.00, reference 1.00 on train and test. A disruption the
 agent has to notice is not something a rank-addressing macro stumbles into.
 
-PLAN 4b.1 forbids a skill that encodes a family's solution, and the test for it
+DESIGN 4b.1 forbids a skill that encodes a family's solution, and the test for it
 originally grepped skill descriptions for task ids and marker names.
 `approach_entity_0` contains no forbidden substring and *is* the answer in five
 of the six families that existed when that was measured; there are ten now, and the
@@ -130,7 +157,7 @@ recorded below: shaping earnable while the success predicate is false creates a
 it bound the damage; they do not restore invariance.** So a shaping result on a
 family whose shaping is `high_water` is an empirical question, and one on a
 `potential` family is answered by the theorem -- worth stating whenever a
-shaping comparison is quoted, because `deliver`, the family PLAN 4.4's
+shaping comparison is quoted, because `deliver`, the family DESIGN 4.4's
 comparison runs on, has `high_water` shaping only.
 
 
@@ -286,7 +313,7 @@ On the fixed instrumentation, a 6,000-step `restore_power` run logs 51 episodes
 and 5 successes -- **none in worker 0** -- and scores 0.25 stochastic against a
 0.10 random floor on training seeds while scoring 0.00 on both held-out splits.
 The failure is transfer, not learning. Two related corrections: the
-`15-27 M` step lower bound (`docs/research/rl-theory.md` Anchor 1) is
+`15-27 M` step lower bound (the RL theory notes Anchor 1) is
 explicitly "a floor with no ceiling attached" and cannot license a negative
 claim; and `holdout_v2` was re-frozen five times, so the `phase4-release-v2-*`
 scores for these two families were measured on scenes the current holdout no
@@ -294,7 +321,7 @@ longer contains. `deliver`'s frozen entry is byte-identical across the last
 four freezes, so its 0.92 stands.
 
 
-**Status: see `docs/LEDGER.md` and `docs/evidence/phase4-release-v2-*.json`.**
+**Status: see the project ledger and `docs/evidence/phase4-release-v2-*.json`.**
 The first declaration (`holdout_v1`: navigate, deliver, mine_smelt) produced no
 qualifying family -- `navigate` is disqualified on its 0.99 skill floor,
 `mine_smelt` measured 0.32, and `deliver` scored 0.35. A second holdout
@@ -318,7 +345,7 @@ required -- but a local model must be running, or `ScriptedAdapter` used, for
 any agent command to do anything.
 
 **The Phase 5 demonstration commissions a line; it does not build one.** See §2.
-It meets all four of PLAN 5.7's clauses, and the scoping is a catalog limitation
+It meets all four of DESIGN 5.7's clauses, and the scoping is a catalog limitation
 rather than a shortcut.
 
 ---
@@ -326,7 +353,7 @@ rather than a shortcut.
 ## 8. Distribution and adoption
 
 Written for R6's environment alpha. Everything here is a gap a stranger will
-hit, listed so nothing unbuilt is implied to work (PLAN 6.4).
+hit, listed so nothing unbuilt is implied to work (DESIGN 6.4).
 
 **A source checkout is the only supported install.** `pip install factoriorl`
 resolves and imports, and then cannot start a worker. Two independent reasons:
@@ -373,7 +400,7 @@ wall clock, and writes run-local artifacts.
 **`demo` is still hardwired to `plate_line`, and deliberately so.** It drives
 five phases around an injected fuel outage, which `factoriorl agent` has no way
 to express; rebuilding that on the new command would have risked changing what
-PLAN 5.7's published claim means. What was fixed instead: it writes run-local by
+DESIGN 5.7's published claim means. What was fixed instead: it writes run-local by
 default (`--publish-evidence` to touch the tracked evidence file), it runs under
 a spend cap, and its flags are declared on the subcommand rather than swallowed
 by `nargs=REMAINDER`, which made `factoriorl demo --help` print nothing.

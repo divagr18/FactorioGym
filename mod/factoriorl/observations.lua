@@ -1,4 +1,4 @@
--- Local structured observations (PLAN.md 2.3), assembled from the sensor
+-- Local structured observations (DESIGN.md 2.3), assembled from the sensor
 -- sweep, remembered observations, entity handles and the in-flight registry,
 -- then filtered through the observation profile's declared key list.
 

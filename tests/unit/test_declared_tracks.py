@@ -4,7 +4,7 @@ R4.3 asks for three declared tracks. The field that carries them replaces
 `tools/release_matrix.CATEGORY`, a dict hard-coded in a tool whose own comment
 said *"the task specs carry no category field"*. That dict listed six of the
 eight registered tasks: `plate_line` and `build_line` were absent, so
-`CATEGORY.get(task, "unknown")` filed both under `unknown` and PLAN 4.5's
+`CATEGORY.get(task, "unknown")` filed both under `unknown` and DESIGN 4.5's
 qualification filter -- `{"production", "repair"}` -- could not see the two
 most production-like families in the repo.
 
@@ -37,7 +37,7 @@ class TestEveryTaskDeclaresOne:
     def test_the_two_families_the_old_dict_could_not_see_are_now_qualifying(self):
         """`plate_line` and `build_line` were absent from `CATEGORY`, so the
         release gate could not include them. Declaring them makes acceptance
-        harder, which is the only direction PLAN section 4 permits."""
+        harder, which is the only direction DESIGN section 4 permits."""
         # `tools/` is not an importable package, so the module is loaded by
         # path rather than imported -- the same reason `tests/tools` does it.
         import importlib.util

@@ -50,7 +50,7 @@ class PolicyTurn:
 
     @property
     def prompt_digest(self) -> str:
-        payload = f"{self.system_prompt}\n\n{self.static_prefix}".encode("utf-8")
+        payload = f"{self.system_prompt}\n\n{self.static_prefix}".encode()
         return hashlib.sha256(payload).hexdigest()
 
     def messages(self) -> list[dict[str, str]]:
@@ -113,9 +113,11 @@ def build_policy_turn(
 
     vocabulary = action_vocabulary(env)
     legal = legal_actions(vocabulary, env.action_masks())
-    raw_domains = env.argument_domains() if any(
-        getattr(template, "parameterized", False) for template in env.catalog.templates
-    ) else {}
+    raw_domains = (
+        env.argument_domains()
+        if any(getattr(template, "parameterized", False) for template in env.catalog.templates)
+        else {}
+    )
     requires = argument_requirements(env)
     return PolicyTurn(
         system_prompt=SYSTEM_PROMPT,

@@ -1,6 +1,6 @@
 """An adapter that will not dispatch a request the run cannot afford.
 
-`docs/AGENTIC_ROADMAP-2026-09-10.md` A0.3 wants the cap and the deadline to bind
+the agent roadmap A0.3 wants the cap and the deadline to bind
 *before* a request is sent, not to be noticed afterwards. This wraps any
 :class:`~factoriorl.agent.adapters.ModelAdapter` and does exactly that, which
 means the enforcement lives in one place rather than being sprinkled through the

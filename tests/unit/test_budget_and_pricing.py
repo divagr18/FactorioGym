@@ -1,6 +1,6 @@
 """The spend cap and the run clock, which must bind before a request is sent.
 
-Every assertion here maps to a clause of `docs/AGENTIC_ROADMAP-2026-09-10.md`
+Every assertion here maps to a clause of the agent roadmap
 A0.3 and to a row of its Gate A0 table: valid output, missing usage, retry
 accounting, deadline expiry, and no dispatch after exhaustion.
 """

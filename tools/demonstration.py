@@ -1,4 +1,4 @@
-"""The Phase 5 agent demonstration (PLAN.md 5.7).
+"""The Phase 5 agent demonstration (DESIGN.md 5.7).
 
     Construct an automated plate line, inject a documented disruption, and
     restore sustained production.

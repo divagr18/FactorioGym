@@ -1,6 +1,6 @@
 """Spend and wall-clock limits that bind *before* a request is dispatched.
 
-`docs/AGENTIC_ROADMAP-2026-09-10.md` A0.3, in full force: one outstanding
+the agent roadmap A0.3, in full force: one outstanding
 request; reserve the worst-case cost before dispatch; stop before dispatch if it
 could exceed the remaining budget; use actual usage when available and retain the
 reservation for requests with uncertain billing; report the result as

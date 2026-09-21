@@ -1,4 +1,4 @@
-"""Repair a belt defect (PLAN.md 3.2, family 5).
+"""Repair a belt defect (DESIGN.md 3.2, family 5).
 
 A belt line runs from a loader chest to an unloading chest with one tile
 missing. Because throughput before the repair is exactly zero, the unloading

@@ -1,4 +1,4 @@
-"""Persistent agent memory (PLAN.md 5.4).
+"""Persistent agent memory (DESIGN.md 5.4).
 
     Maintain explored terrain, last-seen entities, action outcomes, and the
     current plan separately from authoritative world state.
@@ -22,7 +22,7 @@ was shown, and the *status* of the action it took. It is never written from
 `reward`, `success`, `terminated` or anything else the evaluator computes from
 ground truth.
 
-That restriction is the whole of PLAN 5.4's last clause. Memory is rendered back
+That restriction is the whole of DESIGN 5.4's last clause. Memory is rendered back
 into the prompt, so a memory that ingested the evaluator's verdict would feed it
 straight to the model, and "context compaction does not introduce evaluator
 information" would be false by construction rather than by accident.
@@ -330,7 +330,7 @@ class Memory:
 
         Successful repeats are the compressible half: ten completed walks say
         what one says. Failures are not -- a failed plan that disappears is a
-        plan the agent will propose again -- so PLAN 5.4 keeps them and this
+        plan the agent will propose again -- so DESIGN 5.4 keeps them and this
         drops only from the successful tail.
         """
         failed = [a for a in self.attempts if a.failed]

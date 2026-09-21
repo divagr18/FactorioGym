@@ -1,6 +1,6 @@
-"""Freeze and verify the release held-out evaluation set (PLAN.md 4.5).
+"""Freeze and verify the release held-out evaluation set (DESIGN.md 4.5).
 
-PLAN.md 4.5 asks for "frozen held-out evaluation": 100 episodes per family per
+DESIGN.md 4.5 asks for "frozen held-out evaluation": 100 episodes per family per
 training seed, on the **test (structural) split**, with the candidate family set
 declared *before* anyone looks at a held-out result. Nothing in the repo made
 "frozen" mean anything. The evaluation set was whatever ``train.py`` happened to
@@ -32,7 +32,7 @@ That makes "freeze the holdout at master seed N" impossible on its own, so this
 file freezes a whole seed plan -- ``master`` **and** ``run_id`` -- that belongs to
 the holdout rather than to any run. Training seeds keep varying the policy; the
 evaluated scenes stop varying with them. That is also the only arrangement in
-which PLAN 4.5's "per training seed" comparison, and 4b.3's two arms, are paired
+which DESIGN 4.5's "per training seed" comparison, and 4b.3's two arms, are paired
 measurements rather than three independent samples of the scene distribution,
 which section 3 explicitly asks for.
 
@@ -158,7 +158,7 @@ HOLDOUT_RUN_ID = "holdout-v3"
 #: on regardless of what index range training reached.
 HOLDOUT_BRANCH = Branch.EVAL
 
-#: PLAN section 3: the acceptance threshold is carried by unfamiliar
+#: DESIGN section 3: the acceptance threshold is carried by unfamiliar
 #: *structures*, so the holdout is the test split and only the test split. The
 #: `val` split stays available for selection and must not be frozen here -- a
 #: frozen validation set invites tuning against a fixed target, which is the
@@ -173,7 +173,7 @@ HOLDOUT_SPLIT = "test"
 #: uncertainty inside the holdout.
 HOLDOUT_START_INDEX = 3000
 
-#: PLAN 4.5: "Evaluate 100 held-out episodes per family per training seed."
+#: DESIGN 4.5: "Evaluate 100 held-out episodes per family per training seed."
 HOLDOUT_EPISODES = 100
 
 #: What the release runner has to do for the frozen file to mean anything. Kept
@@ -451,7 +451,7 @@ MANIFEST_HOLDOUT_KEY = "holdout"
 def manifests_citing(holdout_id: str = HOLDOUT_ID, runs_root: Path | None = None) -> list[dict]:
     """Every run manifest that claims to have evaluated against this holdout.
 
-    PLAN 4.5's requirement is that the hash "matches every manifest citing it",
+    DESIGN 4.5's requirement is that the hash "matches every manifest citing it",
     so the citation has to be checkable from the outside. A manifest that names
     no holdout is not an error here -- most runs are not release runs -- but one
     that names *this* holdout with a stale hash is: it reports a number against
@@ -544,7 +544,7 @@ def entry_hash(entry: dict) -> str:
 def summarise(body: dict) -> dict:
     """Per-task facts a reader checks before trusting a rate computed on this.
 
-    ``distinct_scenes`` is the one that matters: PLAN section 3 is explicit that
+    ``distinct_scenes`` is the one that matters: DESIGN section 3 is explicit that
     "a holdout whose generator admits one scene is evaluated once, no matter how
     many episodes are run against it". A frozen list of 100 episodes covering
     four scenes would still present a Wilson interval computed as if there were
@@ -590,7 +590,7 @@ def build_document(
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "git_commit": git_commit(),
         "declaration": {
-            # PLAN 4.5: "Declare the candidate family set *before* looking at any
+            # DESIGN 4.5: "Declare the candidate family set *before* looking at any
             # held-out result, with a timestamped record -- that declaration is
             # what keeps the holdout honest." Left null rather than defaulted to
             # all six, because a declaration nobody made must read as missing. A
@@ -717,7 +717,7 @@ def main() -> int:
         default="",
         help=(
             "comma-separated task ids declared as release candidates, recorded with a "
-            "timestamp. PLAN 4.5 requires this before any held-out result is read."
+            "timestamp. DESIGN 4.5 requires this before any held-out result is read."
         ),
     )
     args = parser.parse_args()
@@ -915,7 +915,7 @@ def main() -> int:
                 "refusing to overwrite an existing declaration "
                 f"({document['declaration']['candidate_families']}, declared "
                 f"{document['declaration']['declared_at']}). Re-declaring after a result "
-                "has been read is exactly what PLAN 4.5 forbids; bump the holdout id and "
+                "has been read is exactly what DESIGN 4.5 forbids; bump the holdout id and "
                 "freeze a new one instead."
             )
             return 1
@@ -963,7 +963,7 @@ def main() -> int:
     print(f"\nwrote {args.out}")
     if candidates is None:
         print(
-            "WARNING: no candidate family declaration recorded. PLAN 4.5 requires the "
+            "WARNING: no candidate family declaration recorded. DESIGN 4.5 requires the "
             "candidate set to be declared before any held-out result is read; rerun with "
             "--candidates before evaluating."
         )
