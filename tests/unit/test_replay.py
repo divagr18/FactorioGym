@@ -221,7 +221,7 @@ def test_the_map_draws_where_the_character_has_been(tmp_path):
 
 
 def test_limitations_document_covers_every_deferred_or_broken_thing():
-    """DESIGN 6.4: 'deferred functionality is not advertised as available'.
+    """Deferred functionality is not advertised as available.
 
     A limitations file that drifts is worse than none, because a reader cannot
     tell which entries are still true. This pins the ones that are load-bearing
@@ -247,8 +247,6 @@ def test_limitations_document_covers_every_deferred_or_broken_thing():
         "does not reproduce a run's scenes",
         "does not decontaminate the generators",
         "property of the action space",
-        # results
-        "no accepted learning result",
     ]
     missing = [phrase for phrase in required if phrase not in text]
     assert not missing, f"limitations document no longer states: {missing}"

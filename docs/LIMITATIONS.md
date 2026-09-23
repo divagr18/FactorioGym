@@ -4,8 +4,8 @@ Everything here is measured, not suspected. Each item says what was observed and
 where the evidence is, because a limitations document that hedges is worse than
 none: a reader cannot tell which entries are real.
 
-DESIGN.md 6.4 requires that deferred functionality is not advertised as available.
-This file is where that obligation is discharged.
+Nothing deferred is advertised as available; this file is where the gaps are
+written down.
 
 ---
 
@@ -291,46 +291,61 @@ the catalog digest that served a primitive floor to three skill arms.
 
 ## 6. Learning results
 
-Phase 4 acceptance (4.5) requires at least three families at 80% on the
-structural split with at least one production or repair family, evaluated over
-100 frozen held-out episodes per family per training seed.
+**Policies trained in factory-sim, played on the engine.** One checkpoint per
+task, trained only in the simulator, then evaluated on Factorio 2.0.60 through
+`ParameterizedEnv`:
 
-**WITHDRAWN (2026-09-08).** This section previously stated that `repair_belt`
-and `restore_power` had no reward gradient and no training successes, citing
-"190 training episodes, zero successes, mean episode reward -0.300". Both
-halves were wrong.
+| Task | Layouts | Simulator (512 episodes) | Engine (32 episodes) |
+|---|---|---|---|
+| `construct_smelting_line` | training families | 78.3% | 75.0% |
+| | held out | 92.0% | 90.6% |
+| `build_line` | training families | 99.6% | 100% |
+| | held out | 99.2% | 90.6% |
 
-`docs/evidence/reward-audit.json` reports `has_gradient: true` for both at
-v1.5.0. And the numbers came from `CurveLogger`, which kept one reward
-accumulator and one step counter for the entire worker vector and read the
-success flag from `infos[0]` only -- so a success in any worker but the first
-was written down as a zero, and the "-0.300" was an eight-worker sum that
-happened to resemble one episode's step cost. The curves on disk contain 24 and
-19 successes on `restore_power` and 1 on `repair_belt`. Fixed in `8b68296`,
-covered by `tests/unit/test_curve_logger.py`.
+Evidence: `docs/evidence/sim-transfer-m5.json` and
+`docs/evidence/sim-transfer-build-line.json`, each with a per-episode record.
+Three limits apply:
+- With 32 engine episodes, 29/32 has a 95% interval of about 76-97%.
+- The simulator overestimated held-out `build_line` by about eight points.
+- The numbers are for *sampled* actions. Played greedily, the same
+  checkpoints succeed on about 3% of episodes.
 
-On the fixed instrumentation, a 6,000-step `restore_power` run logs 51 episodes
-and 5 successes -- **none in worker 0** -- and scores 0.25 stochastic against a
-0.10 random floor on training seeds while scoring 0.00 on both held-out splits.
-The failure is transfer, not learning. Two related corrections: the
-`15-27 M` step lower bound (the RL theory notes Anchor 1) is
-explicitly "a floor with no ceiling attached" and cannot license a negative
-claim; and `holdout_v2` was re-frozen five times, so the `phase4-release-v2-*`
-scores for these two families were measured on scenes the current holdout no
-longer contains. `deliver`'s frozen entry is byte-identical across the last
-four freezes, so its 0.92 stands.
+**Policies trained on the engine directly have not met the project's bar.** The
+bar is:
+- at least three task families at 80% success on structurally held-out layouts,
+  at least one of them a production or repair family;
+- 100 frozen held-out episodes per family per training seed;
+- a random-policy floor low enough (at most 0.10) for the success rate to mean
+  something.
 
+No declaration has passed. The latest measurement of each family
+(`docs/evidence/phase4-release-*.json`, all on `holdout_v2`, the frozen set then
+in use):
 
-**Status: see the project ledger and `docs/evidence/phase4-release-v2-*.json`.**
-The first declaration (`holdout_v1`: navigate, deliver, mine_smelt) produced no
-qualifying family -- `navigate` is disqualified on its 0.99 skill floor,
-`mine_smelt` measured 0.32, and `deliver` scored 0.35. A second holdout
-(`holdout_v2`) declares `deliver`, `repair_belt` and `restore_power`, chosen on
-floors measured off the test split.
+| Family | Held-out success | Random floor | Note |
+|---|---|---|---|
+| `deliver` | 0.77 (seeds 1-3) | 0.05 | an earlier revision measured 0.92 (`phase4-release-v2-deliver.json`) |
+| `restore_power` | 0.77 (seed 1), 0.00 (seeds 2-3) | 0.02-0.05 | the result depends on the seed |
+| `repair_belt` | 0.00 | 0.00 | |
+| `mine_smelt` | 0.75 | 0.32 | floor above the ceiling |
+| `navigate` | 1.00 | 0.985 | disqualified: a random policy nearly solves it |
 
-Until a release matrix is published and accepted in the ledger, **this project
-has no accepted learning result**, and any checkpoint shipped with it is a
-demonstration that training runs, not evidence that it works.
+A file named `...-v3-...` is the third revision of that evidence, not
+`holdout_v3`. Each file names its holdout in `holdout.id`.
+
+**A corrected claim.** An earlier version of this section said `repair_belt`
+and `restore_power` had no reward gradient and no training successes ("190
+training episodes, zero successes, mean episode reward -0.300"). Both halves
+were wrong.
+- `docs/evidence/reward-audit.json` reports `has_gradient: true` for both.
+- The numbers came from `CurveLogger`. It kept one reward accumulator and one
+  step counter for the whole worker vector, and read the success flag from
+  `infos[0]` only. So a success in any worker but the first was logged as zero,
+  and "-0.300" was an eight-worker sum.
+- The curves on disk hold 24 and 19 successes on `restore_power`, and 1 on
+  `repair_belt`.
+
+It is fixed in `8b68296` and covered by `tests/unit/test_curve_logger.py`.
 
 ---
 
@@ -393,7 +408,7 @@ for named scenes, deliberately outside the evaluation path, and in an aggregate
 shape replay cannot read. So of R6's five gate clauses, replay serves the agent
 half and not the learning half.
 
-**`factoriorl agent` now exists** (roadmap A0). It runs a registered task or an
+**`factoriorl agent` now exists**. It runs a registered task or an
 open world, selects either adapter with `--adapter`, enforces a spend cap and a
 wall clock, and writes run-local artifacts.
 
@@ -429,7 +444,7 @@ renders the aggregate, marked as too far to address directly. **The RL encoder
 still reads only `resources.tiles`**, so a trained policy remains blind to
 anything beyond 12 tiles -- unchanged, and now written down.
 
-**The open world now saves and resumes** (roadmap A1.3): before the first
+**The open world now saves and resumes**: before the first
 action, every five wall-clock minutes, and at termination, with
 `--resume-from <run id>` continuing from a run's newest verified checkpoint.
 Measured end to end in `docs/evidence/a1-world-lifecycle.json` — a placed
@@ -456,7 +471,7 @@ save answers `unknown`. It has never mattered because nothing produced a save;
 it can now.
 
 **The bootstrapping tools are sufficient, and that is a claim about the tools,
-not about any agent** (roadmap A2). `tools/probe_bootstrap.py` drives the whole
+not about any agent**. `tools/probe_bootstrap.py` drives the whole
 chain -- walk to ore, mine it, handcraft, place a furnace, fuel it, take
 machine-made plates -- through nothing but the public `open-v1` catalog, and
 writes `docs/evidence/a2-bootstrap.json`. It is a scripted solver. It shows the
@@ -520,7 +535,7 @@ availability is published every turn in the observation instead, and the block
 says so in its own header.
 
 **The agent can now hold an intention across turns, and the three mechanisms
-that do it had all been written and left unreachable** (roadmap A3).
+that do it had all been written and left unreachable**.
 `Memory.record_plan` and `close_plan` had zero callers, so the prompt rendered
 a `CURRENT PLAN` heading that was permanently empty. `Fact.source` admitted only
 observation-sourced entries, so a claim the model wanted to keep had nowhere to
@@ -561,8 +576,8 @@ appearing under both `REPEATED FAILURE` and `REFUSED ACTIONS`, once per attempt,
 on every later turn. Reasons are now clipped to 120 characters and a failure
 already named above is not repeated below.
 
-**A run is now measured on a wall clock and stopped in a defined order**
-(roadmap A4.3), and three things were wrong before that are worth keeping
+**A run is now measured on a wall clock and stopped in a defined order**,
+and three things were wrong before that are worth keeping
 written down. Measured in `docs/evidence/a4-measurement.json`: a realtime
 `run_world` with a scripted provider that takes seven seconds a call, 10/10.
 
@@ -587,8 +602,8 @@ only; worker launch and final snapshot excluded", and `clock.stop()` ran after
 the final save, the viewer teardown and `--hold-open`. Gameplay and finalization
 are now separate numbers -- 42.0s and 0.93s of a 64.7s wall on the probe.
 
-**A run's artifacts are now complete, and the replay shows a whole batch**
-(roadmap A4.1). A run writes `config.json`, `manifest.json`, `status.json`,
+**A run's artifacts are now complete, and the replay shows a whole batch.**
+A run writes `config.json`, `manifest.json`, `status.json`,
 `decisions.jsonl`, `tool_events.jsonl`, `production.jsonl`, `result.json` and
 `summary.json`, plus a verified initial and final save. `config.json` is written
 *before* the first decision, so a run that dies at decision two still says what
@@ -640,7 +655,7 @@ directly, bypassing `factoriorl.agent.provider.build()` -- which is the one
 thing that returns an adapter with a spend cap and a run clock already attached,
 and which exists precisely to make an unbudgeted request unexpressible. Against
 a local endpoint that was harmless. Against `api.deepseek.com`, which is exactly
-where roadmap A5.1 points it, it was not. It now goes through `provider.build`,
+where the design points it, it was not. It now goes through `provider.build`,
 refuses before dispatch when the reservation would exceed the cap
 (`error_kind: budget_exhausted`, zero latency, nothing sent), reports the price
 it will be billed at, and gained the `--adapter` flag that made the Anthropic
@@ -704,7 +719,7 @@ Found by accident: the local map showed no debris on a headless probe while both
 paid runs were full of it, and the discrepancy was the tell. The join now sweeps
 crash-site entities by name prefix -- which cannot match anything the agent
 builds -- and the count is 0 before and 0 after. **Neither of the first two paid
-runs was playing the world the roadmap specifies, and no claim should be made
+runs was playing the world the task specifies, and no claim should be made
 from them about what the agent achieved.**
 
 **A machine's facing was a word, and a word is not a location.** "facing south"
