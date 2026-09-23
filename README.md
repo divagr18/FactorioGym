@@ -264,6 +264,22 @@ The [design document](docs/DESIGN.md) specifies the implementation contracts.
 See [known limitations](docs/LIMITATIONS.md) for evaluation caveats and the
 supporting measurements.
 
+## Citing
+
+If you use FactorioGym in academic work, please cite it. GitHub's "Cite this
+repository" button reads [CITATION.cff](CITATION.cff); in BibTeX:
+
+```bibtex
+@software{agrawal2026factoriogym,
+  author  = {Agrawal, Divyansh},
+  title   = {{FactorioGym}: an embodied Factorio environment for reinforcement learning},
+  year    = {2026},
+  version = {0.1.0},
+  url     = {https://github.com/divagr18/FactorioGym},
+  license = {Apache-2.0}
+}
+```
+
 ## License
 
 [Apache-2.0](LICENSE). Factorio is a game and trademark of Wube Software Ltd.

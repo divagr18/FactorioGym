@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software in academic work, please cite it as below."
+type: software
+title: "FactorioGym: an embodied Factorio environment for reinforcement learning"
+abstract: "Embodied Factorio environment for compact RL policies and language-model agents."
+authors:
+  - family-names: Agrawal
+    given-names: Divyansh
+    orcid: "https://orcid.org/0009-0003-0739-2473"
+version: "0.1.0"
+license: Apache-2.0
+repository-code: "https://github.com/divagr18/FactorioGym"
+keywords:
+  - "reinforcement learning"
+  - "environment"
+  - "benchmark"
+  - "Factorio"
