@@ -98,4 +98,4 @@ This project ships no game files and is not affiliated with Wube Software.
 
 ## Licence
 
-Contributions are accepted under the MIT Licence; see [LICENSE](LICENSE).
+Contributions are accepted under the Apache License 2.0; see [LICENSE](LICENSE).

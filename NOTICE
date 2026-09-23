@@ -1,6 +1,6 @@
 FactorioGym
 Copyright (c) 2026 FactorioGym contributors
-Licensed under the MIT License; see LICENSE.
+Licensed under the Apache License, Version 2.0; see LICENSE.
 
 Factorio
 --------
@@ -12,7 +12,7 @@ What this repository contains
 -----------------------------
 Only original code and data written for this project. It contains no Factorio
 game files, source code, art, sound, fonts or save files, and none of those
-are covered by the MIT License. The Factorio source code is not public and
+are covered by this project's licence. The Factorio source code is not public and
 none has been copied here.
 
 The Lua under mod/ is an original Factorio mod that uses Factorio's public

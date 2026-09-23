@@ -3,7 +3,7 @@ name = "factoriorl"
 version = "0.1.0"
 description = "Embodied Factorio environment for compact RL policies and language-model agents."
 readme = "README.md"
-license = "MIT"
+license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dependencies = []

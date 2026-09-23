@@ -266,7 +266,7 @@ supporting measurements.
 
 ## License
 
-[MIT](LICENSE). Factorio is a game and trademark of Wube Software Ltd.
+[Apache-2.0](LICENSE). Factorio is a game and trademark of Wube Software Ltd.
 This project is independent and is not affiliated with or endorsed by Wube.
 No game files are included. Running engine tasks requires your own copy of
 Factorio or Wube's headless server. See [NOTICE](NOTICE).
