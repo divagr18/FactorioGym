@@ -531,10 +531,8 @@ function move(delta) {{
 }}
 
 // Autoplay. The map already redraws per decision from that decision's own
-// observation, so playing the index *is* watching the run -- which is the same
-// answer the Factorio Learning Environment settled on: as of its v0.3.0 it "no
-// longer depends on the Factorio game client" and renders map images per step
-// instead. Attaching a real client to this environment does not work at all --
+// observation, so playing the index *is* watching the run. Attaching a real
+// client to this environment does not work at all --
 // with one connected, RCON requests come back with an empty body -- so this is
 // not a lesser substitute for a live view, it is the view.
 let playing = null;

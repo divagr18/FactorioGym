@@ -37,10 +37,9 @@ The first public release must contain:
 | Agent models | Local inference plus optional API providers |
 | Initial assistance | Navigation and bounded typed interactions |
 | Main game target | Peaceful base-game rocket launch |
-| Existing frameworks | No dependency on FLE architecture or compatibility |
 | Development model | One owner coordinating many coding agents |
 
-Keep combat, Space Age, multiplayer agents, pixel-only RL, approximate simulators, Linux support, and FLE adapters outside the initial release sequence.
+Keep combat, Space Age, multiplayer agents, pixel-only RL, approximate simulators and Linux support outside the initial release sequence.
 
 ### Definition of success
 
