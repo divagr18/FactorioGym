@@ -130,6 +130,40 @@ def load_program(db: Path) -> dict:
     return {"run": db.parent.name, "id": row[0], "val_mean": row[2], "code": row[1]}
 
 
+def load_programs_jsonl(path: Path) -> list[dict]:
+    """Programs written by a model, one JSON object per line with `run` and `code`
+    (e.g. sampled from an eval trace); extra keys are kept in the report."""
+    programs = []
+    for line in path.read_text("utf-8").splitlines():
+        if line.strip():
+            row = json.loads(line)
+            programs.append({"id": row.get("trace_row"), "val_mean": None, **row})
+    return programs
+
+
+def failed_rows(program: dict, first_index: int, episodes: int, error: str) -> list[dict]:
+    """A program the sandbox refuses fails every scene on both sides, unplayed."""
+    side = {
+        "success": False,
+        "verified_output": 0,
+        "decisions": 0,
+        "refusals": 0,
+        "failures": 0,
+        "error": error,
+    }
+    return [
+        {
+            "index": evaluate.HOLDOUT_START_INDEX + first_index + k,
+            "family": None,
+            "blueprint": None,
+            "digest_matches_factory_sim": None,
+            "engine": {**side, "decode_failures": 0, "trace": None, "seconds": 0.0},
+            "simulator": dict(side),
+        }
+        for k in range(episodes)
+    ]
+
+
 def run_program(task, session, program: dict, first_index: int, episodes: int) -> list[dict]:
     env = FactorioEnv(task, session, HOLDOUT_PLAN, branch=Branch.EVAL, split="test")
     captured: dict = {}
@@ -144,7 +178,11 @@ def run_program(task, session, program: dict, first_index: int, episodes: int) -
 
     env._install = capturing_install
     penv = ParameterizedEnv(env, profile="v2")
-    build = sandbox.load(program["code"])
+    try:
+        build = sandbox.load(program["code"] or "")
+    except sandbox.SandboxError as e:
+        print(program["run"], "refused by the sandbox:", e, flush=True)
+        return failed_rows(program, first_index, episodes, f"sandbox: {e}")
     rows = []
     for k in range(episodes):
         index = evaluate.HOLDOUT_START_INDEX + first_index + k
@@ -216,7 +254,9 @@ def summarise(rows: list[dict]) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--program-db", type=Path, action="append", required=True)
+    parser.add_argument("--program-db", type=Path, action="append", default=[])
+    parser.add_argument("--programs", type=Path, help="JSONL of model-written programs")
+    parser.add_argument("--about", help="replace the report's `about` line")
     parser.add_argument("--task", default="construct_smelting_line")
     parser.add_argument(
         "--first-index",
@@ -230,10 +270,15 @@ def main() -> int:
 
     task = get(args.task)
     programs = [load_program(db) for db in args.program_db]
+    if args.programs:
+        programs += load_programs_jsonl(args.programs)
+    if not programs:
+        parser.error("give --program-db and/or --programs")
     manager = WorkerManager()
     handle = manager.launch("program-transfer")
     report: dict = {
-        "about": "factory-sim builder programs played on the real engine, beside the simulator",
+        "about": args.about
+        or "factory-sim builder programs played on the real engine, beside the simulator",
         "task": task.spec.id,
         "task_version": task.spec.version,
         "action_space": "parameterized-v2",
