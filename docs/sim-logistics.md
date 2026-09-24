@@ -159,7 +159,8 @@ the single-item rule. See "Open questions".
 (0, -1), drop (0, 1.2), `max_energy_usage` 2400 J/tick, one fuel slot,
 `chases_belt_items` true. **Direction points at the pickup tile**: built
 facing north at (160.5, 130.5), it picks at (160.5, 129.5) and drops at
-(160.5, 131.69921875). Only north-facing inserters were built.
+(160.5, 131.69921875). Only north-facing inserters were built here;
+"Inserter belt pickup" below covers all four facings.
 
 ### Built state: a quarter of a wood
 
@@ -182,8 +183,9 @@ from the new coal.
 | drop | t=123 |
 
 **38 ticks pickup to drop, 38 drop to pickup, 76 per item.** 0.5 turn / 0.013 is
-38.46; the observed 38 is consistent with the pickup tick itself counting as
-the first rotation step (39 steps of 0.013 reach 0.507).
+38.46. The arm takes 37 full steps (0.481 turn) and on the 38th arrives: once
+the extension is on target, a rotation with less than one step left after the
+step is completed in that tick (rule 2 of "Inserter belt pickup").
 
 ### Energy
 
@@ -195,10 +197,14 @@ Burner draw per tick, from `remaining_burning_fuel` differences (`c2c`,
   = 33,450 J**. A chest-to-chest cycle is **66,900 J per item** (t=85..161,
   summed).
 - Waiting (`waiting_for_source_items`, `waiting_for_space_in_destination`):
-  **0 J/tick**, buffer stays 2,560. There is no drain.
-- Chasing belt items draws other amounts (745.46, 1,360.02, 1,935.71, ... in
-  `flow`, `tick_ins`), so the table above only holds for a swing between two
-  fixed points.
+  **0 J/tick**. There is no drain. The buffer is not always 2,560 while
+  waiting: an inserter that falls asleep keeps what its last move left
+  (810 or 1,910 are common); see rule 6 of "Inserter belt pickup".
+- All of these are one rule: **50 kJ per turn of rotation plus 50 kJ per tile
+  of extension** actually charged that tick (0.013 x 50,000 = 650, 0.035 x
+  50,000 = 1,750, both = 2,400). Chase amounts such as 745.46 or 1,935.71 in
+  `flow` are partial steps of the same rule; the chase probe matches every
+  tick to 0.03 J.
 
 Check against exhaustion (`wood`: the built-in quarter wood, then one wood):
 the wood is loaded at t=551 and runs out at t=2825 (remaining 0, buffer
@@ -209,10 +215,15 @@ t=3000, still running on its coal with 1.85 MJ left).
 
 ### Hand position
 
-`held_stack_position` does not follow a simple polar path: its distance from
-the inserter goes above 1.5 tiles mid-swing and the item swings through the
-west side (`c2c`, t=10..46). It looks like a drawing position. Model the timing
-above, not the hand.
+`held_stack_position` is the arm's polar position plus a drawn lift. Its
+**x** offset from the inserter is exactly `-L sin(2 pi a)` of the arm state
+in "Inserter belt pickup", truncated toward zero to 1/256 tile, on every tick
+of every chase rig. Its **y** offset is `-L cos(2 pi a)` minus a lift that
+rises and falls over a swing (up to about 150/256 on a full half turn, 0 at
+both ends, 0 while chasing from rest); that is why its distance goes above
+1.5 tiles mid-swing (`c2c`, t=10..46). The lift never feeds back into the
+logic and is not modelled. The item swings through the west side because of
+the half-turn rule (rule 2).
 
 ### Waiting inserters react one tick late
 
@@ -246,10 +257,9 @@ inserter drop both land before belt movement in their tick (the p-8 readback).
   chase.** 20-tick feed, near lane: 40 items taken by t=3000, pick-to-drop 31
   to 38 ticks, drop-to-pick 32 to 45; far lane: 38 items. It is deterministic
   -- the near lane repeats exactly with a 140-tick period (2 items) from t=325,
-  the far lane with 220 ticks (3 items) from t=481, hand positions identical --
-  but reproducing it means reproducing the chase kinematics tick by tick.
-  **Recommendation: do not model it.** Keep tasks to pickups from chests,
-  machines and stopped items at belt ends, where the 38/38 rule holds.
+  the far lane with 220 ticks (3 items) from t=481, hand positions identical.
+  The chase kinematics are now reproduced tick by tick: see "Inserter belt
+  pickup" below (both of these rigs replay exactly).
 
 ### Drop onto a belt
 
@@ -287,6 +297,195 @@ that coal and the coal in its hand went into itself again at t=491. Timing of
 the self-insert (28 ticks after pickup; 37 ticks after the slot emptied
 mid-swing) is recorded but not explained.
 
+## Inserter belt pickup
+
+How a burner inserter takes items off a yellow belt, moving or stopped, to
+the tick. `tools/inserter_model.py` is the executable form of this section;
+it replays every rig below from its first tick and compares with the engine.
+
+### Evidence
+
+`tools/probe_inserter_chase.py` builds rigs of one burner inserter, a belt
+through its pickup tile and a wooden chest, and records every tick: hand
+position, whether it holds an item, burner energy (fuel left + buffer, and the
+buffer alone), and every item (unique id, lane, position) on the pickup belt
+and its two neighbours. Five families, `docs/evidence/inserter-chase-*.json.xz`:
+
+| family | rigs | ticks | what varies |
+|---|---|---|---|
+| `single` | 256 | 400 | one item reaching an idle inserter: facing N/E/S/W; belt crossing left-to-right, right-to-left, running toward the inserter (item stops at the belt end), running away; near/far lane; item position mod 8 |
+| `stream` | 252 | 3,000 | items fed every 8..40 ticks on the near, far or both lanes, all facings, both crossings, queues at a belt end; half the rigs start with an item in hand |
+| `wake` | 80 | 900 | sleeping inserters, 500+ ticks after build: when the buffer is refilled |
+| `loss` | 524 | 900 | an item the returning hand fails to catch, lost with the hand at many distances |
+| `pair` | 40 | 2,000 | two inserters on opposite sides of one belt tile, both lanes fed, facings N/E (and their opposites), both crossings |
+
+`tools/probe_inserter_wake.py` (`docs/evidence/inserter-wake.json`) adds items
+to belt lines in different ways and watches sleeping inserters wake. The two
+moving-belt rigs of the first probe (`flow`, `flow2`) are replayed as a sixth
+family, `m4`.
+
+**Agreement.** With the burner buffer taken from the engine each tick (which
+isolates everything but rule 6), all 1,154 rigs replay exactly: 1,487,998
+rig-ticks, 12,578 hand fills. Exactly means, on every tick: the hand's x
+offset (below), whether the hand is full, which item was picked up and on
+which tick, and the energy spent (largest error 0.022 J). With rule 6
+computing the buffer too, every rig is exact except in the first ~300 ticks
+after its belts were built (see "Not yet exact").
+
+### Frame and state
+
+Everything below is in the inserter's frame: its centre at (0, 0), its pickup
+tile ahead at (0, -1), the chest behind; units 1/256 tile; y down. The four
+facings are rotations of this frame, except for the half-turn rule in 2.
+
+- The arm is an orientation `a` (turns, **anticlockwise** from straight ahead,
+  so 0.25 is the inserter's left) and a length `L`. The hand is at
+  `(-L sin 2 pi a, -L cos 2 pi a)`.
+- As built: `a = 0`, `L = 179.2` (`starting_distance` 0.7).
+- Pickup point: `a = 0, L = 256`. Drop point: `a = 0.5, L = 307.2` (1.2
+  tiles; `drop_position` reads 1.19921875 but the arm uses 1.2).
+- The engine reports `held_stack_position` as the inserter's position plus the
+  hand vector **truncated toward zero** to 1/256 in each world axis. The x of
+  that is exact; the y adds a drawn lift during swings (see "Hand position").
+- A belt item's position is its lane's centre line (60/256 either side of the
+  belt's centre, lane 1 on the left of travel) at its distance from the belt's
+  downstream edge.
+
+### The rules
+
+**1. Order.** Belts move first in a tick, then the inserter. It sees items
+where this tick's belt move left them, and an item that crosses onto the
+pickup belt is chased in the same tick (`single`: item enters at 255, hand
+moves that tick). Items the script adds between ticks are seen at once.
+
+**2. Moving toward a target** `(a_t, L_t)`, each tick, `ROT = 0.013` turn,
+`EXT = 0.035 tile = 8.96/256`:
+
+- Extension, `dl = L_t - L`:
+  - `|dl| < 0.001 tile` (0.256/256): `L = L_t`, **no energy** (`stream`: 0.253
+    free, 0.279 charged);
+  - `|dl| <= EXT`: `L = L_t`, charged `|dl|`;
+  - otherwise `L += EXT` toward it, charged EXT, and if less than EXT is then
+    left, `L = L_t` (still charged EXT). So the extension arrives when under
+    two steps remain: the first approach 179.2 to 256 takes 8 ticks, 256 to
+    307.2 takes 5.
+- Rotation, `d` = the short way from `a` to `a_t`:
+  - `|d| <= ROT`: `a = a_t`, charged `|d|`;
+  - otherwise `a += ROT` toward it, charged ROT, and **if the extension
+    reached its target this tick** and less than ROT is then left, `a = a_t`.
+    Without the extension condition this rule breaks (`m4` far lane t=258:
+    0.0246 turn left, no snap, extension still moving; `single` rig 0 t=170:
+    0.0198 left, snap, extension done).
+  - An **exact half turn** is decided in world orientation (clockwise from
+    north, [0, 1)): +0.5 goes anticlockwise, -0.5 clockwise, against the sign.
+    So a north-facing inserter swings from pickup to drop and back through the
+    west both ways, a south-facing one out through the east and back through
+    the west, an east- or west-facing one back through the north (`single`,
+    all 64 rigs of each facing). Differences that are not exactly 0.5 take the
+    short way.
+- Arrived = both axes on target this tick.
+- Energy = 50,000 J x (turns + tiles) as charged above. If the buffer holds
+  less (rule 6), the extension is paid first and moves in proportion to what
+  it gets; rotation gets the rest (`single`: 810 J buys 4.15/256 of extension
+  and no rotation).
+
+**3. Holding an item:** target the drop point. On arrival the item goes into
+the chest that tick; the swing back starts next tick. Chest to chest this is
+the 38/38 cycle above.
+
+**4. Empty: which target.**
+
+- The item being chased, as long as it is on the pickup belt (either lane,
+  position 0..255 of that belt entity). Items on the next belt do not count.
+- Otherwise a new one among the items on the pickup belt:
+  **the lane nearer the inserter first** (for a belt that runs along the arm,
+  where both lanes are equally near, **lane 1**, the left of travel), then
+  **the item furthest upstream** (largest position). Not the nearest, and not
+  the one needing least rotation (`stream` both-lane rigs; `m4` t=358, t=1134).
+- The choice sticks: a newer item entering the belt does not replace it.
+- No item: target the pickup point. At rest with nothing to chase the
+  inserter waits there.
+- **On arrival at an item it is picked up that tick**, off the belt at once;
+  the hand is exactly on the item's position. That can be the tick the item
+  crosses onto the pickup belt (`pair` rig 15, t=317).
+
+**5. The chased item leaves the pickup belt.** If the hand is **over the
+pickup belt's tile** (x in [-128, 128], y in [-384, -128]) at that moment, the
+inserter does nothing this tick (no move, 0 J) and chooses again next tick.
+Otherwise it chooses again at once and moves (`loss`: hand x -121.5 idles,
+-132.2 moves; `stream` rigs 6, 8, 9). The tile edges themselves are not
+pinned: x = +-128 is the natural value and the data only bound it to
+121.5..132.2; the y edges were never approached.
+
+**6. The burner buffer** (2,560 J when full):
+
+- Refilled after every tick the inserter is awake, whether or not it moved.
+- It **falls asleep** when it ends a tick at the pickup point with nothing to
+  chase and **no item anywhere on its pickup belt's line** (the connected
+  chain of belts, upstream and downstream). Asleep, it keeps the buffer as its
+  last move left it: 810 after the first approach, 1,910 after a return swing.
+  If the line holds items it stays awake at the pickup point (`wake` case B).
+- It **wakes** when an item is added to that line: inserted anywhere on it,
+  35 belts upstream or downstream of the pickup belt included; entering it
+  from a sideload (when the item joins the line, not when it goes on the
+  feed); dropped onto it by another inserter. Not for items on an unconnected
+  belt. Waking without a move refills the buffer.
+- An item that arrives on the pickup belt with no add since the inserter fell
+  asleep (dropped straight onto the pickup belt, for instance) wakes it into
+  a move paid from the stale buffer (`single` "away" rigs: 810 J).
+- **Young belts wake late.** For roughly the first 300 ticks after the belts
+  were built, an add wakes the inserter only at a later tick (0 to 287 ticks
+  after the belts were built, observed), and items on the line do not keep it
+  awake. The tick depends on where the rig is in the world (moving the whole
+  grid by a few tiles changes it) and not on when the inserter was built
+  (belts built at t=0 and inserters at t=400: all immediate). After ~400
+  ticks every add woke its inserter at once (256 of 256 rigs, adds at t=400
+  and t=800).
+
+**7. Two inserters on one belt tile** (one each side, `pair`): the one built
+later updates first in a tick. So when it takes an item the other was
+chasing, the other finds it gone in the same tick (rule 5 applies at once);
+when the earlier-built one takes an item, the later one still saw it that
+tick, moved toward it, and finds it gone the next tick. This held for all
+four relative placements; whether sleeping and waking can change the order
+was not tested.
+
+### Exact vs not yet exact
+
+**Exact** (every rig, every tick, all quantities above):
+
+- belts crossing in front of the inserter in either direction, belts running
+  toward it (items stopped at the belt end) and away from it;
+- near lane, far lane, both lanes;
+- all four facings;
+- single items at every position mod 8, streams every 8 to 40 ticks, items
+  queued and stopped, an inserter starting with an item in hand or given one
+  mid-run;
+- missed items, retargeting, lost targets;
+- two inserters taking from one belt tile, one each side;
+- the energy of every tick, including partial moves;
+- the buffer, sleep and wake once the belts are more than ~300 ticks old.
+
+**Not yet exact:**
+
+- **The young-belt wake delay** (rule 6). It only matters when an inserter is
+  asleep with a part-empty buffer and its first move is limited by that. In
+  the probes that is the first pickup after build: with the delay ignored,
+  242 of 256 `single` pickups and 10,107 of 10,312 `stream` pickups are on
+  the engine's tick; in each diverging rig the first differing pickup is one
+  tick later in the engine, and every divergence starts between t=166 and
+  t=173. The per-rig delay could not be predicted.
+  **Decision (2026-09-24): accepted.** The simulator ignores the delay. Parity
+  comparisons may differ by one tick on the first pickup in the first ~300
+  ticks after belts are built, and are exact after that.
+- **Hand y** (the drawn lift) is not modelled; nothing depends on it.
+- **Not measured at all:** curved or sideloaded pickup belts, underground
+  belts and splitters, more than two inserters on a line, fast or express
+  belts, drop targets other than a chest, a chase interrupted by running out
+  of fuel, and the exact tile edges of rule 5.
+- The energy of a tick agrees to 0.03 J, not bit for bit; decisions near a
+  snap threshold could in principle differ by that rounding. None did.
+
 ## Open questions and rigs to settle them
 
 1. **Sideload with traffic.** The single-item rule is exact; entries of 172 and
@@ -300,13 +499,13 @@ mid-swing) is recorded but not explained.
    less than 64 behind the drop point, with the insertion seeing the line
    before this tick's move. Rig: an inserter holding an item over a slowly
    filled moving lane, items placed with `insert_at` at 120..200.
-3. **Lane choice on pickup** when two items are equally close: lane 2 both
-   times here. Rig: inserters on both sides of one belt.
-4. **Left turns, other inserter facings**: only a right turn and north-facing
-   inserters were built.
-5. **The energy mechanism** behind 5x2,400 + 33x650 is empirical. It is enough
-   for fixed chest/machine/belt-end swings; chase swings draw different
-   amounts.
+3. **Lane choice on pickup**: settled by "Inserter belt pickup" rule 4 (the
+   nearer lane, then the furthest-upstream item; the `bend` rig's lane 2 is
+   its near lane) and, for inserters on both sides of one belt, rule 7.
+4. **Left turns**: only a right turn was built. Inserter facings: all four are
+   covered by the chase probe.
+5. **The energy mechanism**: settled, 50 kJ per turn plus 50 kJ per tile (see
+   "Energy" and rule 2). Still open: the young-belt wake delay of rule 6.
 6. **Coal exhaustion** was not reached in 3,000 ticks (4 MJ is about 4,550
    ticks at 66,900 J per item); the wood run covers the stop behaviour.
 7. **Self-refuel timing** (28 vs 37 ticks) needs a rig that starts the empty
@@ -392,10 +591,11 @@ resolution. `[name, position]` must still agree.
 | `inventories.fuel` | `{"size": 1, "stacks": [[1, name, count]]}` | fuel slot |
 | `inventories.burnt_result` | `{"size": 0, "stacks": []}` | always empty |
 
-`held_stack_position` is the drawn hand, not a polar path (see "Hand
-position" above). A simulator that models the timing and not the hand cannot
-reproduce it exactly. Relaxing it on the simulator side is a decision for that
-side; this record keeps the engine's value.
+`held_stack_position` is the drawn hand (see "Hand position" above): its x
+follows the arm state of "Inserter belt pickup" exactly, its y adds a drawn
+lift during swings that is not modelled. A simulator that models the arm
+reproduces x but not y. Relaxing y on the simulator side is a decision for
+that side; this record keeps the engine's value.
 
 ### Wooden chest (`container`)
 
