@@ -486,6 +486,113 @@ was not tested.
 - The energy of a tick agrees to 0.03 J, not bit for bit; decisions near a
   snap threshold could in principle differ by that rounding. None did.
 
+## Second probe: turns, ground, chests, order, mining
+
+`tools/probe_logistics2.py` (about 75 s) built about 460 rigs for what the
+first probe left open, read every tick for 1,500 ticks, and wrote
+`docs/evidence/sim-mechanics-m4-logistics2.json.xz`. The rig families are
+listed in the probe's docstring. factory-sim rebuilds them in
+`tests/logistics_rigs2.py` and compares every reading on every tick
+(`tests/test_mechanics_logistics2.py`, `tests/test_character_logistics2.py`);
+the rigs it leaves out are named there with the reason.
+
+### Belts
+
+- **Left turns** mirror right turns: lane 1 is the inner lane (106/256 long),
+  lane 2 the outer (295/256). Right turns are the other way round (lane 1
+  295, lane 2 106).
+- **Sideload from the target's left** (`sl_left_*`): the item joins the
+  target's lane 1 (the near lane). From the feed's lane 2 it enters at
+  180 + k, from lane 1 at 59 + k, k the sub-tile phase: the mirror of the
+  right-hand rule.
+- **Side feeds and shape** (`side_*`): a belt fed from one side at the start
+  or end of a line becomes a turn; fed from both sides, or with a belt behind
+  it, it stays straight. A head-on feed stops at position 0.
+- **Rotating a loaded turn back to straight** (`rot_*`): items are re-placed
+  on each lane by `new = floor(p * (L_new - 1) / L_old)` whenever the lane
+  length changes, in the same script call. The `rotate_and_mine` parity trace
+  is exact with this rule.
+- **Simultaneous sideload arrivals** (`sim_*`): not settled. When both feed
+  lanes reach the target on one tick, which item moves first depends on the
+  insertion order, the number of belt lines crossed and the rest of the world;
+  the first probe's `side` rig and the `three` rigs disagree under any single
+  order tried.
+
+### Inserters and drills on turns and the ground
+
+- **Drops onto a turn** (`tdrop_*`, `tdrill_*`): the item goes on the inner
+  lane if the drop point is nearer the inner corner, otherwise on the outer,
+  at half the lane's length (53 on the inner, 147 on the outer). Drills
+  behave the same.
+- **Pickups from a turn** (`tpick_*`): lane 1 first, then the
+  furthest-upstream item, as on straight belts. Where the arm aims for an
+  item on the turn's arc is not pinned to 1/256: `setup.lines` puts the arcs
+  at radius 188/256 and 67/256 about the inner corner, and hand x and energy
+  still differ from the first move.
+- **Ground** (`ground_*`, `gpair_*`): with nothing at the drop point the
+  inserter drops an item pile on the ground at the drop point, unless a pile
+  is already there, and then waits. With nothing at the pickup point it takes
+  from item piles on that tile.
+- **Full chests** (`full_*`): an inserter holding an item for a full chest
+  waits at the drop point until room appears (`RELEASE` frees room by
+  script).
+- **Fill limits** (`fill_*`): fuel into a drill, a furnace or an inserter
+  stops at 5; ore into a furnace at 2; a drill takes no ore; iron plates go
+  into no furnace; stone stops at 4 in a furnace (it makes stone bricks).
+- **Mixed chests** (`mix_*`): the inserter takes from the last slot holding
+  an item its target wants.
+- **Update order** (`order_*`, `wake3`, `chain_*`, `woken_*`): inserters
+  update from the last in the update list to the first; a new inserter joins
+  the end. One waiting on a machine or chest sleeps and leaves the list; any
+  change to that machine's or its target's contents wakes it, and it rejoins
+  the end, so those that fell asleep first run first on the next tick, never
+  on the tick they were woken. An inserter waiting on a belt line sleeps on
+  the line and stays in the list.
+- **Energy running out mid-move** (`pe_*`): with less than a full tick the
+  extension is paid first and the rotation gets `(float)((budget - e_ext) /
+  50000)` turns; what remains below 1e-9 J stays in the buffer and the status
+  stays `working`. All 24 rigs are exact.
+- **Self-refuel redirect** (`sr_*`): when the fuel slot empties while the
+  arm is carrying fuel, the arm turns toward its own slot from wherever it is,
+  loads it and swings back to the drop.
+- **Drill status** (`dstat_*`): a drill whose output was refused reads
+  `working` in the same script call as a change to its output target: its
+  belt extended or rotated, room made in its chest, the pile at its drop
+  point removed. A chest built nearby does not change it.
+
+### Chests, mining and the character
+
+- **Prototypes** (`setup.prototypes`): wooden chest collision box ±0.3477,
+  mining time 0.1 s; transport belt ±0.3984, 0.1 s; burner inserter ±0.1484,
+  0.1 s; character ±0.1992.
+- **Placement under the character** (`setup.placement`): a chest or inserter
+  can't be placed with the character 0 or 0.3 tiles from the tile centre; it
+  can from 0.6 on. A belt can be placed under the character anywhere.
+- **Mining returns** (`mine`): a chest gives its slots in order, then
+  itself; a belt gives lane 1 front to back, lane 2 front to back, then
+  itself; an inserter gives its fuel, itself, then what it held.
+- **The character on belts** (`char_*`): standing, it's carried 8/256 a
+  tick along a straight belt; walking with the belt it moves 46 a tick,
+  walking against it 30 a tick in the walking direction. Standing on a lane
+  line, at a belt end and carried into a chest are reproduced tick by tick.
+  Carriage round a turn (`char_rturn`, `char_lturn`) is not reproduced.
+
+### How factory-sim compares
+
+- **Young belts** (see "Not yet exact"): rigs whose first pickup falls in
+  the first ~300 ticks after the belts are built are compared from t=300,
+  with remaining fuel allowed a constant offset.
+- **Hand y**: the drawn lift of a swing that didn't start from rest is not
+  known. The simulator marks such records and the comparison takes the
+  engine's y (`fsim.trace.relax_hand_y`); hand x is compared exactly.
+- **Not reproduced yet:** simultaneous sideload arrivals (`side_both`,
+  `side_turn_two`, `sim_*`); pickups from turns (`tpick_*`); an item added
+  onto a pickup belt that runs along the arm into a sleeping inserter
+  (`seg_*_8`, `seg_b_7`); carriage round a turn; and in the `smelting_chain`
+  parity trace, from decision 26 (t=776), the engine lets the ore inserter
+  sleep at rest with ore five belts upstream, where at t=536 in the same
+  situation it stayed awake.
+
 ## Open questions and rigs to settle them
 
 1. **Sideload with traffic.** The single-item rule is exact; entries of 172 and
@@ -502,14 +609,15 @@ was not tested.
 3. **Lane choice on pickup**: settled by "Inserter belt pickup" rule 4 (the
    nearer lane, then the furthest-upstream item; the `bend` rig's lane 2 is
    its near lane) and, for inserters on both sides of one belt, rule 7.
-4. **Left turns**: only a right turn was built. Inserter facings: all four are
-   covered by the chase probe.
+4. **Left turns**: settled by the second probe (lane lengths mirror). Still
+   open: where an item sits on a turn's arc for an inserter picking from it
+   (`tpick_*`), and simultaneous sideload arrivals (`sim_*`).
 5. **The energy mechanism**: settled, 50 kJ per turn plus 50 kJ per tile (see
    "Energy" and rule 2). Still open: the young-belt wake delay of rule 6.
 6. **Coal exhaustion** was not reached in 3,000 ticks (4 MJ is about 4,550
    ticks at 66,900 J per item); the wood run covers the stop behaviour.
-7. **Self-refuel timing** (28 vs 37 ticks) needs a rig that starts the empty
-   slot at different points of the swing.
+7. **Self-refuel timing**: settled by the `sr_*` rigs (the arm turns to its
+   own slot from wherever it is when the slot empties).
 
 ## Recorded state
 
