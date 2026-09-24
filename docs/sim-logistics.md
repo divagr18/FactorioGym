@@ -752,3 +752,16 @@ Tick counts: 3,600, 3,000, 3,000, 3,330 and 1,320. Two runs of every tick
 trace hash identically, and each agrees with its decision trace at every
 decision boundary. A fresh worker (`--check`) reproduces all five decision
 traces.
+
+## Decisions (2026-09-24)
+
+- **Simultaneous sideload arrivals, pickup position on a turn's arc, and the
+  belt-line sleep case**: keep reverse-engineering, time-boxed to about two
+  days together. The sim stays exact where measured; these remain pinned in
+  factory-sim's `KNOWN_GAPS` until matched.
+- **Character carried round a turn**: accepted as a gap. Straight belts are
+  exact; turn carriage is not compared.
+- **Young-belt wake delay**: accepted. Rigs it affects are compared from
+  t=300, with a constant remaining-fuel offset allowed.
+- **Hand y (drawn lift)**: not modelled. Where it is unknown the comparison
+  takes the engine's value (`fsim.trace.relax_hand_y`).
