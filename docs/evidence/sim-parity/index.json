@@ -341,6 +341,537 @@
     "verification": null,
     "wall_seconds": 1.0
   },
+  "logistics_belt_pickup": {
+    "about": "inserters on both sides picking from a moving belt into chests",
+    "action_outcomes": {
+      "wait:completed": 100
+    },
+    "decisions": 100,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "working"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "working"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "working"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      }
+    ],
+    "final_ground_items": 0,
+    "final_tick": 3000,
+    "layout_family": "offset_patch",
+    "mod_source_digest": "4fc32594d34d0228",
+    "replay_identical": true,
+    "replay_sha256": "c8e2678dabd305f4f7cb46d9b011f26e20f58e6e9770424b6b8cb51060ecb6cf",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 3000,
+      "trace": "logistics_belt_pickup.ticks.jsonl.xz",
+      "trace_sha256": "bb3c07af760649e44d19671b260b606bf39c641be83b59afdc6391e5c1643ec0",
+      "wall_seconds": 139.6
+    },
+    "trace": "logistics_belt_pickup.jsonl.xz",
+    "trace_sha256": "c8e2678dabd305f4f7cb46d9b011f26e20f58e6e9770424b6b8cb51060ecb6cf",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 4.9
+  },
+  "logistics_belt_rotate_and_mine": {
+    "about": "a loaded belt rotated and rotated back mid-flow, then picked up with its items",
+    "action_outcomes": {
+      "mine_at:completed": 2,
+      "rotate_at:completed": 1,
+      "rotate_at_reverse:completed": 1,
+      "wait:completed": 40
+    },
+    "decisions": 44,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "working"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      }
+    ],
+    "final_ground_items": 0,
+    "final_tick": 1320,
+    "layout_family": "open_patch",
+    "mod_source_digest": "4fc32594d34d0228",
+    "replay_identical": true,
+    "replay_sha256": "ddc8fb1e388e87a18a7c40f2c7bbf21666b40a2f959cd252c41b440f177ff054",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 1320,
+      "trace": "logistics_belt_rotate_and_mine.ticks.jsonl.xz",
+      "trace_sha256": "4032877229feba721eec4aedad8abfbe356287df2525befc3d4451a8f84d838f",
+      "wall_seconds": 41.0
+    },
+    "trace": "logistics_belt_rotate_and_mine.jsonl.xz",
+    "trace_sha256": "ddc8fb1e388e87a18a7c40f2c7bbf21666b40a2f959cd252c41b440f177ff054",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 2.2
+  },
+  "logistics_inserter_fuel_exhaustion": {
+    "about": "inserters running out of their built-in wood, of one added wood, and refuelling themselves from coal in hand; then a hand refuel",
+    "action_outcomes": {
+      "give_to:completed": 1,
+      "wait:completed": 110
+    },
+    "decisions": 111,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "working"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "no_fuel"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "waiting_for_source_items"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      }
+    ],
+    "final_ground_items": 0,
+    "final_tick": 3330,
+    "layout_family": "cluttered_patch",
+    "mod_source_digest": "4fc32594d34d0228",
+    "replay_identical": true,
+    "replay_sha256": "49865555f5afacccf88b9eec581901802fd18d78c1b6e945da33a01531c8ef97",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 3330,
+      "trace": "logistics_inserter_fuel_exhaustion.ticks.jsonl.xz",
+      "trace_sha256": "c7ef723897eb02dac133f35e1abd1d72321ccd43f46cbe634ec0c5db3c808426",
+      "wall_seconds": 143.0
+    },
+    "trace": "logistics_inserter_fuel_exhaustion.jsonl.xz",
+    "trace_sha256": "49865555f5afacccf88b9eec581901802fd18d78c1b6e945da33a01531c8ef97",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 5.2
+  },
+  "logistics_sideload_merge": {
+    "about": "a four-belt feed sideloading a ten-belt run, both loaded from chests, until everything backs up",
+    "action_outcomes": {
+      "wait:completed": 100
+    },
+    "decisions": 100,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "waiting_for_space_in_destination"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "waiting_for_space_in_destination"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "waiting_for_space_in_destination"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "waiting_for_space_in_destination"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      }
+    ],
+    "final_ground_items": 0,
+    "final_tick": 3000,
+    "layout_family": "open_patch",
+    "mod_source_digest": "4fc32594d34d0228",
+    "replay_identical": true,
+    "replay_sha256": "e0fe47b5fcb78425470f202fa26bfc67cfb8ac67e5070925352a7949a78e82b6",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 3000,
+      "trace": "logistics_sideload_merge.ticks.jsonl.xz",
+      "trace_sha256": "992938b3bb400d5922dfb6e67edbf9e4eb6b2acc94049d68235f0310d1a0e270",
+      "wall_seconds": 163.5
+    },
+    "trace": "logistics_sideload_merge.jsonl.xz",
+    "trace_sha256": "e0fe47b5fcb78425470f202fa26bfc67cfb8ac67e5070925352a7949a78e82b6",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 4.8
+  },
+  "logistics_smelting_chain": {
+    "about": "drill onto a belt with a right turn, inserter into a furnace, inserter onto a belt, inserter into a chest; fuelled and run",
+    "action_outcomes": {
+      "wait:completed": 120
+    },
+    "decisions": 120,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "burner-mining-drill",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "working"
+      },
+      {
+        "name": "stone-furnace",
+        "status": "no_ingredients"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "waiting_for_source_items"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      }
+    ],
+    "final_ground_items": 0,
+    "final_tick": 3600,
+    "layout_family": "varied_patch",
+    "mod_source_digest": "ea6d47dd1e614c88",
+    "replay_identical": true,
+    "replay_sha256": "06843267978888404caa4eb981d45ed5e86c1a7314f2d518f43ea7c5e0597f36",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 3600,
+      "trace": "logistics_smelting_chain.ticks.jsonl.xz",
+      "trace_sha256": "72ff0107cacafa3e18ff5a7a59afb0aa078f7a8ca3da99b84c6f852bd9863504",
+      "wall_seconds": 240.6
+    },
+    "trace": "logistics_smelting_chain.jsonl.xz",
+    "trace_sha256": "06843267978888404caa4eb981d45ed5e86c1a7314f2d518f43ea7c5e0597f36",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 6.0
+  },
   "masked_random_rollout": {
     "about": "200 uniformly random legal vectors, decode failures included",
     "action_outcomes": {

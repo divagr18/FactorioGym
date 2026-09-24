@@ -311,3 +311,136 @@ mid-swing) is recorded but not explained.
    ticks at 66,900 J per item); the wood run covers the stop behaviour.
 7. **Self-refuel timing** (28 vs 37 ticks) needs a rig that starts the empty
    slot at different points of the swing.
+
+## Recorded state
+
+What the parity recorder (`tools/record_parity_trace.py`) writes for belts,
+burner inserters and wooden chests, so a simulator can export the same thing.
+It comes from `world.hidden_state` in `mod/factoriorl/world.lua` and reaches
+the trace through `Normaliser.hidden`. Records for every other entity type keep
+exactly the keys they had before, so traces recorded before these fields
+existed still match.
+
+Common to every record in `hidden.entities`, as before:
+
+- **`position`**: `[x, y]`, integers, map coordinates in 1/256 tile. A belt,
+  inserter or chest sits on its tile centre, e.g. tile (4, 1) is `[1152, 384]`.
+- **`direction`**: 0..15 (north 0, east 4, south 8, west 12).
+- **`status`**: the `defines.entity_status` name.
+  - belts read `working`;
+  - chests read `normal`;
+  - inserters read `working`, `waiting_for_source_items`,
+    `waiting_for_space_in_destination` or `no_fuel`.
+- **`energy`**: a decimal string, `%.17g`.
+- Entities are sorted by `position[1]`, then `position[0]`, then `name`.
+
+### Transport belt (`transport-belt`)
+
+| key | shape | meaning |
+|---|---|---|
+| `belt_shape` | `"straight"` / `"left"` / `"right"` | `LuaEntity.belt_shape`. East into south is `"right"` |
+| `lanes` | `[lane1, lane2]` | lane 1 is left of the direction of travel, lane 2 is right |
+| `lanes[i]` | list of `[name, position, id]` | items on that lane of this belt, from `get_transport_line(i).get_detailed_contents()` |
+| `position` (in an item) | integer, 1/256 tile | distance from **this belt's** downstream end, `floor(p*256 + 0.5)` |
+| `id` (in an item) | integer >= 1 | item identity within the episode (see below) |
+
+Other keys on a belt record:
+
+- `energy` is `"0"`;
+- `inventories` is `{}`;
+- there is no burner field.
+
+Position ranges:
+
+- a straight line runs 0..255;
+- the outer lane of a right turn runs 0..294, and the inner lane 0..105.
+
+Items are listed in ascending `position`, with ties broken by engine id. The
+same item keeps its id as it crosses from one belt to the next.
+
+**Ids are renamed.** The engine's `unique_id` comes from a counter that
+carries on across episodes, so it differs between two recordings of one world.
+`Normaliser` renames ids 1, 2, 3, ... in the order the trace first meets them:
+
+- records in trace order;
+- within a record, entities in the order above;
+- lane 1 before lane 2;
+- items in list order.
+
+A simulator reproduces the names by assigning any unique id per item and
+running its exports through the same renaming (a copy of `Normaliser._item`).
+Items that first appear in the same record are named in list order, not in
+creation order.
+
+When the recorder checks a tick trace against its decision trace
+(`comparable_hidden`), item ids are dropped. Two items made within one decision
+are met in creation order at tick resolution and in list order at decision
+resolution. `[name, position]` must still agree.
+
+### Burner inserter (`inserter`)
+
+| key | shape | meaning |
+|---|---|---|
+| `direction` | 0..15 | points at the **pickup** side (north picks from y-1) |
+| `held` | `{"name": str, "count": int}`, **absent** when the hand is empty | `held_stack` |
+| `held_stack_position` | `[x, y]`, 1/256 tile | where the hand is drawn; always present |
+| `pickup_position` | `[x, y]`, 1/256 tile | north-facing at tile (x, y): `[256x+128, 256y-128]` |
+| `drop_position` | `[x, y]`, 1/256 tile | north-facing at tile (x, y): `[256x+128, 256y+435]`, i.e. 1.19921875 tiles out |
+| `energy` | decimal string, J | buffer, up to 2560 |
+| `remaining_burning_fuel` | decimal string, J | `burner.remaining_burning_fuel` |
+| `currently_burning` | item name, absent when nothing | `"wood"` on a freshly built inserter (the built-in quarter wood), then the fuel it loads |
+| `inventories.fuel` | `{"size": 1, "stacks": [[1, name, count]]}` | fuel slot |
+| `inventories.burnt_result` | `{"size": 0, "stacks": []}` | always empty |
+
+`held_stack_position` is the drawn hand, not a polar path (see "Hand
+position" above). A simulator that models the timing and not the hand cannot
+reproduce it exactly. Relaxing it on the simulator side is a decision for that
+side; this record keeps the engine's value.
+
+### Wooden chest (`container`)
+
+- `inventories.chest` is `{"size": 16, "stacks": [[slot, name, count], ...]}`,
+  slot by slot (1-based, only non-empty slots). This was already recorded for
+  containers.
+- There is no fuel or burnt-result key.
+
+### World digest
+
+The per-decision `digest` (a hash of `world.digest()`'s lines) appends fields
+only to the lines of belts and inserters:
+
+- **belts** get `|shape=<belt_shape>|lanes=1:<name>@<pos>,...;2:...`. The line
+  carries no item ids, because they are not state a reset restores;
+- **inserters** get `|held=<name>=<count>`, or `|held=` when the hand is empty.
+
+Every other line is unchanged.
+
+### Scenarios
+
+Five scenarios in `tools/record_parity_trace.py` carry `"requires":
+"logistics"` in `docs/evidence/sim-parity/index.json`. Each has a decision
+trace and a per-tick trace.
+
+- They run on `construct_smelting_line` at 30 ticks per decision, with the
+  family's scene replaced by a pre-placed rig in the header's `blueprint`.
+- Rigs are laid out relative to the `patch` marker, which is not always
+  (0, 0): the family comes from the scenario's seed.
+- A simulator that does not yet install belts, inserters or chests can skip
+  these by that key.
+
+| scenario | what it covers |
+|---|---|
+| `logistics_smelting_chain` | south drill onto an east belt; right turn; belt end, then inserter, furnace, inserter, belt, inserter, chest; 120 decisions |
+| `logistics_sideload_merge` | ten-belt east run loaded from both sides, with a four-belt north feed (copper, both lanes) sideloading its south side, until everything backs up; 100 decisions |
+| `logistics_belt_pickup` | sixteen-belt line loaded on both lanes, with inserters on both sides picking from the moving belt into chests; 100 decisions |
+| `logistics_inserter_fuel_exhaustion` | chest-to-chest inserters on the built-in quarter wood only, on one added wood, and on coal they move (self-refuel); then `give_to` one coal to the first, which restarts; 111 decisions |
+| `logistics_belt_rotate_and_mine` | eight-belt line fed on both lanes; `rotate_at`, then `rotate_at_reverse`, on a belt mid-flow; `mine_at` that belt, then a compressed one near the end, whose eight plates go to the character; 44 decisions |
+
+All the actions are expressible in `parameterized-v1`, and every trace has 0
+unencodable actions. The targeted belts are also within the v2 entity table
+(rows 0 and 8), so `parameterized-v2` can express them too.
+
+Tick counts: 3,600, 3,000, 3,000, 3,330 and 1,320. Two runs of every tick
+trace hash identically, and each agrees with its decision trace at every
+decision boundary. A fresh worker (`--check`) reproduces all five decision
+traces.

@@ -67,7 +67,7 @@ from factoriorl.session import WorkerSession  # noqa: E402
 from factoriorl.tasks import get  # noqa: E402
 from factoriorl.tasks.reference import Driver, SolveTrace, _build_at  # noqa: E402
 from factoriorl.tasks.reference import solve as reference_solve  # noqa: E402
-from factoriorl.tasks.spec import Blueprint, ResourceSpec  # noqa: E402
+from factoriorl.tasks.spec import Blueprint, EntitySpec, ResourceSpec  # noqa: E402
 from factoriorl.worker import WorkerManager  # noqa: E402
 
 OUT_DIR = ROOT / "docs" / "evidence" / "sim-parity"
@@ -156,6 +156,11 @@ class Normaliser:
     def __init__(self) -> None:
         self.base_tick = 0
         self.request_ids: dict[str, str] = {}
+        #: Belt items' engine ids, renamed 1, 2, ... in order of first
+        #: appearance. The engine draws them from a counter that keeps running
+        #: across episodes, so a raw id differs between two recordings of one
+        #: world; the order in which items first appear does not.
+        self.item_ids: dict[int, int] = {}
 
     def begin(self, observation: dict) -> None:
         self.base_tick = int(observation.get("absolute_tick") or 0) - int(
@@ -199,6 +204,21 @@ class Normaliser:
             return [self._rename(v) for v in value]
         return value
 
+    def _item(self, item: list) -> list:
+        """`[name, position, engine id]` -> `[name, position, episode id]`.
+
+        Named in the order the recording meets them: entities by position,
+        lane 1 before lane 2, items along a lane by position (the order
+        `world.hidden_state` lists them in).
+        """
+        name, position = item[0], item[1]
+        if len(item) < 3 or item[2] is None:
+            return [name, position]
+        raw = int(item[2])
+        if raw not in self.item_ids:
+            self.item_ids[raw] = len(self.item_ids) + 1
+        return [name, position, self.item_ids[raw]]
+
     def _relative(self, tick):
         return None if tick is None else int(tick) - self.base_tick
 
@@ -240,6 +260,11 @@ class Normaliser:
             record["inventories"] = record.get("inventories") or {}
             for inventory in record["inventories"].values():
                 inventory["stacks"] = _listify(inventory.get("stacks") or [])
+            if "lanes" in record:
+                record["lanes"] = [
+                    [self._item(item) for item in _listify(lane or [])]
+                    for lane in _listify(record["lanes"])
+                ]
         character = body.get("character")
         if character and character.get("main"):
             character["main"]["stacks"] = _listify(character["main"].get("stacks") or [])
@@ -778,6 +803,181 @@ def masked_random_rollout(s: Script, recorder: Recorder, decisions: int = 200) -
         s.over = bool(terminated or truncated)
 
 
+# ---------------------------------------------------------------- logistics scenes
+#
+# Belts, burner inserters and wooden chests, pre-placed through the task's own
+# blueprint mechanism: the family's scene with its entities replaced by a rig.
+# `construct_smelting_line` stays the task, so the header, the action space and
+# the episode logic are the ones a simulator already replays; only the scene
+# differs, and the scene is in the header. Coordinates are tile offsets from the
+# patch centre. A 1x1 entity sits on its tile's centre, a 2x2 on the integer
+# point between its four tiles (where `Script.place` snaps one).
+#
+# An inserter's direction names the tile it picks up from: in 2.0 an inserter
+# faces its pickup (docs/sim-logistics.md, "Prototype and geometry"), and the
+# recorded `pickup_position` / `drop_position` show it for every inserter.
+
+
+def _one(name: str, tile: tuple[int, int], direction: str = "north", **kw) -> tuple:
+    return (name, (tile[0] + 0.5, tile[1] + 0.5), direction, kw)
+
+
+def _two(name: str, centre: tuple[int, int], direction: str = "north", **kw) -> tuple:
+    return (name, (float(centre[0]), float(centre[1])), direction, kw)
+
+
+def _belts(tiles, direction: str) -> list[tuple]:
+    return [_one("transport-belt", t, direction) for t in tiles]
+
+
+def logistics_scene(
+    rig: list[tuple], character: tuple[int, int], inventory: dict[str, int] | None = None
+) -> Callable[[Blueprint], Blueprint]:
+    """The family's resources and markers, `rig` as the only entities, and the
+    character on tile `character` holding `inventory`. Offsets are from the
+    patch centre."""
+
+    def edit(blueprint: Blueprint) -> Blueprint:
+        px, py = _patch_centre(blueprint)
+        entities = tuple(
+            EntitySpec(
+                name,
+                (x + px, y + py),
+                direction=direction,
+                contents=dict(kw.get("contents") or {}),
+            )
+            for name, (x, y), direction, kw in rig
+        )
+        return dataclasses.replace(
+            blueprint,
+            entities=entities,
+            character_position=(px + character[0] + 0.5, py + character[1] + 0.5),
+            character_inventory=dict(inventory or {}),
+        )
+
+    return edit
+
+
+COAL = {"coal": 5}
+FUEL = {"coal": 2}
+PLATES = {"iron-plate": 50}
+COPPER = {"copper-plate": 50}
+
+#: (a) A drill on the patch drops ore onto a belt that runs east, turns right
+#: (east into south) and ends; an inserter feeds the belt end into a furnace, a
+#: second takes plates out onto a short belt, and a third moves them from that
+#: belt's end into a chest.
+SMELTING_CHAIN = [
+    _two("burner-mining-drill", (0, 0), "south", contents=COAL),
+    *_belts([(x, 1) for x in range(-1, 4)], "east"),
+    *_belts([(4, y) for y in range(1, 5)], "south"),
+    _one("burner-inserter", (4, 5), "north", contents=FUEL),
+    _two("stone-furnace", (5, 7), "north", contents=COAL),
+    _one("burner-inserter", (4, 8), "north", contents=FUEL),
+    *_belts([(x, 9) for x in range(4, 7)], "east"),
+    _one("burner-inserter", (7, 9), "west", contents=FUEL),
+    _one("wooden-chest", (8, 9)),
+]
+
+#: (b) A ten-belt east run loaded from both sides by chest-and-inserter pairs,
+#: and a four-belt north feed, loaded on both lanes, sideloading into its south
+#: side. Iron on the main line, copper on the feed, so the merge is legible.
+SIDELOAD_MERGE = [
+    *_belts([(x, -8) for x in range(6, 16)], "east"),
+    _one("wooden-chest", (7, -10), contents=PLATES),
+    _one("burner-inserter", (7, -9), "north", contents=FUEL),
+    _one("wooden-chest", (8, -6), contents=PLATES),
+    _one("burner-inserter", (8, -7), "south", contents=FUEL),
+    *_belts([(11, y) for y in range(-4, -8, -1)], "north"),
+    _one("wooden-chest", (9, -5), contents=COPPER),
+    _one("burner-inserter", (10, -5), "west", contents=FUEL),
+    _one("wooden-chest", (13, -5), contents=COPPER),
+    _one("burner-inserter", (12, -5), "east", contents=FUEL),
+]
+
+#: (c) A sixteen-belt east line loaded on both lanes at its head, with an
+#: inserter on each side picking from the moving belt into a chest. What they
+#: miss runs on to the belt end and backs up.
+BELT_PICKUP = [
+    *_belts([(x, -8) for x in range(6, 22)], "east"),
+    _one("wooden-chest", (7, -10), contents=PLATES),
+    _one("burner-inserter", (7, -9), "north", contents=FUEL),
+    _one("wooden-chest", (7, -6), contents=PLATES),
+    _one("burner-inserter", (7, -7), "south", contents=FUEL),
+    # South side: picks from (12, -8), drops into the chest below it.
+    _one("burner-inserter", (12, -7), "north", contents=FUEL),
+    _one("wooden-chest", (12, -6)),
+    # North side: picks from (16, -8), drops into the chest above it.
+    _one("burner-inserter", (16, -9), "south", contents=FUEL),
+    _one("wooden-chest", (16, -10)),
+]
+
+#: (d) Chest to inserter to chest, three ways: on the quarter wood an inserter
+#: is built with and nothing else; with one wood added; and with no fuel but
+#: moving coal, so it refuels itself from its own hand.
+FUEL_EXHAUSTION = [
+    _one("wooden-chest", (6, -8), contents=PLATES),
+    _one("burner-inserter", (7, -8), "west"),
+    _one("wooden-chest", (8, -8)),
+    _one("wooden-chest", (6, -6), contents=PLATES),
+    _one("burner-inserter", (7, -6), "west", contents={"wood": 1}),
+    _one("wooden-chest", (8, -6)),
+    _one("wooden-chest", (6, -4), contents={"coal": 5}),
+    _one("burner-inserter", (7, -4), "west"),
+    _one("wooden-chest", (8, -4)),
+]
+
+#: (e) An eight-belt east line fed on both lanes; the character stands beside
+#: it, within reach, to rotate one belt and then pick belts up.
+ROTATE_AND_MINE = [
+    *_belts([(x, -8) for x in range(6, 14)], "east"),
+    _one("wooden-chest", (7, -10), contents=PLATES),
+    _one("burner-inserter", (7, -9), "north", contents=FUEL),
+    _one("wooden-chest", (7, -6), contents=PLATES),
+    _one("burner-inserter", (7, -7), "south", contents=FUEL),
+]
+
+
+def logistics_wait(decisions: int) -> Callable[[Script], None]:
+    def drive(s: Script) -> None:
+        s.wait(decisions)
+
+    return drive
+
+
+def inserter_fuel_exhaustion(s: Script) -> None:
+    # The quarter wood runs out after about 570 ticks and the added wood at
+    # about 2,825 (docs/sim-logistics.md); 100 decisions is 3,000 ticks.
+    s.wait(100)
+    # Then refuel by hand the one that stopped first, and let it restart. The
+    # character stands on (9, -7); that inserter is on (7, -8).
+    px, py = (math.floor(v) for v in s.observation["character"]["position"])
+    s.give(s.entity("burner-inserter", (px - 1.5, py - 0.5)), "coal", 1)
+    s.wait(10)
+
+
+def belt_rotate_and_mine(s: Script) -> None:
+    # The character stands on (9, -7), just south of the belt row at y = -8.
+    px, py = (math.floor(v) for v in s.observation["character"]["position"])
+
+    def belt(dx: int) -> str:
+        return s.entity("transport-belt", (px + dx + 0.5, py - 0.5))
+
+    # Let the line fill and move, then turn one belt mid-flow, and back.
+    s.wait(15)
+    middle = belt(0)
+    s.do("rotate_at", handle=middle)
+    s.wait(5)
+    s.do("rotate_at_reverse", handle=middle)
+    s.wait(5)
+    # Pick up a belt with items moving over it, then one near the end where
+    # they stand compressed: whatever it holds goes to the character with it.
+    s.do("mine_at", handle=middle)
+    s.wait(5)
+    s.do("mine_at", handle=belt(3))
+    s.wait(10)
+
+
 @dataclass(frozen=True)
 class Scenario:
     name: str
@@ -788,6 +988,10 @@ class Scenario:
     drive: Callable
     edit: Callable[[Blueprint], Blueprint] | None = None
     wants_recorder: bool = False
+    #: A mechanic the scenario needs beyond the construction tasks' drills,
+    #: furnaces and walls, written to the index so a simulator can tell which
+    #: traces it is not yet expected to reproduce.
+    requires: str | None = None
 
 
 SMELTING = "construct_smelting_line"
@@ -900,7 +1104,65 @@ SCENARIOS: tuple[Scenario, ...] = (
         masked_random_rollout,
         wants_recorder=True,
     ),
+    # Logistics: belts, burner inserters, wooden chests. Pre-placed rigs, so
+    # each needs the simulator to install them from the blueprint.
+    Scenario(
+        "logistics_smelting_chain",
+        SMELTING,
+        "train",
+        0,
+        "drill onto a belt with a right turn, inserter into a furnace, inserter onto a "
+        "belt, inserter into a chest; fuelled and run",
+        logistics_wait(120),
+        edit=logistics_scene(SMELTING_CHAIN, (7, 3)),
+        requires="logistics",
+    ),
+    Scenario(
+        "logistics_sideload_merge",
+        SMELTING,
+        "train",
+        0,
+        "a four-belt feed sideloading a ten-belt run, both loaded from chests, until "
+        "everything backs up",
+        logistics_wait(100),
+        edit=logistics_scene(SIDELOAD_MERGE, (15, -11)),
+        requires="logistics",
+    ),
+    Scenario(
+        "logistics_belt_pickup",
+        SMELTING,
+        "train",
+        0,
+        "inserters on both sides picking from a moving belt into chests",
+        logistics_wait(100),
+        edit=logistics_scene(BELT_PICKUP, (19, -11)),
+        requires="logistics",
+    ),
+    Scenario(
+        "logistics_inserter_fuel_exhaustion",
+        SMELTING,
+        "train",
+        0,
+        "inserters running out of their built-in wood, of one added wood, and "
+        "refuelling themselves from coal in hand; then a hand refuel",
+        inserter_fuel_exhaustion,
+        edit=logistics_scene(FUEL_EXHAUSTION, (9, -7), {"coal": 5}),
+        requires="logistics",
+    ),
+    Scenario(
+        "logistics_belt_rotate_and_mine",
+        SMELTING,
+        "train",
+        0,
+        "a loaded belt rotated and rotated back mid-flow, then picked up with its items",
+        belt_rotate_and_mine,
+        edit=logistics_scene(ROTATE_AND_MINE, (9, -7)),
+        requires="logistics",
+    ),
 )
+
+#: The logistics scenarios, by name.
+LOGISTICS = tuple(s.name for s in SCENARIOS if s.requires == "logistics")
 
 
 # ---------------------------------------------------------------- running
@@ -1007,6 +1269,7 @@ TICK_SCENARIOS = (
     "burner_run_on",
     "transfer_clamping",
     "mine_machine_returns_contents",
+    *LOGISTICS,
 )
 
 
@@ -1036,6 +1299,18 @@ def comparable_hidden(hidden: dict) -> dict:
         for entry in handles.get("order") or []
     ]
     body["handles"] = handles
+    # Belt item ids are named by first appearance, and a trace sampled every
+    # tick meets two items made in one decision in the order they were made,
+    # where the decision trace meets them in list order. Which item is where
+    # must still agree; the names need not.
+    if any("lanes" in e for e in body.get("entities") or []):
+        entities = []
+        for entity in body["entities"]:
+            if "lanes" in entity:
+                entity = dict(entity)
+                entity["lanes"] = [[item[:2] for item in lane] for lane in entity["lanes"]]
+            entities.append(entity)
+        body["entities"] = entities
     return body
 
 
@@ -1269,6 +1544,8 @@ def main() -> int:
                 "error": error,
                 **summarise(header, records),
             }
+            if scenario.requires:
+                entry["requires"] = scenario.requires
             if not args.no_replay:
                 replay_actions = [r["transition"]["action"] for r in records if r["transition"]]
                 header2, records2, error2 = record(scenario, session, replay=replay_actions)

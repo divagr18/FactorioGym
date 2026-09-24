@@ -135,6 +135,39 @@ class TestNormalisation:
         assert hidden["handles"]["order"][0]["first_seen"] == 0
         assert hidden["inflight"]["entries"] == []
 
+    def test_belt_item_ids_are_named_by_first_appearance(self, tool):
+        """Engine item ids come from a counter that runs across episodes; two
+        recordings of one world must name the same item the same."""
+
+        def belt(ids):
+            return {
+                "tick": 30,
+                "entities": [
+                    {
+                        "name": "transport-belt",
+                        "inventories": {},
+                        "lanes": [[["iron-ore", 64, ids[0]], ["iron-ore", 128, ids[1]]], {}],
+                    }
+                ],
+            }
+
+        a = _normaliser(tool, absolute_tick=30)
+        b = _normaliser(tool, absolute_tick=30)
+        first = a.hidden(belt([917, 23]))
+        assert first["entities"][0]["lanes"] == [[["iron-ore", 64, 1], ["iron-ore", 128, 2]], []]
+        assert first == b.hidden(belt([4_000_017, 4_000_001]))
+        # A name sticks to its item once given.
+        later = a.hidden(belt([23, 5]))
+        assert later["entities"][0]["lanes"][0] == [["iron-ore", 64, 2], ["iron-ore", 128, 3]]
+
+    def test_tick_comparison_ignores_item_names_but_not_items(self, tool):
+        def hidden(lanes):
+            return {"entities": [{"name": "transport-belt", "lanes": lanes}], "inflight": {}}
+
+        same = tool.comparable_hidden(hidden([[["iron-ore", 64, 1]], []]))
+        assert same == tool.comparable_hidden(hidden([[["iron-ore", 64, 2]], []]))
+        assert same != tool.comparable_hidden(hidden([[["iron-ore", 72, 1]], []]))
+
 
 class TestHashing:
     def test_the_hash_moves_with_any_field(self, tool):

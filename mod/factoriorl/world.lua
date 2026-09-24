@@ -1034,6 +1034,29 @@ function world.digest()
       end)
       parts[#parts + 1] = "burning=" ..
         string.format("%d", (ok_burner and remaining) and math.floor(remaining + 0.5) or 0)
+      -- Logistics state, appended only for the types that carry it, so the
+      -- line of every other entity is byte-for-byte what it was. Items on a
+      -- belt and in an inserter's hand are state a reset must clear, and no
+      -- inventory above can see them. No item ids: they come from an engine
+      -- counter that differs between two recordings of the same world.
+      if entity.type == "transport-belt" then
+        local shape = world.belt_shape(entity)
+        local lanes = {}
+        for lane, items in ipairs(world.belt_lanes(entity)) do
+          local names = {}
+          for _, item in ipairs(items) do names[#names + 1] = item[1] .. "@" .. item[2] end
+          lanes[#lanes + 1] = lane .. ":" .. table.concat(names, ",")
+        end
+        parts[#parts + 1] = "shape=" .. tostring(shape)
+        parts[#parts + 1] = "lanes=" .. table.concat(lanes, ";")
+      elseif entity.type == "inserter" then
+        local ok_held, held = pcall(function() return entity.held_stack end)
+        if ok_held and held and held.valid_for_read then
+          parts[#parts + 1] = "held=" .. held.name .. "=" .. held.count
+        else
+          parts[#parts + 1] = "held="
+        end
+      end
       entities[#entities + 1] = "entity|" .. table.concat(parts, "|")
     end
   end
@@ -1161,6 +1184,37 @@ local function burning_name(burner)
   return type(name) == "string" and name or nil
 end
 
+local function round256(value)
+  return math.floor(value * 256 + 0.5)
+end
+
+--- `straight`, `left` or `right`, or nil for an entity that is not a belt.
+function world.belt_shape(entity)
+  return try(function() return entity.belt_shape end)
+end
+
+--- Both lanes of a belt, lane 1 (left of travel) first. Each lane is a list of
+--- `{ name, position, unique_id }`, position in 1/256 tile from the belt's own
+--- downstream end (`get_detailed_contents`), sorted by position then id so
+--- the order is defined here and not by the engine's internal list.
+function world.belt_lanes(entity)
+  local out = {}
+  for lane = 1, 2 do
+    local items = {}
+    local line = try(function() return entity.get_transport_line(lane) end)
+    local contents = line and try(function() return line.get_detailed_contents() end) or {}
+    for _, item in pairs(contents) do
+      items[#items + 1] = { item.stack.name, round256(item.position), item.unique_id }
+    end
+    table.sort(items, function(a, b)
+      if a[2] ~= b[2] then return a[2] < b[2] end
+      return a[3] < b[3]
+    end)
+    out[lane] = items
+  end
+  return out
+end
+
 local function by_position(a, b)
   if a.position[2] ~= b.position[2] then return a.position[2] < b.position[2] end
   if a.position[1] ~= b.position[1] then return a.position[1] < b.position[1] end
@@ -1224,6 +1278,25 @@ function world.hidden_state()
         inventories.furnace_result = slots(entity.get_inventory(defines.inventory.furnace_result))
       end
       record.inventories = inventories
+      -- Logistics state, only on the types that have it: every other record
+      -- keeps exactly the keys it had, so traces recorded before these fields
+      -- existed still describe the same state. See docs/sim-logistics.md,
+      -- "Recorded state".
+      if entity.type == "transport-belt" then
+        record.belt_shape = world.belt_shape(entity)
+        record.lanes = world.belt_lanes(entity)
+      elseif entity.type == "inserter" then
+        local held = try(function() return entity.held_stack end)
+        if held and held.valid_for_read then
+          record.held = { name = held.name, count = held.count }
+        end
+        local hand = try(function() return entity.held_stack_position end)
+        record.held_stack_position = hand and fixed(hand) or nil
+        local pickup = try(function() return entity.pickup_position end)
+        record.pickup_position = pickup and fixed(pickup) or nil
+        local drop = try(function() return entity.drop_position end)
+        record.drop_position = drop and fixed(drop) or nil
+      end
       entities[#entities + 1] = record
     end
   end
