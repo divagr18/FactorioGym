@@ -441,6 +441,9 @@ pinned: x = +-128 is the natural value and the data only bound it to
   (belts built at t=0 and inserters at t=400: all immediate). After ~400
   ticks every add woke its inserter at once (256 of 256 rigs, adds at t=400
   and t=800).
+  **Explained by the third probe** ("Belt-line segments"): "its line" is the
+  *segment* its pickup belt belongs to, and a young belt is a segment of its
+  own until its chain merges, 1 to 600 ticks after it was built.
 
 **7. Two inserters on one belt tile** (one each side, `pair`): the one built
 later updates first in a tick. So when it takes an item the other was
@@ -517,6 +520,9 @@ the rigs it leaves out are named there with the reason.
   insertion order, the number of belt lines crossed and the rest of the world;
   the first probe's `side` rig and the `three` rigs disagree under any single
   order tried.
+  **Explained by the third probe** ("Update order and simultaneous
+  sideloads"): the order is the lines' activation order, which the lines'
+  merging changes; "the rest of the world" is the rig's position.
 
 ### Inserters and drills on turns and the ground
 
@@ -529,6 +535,8 @@ the rigs it leaves out are named there with the reason.
   item on the turn's arc is not pinned to 1/256: `setup.lines` puts the arcs
   at radius 188/256 and 67/256 about the inner corner, and hand x and energy
   still differ from the first move.
+  **Third probe:** the arm aims at the item's point as
+  `get_line_item_position` gives it, tabled ("Turn item points").
 - **Ground** (`ground_*`, `gpair_*`): with nothing at the drop point the
   inserter drops an item pile on the ground at the drop point, unless a pile
   is already there, and then waits. With nothing at the pickup point it takes
@@ -586,12 +594,168 @@ the rigs it leaves out are named there with the reason.
   known. The simulator marks such records and the comparison takes the
   engine's y (`fsim.trace.relax_hand_y`); hand x is compared exactly.
 - **Not reproduced yet:** simultaneous sideload arrivals (`side_both`,
-  `side_turn_two`, `sim_*`); pickups from turns (`tpick_*`); an item added
+  `side_turn_two`, `sim_*`); pickups from a turn by an inserter on the side
+  opposite the feeding belt (`tpick_r_e`, `tpick_l_e`: hand x 1/256 off on
+  two ticks each; the four other `tpick_*` rigs are exact); an item added
   onto a pickup belt that runs along the arm into a sleeping inserter
   (`seg_*_8`, `seg_b_7`); carriage round a turn; and in the `smelting_chain`
   parity trace, from decision 26 (t=776), the engine lets the ore inserter
   sleep at rest with ore five belts upstream, where at t=536 in the same
-  situation it stayed awake.
+  situation it stayed awake. The third probe explains the first and the last
+  (belt-line segments and their order); reproducing them needs the merge
+  delay of every tile, see "What the simulator needs".
+
+## Third probe: segments, turn points, sideload order
+
+`tools/probe_logistics3.py` measures what the three behaviours left open by
+the second probe have in common, and `tools/check_logistics3.py` replays the
+rules below on the stored evidence without the engine (52 of 52 sideload
+cases, 12 of 12 young wakes, 2 of 2 splits as predicted). Evidence, all in
+`docs/evidence/`:
+
+| file | what |
+|---|---|
+| `logistics3-turns.json.xz` | `get_line_item_position` at every position of both lanes of all eight turns |
+| `logistics3-delay.json.xz` | the merge delay of every tile and lane in x -6..35, y -22..6 (the parity scenes) |
+| `logistics3-delay-<tag>.json.xz` | the same for the rigs checked below: `wake-young` (`inserter-wake.json`), `probe2-sideload` (the second probe's sideload rigs), `probe1side`, `at200`, `at300` |
+| `logistics3-segments.json.xz` | which belts' lines are one object, every tick, in three parity scenes |
+| `logistics3-sideload.json.xz` | 32 sideload rigs, one fresh world each |
+| `logistics3-adhoc.json.xz` | the one-off runs the rules below were read from (named in the file) |
+
+### Belt-line segments
+
+A lane's lines on consecutive belts start as separate objects and are later
+merged into one, a *segment*: `LuaTransportLine.line_equals` turns true
+between the belts, and `total_segment_length` (the whole chain, already on
+the build tick) does not show it.
+
+- **Merge delay.** Every tile and lane has a fixed delay `d`, 1 to 600 ticks.
+  A chain (straight belts and turns alike) merges whole on the tick the first
+  of its belts' delays, counted from when that belt was built, runs out: the
+  minimum over its belts. Evidence: 640 two-belt chains; 240 three-belt
+  chains, each merging at the smaller of its two pairs' ticks; every chain of
+  three parity scenes, turn included.
+- `d` is measured one tile at a time: a lone belt, with a neighbour destroyed
+  and rebuilt every tick so the neighbour's own delay never runs out.
+- `d` depends on the tile and the lane only: not on the belt's facing (north,
+  east, south and west agree), the build order (a grid built in reverse gives
+  the same), the build tick (a grid built at t=37 merges 37 later, all 640),
+  other entities, the map seed or the surface (a new surface with another
+  seed: 82 of 82 equal). It is not periodic in x or y and the two lanes are
+  unrelated. Common hashes of the tile or its 1/256 coordinates (FNV-1a,
+  splitmix64, MurmurHash3 finalisers, with the lane mixed in several ways)
+  match at chance level: the function is not identified.
+- **Re-arming.** A belt whose delay ran out with nothing to merge with starts
+  it again when a neighbour is built; one whose delay is still running keeps
+  its deadline. A first belt at t=0 and its neighbour at t=700 merge exactly
+  the pair's delay after t=700; with the neighbour at t=1, 37 or 100 they
+  merge at the first belt's own deadline when that comes first.
+- **Boundaries.** An entity that works on a lane marks a boundary two belts
+  downstream of its belt, between belt k+2 and k+3 when it works on belt k:
+  a burner drill's output (eight rigs, and the smelting chain), an inserter
+  dropping onto the lane or picking from the belt (`logistics_belt_pickup`,
+  `logistics_sideload_merge`). A sideload onto belt k marked one between k+1
+  and k+2 (one observation). A drop or sideload marks only its lane; a
+  pickup, both lanes. Script inserts mark none. Merging stops at boundaries.
+- **When a boundary splits a merged segment:** at the tick of the first such
+  interaction plus `d` of the segment's downstream-most belt. Smelting chain,
+  lane 1 (belts 1 to 9 merged at t=39): drill's first output t=242, `d` of
+  belt 9 (12,-4) is 492, split at 734 into belts 1-4 and 5-9. Belt pickup:
+  first drops t=46, `d` of the last belt 87 (lane 2) and 516 (lane 1), split
+  at 133 and 562. Eight drill rigs: first output + `d` of the last belt, all
+  exact. A chain that had not merged yet merges straight into its pieces at
+  its merge tick (sideload merge: lane 2 at 159 into 1-4, 5-7, 8-10).
+- **An inserter watches its pickup belt's segment**, not the whole chain:
+  rule 6 above with "line" read as "segment". That is the young-belt wake
+  delay: before the chain merges, an item added upstream is on another
+  segment, and the inserter wakes when the chain merges or when the item
+  reaches its belt, whichever comes first. All twelve `young` rigs of
+  `inserter-wake.json` wake at exactly that tick (one record earlier, by that
+  file's convention). It is also the `logistics_smelting_chain` case: at
+  t=536 the lane was one segment and the ore on belt 4 kept the inserter
+  awake; at t=776, after the split at 734, the ore on belt 4 is on the other
+  segment, the inserter sleeps with 1,910 J, and it wakes at t=803 when the
+  ore crosses onto belt 5, its own segment.
+
+### Update order and simultaneous sideloads
+
+- **Order.** Segments move in last-activated-first order: a segment that
+  gets an item while it has none goes first. Of two items put on the two
+  lanes of one feed in one script call, the one put second moves first.
+  Other lines activated or emptied before, between or after do not change
+  the order of the two (decoy rigs).
+- **Crossing a belt** onto a line that is a segment of its own activates it,
+  so on a young feed each belt crossed reverses the order of the two lanes;
+  on a merged lane nothing is activated. Feeds of 1 to 4 belts at (300, 300)
+  alternate with the number of belts crossed; at (183, 113) the feed's lane 2
+  merged at t=42 and lane 1 at t=85, so the crossings at t=48 and t=80
+  re-activate lane 1 only and it stays first; with the belts 600 ticks old
+  the item put second always goes first, whatever the number of belts.
+- **A lane that merges while it carries items** keeps its place in the order
+  if its item is already on the chain's downstream-most belt, and otherwise
+  goes last. (Keeping its place always fails `sim_three_l1first`; going last
+  always fails `sim_f4_l2first`.)
+- **Two items sideloading onto one empty target segment in one tick:** the
+  first inserted wakes the segment without moving it; the second insertion
+  finds it awake and not yet moved this tick and moves it first, so the item
+  inserted first goes 8/256 further (172 + k or 51 + k instead of 180 + k,
+  59 + k). With the target already carrying items it has moved before either
+  insertion and neither goes further (target-traffic rigs: an item on the
+  target moves freely whether it was placed before, between or after the
+  feed items).
+- With the measured merge delays these rules predict which item goes
+  further in all 52 cases checked: the 24 script-fed and 6 inserter-fed rigs
+  of `logistics3-sideload.json.xz`, the 18 two-item `sim_*` rigs and the two
+  feeds of `side_both` of the second probe (including `three_l1first`, which
+  had gone the other way from its twin: it does so alone in a fresh world at
+  its position too), the first probe's `side` rig, and
+  `logistics_sideload_merge` at t=127, where every line is still its own
+  segment (the feed's lanes merge at t=139 and t=325, the main's at 159 and
+  174), the items cross two belts, and lane 2 goes further: so the lane-1
+  drop was activated first in t=47. Two-inserter rigs agree: with the west
+  inserter built first, lane 2 goes further, for feeds of 1, 2 and 3 belts.
+  That the first-built inserter's drop comes first does not fit the
+  "last built updates first" order the chest rigs (`order_*`) show; not
+  resolved.
+
+- **Acceptance.** In the `three` rigs a sideloaded item went on exactly 64
+  behind its target (lane-2 item, t=160: target 59, item ahead at 59, placed
+  at 123), where the simulator's `lane_insert` refuses at 64 and accepts
+  below. Earlier the same item was refused with the items ahead chained up
+  to 192 behind (t=144 to 159). Seen once; not yet checked against drops.
+
+### Turn item points
+
+An item on a turn is at the point `get_line_item_position` gives for its
+position: on the 1/256 grid, near quarter circles of radius 188 and 67 about
+the inner corner, but not a circle rounded any simple way. The eight turns
+are one table rotated, a left turn the mirror image of a right turn with its
+lanes swapped, exactly. With the arm aiming at those points, four of the six
+`tpick_*` rigs agree with the engine on every tick. From the side opposite
+the feeding belt (`tpick_r_e`, `tpick_l_e`) energy agrees every tick but on
+two ticks each, as the hand reaches an item, its x is 1/256 off (-346 where
+the arm's own position rounds to -345, -237 where it rounds to -238): how the
+engine rounds the arm at a target an exact number of 1/256 away is not
+reproduced (float variants of the orientation, length and drawing tried).
+
+### What the simulator needs
+
+To reproduce items 1 and 3 exactly the simulator needs `d` for every tile an
+entity can be built on, and the rules above: merge and re-arm timers,
+boundaries and split timers, inserters watching segments, segments ordered
+by activation with the catch-up move. Options:
+
+1. **A measured table of `d`.** It is a pure function of tile and lane, so a
+   table is exact on every map, where it covers. `--family delay` took 26 s
+   for the 2,436 tile-lanes of the parity scenes' area. The
+   simulator would then be exact inside the table and could refuse or flag
+   belts outside it.
+2. **Identify the hash**, which would make it general. Not found.
+3. **Keep the gaps** as they stand.
+
+Details still open under any option: the drop order of two inserters in one
+tick (above), boundaries for sideloads and pickups in other geometries, and
+what removing or rotating a belt of a merged segment does.
 
 ## Open questions and rigs to settle them
 
@@ -599,6 +763,9 @@ the rigs it leaves out are named there with the reason.
    187 under contention are not. Rig: one feed lane at a time, pairs of items
    at controlled gaps (via `insert_at`) arriving on an empty and on a moving
    main lane.
+   **Third probe:** the 172 is the catch-up move of an empty target segment;
+   the 187 is the spacing rule (64 behind the item ahead); see "Update order
+   and simultaneous sideloads".
 2. **Where a drop lands when the drop point is taken on a moving line.** The
    unblocked drill put its item at 192 (read 184) behind an item at 128,
    while on a stopped line 192 was refused. Hypothesis: the item goes at the
