@@ -35,6 +35,9 @@ import subprocess
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Protocol
+
+from factoriorl.rcon import lua_string
 
 #: Seconds to let the client finish joining before the first decision. A join
 #: makes the server transfer the map and stall, and the first watched run ever
@@ -161,3 +164,68 @@ class Viewer:
             # measured yet". The run result carries the real figure.
             described["rcon_reordered_replies"] = reordered_replies
         return described
+
+
+# --- the on-screen overlay ----------------------------------------------------
+#
+# `mod/factoriorl/viewer.lua` draws each action the agent takes above the
+# character, keeps a panel of the last few with their outcomes, and sets the
+# watching camera's zoom. It is off unless something calls `enable_overlay`, and
+# only the watch tools do: a measured run never has it on, so it never draws,
+# never registers a tick handler, and leaves `storage` exactly as it was.
+
+#: A little wider than Factorio's own 1.0: on a 1080p screen it shows about 66 by
+#: 37 tiles around the character, which holds a construct_smelting_line build
+#: area -- ore patch, drill, furnace and chest -- with room to spare.
+DEFAULT_OVERLAY_ZOOM = 0.9
+
+
+class LuaRunner(Protocol):
+    """Anything that runs Lua through the bridge: an `RCONClient`, or a
+    `WorkerSession`'s client."""
+
+    def lua(self, code: str) -> object: ...
+
+
+def _lua_value(value: object) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int | float):
+        return repr(value)
+    return lua_string(str(value))
+
+
+def overlay_lua(
+    *,
+    title: str | None = None,
+    zoom: float | None = DEFAULT_OVERLAY_ZOOM,
+    text_scale: float | None = None,
+    floating: bool = True,
+    panel: bool = True,
+    lines: bool = True,
+) -> str:
+    """The Lua that turns the overlay on, as the bridge's `run` expects it."""
+    options: dict[str, object] = {"floating": floating, "panel": panel, "lines": lines}
+    if title is not None:
+        options["title"] = title
+    if zoom is not None:
+        options["zoom"] = zoom
+    if text_scale is not None:
+        options["text_scale"] = text_scale
+    table = ", ".join(f"{key} = {_lua_value(value)}" for key, value in sorted(options.items()))
+    return f'return remote.call("frrl_viewer", "enable", {{ {table} }})'
+
+
+def enable_overlay(client: LuaRunner, **options: object) -> str | None:
+    """Turn the on-screen overlay on for one worker. Returns a warning, or None.
+
+    A failure is returned rather than raised, for the same reason a client that
+    fails to start is: the run is still worth finishing, and its replay is
+    unaffected. Safe to call before the client has joined -- a player is set up
+    on the first tick after it arrives.
+    """
+    try:
+        client.lua(overlay_lua(**options))  # type: ignore[arg-type]
+    except Exception as failure:  # noqa: BLE001 -- any failure means no overlay
+        return f"could not enable the on-screen overlay ({failure}); the run continues without it"
+    return None

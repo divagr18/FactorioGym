@@ -20,6 +20,7 @@ local inflight = require("inflight")
 local navigation = require("navigation")
 local profiles = require("profiles")
 local world = require("world")
+local viewer = require("viewer")
 
 local CODE, STATUS, ERR = protocol.CODE, protocol.STATUS, protocol.ERR
 
@@ -893,7 +894,7 @@ end
 
 -- ---------------------------------------------------------------- dispatch
 
-function actions.dispatch(state, request, respond, err)
+local function dispatch(state, request, respond, err)
   local name = request.payload and request.payload.action
   if not name then
     return respond(request, CODE.REJECTED, nil,
@@ -929,6 +930,18 @@ function actions.dispatch(state, request, respond, err)
   local guard = name ~= "mine" and inflight.mine_guard() or nil
   local response = handler(state, request, payload, respond, err)
   inflight.mine_unguard(guard)
+  return response
+end
+
+--- The single entry point for every action, from `act` and from `step` alike.
+--
+-- The on-screen overlay is told about each one here, after the fact, with the
+-- response the agent will receive -- refusals included, since a refused action
+-- is the one a watcher most needs to see. On a measured run the overlay is off
+-- and this is one `nil` check (`viewer.lua`).
+function actions.dispatch(state, request, respond, err)
+  local response = dispatch(state, request, respond, err)
+  if storage.frrl_viewer then viewer.on_action(state, request, response) end
   return response
 end
 

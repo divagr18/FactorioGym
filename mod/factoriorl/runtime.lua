@@ -86,6 +86,12 @@ local function episode_tick()
   return game.tick - state.episode_start_tick
 end
 
+--- Read-only, for the watch overlay's panel header (`viewer.lua`).
+function runtime.episode_tick()
+  if not state then return 0 end
+  return episode_tick()
+end
+
 -- ---------------------------------------------------------------- ledger
 
 local function ledger_state(stored)

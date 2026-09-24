@@ -148,3 +148,89 @@ def test_stopping_a_client_that_already_exited_is_harmless() -> None:
 
 def test_stopping_when_there_is_no_client_is_harmless() -> None:
     Viewer(requested=False, address="a").stop(hold_open_seconds=5.0)
+
+
+# --- the on-screen overlay ---------------------------------------------------
+#
+# `mod/factoriorl/viewer.lua` draws the agent's actions for a watching client.
+# There is no Lua interpreter in the test environment, so the Lua side is held
+# to its contract by reading the source, the same way `test_encoding.py` reads
+# `profiles.lua`: the property that matters is that a measured run cannot reach
+# any of it.
+
+MOD = Path(__file__).resolve().parents[2] / "mod" / "factoriorl"
+
+
+class FakeLua:
+    def __init__(self, failure: Exception | None = None) -> None:
+        self.sent: list[str] = []
+        self.failure = failure
+
+    def lua(self, code: str) -> object:
+        self.sent.append(code)
+        if self.failure is not None:
+            raise self.failure
+        return {"enabled": True}
+
+
+def test_the_overlay_is_enabled_by_a_remote_call_with_its_options() -> None:
+    from factoriorl.agent.viewer import overlay_lua
+
+    code = overlay_lua(title='run "b" - task', zoom=0.5, panel=False)
+    assert code.startswith('return remote.call("frrl_viewer", "enable", {')
+    assert 'title = "run \\"b\\" - task"' in code, "a title must arrive as a quoted Lua string"
+    assert "zoom = 0.5" in code
+    assert "panel = false" in code
+    assert "floating = true" in code
+
+
+def test_enabling_the_overlay_sends_one_call() -> None:
+    from factoriorl.agent.viewer import enable_overlay
+
+    client = FakeLua()
+    assert enable_overlay(client, title="t") is None
+    assert len(client.sent) == 1 and "frrl_viewer" in client.sent[0]
+
+
+def test_an_overlay_that_cannot_be_enabled_is_a_warning_not_a_failed_run() -> None:
+    from factoriorl.agent.viewer import enable_overlay
+
+    warning = enable_overlay(FakeLua(OSError("gone")), title="t")
+    assert warning is not None
+    assert "continues without it" in warning
+
+
+def test_the_overlay_is_off_unless_something_turns_it_on() -> None:
+    """No tick handler at load, and every registration goes through storage."""
+    source = (MOD / "viewer.lua").read_text(encoding="utf-8")
+    for line in source.splitlines():
+        if "script.on_nth_tick" in line and not line.lstrip().startswith("--"):
+            # Only inside `listen` (keyed on storage) and `on_load` (guarded).
+            assert line.startswith("  "), f"registered at load time: {line!r}"
+    assert "storage.frrl_viewer and on_tick or nil" in source
+    assert "if storage.frrl_viewer then script.on_nth_tick(1, on_tick) end" in source
+
+
+def test_the_dispatch_hook_is_one_nil_check_on_a_measured_run() -> None:
+    source = (MOD / "actions.lua").read_text(encoding="utf-8")
+    assert "if storage.frrl_viewer then viewer.on_action(state, request, response) end" in source
+    viewer = (MOD / "viewer.lua").read_text(encoding="utf-8")
+    assert "pcall(record, state, request, response)" in viewer, (
+        "an overlay error must never become an action error"
+    )
+
+
+def test_the_overlay_never_resolves_a_handle() -> None:
+    """`handles.resolve` marks a vanished entity destroyed -- a write the agent
+    could observe. The overlay only peeks at the registry."""
+    source = (MOD / "viewer.lua").read_text(encoding="utf-8")
+    code = "\n".join(line for line in source.splitlines() if not line.lstrip().startswith("--"))
+    assert "handles.resolve" not in code
+    assert 'require("handles")' not in code
+
+
+def test_control_wires_the_overlay_and_reloads_it() -> None:
+    source = (MOD / "control.lua").read_text(encoding="utf-8")
+    assert 'require("viewer")' in source
+    assert "viewer.on_load()" in source
+    assert "viewer.register(" in source

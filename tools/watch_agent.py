@@ -102,6 +102,7 @@ from factoriorl.agent.adapters import (  # noqa: E402
     OpenAICompatibleAdapter,
 )
 from factoriorl.agent.loop import AgentConfig, AgentLoop  # noqa: E402
+from factoriorl.agent.viewer import DEFAULT_OVERLAY_ZOOM, enable_overlay  # noqa: E402
 from factoriorl.engine_config import resolve_engine_config  # noqa: E402
 from factoriorl.env import FactorioEnv  # noqa: E402
 from factoriorl.rcon import RCONClient  # noqa: E402
@@ -326,6 +327,20 @@ def main() -> int:
         help="seconds to keep the server alive after the run ends, so the final "
         "state stays on screen. The client is disconnected when it exits",
     )
+    parser.add_argument(
+        "--overlay",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="draw each action above the character and keep a panel of the last "
+        "few with their outcomes, in the watching client only. Drawing and GUI "
+        "are not simulation, so what the agent does is unchanged either way",
+    )
+    parser.add_argument(
+        "--zoom",
+        type=float,
+        default=DEFAULT_OVERLAY_ZOOM,
+        help="spectator camera zoom, set once when the client joins (with --overlay)",
+    )
     args = parser.parse_args()
 
     if not os.environ.get(args.api_key_env):
@@ -391,6 +406,13 @@ def main() -> int:
                 "lands at whatever tick it arrives at",
                 flush=True,
             )
+
+        if args.overlay:
+            warning = enable_overlay(
+                session._client, title=f"{args.task} - {args.model}", zoom=args.zoom
+            )
+            if warning:
+                print(f"  {warning}", flush=True)
 
         env = FactorioEnv(
             get(args.task),

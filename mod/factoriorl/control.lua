@@ -2,9 +2,15 @@
 
 local runtime = require("runtime")
 local bridge = require("bridge")
+local viewer = require("viewer")
 
 script.on_init(runtime.on_init)
-script.on_load(runtime.on_load)
+script.on_load(function()
+  runtime.on_load()
+  -- The watch overlay's tick handler, if a watch tool turned it on before this
+  -- save was loaded -- which is exactly what a joining client does.
+  viewer.on_load()
+end)
 script.on_configuration_changed(runtime.on_configuration_changed)
 script.on_event(defines.events.on_tick, runtime.on_tick)
 
@@ -139,3 +145,5 @@ script.on_event(defines.events.on_player_created, make_spectator)
 script.on_event(defines.events.on_player_joined_game, make_spectator)
 
 bridge.register(runtime)
+-- The on-screen overlay for watched runs, off until a watch tool enables it.
+viewer.register(runtime.episode_tick)
