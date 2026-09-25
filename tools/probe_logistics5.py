@@ -5,7 +5,8 @@ on every rig measured, with a few rules chosen rather than measured. This probe
 measures them. docs/sim-logistics.md, "Fifth probe", states the findings.
 
 A rig is data: a base tile and a list of timed operations -- build a belt, a
-wooden chest or a burner inserter, put an item on a belt lane
+wooden chest, a burner inserter or a burner mining drill (on iron ore laid
+under it), put an item on a belt lane
 (`LuaTransportLine.insert_at`), rotate an entity (`LuaEntity.rotate`) or
 destroy it -- run by one Lua interpreter here and by factory-sim's
 tests/logistics_rigs5.py there. Operations at t=0 run in the build command,
@@ -44,12 +45,18 @@ Families (`--family`), one evidence file each
   at the ends, before a turn, onto a west line.
 - `dist`: a drop, a pickup or a feed at one belt followed by patterns of
   straights and turns: where the boundary lies along the lane.
+- `drill`: the same for a burner mining drill's output, over patterns whose
+  lane sums pass through every value from 468 to 768 a lane can reach.
+- `loop3`: inserters taking from and dropping onto 2 x 2 loops, whose six
+  inner lanes (636) lie inside the inserter's bracket: where the search for
+  the boundary meets the loop's front.
 - `trig`, `trig2`, `trig3`: what sets a boundary off, which boundaries a
   split uses, the delay a second split counts, boundaries close together.
 
 Run (on the laptop, 25 to 35 s a world of up to 30 rigs):
   uv run python tools/probe_logistics5.py --family order
-  (and change, feedchg, loop, loop2, bound, dist, trig, trig2, trig3)
+  (and change, feedchg, loop, loop2, loop3, bound, dist, drill, trig, trig2,
+  trig3)
 """
 
 from __future__ import annotations
@@ -91,6 +98,11 @@ class Rig:
 
     def ins(self, label: str, dx: int, dy: int, d: int, coal: int = 2, t: int = 0) -> Rig:
         return self.op(t, "ins", label, dx, dy, d, coal)
+
+    def drill(self, label: str, dx: int, dy: int, d: int, coal: int = 5, t: int = 0) -> Rig:
+        """A burner mining drill at tile corner (dx, dy), on four tiles of iron
+        ore (5,000 each) that replace whatever resource was there."""
+        return self.op(t, "drill", label, dx, dy, d, coal)
 
     def put(self, t: int, label: str, lane: int, pos: int, item: str) -> Rig:
         return self.op(t, "put", label, lane, pos, item)
@@ -863,7 +875,113 @@ def dist_rigs() -> list[Rig]:
     return rigs
 
 
+# ------------------------------------------------------------- family: drill
+
+#: Patterns after the drill's belt m2 whose lane sums, from m2's downstream
+#: edge, pass through each threshold of 468..768 on the lane the drill drops
+#: on (lane 1 from the north, lane 2 from the south), two where the drill's
+#: footprint allows (found by enumeration; turn lanes are 295 and 106 long).
+DRILL_PATTERNS = {
+    1: ("SLLS", "RLLS", "LRLS", "SRS", "RSS", "RRS", "RRSS", "LRLLS", "LRLLRS", "SSLS",
+        "SLSS", "LSSS", "SRLS", "SLRS", "RSLS", "RLSS", "RRLS", "RLRS", "SSLLS", "SLSLS",
+        "SSSS"),
+    2: ("LRRS", "SLS", "LSS", "LLS", "LLSS", "SSRS", "SRSS", "SRLS", "SLRS", "LRLS",
+        "LLRS", "SSRRS", "SSSS"),
+}  # fmt: skip
+
+
+def drill_rigs() -> list[Rig]:
+    """A drill's boundary on its output lane, where the belts after its own
+    turn: an old line m0..m2 east (built at t=0) then a pattern (`_path`); at
+    t=610 a burner mining drill with 5 coal drops onto m2, from the north
+    (facing south, corner (2, -1): lane 1) or the south (facing north, corner
+    (3, 2): lane 2). Then a drill dropping onto a turn: m0..m1 east, m2 a right
+    turn south at (2, 0), then a pattern; the drill from the north (the turn's
+    outer lane: a drill's drop point near a turn's inner corner lies where the
+    belts are)."""
+    at = cells()
+    rigs: list[Rig] = []
+    for lane, patterns in DRILL_PATTERNS.items():
+        for pattern in patterns:
+            r = Rig(f"d{lane}_{pattern}", next(at), 1800)
+            for k, (x, y, d) in enumerate(_path(pattern)):
+                r.belt(f"m{k}", x, y, d)
+            if lane == 1:
+                r.drill("dr", 2, -1, S, t=610)
+            else:
+                r.drill("dr", 3, 2, N, t=610)
+            rigs.append(r)
+    # onto a turn: m2 at (2, 0) facing south is a right turn (fed from the west)
+    for pattern in ("SLSS", "SRLS"):
+        r = Rig(f"dt_{pattern}", next(at), 1800)
+        cells_ = [(0, 0, E), (1, 0, E), (2, 0, S)]
+        x, y, d = 2, 0, S
+        vec = {N: (0, -1), E: (1, 0), S: (0, 1), W: (-1, 0)}
+        for ch in pattern:
+            dx, dy = vec[d]
+            x, y = x + dx, y + dy
+            d = (d + TURN[ch]) % 16
+            cells_.append((x, y, d))
+        for k, (bx, by, bd) in enumerate(cells_):
+            r.belt(f"m{k}", bx, by, bd)
+        r.drill("dr", 2, -1, S, t=610)
+        rigs.append(r)
+    return rigs
+
+
+# ------------------------------------------------------------- family: loop3
+
+#: A 2 x 2 loop, clockwise (all right turns, lane 2 inner, 106 long) or
+#: anticlockwise (all left turns, lane 1 inner): six inner lanes are 636,
+#: inside the interval the inserter's reach was bracketed to (618..657).
+LOOP_CW = [(0, 0, E), (1, 0, S), (1, 1, W), (0, 1, N)]
+LOOP_CCW = [(0, 0, S), (0, 1, E), (1, 1, N), (1, 0, W)]
+#: The eight tiles outside a 2 x 2 loop, with the loop tile each is next to.
+OUTSIDE = [((0, -1), (0, 0)), ((-1, 0), (0, 0)), ((1, -1), (1, 0)), ((2, 0), (1, 0)),
+           ((2, 1), (1, 1)), ((1, 2), (1, 1)), ((0, 2), (0, 1)), ((-1, 1), (0, 1))]  # fmt: skip
+
+
+def _dir_to(dx: int, dy: int) -> int:
+    return {(0, -1): N, (1, 0): E, (0, 1): S, (-1, 0): W}[(dx, dy)]
+
+
+def loop3_rigs() -> list[Rig]:
+    """A 2 x 2 loop built at t=0 (from l0, or from l2), and at t=610 one burner
+    inserter outside it: taking from the loop into a chest, with one plate put
+    at t=650 on the inner or the outer lane of the belt two ahead of its own;
+    or dropping two plates from a chest onto the loop."""
+    at = cells()
+    rigs: list[Rig] = []
+    for orient, loop in (("cw", LOOP_CW), ("ccw", LOOP_CCW)):
+        inner = 2 if orient == "cw" else 1
+        tiles = {(x, y): k for k, (x, y, _) in enumerate(loop)}
+        for start in (0, 2):
+            for pos, (ins_xy, belt_xy) in enumerate(OUTSIDE):
+                k = tiles[belt_xy]
+                ix, iy = ins_xy
+                dx, dy = belt_xy[0] - ix, belt_xy[1] - iy
+                kinds = ("pin", "pout", "drop") if start == 0 else ("pin", "drop")
+                for kind in kinds:
+                    r = Rig(f"{orient}_b{start}_{kind}_p{pos}", next(at), 1500)
+                    for j in range(4):
+                        x, y, d = loop[(start + j) % 4]
+                        r.belt(f"l{(start + j) % 4}", x, y, d)
+                    if kind == "drop":
+                        r.chest("dc", ix - dx, iy - dy, "iron-plate", 2, t=610)
+                        r.ins("di", ix, iy, _dir_to(-dx, -dy), t=610)
+                    else:
+                        r.chest("pc", ix - dx, iy - dy, t=610)
+                        r.ins("pi", ix, iy, _dir_to(dx, dy), t=610)
+                        lane = inner if kind == "pin" else 3 - inner
+                        at_pos = 50 if kind == "pin" else 128  # an inner lane is 106 long
+                        r.put(650, f"l{(k + 2) % 4}", lane, at_pos, "iron-plate")
+                    rigs.append(r)
+    return rigs
+
+
 FAMILIES = {
+    "drill": drill_rigs,
+    "loop3": loop3_rigs,
     "trig2": trig2_rigs,
     "trig3": trig3_rigs,
     "dist": dist_rigs,
@@ -940,6 +1058,22 @@ local function apply(k, op)
     if op[7] > 0 then e.insert({name = "coal", count = op[7]}) end
     st.E[label] = e
     st.ins[#st.ins + 1] = e
+  elseif kind == "drill" then
+    local cx, cy = bx + op[4], by + op[5]
+    for _, r in pairs(s.find_entities_filtered({area = {{cx - 0.95, cy - 0.95},
+                                                        {cx + 0.95, cy + 0.95}},
+                                                type = "resource"})) do
+      r.destroy()
+    end
+    for dx = -1, 0 do
+      for dy = -1, 0 do
+        s.create_entity({name = "iron-ore", position = {cx + dx + 0.5, cy + dy + 0.5},
+                         amount = 5000})
+      end
+    end
+    local e = mk({name = "burner-mining-drill", position = {cx, cy}, direction = op[6]})
+    if op[7] > 0 then e.insert({name = "coal", count = op[7]}) end
+    st.E[label] = e
   elseif kind == "put" then
     -- a refused insert shows in the readings
     st.E[label].get_transport_line(op[4]).insert_at(op[5] / 256, {name = op[6], count = 1})
@@ -1049,7 +1183,7 @@ def _bounds(rigs: list[dict]) -> tuple[int, int, int, int]:
     xs, ys = [], []
     for r in rigs:
         for op in r["ops"]:
-            if op[1] in ("belt", "chest", "ins"):
+            if op[1] in ("belt", "chest", "ins", "drill"):
                 xs.append(r["base"][0] + op[3])
                 ys.append(r["base"][1] + op[4])
     return min(xs) - 3, min(ys) - 3, max(xs) + 4, max(ys) + 4

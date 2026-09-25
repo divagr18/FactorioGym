@@ -32,7 +32,8 @@ frames are the four rotations of it):
    - arrived = both axes on target.
    - energy = 50 kJ x (turns rotated + tiles extended), as charged above. If
      the burner buffer holds less, the extension gets it first, the rotation
-     what is left, each moving in proportion.
+     what is left, each moving in proportion; an extension then less than EXT
+     from its target is set to it, as after a full step.
 3. Holding an item: target the drop point (0.5, 1.2 tiles); on arrival the item
    goes into the chest that tick.
 4. Empty: the belt item being chased, if it is still on the pickup belt;
@@ -183,6 +184,10 @@ class Arm:
             if e_ext >= budget:
                 frac = budget / e_ext
                 l_new, rl = self.length + math.copysign(ext * frac, dl), False
+                # less than a step then left: on the target, as after a full
+                # step (probe 2's seg_*_8, seg_b_7; probe 5)
+                if abs(lt - l_new) < EXT:
+                    l_new = lt
                 a_new, ra, e_rot, e_ext = self.a, d == 0, 0.0, budget
             else:
                 frac = (budget - e_ext) / e_rot

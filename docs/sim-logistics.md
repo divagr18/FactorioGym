@@ -964,13 +964,13 @@ the fifth probe.
 
 `tools/probe_logistics5.py` measures what factory-sim had chosen or left
 open about segments. A rig is data: a base tile and timed operations (build a
-belt, a wooden chest or a burner inserter, `insert_at` an item, `rotate` or
-`destroy` an entity). The same rig list runs in the engine and in
+belt, a wooden chest, a burner inserter or a burner mining drill on iron ore
+laid under it, `insert_at` an item, `rotate` or `destroy` an entity). The same rig list runs in the engine and in
 factory-sim's `tests/logistics_rigs5.py`. Every tick it changes, each rig
 logs every item on every belt (with the engine's ids), which belt lanes are
 one line object (`line_equals`, compared across both lanes), every
-inserter's hand and every chest. 250 rigs in ten families, one evidence file
-each, `docs/evidence/logistics5-<family>.json.xz`:
+inserter's hand and every chest. 366 rigs in twelve families, one evidence
+file each, `docs/evidence/logistics5-<family>.json.xz`:
 
 | family | rigs | what |
 |---|---|---|
@@ -981,11 +981,13 @@ each, `docs/evidence/logistics5-<family>.json.xz`:
 | `loop2` | 27 | 4 x 3 loops built from five different belts, along the flow and against it, young and old; a merged loop with a belt removed and rebuilt, or turned four times |
 | `bound` | 54 | inserters picking and dropping from either side of an old line at its start, middle and end, on and next to turns, several on one line, some never working; feeds from either side, at the ends, before a turn, onto a west line |
 | `dist` | 60 | a drop, a pickup or a feed at one belt followed by 11 patterns of straights and left and right turns |
+| `drill` | 36 | a burner mining drill, built on an old line, dropping onto one belt from the north (lane 1) or the south (lane 2), followed by 34 patterns chosen so that their lane sums pass through every value from 468 to 768 a lane can reach; two drills dropping onto a turn |
+| `loop3` | 80 | 2 x 2 loops, clockwise and anticlockwise, built from either of two belts: an inserter at each of the eight tiles outside, taking a plate put on the inner or the outer lane, or dropping two plates |
 | `trig` | 22 | what sets a boundary off: idle and full-chest pickups, script inserts upstream, downstream and onto the pickup belt, idle drops, empty feeds, pickups built after the items |
 | `trig2` | 9 | which boundaries a split uses; the delay a second split on an upstream piece counts |
 | `trig3` | 8 | boundaries one, two and three belts apart, together and one after the other |
 
-Each family ran in one or two fresh worlds on the laptop, 25 to 35 s each.
+Each family ran in one to three fresh worlds on the laptop, 25 to 35 s each.
 
 ### The inserter's first move from a short buffer (`seg_*_8`, `seg_b_7`)
 
@@ -1090,21 +1092,38 @@ An entity marks a boundary on the lane it works on:
 - a feed: the lane it sideloads onto.
 
 **Where.** The boundary is at the upstream edge of the belt holding the
-point R along the lane from the downstream edge of the entity's belt. A
-turn's lanes are 295 and 106 long.
+point R along the lane from the downstream edge of the entity's belt,
+searching toward the front of the chain. A turn's lanes are 295 and 106
+long.
 
-- For inserters, R lies in 618..657; factory-sim uses 640.
-- For a sideload, R lies in 362..401 from the target belt's edge;
-  factory-sim uses 384.
+- Inserters: R lies in (618, 657], bracketed on its own for drops and for
+  pickups, on both lanes.
+- Drills: R lies in (618, 657] too, measured on its own (`drill`: the lower
+  end from 9 rigs whose lane reaches 618, the upper end from 7 that reach
+  657, both lanes, and a drill dropping onto a turn).
+- Sideloads: R lies in (362, 401] from the target belt's edge.
 
 On a straight line that is k+2|k+3 and k+1|k+2, as before. After an inner
 turn it is one belt further: 256 + 106 = 362 is not enough. The 20 drop, 20
-pickup and 20 feed rigs of `dist`, the turn rigs of `bound` and the loop
-rigs all agree. No belt edge any lane can reach falls inside either interval
-(inner, outer and straight lengths give 618 and 657, 362 and 401 at their
-ends). So on these patterns the choice of R inside each interval changes
-nothing. A drill's reach was measured on straight lines only (the second
-probe's eight rigs) and is taken as the inserter's.
+pickup and 20 feed rigs of `dist`, the 36 of `drill`, the turn rigs of
+`bound` and the loop rigs all agree.
+
+**On a loop the search stops at the front.** It does not pass the loop's
+front lane, the lane of its oldest belt, whose downstream edge is the seam.
+On the outer lane of a 2 x 2 loop (`loop3`, 295 a lane), from the belt two
+behind the front the boundary falls between the belt behind the front and
+the front (295 + 295 + 295 = 885 holds R), and the loop splits there and at
+the seam. From the front itself, or from the belt behind it, the search
+reaches the front first, and nothing splits (a search round the loop would
+have split both). On the inner lane (106 a lane) the front is at most 318
+away: no inserter, picking up or dropping, splits a 2 x 2 loop there.
+
+**The intervals cannot be narrowed further, and need not be.** The only
+lane sum strictly inside (618, 657) is six inner lanes, 636, which only a
+2 x 2 loop has, and there the search meets the front after three lanes.
+None lies strictly inside (362, 401). So every value in each interval gives
+the same boundaries on every belt geometry factory-sim models, and no rig
+can tell them apart. factory-sim uses 640 and 384.
 
 **When: a boundary is set off**:
 
@@ -1163,7 +1182,7 @@ segment of its own, as in the fourth probe, and before a loop's seam.
 
 ### How factory-sim compares
 
-With these rules factory-sim matches all 250 rigs, every reading, every
+With these rules factory-sim matches all 366 rigs, every reading, every
 tick (`tests/test_segments5.py`). The four second-probe rigs `seg_a_8`,
 `seg_ar_8`, `seg_b_7` and `seg_d_8` are compared again
 (`test_mechanics_logistics2.py`). Every earlier logistics test still passes.
@@ -1175,9 +1194,42 @@ Those are:
 - the third probe's sideload rigs and the fourth probe's order, sleep and
   acceptance rigs.
 
-**Still chosen:** the place in the order of pieces that a loaded (hidden)
-state leaves holding items. Loading is not something the engine does
-mid-game.
+### A loaded state and the activation order
+
+One placement is still factory-sim's own: where in the activation order a
+segment goes when a loaded hidden state gives it items the simulator did
+not have there (it moves last, like a merge). Whether the engine's order
+could be loaded instead:
+
+- **It cannot be read.** `LuaTransportLine` in 2.0.60 (`runtime-api.json`)
+  has `can_insert_at`, `can_insert_at_back`, `clear`, `force_insert_at`,
+  `get_contents`, `get_detailed_contents`, `get_item_count`,
+  `get_line_item_position`, `insert_at`, `insert_at_back`, `line_equals`,
+  `remove_item`, `input_lines`, `line_length`, `output_lines`, `owner` and
+  `total_segment_length`: nothing about whether a line is awake or its place
+  in the update order. `LuaEntity.active`, `disabled_by_script`,
+  `is_updatable`, `frozen` and `status` are entity flags, and `unit_number`
+  gives creation order, which the activation order does not follow: it
+  follows when items arrive on empty segments.
+- **It can be inferred from the history**, by replaying it, which is what
+  factory-sim does. The one-step sync check resets once and steps alongside
+  the recording, loading the recorded state over its own at every decision.
+  It keeps its own segments: membership, timers, boundaries set off, sleep
+  and order.
+- **The placement is never reached by a check.** A load changes the order
+  only through belt contents that differ from the simulator's. Over the one-
+  step sync of all 18 golden traces (2,520 loads) no load changed a single
+  belt lane. It can only happen after the simulator's belt contents have
+  already differed from the recording, which the comparison after the
+  previous step reports, or when the first recorded state differs from the
+  installed scene, which free-running reports. Free-running and
+  tick-by-tick checks never load.
+
+It would matter only for loading an engine state into a simulator that has
+not replayed its history, which nothing does now. There more than the order
+is missing: segment membership (which `line_equals` could capture), merge and
+split timers, boundaries set off, and sleeping segments. What to do with the
+placement is an open question.
 
 ## Hand-mining and reach (v3 decisions)
 
