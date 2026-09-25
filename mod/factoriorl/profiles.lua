@@ -154,6 +154,43 @@ profiles.OBSERVATION = {
     },
   },
 
+  -- `local-v2` for belt-and-inserter logistics: what a `parameterized-v3` task
+  -- declares. A separate profile for the reason `open-v1` is one: `local-v2`'s
+  -- version is part of the contract every frozen benchmark was measured under.
+  --
+  -- Two departures, both about belts:
+  --   * `logistics_detail`: each belt's lane counts and shape, each inserter's
+  --     pickup, drop and held item, each drill's drop point
+  --     (`sensor.logistics_detail`). Nothing else in a record changes.
+  --   * `entity_cap` 96, the `v3` encoder's row count. A belt line is one entity
+  --     per tile, so 48 records fill up before a twenty-tile line and the
+  --     machines at either end are all in view. The same argument as `local-v2`
+  --     makes 96 enough: the encoder keeps the nearest 96 of visible and
+  --     remembered together, and a visible entity at rank 97 already has 96 at
+  --     least as close. The sweep limit stays at v1's candidate budget.
+  ["local-v3"] = {
+    name = "local-v3",
+    version = 1,
+    event_window = 8,
+    flat_events = true,
+    deterministic_order = true,
+    logistics_detail = true,
+    radius = 32,
+    entity_cap = 96,
+    entity_sweep_limit = 257,
+    resource_cap = 512,
+    resource_detail_radius = 12,
+    terrain_detail = "mask",
+    memory = true,
+    slim = true,
+    keys = {
+      "episode_id", "tick", "absolute_tick", "profiles", "character",
+      "inventory", "sensor", "terrain", "resources", "entities",
+      "remembered", "task", "inflight", "goal", "events", "event_counts",
+      "recipes",
+    },
+  },
+
   -- `local-v2` plus the aggregated resource patches, for open generated worlds.
   --
   -- A separate profile rather than a change to `local-v2`, because every frozen

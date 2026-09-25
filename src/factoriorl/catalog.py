@@ -68,6 +68,8 @@ ARGUMENT_DOMAINS: dict[str, str] = {
     # One argument name, one domain; sharing `position` would have made
     # `walk_to_position` unable to name anywhere worth walking to.
     "destination": "destinations",
+    # `parameterized-v3`'s `mine_tile`: a resource tile named by where it is.
+    "tile": "resource_tiles",
 }
 
 #: Argument domains that depend on which *action* is asking, keyed by catalog
@@ -398,10 +400,39 @@ OPEN_V1: tuple[ActionTemplate, ...] = tuple(
     ]
 )
 
+#: The catalog a `v3` task declares, and what selects the `v3` profile.
+#:
+#: `parameterized-v1`'s verbs, in the same order and reused by reference so
+#: the two cannot drift apart, then one more at the end, so no `v1` index
+#: moves. Every verb a belt and inserter task needs already exists there --
+#: `place_at` takes any item in any facing, `rotate_at` turns a belt or an
+#: inserter, `take_from` empties a chest. What changes is what the argument
+#: indices *mean*, which is `parameterized.ParameterizedEnv`'s `v3` profile: a
+#: target is a row of the 96-row entity table and a placement a fixed tile of a
+#: 15x15 window.
+#:
+#: The one addition is hand-mining a resource tile (user decision, 2026-09-25;
+#: `docs/sim-logistics.md`). Resource tiles have no row in the entity table,
+#: so under `v2` they could not be named at all; `mine_tile` names one by its
+#: tile, through the placement dimension, which is where the grid planes that
+#: show the ore already put it, with the count from the amount dimension. The
+#: mod's `mine` action does the rest exactly as it does for `mine_at`.
+#:
+#: Stage 2's `set_recipe_at` with a recipe dimension lands here too, without
+#: moving `parameterized-v1`'s frozen digest.
+PARAMETERIZED_V3: tuple[ActionTemplate, ...] = (
+    *PARAMETERIZED_V1,
+    ActionTemplate("mine_tile", "mine", {"handle": "?tile", "count": "?count"}),
+)
+
+#: Catalogs whose argument indices follow the `v3` profile.
+V3_CATALOGS = frozenset({"parameterized-v3"})
+
 CATALOGS: dict[str, tuple[ActionTemplate, ...]] = {
     "primitive-v1": PRIMITIVE_V1,
     "parameterized-v1": PARAMETERIZED_V1,
     "open-v1": OPEN_V1,
+    "parameterized-v3": PARAMETERIZED_V3,
 }
 
 
@@ -431,11 +462,13 @@ class ResolvedCatalog:
         # even when its wire payload is identical. Without it, editing mask
         # semantics left the digest -- and therefore every manifest citing it --
         # unchanged.
-        payload = json.dumps(
-            [[t.key, t.action, t.payload, t.requires] for t in self.templates],
-            sort_keys=True,
-            separators=(",", ":"),
-        )
+        rows: list = [[t.key, t.action, t.payload, t.requires] for t in self.templates]
+        # A `v3` catalog shares `parameterized-v1`'s templates but not what its
+        # argument indices mean, so its digest says so. Only for `v3` names:
+        # every other digest is exactly what it was.
+        if self.name in V3_CATALOGS:
+            rows = [["profile", "v3"], *rows]
+        payload = json.dumps(rows, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
 

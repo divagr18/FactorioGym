@@ -956,6 +956,51 @@ def inserter_fuel_exhaustion(s: Script) -> None:
     s.wait(10)
 
 
+#: (f) Hand-mining at the edges (tools/probe_handmine.py): a chest standing on
+#: an ore tile, a chest of plates to fill the last free slot mid-mine, and an
+#: inventory of 78 stacks of wood and 49 iron ore, one slot free.
+HAND_MINE_RULES = [
+    _one("wooden-chest", (2, 0)),
+    _one("wooden-chest", (-2, 0), contents={"iron-plate": 20}),
+]
+
+
+def hand_mine_rules(s: Script) -> None:
+    px, py = (math.floor(v) for v in s.observation["character"]["position"])
+    ore, covered = (px + 1, py), (px + 2, py)
+    chest = s.entity("wooden-chest", (px - 1.5, py + 0.5))
+
+    def tile(t: tuple[int, int]) -> str:
+        handle = s.tile_handle(t)
+        if handle is None:
+            raise RuntimeError(f"no resource tile at {t}")
+        return handle
+
+    # One ore: the stack of 49 reaches 50.
+    s.do("mine_at", handle=tile(ore))
+    s.wait(5)
+    # Another, and take plates into the last free slot while it is mined: the
+    # ore then has nowhere to go and lands on the ground, and the pile it makes
+    # is mined over and over and never taken.
+    s.do("mine_at", handle=tile(ore))
+    s.take(chest, "iron-plate", 5)
+    s.wait(6)
+    s.do("nudge_west")
+    s.wait(2)
+    # Full: a new mine is refused.
+    s.do("mine_at", handle=tile(ore))
+    s.wait(1)
+    # Free a slot, then mine the ore tile the chest stands on: the chest is
+    # mined instead, and then nothing, until mining stops.
+    s.give(chest, "iron-plate", 5)
+    s.do("mine_at", handle=tile(covered))
+    s.wait(6)
+    s.do("nudge_east")
+    s.wait(2)
+    s.do("mine_at", handle=tile(covered))
+    s.wait(3)
+
+
 def belt_rotate_and_mine(s: Script) -> None:
     # The character stands on (9, -7), just south of the belt row at y = -8.
     px, py = (math.floor(v) for v in s.observation["character"]["position"])
@@ -1157,6 +1202,17 @@ SCENARIOS: tuple[Scenario, ...] = (
         "a loaded belt rotated and rotated back mid-flow, then picked up with its items",
         belt_rotate_and_mine,
         edit=logistics_scene(ROTATE_AND_MINE, (9, -7)),
+        requires="logistics",
+    ),
+    Scenario(
+        "hand_mine_rules",
+        SMELTING,
+        "train",
+        0,
+        "hand-mining with the inventory filling mid-mine (the ore spills and its pile is "
+        "mined without end), a refusal when full, and an ore tile under a chest",
+        hand_mine_rules,
+        edit=logistics_scene(HAND_MINE_RULES, (0, 0), {"wood": 7800, "iron-ore": 49}),
         requires="logistics",
     ),
 )

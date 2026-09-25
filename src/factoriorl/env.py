@@ -51,6 +51,60 @@ def blueprint_digest(payload: dict) -> str:
 #: be refused for range. The runtime still enforces the real distance.
 PLACEMENT_RADIUS = 5
 
+#: The `v3` window: 15x15 tiles. Build distance is 10, so 7 still never offers
+#: a tile the runtime would refuse for range; a belt line is laid a tile at a
+#: time and a larger window is fewer walks between placements.
+PLACEMENT_RADIUS_V3 = 7
+
+#: The character's three distances (`character.build_distance`,
+#: `reach_distance`, `resource_reach_distance`, read off the prototype by
+#: tools/probe_handmine.py). The mod refuses a placement farther than
+#: `BUILD_DISTANCE` from the character to the requested position, and a
+#: resource mine farther than `RESOURCE_REACH` to the resource's position, both
+#: straight-line (`actions.lua`); an entity is in reach when the engine's
+#: `can_reach_entity` says so, which is the straight-line distance to its
+#: collision box, at most `REACH_DISTANCE` -- measured on 1.12 million
+#: positions with no exception (`docs/evidence/handmine-reach.json.xz`).
+BUILD_DISTANCE = 10.0
+REACH_DISTANCE = 10.0
+RESOURCE_REACH = 2.7
+
+#: Collision-box half-sizes, 1/256 tiles exact, of the entities a `v3` task
+#: builds or finds (`docs/evidence/handmine-reach.json.xz`). An entity whose
+#: name is not here has no measured box, and the `v3` mask leaves it
+#: reachable rather than guess one.
+COLLISION_HALF = {
+    "wooden-chest": 89 / 256,
+    "transport-belt": 102 / 256,
+    "burner-inserter": 38 / 256,
+    "stone-wall": 74 / 256,
+    "stone-furnace": 179 / 256,
+    "burner-mining-drill": 179 / 256,
+    "item-on-ground": 35 / 256,
+}
+
+
+def box_distance(point, centre, half: float) -> float:
+    """Straight-line distance from `point` to a square box of half-size `half`."""
+    bx = max(centre[0] - half - point[0], 0.0, point[0] - centre[0] - half)
+    by = max(centre[1] - half - point[1], 0.0, point[1] - centre[1] - half)
+    return math.sqrt(bx * bx + by * by)
+
+
+def straight_distance(a, b) -> float:
+    """`actions.lua`'s `distance`: sqrt(dx * dx + dy * dy)."""
+    dx, dy = a[0] - b[0], a[1] - b[1]
+    return math.sqrt(dx * dx + dy * dy)
+
+
+def entity_in_reach(character, record) -> bool:
+    """`can_reach_entity` for an observed record, from the observation alone."""
+    half = COLLISION_HALF.get(record.get("name"))
+    if half is None or not record.get("p"):
+        return True
+    return box_distance(character, record["p"], half) <= REACH_DISTANCE
+
+
 #: How many destinations to offer. An enumerated domain is rendered into the
 #: prompt, so an unbounded one would bury the rest of the observation; the
 #: nearest few dozen are what an agent can act on anyway.
@@ -76,6 +130,12 @@ class FactorioEnv(gym.Env):
     """One task on one worker."""
 
     metadata = {"render_modes": []}
+
+    #: Class-level defaults, overridden per instance in `__init__` for a `v3`
+    #: catalog, so an environment assembled without `__init__` encodes as `v1`.
+    v3 = False
+    layout = encoders.LAYOUT_V1
+    placement_radius = PLACEMENT_RADIUS
 
     def __init__(
         self,
@@ -104,7 +164,13 @@ class FactorioEnv(gym.Env):
         self.start_curriculum = float(start_curriculum)
         self.catalog = catalog_module.resolve(self.spec_.catalog, self.spec_.catalog_subset)
         self.action_space = spaces.Discrete(len(self.catalog))
-        self.observation_space = encoders.observation_space()
+        # A `v3` catalog selects the `v3` tensors and placement window. Keyed on
+        # the catalog, which is part of the task's frozen spec, so the layout a
+        # task is encoded with cannot differ between two runs of it.
+        self.v3 = self.spec_.catalog in catalog_module.V3_CATALOGS
+        self.layout = encoders.LAYOUT_V3 if self.v3 else encoders.LAYOUT_V1
+        self.placement_radius = PLACEMENT_RADIUS_V3 if self.v3 else PLACEMENT_RADIUS
+        self.observation_space = encoders.observation_space(layout=self.layout)
         self.accountant = RewardAccountant(
             self.spec_.rewards,
             shaping_enabled=shaping,
@@ -274,6 +340,7 @@ class FactorioEnv(gym.Env):
                 if record.get("h") and record.get("type") == "assembling-machine"
             ],
             "amounts": list(TRANSFER_AMOUNTS),
+            **({"resource_tiles": self._resource_tiles(origin, observation)} if self.v3 else {}),
             # Now observable (local-v2 v4), so `craft_recipe` and
             # `set_recipe_at` stop being permanently masked.
             # Names only. A profile with `recipe_detail` (`open-v1`) carries
@@ -476,12 +543,66 @@ class FactorioEnv(gym.Env):
         # "you are here", not as "this tile is unavailable".
         occupied.add(here)
         positions, legal = [], []
-        for dx in range(-PLACEMENT_RADIUS, PLACEMENT_RADIUS + 1):
-            for dy in range(-PLACEMENT_RADIUS, PLACEMENT_RADIUS + 1):
+        radius = self.placement_radius
+        for dx in range(-radius, radius + 1):
+            for dy in range(-radius, radius + 1):
                 tile = (here[0] + dx, here[1] + dy)
-                positions.append([tile[0] + 0.5, tile[1] + 0.5])
-                legal.append(tile not in occupied)
+                centre = [tile[0] + 0.5, tile[1] + 0.5]
+                positions.append(centre)
+                ok = tile not in occupied
+                # `v3`: also within the mod's build distance of the character,
+                # so a legal slot is one the game accepts (a 15x15 window's
+                # corners are 9.9 tiles out, and farther from an off-centre
+                # character). `v1`/`v2` keep their radius-5 rule unchanged.
+                if ok and self.v3:
+                    ok = straight_distance(origin, centre) <= BUILD_DISTANCE
+                legal.append(ok)
         return positions, legal
+
+    def _resource_tiles(self, origin, observation) -> list[str]:
+        """Handles of the visible resource tiles the mod would hand-mine now.
+
+        Within `RESOURCE_REACH` of the character, straight-line to the tile's
+        centre, as `actions.lua` checks it. A tile with an entity standing on
+        it is included: the mod accepts it and the game mines that entity
+        (tools/probe_handmine.py, `cover_*`)."""
+        return [
+            str(tile["h"])
+            for tile in ((observation.get("resources") or {}).get("tiles") or [])
+            if tile.get("h")
+            and tile.get("p")
+            and straight_distance(origin, tile["p"]) <= RESOURCE_REACH
+        ]
+
+    def resource_tile_grid(self, observation=None) -> list[str | None]:
+        """Per window slot, the handle of the resource tile a `mine_tile` there mines.
+
+        The same slots as `placement_grid`; None where no visible resource tile
+        within reach lies on the slot's tile."""
+        observation = self._observation if observation is None else observation
+        origin = (observation.get("character") or {}).get("position") or [0.0, 0.0]
+        reachable = set(self._resource_tiles(origin, observation))
+        by_tile = {}
+        for tile in (observation.get("resources") or {}).get("tiles") or []:
+            if tile.get("h") in reachable:
+                by_tile[(math.floor(tile["p"][0]), math.floor(tile["p"][1]))] = str(tile["h"])
+        positions, _ = self.placement_grid(observation)
+        return [by_tile.get((math.floor(p[0]), math.floor(p[1]))) for p in positions]
+
+    def target_row_legal(self, observation=None) -> list[bool]:
+        """Per entity-table row, whether an action naming it is accepted (`v3`).
+
+        Visible, not remembered (a remembered handle is not in `targets`), and
+        within the engine's reach of it (`entity_in_reach`)."""
+        observation = self._observation if observation is None else observation
+        origin = (observation.get("character") or {}).get("position") or [0.0, 0.0]
+        return [
+            (not remembered) and entity_in_reach(origin, record)
+            for _distance, record, remembered in encoders.entity_row_order(
+                observation, origin, self.layout.max_entities
+            )
+            if record.get("h")
+        ]
 
     def placement_grid(self, observation=None) -> tuple[list[list[float]], list[bool]]:
         """Every tile of the window, and which of them can be built on.
@@ -506,9 +627,12 @@ class FactorioEnv(gym.Env):
         """
         observation = self._observation if observation is None else observation
         origin = (observation.get("character") or {}).get("position") or [0.0, 0.0]
+        limit = self.layout.max_entities
         return [
             str(record["h"])
-            for _distance, record, _remembered in encoders.entity_row_order(observation, origin)
+            for _distance, record, _remembered in encoders.entity_row_order(
+                observation, origin, limit
+            )
             if record.get("h")
         ]
 
@@ -836,7 +960,13 @@ class FactorioEnv(gym.Env):
             "episode_index": self._episode_index,
             "action_mask": self.action_masks(),
         }
-        return encoders.encode(self._observation, self._goal_vector()), info
+        return self._encode(), info
+
+    def _encode(self) -> dict:
+        """The tensors for the current observation, in this task's layout."""
+        if self.v3:
+            return encoders.encode(self._observation, self._goal_vector(), layout=self.layout)
+        return encoders.encode(self._observation, self._goal_vector())
 
     def _goal_vector(self) -> np.ndarray:
         """Budget fraction, success predicates, then observable landmarks.
@@ -875,7 +1005,36 @@ class FactorioEnv(gym.Env):
             goal[-3] = float(np.clip((target[0] - position[0]) / scale, -1.0, 1.0))
             goal[-2] = float(np.clip((target[1] - position[1]) / scale, -1.0, 1.0))
             goal[-1] = 1.0
+        if self.layout.marker_slots:
+            goal = np.concatenate([goal, self.marker_slots()])
         return goal
+
+    def marker_slots(self, observation=None) -> np.ndarray:
+        """The `v3` goal tail: `(dx, dy, present)` per public marker.
+
+        One triple per marker in the task's `public_markers` order, so slot *i*
+        names the same marker in every scene of a task. Where the objective's
+        parts are, all of them: the 12-slot vector can point at one marker and
+        clips it at the 32-tile sensor radius, and a task whose ore, smelting
+        site and output chest are sixty tiles apart needs every one of them at
+        that distance. Read from the published `goal` block only -- the mod
+        publishes exactly the task's public markers -- so it carries no
+        evaluator state. A marker the observation does not publish stays zero.
+        """
+        observation = self._observation if observation is None else observation
+        layout = encoders.LAYOUT_V3
+        slots = np.zeros(3 * layout.marker_slots, dtype=np.float32)
+        published = observation.get("goal") or {}
+        position = (observation.get("character") or {}).get("position") or [0.0, 0.0]
+        scale = encoders.MARKER_SCALE_V3
+        for index, name in enumerate(self.spec_.public_markers[: layout.marker_slots]):
+            target = published.get(name)
+            if not target:
+                continue
+            slots[3 * index] = float(np.clip((target[0] - position[0]) / scale, -1.0, 1.0))
+            slots[3 * index + 1] = float(np.clip((target[1] - position[1]) / scale, -1.0, 1.0))
+            slots[3 * index + 2] = 1.0
+        return slots
 
     def _focus_target(self, published: dict, position) -> list:
         """The next fault to fix, not merely the first one declared.
@@ -1160,7 +1319,7 @@ class FactorioEnv(gym.Env):
             # `infrastructure_failure` is now the load-bearing key: `vecenv`
             # refuses to dress it as a truncation, and `RolloutGuard` aborts
             # collection before the next optimizer update.
-            observation = encoders.encode(self._observation, self._goal_vector())
+            observation = self._encode()
             return (
                 observation,
                 0.0,
@@ -1223,7 +1382,7 @@ class FactorioEnv(gym.Env):
         if terminated or truncated:
             info["production"] = self.metrics.report()
         return (
-            encoders.encode(self._observation, self._goal_vector()),
+            self._encode(),
             reward,
             terminated,
             truncated,

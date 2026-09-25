@@ -70,10 +70,17 @@ UNUSED = 0
 MAX_TARGETS = 32
 MAX_PLACEMENTS = 121
 
-#: The two meanings a `target` and a `placement` index can carry. The vector's
-#: shape is the same in both, so a policy written for one runs against the
-#: other -- it simply reads a different entity and builds on a different tile.
-PROFILES = ("v1", "v2")
+#: `v3`'s bounds: every row of the 96-row entity table, every tile of the 15x15
+#: window (`env.PLACEMENT_RADIUS_V3`).
+MAX_TARGETS_V3 = 96
+MAX_PLACEMENTS_V3 = 225
+
+#: The meanings a `target` and a `placement` index can carry. `v1` and `v2`
+#: share a vector shape, so a policy written for one runs against the other --
+#: it simply reads a different entity and builds on a different tile. `v3` has
+#: `v2`'s meanings over larger bounds and the `ITEMS_V3` item dimension, so its
+#: vector has a shape of its own: `MultiDiscrete[22, 97, 226, 5, 19, 4]`.
+PROFILES = ("v1", "v2", "v3")
 
 #: Which domain each dimension draws from, and the payload argument it fills.
 #: `operation` is the catalog index and takes no domain.
@@ -95,6 +102,8 @@ ARGUMENT_DIMENSION: dict[str, str] = {
     "direction": "direction",
     "item": "item",
     "count": "amount",
+    # `v3`'s `mine_tile`: the resource tile under placement slot p.
+    "tile": "placement",
     # Not observable yet (R2.3): no dimension can offer a value, so any
     # operation needing one stays masked.
     "recipe": "recipe",
@@ -116,15 +125,34 @@ class ParameterizedEnv(gym.Env):
     def __init__(
         self,
         env: Any,
-        max_targets: int = MAX_TARGETS,
-        max_placements: int = MAX_PLACEMENTS,
+        max_targets: int | None = None,
+        max_placements: int | None = None,
         profile: str = "v1",
     ):
         if profile not in PROFILES:
             raise ValueError(f"unknown action-space profile {profile!r}")
         self.env = env
         self.profile = profile
-        self.v2 = profile == "v2"
+        #: `v2` semantics (a target is a table row, a placement a fixed tile),
+        #: which `v3` shares.
+        self.v2 = profile in ("v2", "v3")
+        self.v3 = profile == "v3"
+        if max_targets is None:
+            max_targets = MAX_TARGETS_V3 if self.v3 else MAX_TARGETS
+        if max_placements is None:
+            max_placements = MAX_PLACEMENTS_V3 if self.v3 else MAX_PLACEMENTS
+        if self.v3:
+            # The window the slots name is the environment's, so the two must
+            # be the same size or slot p would name one tile here and place on
+            # another there.
+            from factoriorl.env import PLACEMENT_RADIUS_V3
+
+            radius = getattr(env, "placement_radius", PLACEMENT_RADIUS_V3)
+            if radius != PLACEMENT_RADIUS_V3:
+                raise ValueError(
+                    f"profile v3 needs a {2 * PLACEMENT_RADIUS_V3 + 1}-tile placement window; "
+                    f"the environment's radius is {radius} (declare catalog parameterized-v3)"
+                )
         self.max_targets = max_targets
         self.max_placements = max_placements
         self._sizes = {
@@ -140,10 +168,13 @@ class ParameterizedEnv(gym.Env):
         self.decode_failures = 0
 
     # ---- sizes that must not move between runs ------------------------
-    def _item_slots(self) -> int:
+    def _items(self) -> tuple[str, ...]:
         from factoriorl import encoders
 
-        return len(encoders.ITEMS)
+        return encoders.ITEMS_V3 if self.v3 else encoders.ITEMS
+
+    def _item_slots(self) -> int:
+        return len(self._items())
 
     def _amount_slots(self) -> int:
         from factoriorl.env import TRANSFER_AMOUNTS
@@ -160,8 +191,6 @@ class ParameterizedEnv(gym.Env):
     # ---- masks --------------------------------------------------------
     def _domain_values(self) -> dict[str, list]:
         domains = self.env.argument_domains()
-        from factoriorl import encoders
-
         if self.v2:
             targets = self.env.entity_row_handles()[: self.max_targets]
             placements = self.env.placement_grid()[0][: self.max_placements]
@@ -174,7 +203,7 @@ class ParameterizedEnv(gym.Env):
             "direction": list(domains["directions"]),
             # Fixed slots, so an item's index means the same thing in every
             # scene; availability is what the mask expresses.
-            "item": list(encoders.ITEMS),
+            "item": list(self._items()),
             "amount": list(domains["amounts"]),
         }
 
@@ -220,15 +249,50 @@ class ParameterizedEnv(gym.Env):
                 nameable = set(available["items"]) | set(available.get("source_items") or ())
                 for index, item in enumerate(legal):
                     mask[index + 1] = item in nameable
+            elif name == "placement" and self.v3:
+                # A slot is legal if a placement there is accepted (free, and
+                # within build distance) or a `mine_tile` there is (a resource
+                # tile within resource reach). One dimension serves both verbs,
+                # and its mask is built before either is sampled, so it is the
+                # union; `decode` refuses the one that does not apply.
+                free = self.env.placement_grid()[1][: size - 1]
+                mineable = self.env.resource_tile_grid()[: size - 1]
+                for index, ok in enumerate(free):
+                    mask[index + 1] = ok or mineable[index] is not None
             elif name == "placement" and self.v2:
                 # Every slot names its tile whether or not anything stands
                 # there, so occupancy is what the mask carries.
                 for index, free in enumerate(self.env.placement_grid()[1][: size - 1]):
                     mask[index + 1] = free
+            elif name == "target" and self.v3:
+                # A row is legal if an action naming it is accepted: visible,
+                # and within the engine's reach (`env.entity_in_reach`).
+                for index, ok in enumerate(self.env.target_row_legal()[: size - 1]):
+                    mask[index + 1] = ok
             else:
                 for index in range(min(len(legal), size - 1)):
                     mask[index + 1] = True
             parts.append(mask)
+        if self.v3:
+            # An operation is legal only if every argument it takes has a legal
+            # value to choose. Under `v1` the domains the operation mask reads
+            # and the ones the argument dimensions offer are the same lists;
+            # under row targets they are not -- `targets` counts resource tiles
+            # and nothing else in view, the rows count remembered entities -- so
+            # an operation could be legal with nothing in its dimension but the
+            # sentinel, which only ever decodes to a counted no-op. `v2` keeps
+            # that behaviour, since its masks are what its results were
+            # measured under.
+            dimensions = {name: part for (name, _), part in zip(DIMENSIONS, parts, strict=True)}
+            for index in range(len(operations)):
+                if not operations[index]:
+                    continue
+                template = self.env.catalog.templates[index]
+                for argument in template.arguments:
+                    dimension = ARGUMENT_DIMENSION.get(argument)
+                    if dimension in dimensions and not dimensions[dimension][1:].any():
+                        operations[index] = False
+                        break
         return np.concatenate(parts)
 
     # ---- decode -------------------------------------------------------
@@ -257,9 +321,18 @@ class ParameterizedEnv(gym.Env):
             legal = values.get(dimension, [])
             if index - 1 >= len(legal):
                 return operation, {}, f"{argument}: index {index} past the domain"
+            if self.v3 and argument == "tile":
+                handle = self.env.resource_tile_grid()[index - 1]
+                if handle is None:
+                    return operation, {}, f"{argument}: no resource tile in reach at slot {index}"
+                arguments[argument] = handle
+                continue
             if self.v2 and dimension == "placement":
                 if not self.env.placement_grid()[1][index - 1]:
                     return operation, {}, f"{argument}: slot {index} is occupied"
+            if self.v3 and dimension == "target":
+                if not self.env.target_row_legal()[index - 1]:
+                    return operation, {}, f"{argument}: row {index} is out of reach or unseen"
             arguments[argument] = legal[index - 1]
         return operation, arguments, None
 
@@ -285,6 +358,8 @@ class ParameterizedEnv(gym.Env):
             if argument not in arguments:
                 raise ValueError(f"{template.key} needs argument {argument!r}")
             legal = values.get(dimension, [])
+            if self.v3 and argument == "tile":
+                legal = self.env.resource_tile_grid()
             if arguments[argument] not in legal:
                 raise ValueError(
                     f"{template.key}: {argument}={arguments[argument]!r} is not among the "
@@ -354,7 +429,11 @@ def wrap_for_policy(env: Any, skills: bool = False) -> Any:
                 f"{env.spec_.id} uses a parameterized catalog; skills are defined over "
                 "the discrete primitive catalog and cannot be layered on top of it"
             )
-        return ParameterizedEnv(env)
+        # The catalog names the profile: a `v3` task's argument indices mean
+        # table rows and window tiles, and reading them as `v1` would place on
+        # the wrong tile silently.
+        v3 = getattr(env.catalog, "name", None) in catalog_module.V3_CATALOGS
+        return ParameterizedEnv(env, profile="v3" if v3 else "v1")
     if skills:
         from factoriorl.skills import SkillEnv
 

@@ -1179,6 +1179,109 @@ Those are:
 state leaves holding items. Loading is not something the engine does
 mid-game.
 
+## Hand-mining and reach (v3 decisions)
+
+`tools/probe_handmine.py`, raw Lua, every tick recorded. The `mine` family
+drives the character the way the mod's `POLLS.mine` does (selection and
+`mining_state` re-asserted at the tile every tick) over 27 rigs
+(`docs/evidence/handmine-mine.json.xz`); the `reach` family asks
+`can_reach_entity` for seven entity types from 16 x 16 sub-tile character
+positions at every whole-tile offset up to 12, 1.12 million positions, plus
+rays at 1/256 (`docs/evidence/handmine-reach.json.xz`).
+
+### Hand-mining
+
+- **Speed and time.** `mining_speed` 0.5, modifier 0; iron ore, copper ore,
+  coal and stone all have `mining_time` 1. Progress is seconds / mining time,
+  seconds growing by 0.5 / 60 a tick, and reads 0 on the tick mining is first
+  asked for. The first item arrives **121 ticks** after the ask, each next one
+  120 later, whatever the character's sub-tile position (`time_*`,
+  `subtile_*`).
+- **When an item comes.** Once progress passes 1, strictly: a pile (0.025 s)
+  reads exactly 1 on its third tick and is taken on the fourth; a chest (0.1 s)
+  on the thirteenth; a drill (0.3 s, whose seconds pass 1 on the 36th) on the
+  36th. factory-sim compared `<` 1 before this; only the pile case differed.
+- **Amount.** Each item takes 1 from the resource; at 0 the entity is gone and
+  nothing more is mined (the mod's poller then settles the action).
+- **Interrupted.** Stopping keeps the progress for that target: resumed the
+  same tile after 60 idle ticks, or after 1, it continues from where it was
+  (`stop_resume`, `stop_one_tick`). Mining another tile starts from 0, and
+  going back to the first starts from 0 again.
+- **Walking.** Asked to walk while mining, the character does not move and
+  mining goes on unchanged; asked to mine while walking, it stops walking
+  (`walk_while_mining`, `mine_while_walking`). The mod's `move` cancels a
+  running mine first, so neither happens through the action space.
+- **Reach.** The engine makes no progress on a tile beyond resource reach
+  (`beyond_reach`); the mod refuses such a mine before it starts.
+- **Full inventory.** The mod refuses a mine when the main inventory has no
+  empty slot, even if a part stack of the item has room (`full_partial_stack`
+  shows the engine would take it). When the inventory fills during a mine, the
+  next item still comes off the resource (amount -1, and it counts as produced)
+  but lands on the ground at the resource's position, one item; the pile then
+  lies over the tile and is mined instead, every fourth tick, and never taken
+  (`full_no_room`, `full_partial_stack`, `full_mine_pile`).
+- **A tile something stands on.** The mod mines a resource by selecting at its
+  position, and selection prefers any entity whose selection box holds that
+  point: a belt, chest, inserter, wall, furnace, drill or pile over the ore is
+  mined instead and goes into the inventory, and then nothing more is mined
+  while mining stays asked for (`cover_*`, `under_drill`) -- the mod's mine
+  then runs until a move cancels it. Stopping and asking again mines the ore
+  (`cover_then_retry`). A pile 0.203 tiles off the tile centre (where a drill
+  or inserter drops) is not over it (`cover_pile_off_centre`); the character's
+  own box never is (`self_cover_*`); a pile cannot lie on a belt.
+
+Selection-box half-sizes: chest, belt and wall 0.5, inserter 0.3984375,
+furnace 0.796875, drill 1, pile 0.16796875.
+
+### Reach
+
+- **Entities.** `can_reach_entity` is true exactly when the straight-line
+  distance from the character's position to the entity's **collision box** is
+  at most 10 (`reach_distance`), boundary included: no exception in 1.12
+  million positions, and every ray's last accepted position is at distance
+  10.0. The selection box, the bounding box and the centre each disagree on
+  thousands. Collision half-sizes: chest 0.34765625, belt 0.3984375, inserter
+  0.1484375, wall 0.2890625, furnace and drill 0.69921875, pile 0.13671875.
+  It gates `mine_at`, `rotate_at`, `give_to` and `take_from` alike.
+- **Placing.** The mod refuses a placement farther than `build_distance` (10)
+  from the character's position to the requested position (a slot's tile
+  centre), straight-line; the entity's size does not enter. That is the
+  dx = -7 / dx = +7 asymmetry: the same slot is 9.9 tiles away from one
+  sub-tile position and 10.2 from another.
+- **Hand-mining.** The mod refuses a resource farther than
+  `resource_reach_distance` (2.7) from the character's position to the
+  resource's centre, straight-line.
+
+### Decisions (user, 2026-09-25)
+
+1. **Hand-mining is in v3.** `parameterized-v3` gains `mine_tile` at index 22,
+   after every `v1` operation: a resource tile named by placement slot (the
+   tile the grid planes already show the ore on) and a count from the amount
+   dimension (1, 5, 20), sent to the mod's `mine` action as `mine_at` is.
+   Target-by-tile rather than new rows, because resource tiles have no row in
+   the entity table and a row per tile would crowd out the entities. The
+   action vector is `MultiDiscrete[23, 97, 226, 5, 19, 4]`. factory-sim
+   implements every rule above, pinned tick by tick by the `hand_mine_rules`
+   parity trace (a spill with the inventory filling mid-mine, a refusal when
+   full, the ore tile under a chest); `WorldV3.mine_resource(x, y, amount)`.
+2. **The v3 mask is legal where the game accepts.** A target row is legal
+   when it is visible and within reach by the rule above; a placement slot when
+   its tile is free and its centre within build distance; the same slot is
+   also legal for `mine_tile` when a visible resource tile within resource
+   reach lies on it. What a factorised mask cannot say is still left to the
+   decoder or the game: the placement dimension is shared by `place_at` and
+   `mine_tile` (the union), a row is shared by every verb that takes one, a
+   2x2 machine's other three tiles and an item's own collision are the game's
+   `can_place_entity`, and "no free inventory slot" (which the observation's
+   item counts cannot always tell) is the mod's refusal.
+3. **Remembered rows carry no belt or inserter detail.** Accepted as is:
+   memory keeps a record's name, type, position, direction, contents and
+   recipe, nothing else. Under decision 2 a remembered row is also masked.
+4. **Handcrafting stays off for Stage 1.** `belt_smelting` hands out a fixed
+   inventory, so nothing needs crafting, and an unmeasured mechanic would break
+   parity. It is measured and implemented exactly together with Stage 2's
+   recipe dimension.
+
 ## Open questions and rigs to settle them
 
 1. **Sideload with traffic.** The single-item rule is exact; entries of 172 and
@@ -1365,3 +1468,9 @@ traces.
   2026-09-24 entries on simultaneous sideloads, the belt-line sleep case and
   the young-belt wake delay: `KNOWN_GAPS` is empty and young-belt rigs are
   compared from t=0.
+- **v3 profile** (user decision): hand-mining added to v3 (`mine_tile`); the
+  v3 mask made legal exactly where the game accepts, by the measured reach
+  rules; remembered rows accepted without belt or inserter detail;
+  handcrafting off for Stage 1, measured and added with Stage 2's recipe
+  dimension. The measurements and the four records are in "Hand-mining and
+  reach (v3 decisions)" above.

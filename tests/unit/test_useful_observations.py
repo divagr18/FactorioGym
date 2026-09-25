@@ -171,11 +171,14 @@ class TestRecipesAreSelectable:
 
 class TestNoHiddenStateIsSmuggled:
     def test_the_encoding_never_reads_truth(self):
-        """`encode` takes an observation and a goal vector, and nothing else."""
+        """`encode` takes an observation and a goal vector, and nothing else.
+
+        `profile` and `layout` are shapes -- the sensor radius and the tensor
+        layout -- not state."""
         import inspect
 
         parameters = set(inspect.signature(encoders.encode).parameters)
-        assert parameters == {"observation", "goal", "profile"}
+        assert parameters == {"observation", "goal", "profile", "layout"}
 
     def test_domains_are_a_pure_function_of_the_observation(self):
         observation = {

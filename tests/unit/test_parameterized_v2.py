@@ -59,7 +59,7 @@ def _spread_out(**extra):
 class TestTheProfileItself:
     def test_an_unknown_profile_is_refused(self):
         with pytest.raises(ValueError, match="profile"):
-            ParameterizedEnv(_Inner(_observation()), profile="v3")
+            ParameterizedEnv(_Inner(_observation()), profile="v9")
 
     def test_both_profiles_have_the_same_action_space(self):
         assert list(_v1().action_space.nvec) == list(_v2().action_space.nvec)

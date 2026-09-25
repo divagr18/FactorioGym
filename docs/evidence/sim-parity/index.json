@@ -341,6 +341,55 @@
     "verification": null,
     "wall_seconds": 1.0
   },
+  "hand_mine_rules": {
+    "about": "hand-mining with the inventory filling mid-mine (the ore spills and its pile is mined without end), a refusal when full, and an ore tile under a chest",
+    "action_outcomes": {
+      "give_to:completed": 1,
+      "mine_at:rejected:no_space": 2,
+      "mine_at:running": 3,
+      "nudge_east:completed": 1,
+      "nudge_west:completed": 1,
+      "take_from:completed": 1,
+      "wait:completed": 25
+    },
+    "decisions": 34,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      }
+    ],
+    "final_ground_items": 1,
+    "final_tick": 1020,
+    "layout_family": "varied_patch",
+    "mod_source_digest": "fa0ea5b27c6f3cb8",
+    "replay_identical": true,
+    "replay_sha256": "af0d6357d34adc333da673d191b030dc3dd489dbf865e17bfaf37bd23b9433a4",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 1020,
+      "trace": "hand_mine_rules.ticks.jsonl.xz",
+      "trace_sha256": "dea53c4af202f83a35cb520730e781bbd4fa3bf4b61c12a21fd8f624dd274b23",
+      "wall_seconds": 73.3
+    },
+    "trace": "hand_mine_rules.jsonl.xz",
+    "trace_sha256": "af0d6357d34adc333da673d191b030dc3dd489dbf865e17bfaf37bd23b9433a4",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 3.0
+  },
   "logistics_belt_pickup": {
     "about": "inserters on both sides picking from a moving belt into chests",
     "action_outcomes": {

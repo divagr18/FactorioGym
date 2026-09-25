@@ -58,6 +58,16 @@ ITEMS: tuple[str, ...] = (
     "burner-inserter",
 )
 
+#: The `v3` item vocabulary: `ITEMS` in its own order, then the Stage-2 items
+#: (power and assembly), appended so every `ITEMS` index keeps its meaning.
+ITEMS_V3: tuple[str, ...] = (
+    *ITEMS,
+    "assembling-machine-1",
+    "boiler",
+    "steam-engine",
+    "offshore-pump",
+)
+
 RESOURCES: tuple[str, ...] = ("iron-ore", "copper-ore", "coal", "stone")
 
 #: Factorio 2.0 uses 16 compass directions (0..15), not 8.
@@ -91,11 +101,14 @@ _REFUSED_STATUS = frozenset({"failed", "cancelled", "rejected"})
 MAX_ENTITIES = 32
 
 
-def entity_row_order(observation, origin) -> list[tuple[float, dict, bool]]:
+def entity_row_order(
+    observation, origin, limit: int = MAX_ENTITIES
+) -> list[tuple[float, dict, bool]]:
     """The entity table's rows: `(distance, record, remembered)`, nearest first.
 
     Visible entities and remembered ones together, sorted by distance from the
-    character and capped at `MAX_ENTITIES`. The sort is stable, so a visible
+    character and capped at `limit` (`MAX_ENTITIES`, or the layout's own
+    `max_entities` under `v3`). The sort is stable, so a visible
     entity precedes a remembered one at the same distance.
 
     It is a named function because `parameterized-v2` addresses a target *by
@@ -119,7 +132,7 @@ def entity_row_order(observation, origin) -> list[tuple[float, dict, bool]]:
             *rows(observation.get("remembered", []), True),
         ],
         key=lambda row: row[0],
-    )[:MAX_ENTITIES]
+    )[:limit]
 
 
 ENTITY_FEATURES = 16
@@ -150,6 +163,73 @@ GOAL_GEOMETRY_SLOTS = 3
 
 
 @dataclass(frozen=True)
+class TensorLayout:
+    """How many rows, features, items and goal slots the tensors carry.
+
+    Separate from `ObservationProfile`, which is about the *sensor*: a layout is
+    the Python-side shape a policy is trained against. `LAYOUT_V1` is the
+    layout every `parameterized-v1`/`v2` result was measured under and must not
+    move; `LAYOUT_V3` is what a `parameterized-v3` task encodes with.
+    """
+
+    name: str
+    max_entities: int
+    entity_features: int
+    items: tuple[str, ...]
+    goal_features: int
+    #: Named-marker triples after the 12-slot v1 goal vector (`v3` only).
+    marker_slots: int = 0
+
+
+LAYOUT_V1 = TensorLayout(
+    name="v1",
+    max_entities=MAX_ENTITIES,
+    entity_features=ENTITY_FEATURES,
+    items=ITEMS,
+    goal_features=GOAL_FEATURES,
+)
+
+#: The `v3` layout, for belt-and-inserter logistics.
+#:
+#: * 96 rows instead of 32: a belt line is one entity per tile, so a smelting
+#:   line fed by a twenty-tile belt already overflows 32 rows before the
+#:   machines at either end are counted.
+#: * 32 features per row: the 16 of `v1`, unchanged, then what a player reads
+#:   off a belt, an inserter and a drill (see `_logistics_features`).
+#: * The `ITEMS_V3` inventory.
+#: * A goal vector of the 12 `v1` slots followed by `MARKER_SLOTS_V3` triples
+#:   `(dx, dy, present)`, one per public marker in the task's
+#:   `public_markers` order, scaled by `MARKER_SCALE_V3` rather than the sensor
+#:   radius. The `v1` slots can point at one marker, clipped at 32 tiles; a task
+#:   whose ore, furnace site and output chest are sixty tiles apart needs all
+#:   of them, and further away than that.
+MAX_ENTITIES_V3 = 96
+ENTITY_FEATURES_V3 = 32
+MARKER_SLOTS_V3 = 6
+MARKER_SCALE_V3 = 128.0
+GOAL_FEATURES_V3 = GOAL_FEATURES + 3 * MARKER_SLOTS_V3
+
+#: Items one belt lane is reported against. A straight lane holds four; the
+#: outer lane of a turn a little more. Eight is never reached, so the feature is
+#: an exact count / 8 rather than a saturating one.
+LANE_CAP = 8.0
+#: Pickup and drop offsets are within ~1.3 tiles of the entity; /2 keeps them
+#: exact in float32 and well inside [-1, 1].
+OFFSET_SCALE = 2.0
+
+LAYOUT_V3 = TensorLayout(
+    name="v3",
+    max_entities=MAX_ENTITIES_V3,
+    entity_features=ENTITY_FEATURES_V3,
+    items=ITEMS_V3,
+    goal_features=GOAL_FEATURES_V3,
+    marker_slots=MARKER_SLOTS_V3,
+)
+
+LAYOUTS: dict[str, TensorLayout] = {"v1": LAYOUT_V1, "v3": LAYOUT_V3}
+
+
+@dataclass(frozen=True)
 class ObservationProfile:
     name: str
     version: int
@@ -174,17 +254,20 @@ LOCAL_V1 = ObservationProfile(name="local-v1", version=1, radius=32)
 LOCAL_V1_COARSE = ObservationProfile(name="local-v1", version=1, radius=32, cell_size=2)
 
 
-def observation_space(profile: ObservationProfile = LOCAL_V1) -> spaces.Dict:
+def observation_space(
+    profile: ObservationProfile = LOCAL_V1, layout: TensorLayout = LAYOUT_V1
+) -> spaces.Dict:
+    rows, features = layout.max_entities, layout.entity_features
     return spaces.Dict(
         {
             "grid": spaces.Box(
                 0.0, 1.0, (len(RESOURCES) + 2, profile.grid_size, profile.grid_size), np.float32
             ),
-            "entities": spaces.Box(-1.0, 1.0, (MAX_ENTITIES, ENTITY_FEATURES), np.float32),
-            "entity_mask": spaces.Box(0, 1, (MAX_ENTITIES,), np.int8),
+            "entities": spaces.Box(-1.0, 1.0, (rows, features), np.float32),
+            "entity_mask": spaces.Box(0, 1, (rows,), np.int8),
             "self": spaces.Box(-1.0, 1.0, (SELF_FEATURES,), np.float32),
-            "inventory": spaces.Box(0.0, 1.0, (len(ITEMS),), np.float32),
-            "goal": spaces.Box(-1.0, 1.0, (GOAL_FEATURES,), np.float32),
+            "inventory": spaces.Box(0.0, 1.0, (len(layout.items),), np.float32),
+            "goal": spaces.Box(-1.0, 1.0, (layout.goal_features,), np.float32),
         }
     )
 
@@ -204,10 +287,68 @@ def _entity_type_index(entity_type: str) -> int:
         return len(ENTITY_TYPES) - 1
 
 
+def _item_slot(item, items: tuple[str, ...]) -> float:
+    """`(index + 1) / len(items)`, or 0 for no item or one outside the vocabulary."""
+    if item in items:
+        return (items.index(item) + 1) / len(items)
+    return 0.0
+
+
+def dominant_item(contents: dict | None, items: tuple[str, ...]):
+    """The item a record holds most of, among `items`; ties go to the lower index."""
+    best, best_count = None, 0
+    for item in items:
+        count = (contents or {}).get(item, 0) or 0
+        if count > best_count:
+            best, best_count = item, count
+    return best
+
+
+def _logistics_features(record: dict, position, features: np.ndarray, items) -> None:
+    """Slots 16-31 of a `v3` row: what a player reads off belts, inserters, drills.
+
+    Every value comes from the record's own wire fields (`local-v3`'s
+    `logistics_detail`); a record without them -- any remembered one, or any
+    observation under an older profile -- leaves the slots zero, exactly as an
+    empty belt or an empty hand would.
+
+    16-17  items on lane 1 (left of travel) and lane 2, / `LANE_CAP`
+    18-19  belt turns left, turns right (both 0: straight, or not a belt)
+    20-21  the inserter's hand holds something; which item, `(i + 1) / n`
+    22-24  pickup point less the entity's position, / `OFFSET_SCALE`; present
+    25-27  drop point likewise (inserters and drills); present
+    28     the item the record's `contents` holds most of, `(i + 1) / n`
+    29     power satisfaction (Stage 2; nothing publishes it yet)
+    30-31  reserved
+    """
+    lanes = record.get("lanes")
+    if lanes:
+        features[16] = min(float(lanes[0] or 0), LANE_CAP) / LANE_CAP
+        features[17] = min(float(lanes[1] or 0), LANE_CAP) / LANE_CAP
+    shape = record.get("shape")
+    features[18] = 1.0 if shape == "left" else 0.0
+    features[19] = 1.0 if shape == "right" else 0.0
+    held = record.get("held")
+    if held:
+        features[20] = 1.0
+        features[21] = _item_slot(held, items)
+    for key, base in (("pickup", 22), ("drop", 25)):
+        point = record.get(key)
+        if point:
+            features[base] = _norm(point[0] - position[0], OFFSET_SCALE)
+            features[base + 1] = _norm(point[1] - position[1], OFFSET_SCALE)
+            features[base + 2] = 1.0
+    features[28] = _item_slot(dominant_item(record.get("contents"), items), items)
+    power = record.get("power")
+    if power is not None:
+        features[29] = float(np.clip(float(power), 0.0, 1.0))
+
+
 def encode(
     observation: dict,
     goal: np.ndarray | None = None,
     profile: ObservationProfile = LOCAL_V1,
+    layout: TensorLayout = LAYOUT_V1,
 ) -> dict[str, np.ndarray]:
     """Turn one wire observation into fixed-shape tensors."""
     size = profile.grid_size
@@ -251,14 +392,14 @@ def encode(
         if cell is not None:
             grid[len(RESOURCES) + 1, cell[0], cell[1]] = 1.0
 
-    entities = np.zeros((MAX_ENTITIES, ENTITY_FEATURES), dtype=np.float32)
-    mask = np.zeros((MAX_ENTITIES,), dtype=np.int8)
+    entities = np.zeros((layout.max_entities, layout.entity_features), dtype=np.float32)
+    mask = np.zeros((layout.max_entities,), dtype=np.int8)
 
-    candidates = entity_row_order(observation, origin)
+    candidates = entity_row_order(observation, origin, layout.max_entities)
 
     for index, (distance, record, remembered) in enumerate(candidates):
         position = record.get("p", [0, 0])
-        features = np.zeros(ENTITY_FEATURES, dtype=np.float32)
+        features = np.zeros(layout.entity_features, dtype=np.float32)
         features[0] = _norm(position[0] - origin[0], profile.radius)
         features[1] = _norm(position[1] - origin[1], profile.radius)
         features[2] = _norm(distance, profile.radius)
@@ -286,6 +427,8 @@ def encode(
         features[13] = 1.0 if working is not None else 0.0
         features[14] = _log_count(sum((record.get("fuel") or {}).values()))
         features[15] = _log_count(sum((record.get("output") or {}).values()))
+        if layout.entity_features > ENTITY_FEATURES:
+            _logistics_features(record, position, features, layout.items)
         entities[index] = features
         mask[index] = 1
 
@@ -324,8 +467,8 @@ def encode(
     if isinstance(counts, dict) and counts.get("settled"):
         self_vector[11] = float(counts.get("refused") or 0) / float(counts["settled"])
 
-    inventory = np.zeros(len(ITEMS), dtype=np.float32)
-    for index, item in enumerate(ITEMS):
+    inventory = np.zeros(len(layout.items), dtype=np.float32)
+    for index, item in enumerate(layout.items):
         inventory[index] = _log_count((observation.get("inventory") or {}).get(item, 0))
 
     return {
@@ -337,6 +480,6 @@ def encode(
         "goal": (
             goal.astype(np.float32)
             if goal is not None
-            else np.zeros(GOAL_FEATURES, dtype=np.float32)
+            else np.zeros(layout.goal_features, dtype=np.float32)
         ),
     }

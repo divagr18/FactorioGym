@@ -147,6 +147,51 @@ function sensor.entity_record(entity)
   return record
 end
 
+--- What a player reads off a belt, an inserter or a drill (`local-v3`).
+--
+-- A belt line is only buildable if the agent can see which lane its items are
+-- on, which way a belt turns and whether an inserter is taking from it; none of
+-- that was in any record. Each field is what the engine itself shows on the
+-- entity -- the items on each lane, the belt's drawn shape, the item in the
+-- inserter's hand and the two arrows of its pickup and drop -- so this is
+-- observation, not a solver's geometry. Read only for the three types that
+-- have them, so a furnace or a chest record is unchanged.
+--
+--   transport-belt: lanes = { items on line 1 (left of travel), line 2 },
+--                   shape = "straight" | "left" | "right"
+--   inserter:       pickup = { x, y }, drop = { x, y }, held = item name
+--                   (absent while the hand is empty)
+--   mining-drill:   drop = { x, y }
+function sensor.logistics_detail(entity, record)
+  local kind = entity.type
+  if kind == "transport-belt" then
+    local ok, lanes = pcall(function()
+      return {
+        entity.get_transport_line(1).get_item_count(),
+        entity.get_transport_line(2).get_item_count(),
+      }
+    end)
+    if ok and lanes then record.lanes = lanes end
+    local ok_shape, shape = pcall(function() return entity.belt_shape end)
+    if ok_shape and shape then record.shape = shape end
+  elseif kind == "inserter" then
+    local ok_pick, pick = pcall(function() return entity.pickup_position end)
+    if ok_pick and pick then record.pickup = { pick.x, pick.y } end
+    local ok_drop, drop = pcall(function() return entity.drop_position end)
+    if ok_drop and drop then record.drop = { drop.x, drop.y } end
+    local ok_held, held = pcall(function()
+      local stack = entity.held_stack
+      if stack and stack.valid_for_read then return stack.name end
+      return nil
+    end)
+    if ok_held and held then record.held = held end
+  elseif kind == "mining-drill" then
+    local ok_drop, drop = pcall(function() return entity.drop_position end)
+    if ok_drop and drop then record.drop = { drop.x, drop.y } end
+  end
+  return record
+end
+
 --- A tile-by-tile picture of the immediate surroundings.
 --
 -- The observation could already say "stone-furnace 26.6 tiles northwest" and
@@ -466,6 +511,9 @@ function sensor.sweep(surface, origin, profile)
     -- expensive half of the cost the cap exists to remove -- and would churn
     -- the 4096-entry handle registry for entities no consumer can address.
     entities[index] = sensor.entity_record(candidates[index].entity)
+    if profile.logistics_detail then
+      sensor.logistics_detail(candidates[index].entity, entities[index])
+    end
   end
 
   -- An ore patch is one resource entity per tile, so per-tile detail is emitted
