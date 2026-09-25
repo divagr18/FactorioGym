@@ -1106,11 +1106,21 @@ class FactorioEnv(gym.Env):
         if self._verification is not None:
             raise TaskConfigError(f"{self.spec_.id} verification has already run")
         machine = lambda: self._truth.get("machine_produced") or {}  # noqa: E731
-        before = float(machine().get(verification.item, 0))
+
+        def counted() -> float:
+            # A declared container counts what was *delivered* into it, not
+            # what machines made: `belt_smelting` scores plates that reached
+            # its chest, so a furnace full of plates nobody moved scores zero.
+            if verification.container:
+                held = (self._truth.get("containers") or {}).get(verification.container) or {}
+                return float(held.get(verification.item, 0))
+            return float(machine().get(verification.item, 0))
+
+        before = counted()
         source_before = float(machine().get(verification.source, 0)) if verification.source else 0.0
         start_tick = int(self._observation.get("tick") or 0)
         advanced = self.advance(verification.ticks)
-        after = float(machine().get(verification.item, 0))
+        after = counted()
         output = max(0.0, after - before)
         # Output only counts as far as machines supplied its input *inside the
         # window*. `machine_produced` is `produced - handcrafted - mined`, so a
@@ -1136,6 +1146,9 @@ class FactorioEnv(gym.Env):
             "machine_source": sourced,
             "success": produced >= verification.target,
         }
+        if verification.container:
+            # Only when declared, so a production verifier's record is unchanged.
+            self._verification["container"] = verification.container
         self._truth = {
             **self._truth,
             "verification": {verification.item: produced},

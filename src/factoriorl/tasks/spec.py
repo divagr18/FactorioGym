@@ -114,10 +114,17 @@ TRACKS: frozenset[str] = frozenset(
 #: entity -- so the validator that was supposed to catch overlapping machines
 #: could not see a 2x2 at all.
 ENTITY_TILE_SIZES: dict[str, tuple[int, int]] = {
+    # 1x1 is also the default; listed because `belt_smelting` places or hands
+    # out all four, and an explicit entry is a measured fact rather than a
+    # fallback (`MEASURED_FOOTPRINTS` pins each one).
+    "burner-inserter": (1, 1),
     "burner-mining-drill": (2, 2),
     "electric-mining-drill": (3, 3),
     "solar-panel": (3, 3),
     "stone-furnace": (2, 2),
+    "stone-wall": (1, 1),
+    "transport-belt": (1, 1),
+    "wooden-chest": (1, 1),
 }
 
 
@@ -649,6 +656,15 @@ class VerificationSpec:
     plates from thirteen hand-mined ore, with only a furnace built. ``source``
     closes it: when set, the counted output is capped by how much of that input
     machines produced inside the same window.
+
+    ``container`` changes *what* is counted, not how it is capped. When set, the
+    count is the increase of ``item`` inside the marked container over the
+    window (``truth["containers"][container]``) rather than the machine
+    production delta: a plate smelted but never delivered does not count, and
+    neither does anything put in the container before the window, because the
+    reading is a delta and no action runs during it. ``source`` still applies on
+    top, so plates smelted from hand-mined ore are capped away exactly as for a
+    production count.
     """
 
     item: str
@@ -657,6 +673,9 @@ class VerificationSpec:
     #: A machine-made input the counted output must be matched by, inside the
     #: window. ``None`` keeps the uncapped delta.
     source: str | None = None
+    #: A marker naming a container whose contents are counted instead of
+    #: machine production. ``None`` keeps the production delta.
+    container: str | None = None
 
     def to_dict(self) -> dict:
         body: dict = {"item": self.item, "target": self.target, "ticks": self.ticks}
@@ -664,6 +683,9 @@ class VerificationSpec:
         # the digest it had before the field existed.
         if self.source is not None:
             body["source"] = self.source
+        # Same rule, same reason: every existing task's digest is unchanged.
+        if self.container is not None:
+            body["container"] = self.container
         return body
 
 
