@@ -1,5 +1,5 @@
 {
-  "content_hash": "1a1130f9d7e45ec86368eeae5ab93c22b992dcd1b4ee26f2b002031478d8e8f9",
+  "content_hash": "9d9c32aba07a9f81859e39859c4a08f0296154bff722a8f355b93c7dac82277c",
   "holdout": {
     "schema": "factoriorl.holdout/1",
     "holdout_id": "holdout_v3",
@@ -16,7 +16,7 @@
     "tasks": {
       "belt_smelting": {
         "task_id": "belt_smelting",
-        "task_version": "1.0.0",
+        "task_version": "1.1.0",
         "families_in_split": [
           "obstructed",
           "far_chest"
@@ -25,502 +25,502 @@
           {
             "episode_index": 3000,
             "layout_family": "far_chest",
-            "blueprint_digest": "b81ff821b8ee29f8"
+            "blueprint_digest": "b6d1538e1da153f7"
           },
           {
             "episode_index": 3001,
             "layout_family": "obstructed",
-            "blueprint_digest": "1f74afd0c799ba93"
+            "blueprint_digest": "ff9250a852ed93f2"
           },
           {
             "episode_index": 3002,
             "layout_family": "far_chest",
-            "blueprint_digest": "9a8b56eaaab54e0e"
+            "blueprint_digest": "c2f949eb1c95557d"
           },
           {
             "episode_index": 3003,
             "layout_family": "far_chest",
-            "blueprint_digest": "3d6b71d3326ad139"
+            "blueprint_digest": "2390923ed48b9383"
           },
           {
             "episode_index": 3004,
             "layout_family": "far_chest",
-            "blueprint_digest": "50bc6013a800dc84"
+            "blueprint_digest": "76456472a2dbdf1a"
           },
           {
             "episode_index": 3005,
             "layout_family": "far_chest",
-            "blueprint_digest": "a1855e39a4086ca3"
+            "blueprint_digest": "0350cc68f401faad"
           },
           {
             "episode_index": 3006,
             "layout_family": "far_chest",
-            "blueprint_digest": "caeb95ccfc5a8b90"
+            "blueprint_digest": "f63d12b4cc7f97af"
           },
           {
             "episode_index": 3007,
             "layout_family": "far_chest",
-            "blueprint_digest": "e4325e9ea645b4e1"
+            "blueprint_digest": "34b4a8f14184916b"
           },
           {
             "episode_index": 3008,
             "layout_family": "obstructed",
-            "blueprint_digest": "ac8df40c977ad844"
+            "blueprint_digest": "2e2a460bd28287b5"
           },
           {
             "episode_index": 3009,
             "layout_family": "obstructed",
-            "blueprint_digest": "18ec3518f24a1ed7"
+            "blueprint_digest": "ccda4b1d003f55f1"
           },
           {
             "episode_index": 3010,
             "layout_family": "obstructed",
-            "blueprint_digest": "2820b02b064e1d1f"
+            "blueprint_digest": "40b9f19f29876457"
           },
           {
             "episode_index": 3011,
             "layout_family": "obstructed",
-            "blueprint_digest": "255157123af20380"
+            "blueprint_digest": "0ae5e4d0bde44aa5"
           },
           {
             "episode_index": 3012,
             "layout_family": "obstructed",
-            "blueprint_digest": "884a75e280369dbb"
+            "blueprint_digest": "e4de0834c7f1ff44"
           },
           {
             "episode_index": 3013,
             "layout_family": "obstructed",
-            "blueprint_digest": "680f18b46ba4d03c"
+            "blueprint_digest": "115c43bb63d7011d"
           },
           {
             "episode_index": 3014,
             "layout_family": "obstructed",
-            "blueprint_digest": "9076831ee274de74"
+            "blueprint_digest": "a72c9f3387c813e6"
           },
           {
             "episode_index": 3015,
             "layout_family": "far_chest",
-            "blueprint_digest": "dc2c2b59a17d44f6"
+            "blueprint_digest": "ae63e74a9d6b38bb"
           },
           {
             "episode_index": 3016,
             "layout_family": "obstructed",
-            "blueprint_digest": "acf57a7c765190b1"
+            "blueprint_digest": "fd0889b8e3e87d26"
           },
           {
             "episode_index": 3017,
             "layout_family": "far_chest",
-            "blueprint_digest": "d0678a21ce409e8a"
+            "blueprint_digest": "1c3272ebc7b84ac5"
           },
           {
             "episode_index": 3018,
             "layout_family": "obstructed",
-            "blueprint_digest": "93a3586d04200a8f"
+            "blueprint_digest": "e3f88b05a3bd7843"
           },
           {
             "episode_index": 3019,
             "layout_family": "far_chest",
-            "blueprint_digest": "66b0ee2e58d24579"
+            "blueprint_digest": "91c6423f2a97c414"
           },
           {
             "episode_index": 3020,
             "layout_family": "far_chest",
-            "blueprint_digest": "165a60a263801f20"
+            "blueprint_digest": "5235f4b9d5bb4514"
           },
           {
             "episode_index": 3021,
             "layout_family": "obstructed",
-            "blueprint_digest": "128ba0aee420138e"
+            "blueprint_digest": "6fd3be048ac526f3"
           },
           {
             "episode_index": 3022,
             "layout_family": "obstructed",
-            "blueprint_digest": "d656e29e2e687352"
+            "blueprint_digest": "5d5b8972bfdc495b"
           },
           {
             "episode_index": 3023,
             "layout_family": "obstructed",
-            "blueprint_digest": "afd858f0f5325267"
+            "blueprint_digest": "db6e8491bb447fe7"
           },
           {
             "episode_index": 3024,
             "layout_family": "far_chest",
-            "blueprint_digest": "09b7e2c90a02ec0c"
+            "blueprint_digest": "3305777dde7786c5"
           },
           {
             "episode_index": 3025,
             "layout_family": "far_chest",
-            "blueprint_digest": "36d91013d5fd743b"
+            "blueprint_digest": "62367996e5cddcbf"
           },
           {
             "episode_index": 3026,
             "layout_family": "far_chest",
-            "blueprint_digest": "cfbdc65660c6538c"
+            "blueprint_digest": "ca6f6b294c427a73"
           },
           {
             "episode_index": 3027,
             "layout_family": "obstructed",
-            "blueprint_digest": "837c15ab0c8ee862"
+            "blueprint_digest": "283340390db2a749"
           },
           {
             "episode_index": 3028,
             "layout_family": "obstructed",
-            "blueprint_digest": "838f47c3d21b52bc"
+            "blueprint_digest": "4e47a2541e48c8cf"
           },
           {
             "episode_index": 3029,
             "layout_family": "obstructed",
-            "blueprint_digest": "a682bdd856d81d5e"
+            "blueprint_digest": "9fb9cb06bd353250"
           },
           {
             "episode_index": 3030,
             "layout_family": "obstructed",
-            "blueprint_digest": "2653647200d306e1"
+            "blueprint_digest": "9a176cb158a0ef91"
           },
           {
             "episode_index": 3031,
             "layout_family": "obstructed",
-            "blueprint_digest": "1edc23dc898e976b"
+            "blueprint_digest": "c47425a02d1e1128"
           },
           {
             "episode_index": 3032,
             "layout_family": "far_chest",
-            "blueprint_digest": "3b7cc570186e5436"
+            "blueprint_digest": "1a7e211d0abcc94e"
           },
           {
             "episode_index": 3033,
             "layout_family": "far_chest",
-            "blueprint_digest": "a29bb70610b11033"
+            "blueprint_digest": "4657b821feafe9d4"
           },
           {
             "episode_index": 3034,
             "layout_family": "obstructed",
-            "blueprint_digest": "f6cd60b6c11b2ad3"
+            "blueprint_digest": "5186a4ff00d1d58f"
           },
           {
             "episode_index": 3035,
             "layout_family": "obstructed",
-            "blueprint_digest": "67fce0a54ebada15"
+            "blueprint_digest": "55f342766f4f447a"
           },
           {
             "episode_index": 3036,
             "layout_family": "far_chest",
-            "blueprint_digest": "ef66d697a99b1972"
+            "blueprint_digest": "0a8314a3b66432c0"
           },
           {
             "episode_index": 3037,
             "layout_family": "far_chest",
-            "blueprint_digest": "077313318cbc3d82"
+            "blueprint_digest": "9648b6c7210a1d8d"
           },
           {
             "episode_index": 3038,
             "layout_family": "obstructed",
-            "blueprint_digest": "eaad4615f816e4dd"
+            "blueprint_digest": "a3e3eec43d425569"
           },
           {
             "episode_index": 3039,
             "layout_family": "far_chest",
-            "blueprint_digest": "1a76dd78787729cf"
+            "blueprint_digest": "ed97daa1270a191d"
           },
           {
             "episode_index": 3040,
             "layout_family": "far_chest",
-            "blueprint_digest": "00f5ed3c63dd8a0a"
+            "blueprint_digest": "715bea12383411ca"
           },
           {
             "episode_index": 3041,
             "layout_family": "obstructed",
-            "blueprint_digest": "4475e2e95591fd65"
+            "blueprint_digest": "c5e2894b8556771c"
           },
           {
             "episode_index": 3042,
             "layout_family": "obstructed",
-            "blueprint_digest": "b53ee3ef74ce03ae"
+            "blueprint_digest": "dca0bd26c8c7ea1a"
           },
           {
             "episode_index": 3043,
             "layout_family": "far_chest",
-            "blueprint_digest": "52f57db058ad3857"
+            "blueprint_digest": "d5425b15910e5273"
           },
           {
             "episode_index": 3044,
             "layout_family": "far_chest",
-            "blueprint_digest": "568ecace68659203"
+            "blueprint_digest": "4c890068837513e4"
           },
           {
             "episode_index": 3045,
             "layout_family": "far_chest",
-            "blueprint_digest": "fe9e589157e755a8"
+            "blueprint_digest": "7841e5f18fd9682d"
           },
           {
             "episode_index": 3046,
             "layout_family": "far_chest",
-            "blueprint_digest": "77705ab8838d27bd"
+            "blueprint_digest": "3a36d3215d5d86f9"
           },
           {
             "episode_index": 3047,
             "layout_family": "far_chest",
-            "blueprint_digest": "357c34cacff1551f"
+            "blueprint_digest": "3f0e967c908e7110"
           },
           {
             "episode_index": 3048,
             "layout_family": "far_chest",
-            "blueprint_digest": "562f815599b7543b"
+            "blueprint_digest": "97f11457a52d1023"
           },
           {
             "episode_index": 3049,
             "layout_family": "far_chest",
-            "blueprint_digest": "7153e989d1768380"
+            "blueprint_digest": "afdfc41ea6bf1c09"
           },
           {
             "episode_index": 3050,
             "layout_family": "far_chest",
-            "blueprint_digest": "8368e211478d1975"
+            "blueprint_digest": "64d6670f4bbc6ebe"
           },
           {
             "episode_index": 3051,
             "layout_family": "far_chest",
-            "blueprint_digest": "c64f60455d9626f6"
+            "blueprint_digest": "5684c2d93fdad7c1"
           },
           {
             "episode_index": 3052,
             "layout_family": "far_chest",
-            "blueprint_digest": "ab8a28b40fc54513"
+            "blueprint_digest": "62a6a1b308db4ccd"
           },
           {
             "episode_index": 3053,
             "layout_family": "far_chest",
-            "blueprint_digest": "9871aee97ab828c1"
+            "blueprint_digest": "8ec6680e0546a83f"
           },
           {
             "episode_index": 3054,
             "layout_family": "far_chest",
-            "blueprint_digest": "36de563e56ab7596"
+            "blueprint_digest": "637e98bb1a1ce923"
           },
           {
             "episode_index": 3055,
             "layout_family": "far_chest",
-            "blueprint_digest": "120e76e30a58016d"
+            "blueprint_digest": "4339487d2771a5dd"
           },
           {
             "episode_index": 3056,
             "layout_family": "obstructed",
-            "blueprint_digest": "4f0b1a3893a06e08"
+            "blueprint_digest": "99282de52ee0c8ba"
           },
           {
             "episode_index": 3057,
             "layout_family": "far_chest",
-            "blueprint_digest": "35277eac7bc21388"
+            "blueprint_digest": "887330398d116ba6"
           },
           {
             "episode_index": 3058,
             "layout_family": "obstructed",
-            "blueprint_digest": "2b445b5791da2833"
+            "blueprint_digest": "93f3e2c034662fd3"
           },
           {
             "episode_index": 3059,
             "layout_family": "obstructed",
-            "blueprint_digest": "67abd18b2b73eb49"
+            "blueprint_digest": "6f5f597229382f33"
           },
           {
             "episode_index": 3060,
             "layout_family": "far_chest",
-            "blueprint_digest": "13b03222a24bd96f"
+            "blueprint_digest": "b30a459affd5dedd"
           },
           {
             "episode_index": 3061,
             "layout_family": "obstructed",
-            "blueprint_digest": "f45d3869ae636604"
+            "blueprint_digest": "c878aa30f5c57999"
           },
           {
             "episode_index": 3062,
             "layout_family": "obstructed",
-            "blueprint_digest": "99fb2a0564b35d82"
+            "blueprint_digest": "57c902f185e1f152"
           },
           {
             "episode_index": 3063,
             "layout_family": "obstructed",
-            "blueprint_digest": "a85479f751487093"
+            "blueprint_digest": "85eeb747a379eb4a"
           },
           {
             "episode_index": 3064,
             "layout_family": "obstructed",
-            "blueprint_digest": "9534efda9caba7b3"
+            "blueprint_digest": "9004203e09fca767"
           },
           {
             "episode_index": 3065,
             "layout_family": "obstructed",
-            "blueprint_digest": "f79dc9f7d496e27a"
+            "blueprint_digest": "ba70c57d8878c397"
           },
           {
             "episode_index": 3066,
             "layout_family": "obstructed",
-            "blueprint_digest": "91a7051ed884c9c9"
+            "blueprint_digest": "c57a606b49c6b7ae"
           },
           {
             "episode_index": 3067,
             "layout_family": "far_chest",
-            "blueprint_digest": "469fa9386bb5644b"
+            "blueprint_digest": "dfcd5eb286be0983"
           },
           {
             "episode_index": 3068,
             "layout_family": "obstructed",
-            "blueprint_digest": "23bda160e5fa91da"
+            "blueprint_digest": "3f82d38121dff980"
           },
           {
             "episode_index": 3069,
             "layout_family": "far_chest",
-            "blueprint_digest": "83e6dd5870aa52ad"
+            "blueprint_digest": "3bf5715313d1b6af"
           },
           {
             "episode_index": 3070,
             "layout_family": "obstructed",
-            "blueprint_digest": "96bd53203205adcb"
+            "blueprint_digest": "4e567524b85ff2ea"
           },
           {
             "episode_index": 3071,
             "layout_family": "far_chest",
-            "blueprint_digest": "10e527b5a8d65c5e"
+            "blueprint_digest": "087dc626bcc33f0a"
           },
           {
             "episode_index": 3072,
             "layout_family": "obstructed",
-            "blueprint_digest": "cfa41abab91d050f"
+            "blueprint_digest": "f396545172523f02"
           },
           {
             "episode_index": 3073,
             "layout_family": "far_chest",
-            "blueprint_digest": "cc1c287dc94a188d"
+            "blueprint_digest": "f8a2d7551545d60b"
           },
           {
             "episode_index": 3074,
             "layout_family": "far_chest",
-            "blueprint_digest": "12834d51f46c964c"
+            "blueprint_digest": "26bd7d971ff8be0b"
           },
           {
             "episode_index": 3075,
             "layout_family": "obstructed",
-            "blueprint_digest": "db7a5592cb14d861"
+            "blueprint_digest": "162306978f84a5aa"
           },
           {
             "episode_index": 3076,
             "layout_family": "obstructed",
-            "blueprint_digest": "066250af3997725c"
+            "blueprint_digest": "d44fe8d7b5d03a44"
           },
           {
             "episode_index": 3077,
             "layout_family": "obstructed",
-            "blueprint_digest": "dac96b5ba0fcb072"
+            "blueprint_digest": "06ed661397d250f3"
           },
           {
             "episode_index": 3078,
             "layout_family": "obstructed",
-            "blueprint_digest": "9a0b5744757d2c20"
+            "blueprint_digest": "7dc82b5a0e18604a"
           },
           {
             "episode_index": 3079,
             "layout_family": "obstructed",
-            "blueprint_digest": "a3e8e64f1bba9cdc"
+            "blueprint_digest": "ba853d6f7d869078"
           },
           {
             "episode_index": 3080,
             "layout_family": "far_chest",
-            "blueprint_digest": "5e9de001c3206b8d"
+            "blueprint_digest": "08c260afd06fff49"
           },
           {
             "episode_index": 3081,
             "layout_family": "far_chest",
-            "blueprint_digest": "f2ede85c0840f377"
+            "blueprint_digest": "2044907c84e277b3"
           },
           {
             "episode_index": 3082,
             "layout_family": "far_chest",
-            "blueprint_digest": "90db7398521dd38b"
+            "blueprint_digest": "6a35e11fee7fe272"
           },
           {
             "episode_index": 3083,
             "layout_family": "far_chest",
-            "blueprint_digest": "31babd4d80172127"
+            "blueprint_digest": "c326f59948ccb1da"
           },
           {
             "episode_index": 3084,
             "layout_family": "far_chest",
-            "blueprint_digest": "0a74a488de632cdf"
+            "blueprint_digest": "d91a4e99d86ebd0b"
           },
           {
             "episode_index": 3085,
             "layout_family": "obstructed",
-            "blueprint_digest": "52d8d0d063007fb5"
+            "blueprint_digest": "b30bee7c01948c3d"
           },
           {
             "episode_index": 3086,
             "layout_family": "far_chest",
-            "blueprint_digest": "986bf720cd788d91"
+            "blueprint_digest": "ce0169f06a48ac66"
           },
           {
             "episode_index": 3087,
             "layout_family": "far_chest",
-            "blueprint_digest": "40306a37f16b67a2"
+            "blueprint_digest": "ffdd5d4a90c5a57f"
           },
           {
             "episode_index": 3088,
             "layout_family": "obstructed",
-            "blueprint_digest": "c434c2742aff2074"
+            "blueprint_digest": "095936222ac70a09"
           },
           {
             "episode_index": 3089,
             "layout_family": "far_chest",
-            "blueprint_digest": "b14bc0d183f66b0f"
+            "blueprint_digest": "9c3faf585781b0ac"
           },
           {
             "episode_index": 3090,
             "layout_family": "obstructed",
-            "blueprint_digest": "1a10bb74d7a312ce"
+            "blueprint_digest": "a93c7a3f53ba1a88"
           },
           {
             "episode_index": 3091,
             "layout_family": "far_chest",
-            "blueprint_digest": "f0e2f2d5ee5eac07"
+            "blueprint_digest": "7f01f6097e5182e6"
           },
           {
             "episode_index": 3092,
             "layout_family": "obstructed",
-            "blueprint_digest": "fd9bf7cf9d75e0e0"
+            "blueprint_digest": "70163d34bd80f37c"
           },
           {
             "episode_index": 3093,
             "layout_family": "far_chest",
-            "blueprint_digest": "8d1d4e59f1fd2435"
+            "blueprint_digest": "a9d99715256d7620"
           },
           {
             "episode_index": 3094,
             "layout_family": "far_chest",
-            "blueprint_digest": "910f83bda996ca26"
+            "blueprint_digest": "723734df2c637f37"
           },
           {
             "episode_index": 3095,
             "layout_family": "obstructed",
-            "blueprint_digest": "f4d5c849ec62e07d"
+            "blueprint_digest": "c1cf6ce7ab5f1c80"
           },
           {
             "episode_index": 3096,
             "layout_family": "far_chest",
-            "blueprint_digest": "d13e8523b6f9fc2b"
+            "blueprint_digest": "473dc7068ae8c2e2"
           },
           {
             "episode_index": 3097,
             "layout_family": "obstructed",
-            "blueprint_digest": "28e74de94a77a64f"
+            "blueprint_digest": "3e872c25a7c13a7a"
           },
           {
             "episode_index": 3098,
             "layout_family": "obstructed",
-            "blueprint_digest": "b1b62cb16e9c33d4"
+            "blueprint_digest": "decd90c1bd3461d9"
           },
           {
             "episode_index": 3099,
             "layout_family": "far_chest",
-            "blueprint_digest": "14e830155b087bc1"
+            "blueprint_digest": "d936897472e26ee7"
           }
         ]
       },
@@ -6125,8 +6125,8 @@
       }
     }
   },
-  "generated_at": "2026-09-25T07:29:37Z",
-  "git_commit": "d53860c7185a81d21cb2fb7254a20db2247ca299",
+  "generated_at": "2026-09-25T10:11:22Z",
+  "git_commit": "59bf1ec22ef1a27b215a497e7e3471cbdc482f7d",
   "declaration": {
     "candidate_families": [
       "deliver",
@@ -6149,8 +6149,8 @@
   },
   "summary": {
     "belt_smelting": {
-      "entry_hash": "445e60a9f1974ee1",
-      "task_version": "1.0.0",
+      "entry_hash": "def7b70fb593af3e",
+      "task_version": "1.1.0",
       "families_in_split": [
         "obstructed",
         "far_chest"

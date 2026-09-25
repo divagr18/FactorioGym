@@ -26,7 +26,7 @@ class TestTheSpec:
             "burner-mining-drill": 4,
             "stone-furnace": 4,
             "transport-belt": 40,
-            "burner-inserter": 8,
+            "burner-inserter": 10,
             "coal": 20,
         }
         assert set(blueprint.unlock_recipes) >= {
@@ -40,12 +40,12 @@ class TestTheSpec:
         spec = get("belt_smelting").spec
         assert spec.max_decision_steps == 2500
         assert spec.verification == VerificationSpec(
-            "iron-plate", 60, 36000, source="iron-ore", container="output"
+            "iron-plate", 150, 36000, source="iron-ore", container="output"
         )
         # Construction can use every decision the budget allows.
         assert spec.max_game_ticks - spec.verification.ticks == 2500 * spec.decision_ticks
         assert spec.success == (
-            Predicate(PredicateKind.VERIFIED_MACHINE_OUTPUT, item="iron-plate", at_least=60),
+            Predicate(PredicateKind.VERIFIED_MACHINE_OUTPUT, item="iron-plate", at_least=150),
         )
 
     def test_splits(self):
@@ -105,14 +105,14 @@ class TestTheVerifierCountsDeliveries:
                 "machine_produced": {"iron-ore": 4},
             },
             after={
-                "containers": {"output": {"iron-plate": 78}},
+                "containers": {"output": {"iron-plate": 173}},
                 # Production counts are ignored: only deliveries score.
-                "machine_produced": {"iron-plate": 500, "iron-ore": 120},
+                "machine_produced": {"iron-plate": 900, "iron-ore": 200},
             },
         )
         result = env.run_verification()
-        assert result["uncapped_output"] == 75
-        assert result["machine_output"] == 75
+        assert result["uncapped_output"] == 170
+        assert result["machine_output"] == 170
         assert result["container"] == "output"
         assert result["success"] is True
         assert result["reward"] == 1.0
@@ -121,8 +121,8 @@ class TestTheVerifierCountsDeliveries:
         env = _verifier(
             before={"containers": {"output": {}}, "machine_produced": {}},
             after={
-                "containers": {"output": {"iron-plate": 30}},
-                "machine_produced": {"iron-plate": 30, "iron-ore": 40},
+                "containers": {"output": {"iron-plate": 75}},
+                "machine_produced": {"iron-plate": 75, "iron-ore": 80},
             },
         )
         result = env.run_verification()
@@ -325,3 +325,46 @@ def test_the_solver_rebuilds_the_installed_scene():
     rebuilt = family._episode_scene(_Env())
     assert installed.character_position == (rebuilt.start[0] + 0.5, rebuilt.start[1] + 0.5)
     assert installed.markers["iron"] == family._patch_centre(rebuilt.iron)
+
+
+class TestTheTargetNeedsTheCoalPatch:
+    """1.1.0's target, against the burn rates it was set from."""
+
+    def test_twenty_coal_cannot_reach_the_target_even_spent_perfectly(self):
+        # Every joule of the starting coal, plus the quarter wood each of the
+        # three inserters is built burning, spent inside the window, and the
+        # chest inserter charged only a chest-to-chest swing: an upper bound.
+        per_plate = (
+            family.DRILL_J_PER_ORE + family.FURNACE_J_PER_PLATE + 2 * family.INSERTER_J_PER_SWING
+        )
+        ceiling = (20 * family.COAL_J + 3 * family.INSERTER_BUILT_J) / per_plate
+        assert 75 < ceiling < 80
+        assert ceiling < 0.6 * family.TARGET_PLATES
+
+    def test_the_split_of_twenty_coal(self):
+        """What the reference does with no coal supply: sized for 53 plates."""
+        assert family.fuel_plan(20) == family.FuelPlan(
+            plates=53, drill=4, furnace=3, output_inserter=1, chest_inserter=3
+        )
+
+    def test_the_reference_coal_supply_clears_the_target_by_ten_percent(self):
+        plan = family.fuel_plan(20 + family.EXTRA_COAL)
+        assert plan.plates >= 1.1 * family.TARGET_PLATES
+
+    @pytest.mark.parametrize("coal", [5, 20, 33, 60, 91, 200])
+    def test_a_plan_never_spends_more_coal_than_it_has(self, coal):
+        plan = family.fuel_plan(coal)
+        spent = 2 * plan.drill + 2 * plan.furnace + 2 * plan.output_inserter + plan.chest_inserter
+        assert spent <= coal
+        assert plan.plates <= family.CELL_PLATE_CEILING
+        # The drills are fuelled for the plates, and the rest for more.
+        assert 2 * plan.drill * family.COAL_J >= plan.plates * family.DRILL_J_PER_ORE
+        assert (
+            2 * plan.furnace * family.COAL_J
+            >= plan.plates * family.FUEL_MARGIN * family.FURNACE_J_PER_PLATE
+        )
+
+    def test_the_target_fits_the_machines_handed_over(self):
+        """Four drills mine 0.25 ore/s each; the window is 600 s."""
+        assert family.TARGET_PLATES < 4 * 0.25 * family.VERIFICATION_TICKS / 60
+        assert family.TARGET_PLATES < family.CELL_PLATE_CEILING

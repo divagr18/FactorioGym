@@ -6,30 +6,51 @@ position is within the character's 10-tile reach of two of them. The agent
 starts with the parts of a line and nothing built:
 
     4 burner mining drills, 4 stone furnaces, 40 transport belts,
-    8 burner inserters, 20 coal
+    10 burner inserters, 20 coal
 
-and has to connect ore to the chest. The objective is **iron plates delivered
-into the chest** during an action-locked 36,000-tick (ten-minute) verification
-window that starts when construction ends: reward ``min(1, plates / 60)``,
-success at 60. It is scored by the same machinery as
+and has to connect ore to the chest. Ten inserters are enough for the fully
+belt-fed layout -- drills onto a belt, four inserters into four furnaces, four
+out onto a second belt, one into the chest -- though a drill dropping straight
+into a furnace needs none on the way in. The objective is **iron plates
+delivered into the chest** during an action-locked 36,000-tick (ten-minute)
+verification window that starts when construction ends: reward
+``min(1, plates / 150)``, success at 150. It is scored by the same machinery as
 ``construct_smelting_line`` -- ``VerificationSpec`` -- with ``container`` set,
 so the count is the chest's increase over the window, and with
 ``source="iron-ore"``, so plates smelted from hand-mined ore are capped away
 exactly as they are there. Nothing is in the chest at reset and the verifier
 has not run, so success is false at reset by construction.
 
-Coal is deliberately short
---------------------------
-Twenty coal is 80 MJ, and a delivered plate costs about 1.02 MJ: a burner
-drill spends 600 kJ an ore (150 kW at 0.25 ore/s), a stone furnace 288 kJ a
-plate (90 kW, crafting speed 1, 3.2 s) and each of the plate's two burner
-inserter swings 66.9 kJ (``docs/sim-logistics.md``). So 20 coal buys at most
-about 78 plates, and only if none of it burns before the window: fuelling the
-drills early, or over-filling one machine, loses the margin over 60. The
-reference spends it in whole coal and delivers 66. The coal patch is there so a
-line can be made to outlast that -- by a coal drill pair, a coal belt, or
-hand-mining where the action profile has it -- and the reward pays for it only
-through throughput. Nothing names a coal line in the objective.
+The target needs the coal patch
+-------------------------------
+A delivered plate costs about 1.02 MJ: a burner drill spends 600 kJ an ore
+(150 kW at 0.25 ore/s), a stone furnace 288 kJ a plate (90 kW, crafting speed
+1, 3.2 s) and each of the plate's two burner inserter swings 66.9 kJ
+(``docs/sim-logistics.md``). Twenty coal is 80 MJ, so the starting coal buys at
+most about 79 plates even with none of it burned before the window -- about
+half the target. 150 plates need about 38 coal, so the line has to be fed from
+the coal patch: by hand-mining, or a drill on the coal patch feeding the line.
+
+**1.1.0** sets the target from engine measurements of the reference builder
+with three coal supplies (``EXTRA_COAL`` hand-mined at the coal patch before
+it builds; ``fuel_plan`` splits the total):
+
+==========  ==========  ========  ================  ==============  ==========
+hand-mined  coal total  episodes  plates delivered  ore mined       of target
+==========  ==========  ========  ================  ==============  ==========
+0           20          10        51-52             51-52           0.35
+40          60          200       197-198           197-198         1.31
+70          90          10        290-293           300             1.95
+==========  ==========  ========  ================  ==============  ==========
+
+With 20 coal the reference fails by 98 plates; the 1.0.0 split of the same 20
+coal (sized for 66) delivered 65-66 in 20 episodes, and the energy ceiling
+above is about 79. With 60 it clears 150 by 31%, in all 200 episodes of the
+engine gate (100 train, 100 test, ending on `finish`). With 90 the two drills
+mine for the whole window, 300 ore at 0.5 ore/s, so about 292 is the reference
+cell's throughput ceiling; the four drills handed over could mine 600. 1.0.0
+asked for 60, which 20 coal met with no trip to the coal patch at all. 1.1.0
+also hands over 10 inserters instead of 8.
 
 Layout families
 ---------------
@@ -110,7 +131,7 @@ from factoriorl.tasks.spec import (
     VerificationSpec,
 )
 
-TARGET_PLATES = 60
+TARGET_PLATES = 150
 VERIFICATION_TICKS = 36000
 DECISION_BUDGET = 2500
 DECISION_TICKS = 30
@@ -121,7 +142,7 @@ STARTING_INVENTORY = {
     "burner-mining-drill": 4,
     "stone-furnace": 4,
     "transport-belt": 40,
-    "burner-inserter": 8,
+    "burner-inserter": 10,
     "coal": 20,
 }
 BELTS = STARTING_INVENTORY["transport-belt"]
@@ -163,10 +184,10 @@ FAMILIES = (
 
 SPEC = TaskSpec(
     id="belt_smelting",
-    version="1.0.0",
+    version="1.1.0",
     description=(
         "Build a smelting line from an iron patch to a distant output chest with "
-        "drills, furnaces, belts and burner inserters. Success is at least 60 iron "
+        "drills, furnaces, belts and burner inserters. Success is at least 150 iron "
         "plates delivered into the chest during an action-locked ten-minute window."
     ),
     layout_families=FAMILIES,
@@ -708,24 +729,36 @@ def plan_line(s: Scene, belts: int = BELTS) -> LinePlan | None:
 # The reference builder. It reads the scene declaration (regenerated from the
 # episode's own seed, which is evaluator knowledge a reference is allowed) and
 # acts only through the task's catalog: strides to walk, `place_at` to build,
-# `mine_at` to hand-mine coal, `give_to` to fuel. The layout is `plan_line`'s.
+# `mine_tile` to hand-mine coal, `give_to` to fuel, `finish` to end. The
+# layout is `plan_line`'s.
 
-#: Coal the builder hand-mines before it builds. **Zero**: the reference runs on
-#: the 20 starting coal alone, so it does not depend on hand-mining being in
-#: the action profile. `mine_coal` stays for a caller that sets this.
-EXTRA_COAL = 0
-#: Coal per machine, in whole coal, for 66 delivered plates from 20. The
-#: drills are the bottleneck by design: 10 coal is 66 ore at 600 kJ an ore.
-#: 3 per furnace smelts 41 plates each (288 kJ a plate) against the 33 each
-#: gets. An inserter starts burning a quarter wood (500 kJ, about 7 swings) and
-#: each coal adds 60 swings at 66.9 kJ, so 1 covers an output inserter's 33
-#: and 2 the chest inserter's 66. The drills get what is left and are fuelled
-#: last: nothing else burns anything while it has nothing to do, so every
-#: joule they hold is spent inside the window. Measured on the engine with 2
-#: coal per furnace: both furnaces ran dry holding 11 ore, 54 plates delivered.
-FUEL_OUTPUT_INSERTER = 1
-FUEL_FURNACE = 3
-FUEL_CHEST_INSERTER = 2
+#: Coal the builder hand-mines at the coal patch before it builds, on top of
+#: the 20 it starts with. This is the coal supply that makes the target
+#: reachable; set it to 0 and the same builder measures what 20 coal delivers.
+EXTRA_COAL = 40
+#: What each machine burns, in joules. A burner drill is 150 kW at 0.25 ore/s;
+#: a stone furnace 90 kW at crafting speed 1 on a 3.2 s recipe; a burner
+#: inserter 66.9 kJ a swing, and it is built burning a quarter wood
+#: (`docs/sim-logistics.md`). Coal is 4 MJ.
+COAL_J = 4_000_000
+DRILL_J_PER_ORE = 600_000
+FURNACE_J_PER_PLATE = 288_000
+INSERTER_J_PER_SWING = 66_900
+INSERTER_BUILT_J = 500_000
+#: What the chest inserter spends per plate it takes off the belt, which is
+#: more than a chest-to-chest swing: it chases items arriving on the belt, and
+#: how far depends on the scene's geometry. Measured on the engine with 4 coal
+#: and the built quarter wood (16.5 MJ): chest inserters ran dry after 154,
+#: 178 and 194 plates, i.e. 107, 93 and 85 kJ a plate, with 72 plates still on
+#: the belt in the first. Sized 40% above the worst of those.
+INSERTER_J_PER_BELT_PICKUP = 150_000
+#: Everything downstream of the drills is fuelled for this many times the
+#: plates the drills can mine, so the drills stay the only bottleneck.
+FUEL_MARGIN = 1.1
+#: The most plates `fuel_plan` sizes for: the two-drill cell mines 0.5 ore/s,
+#: 300 ore over the window, and delivered 290-293 of them when fuelled for all
+#: of it (90 coal, measured).
+CELL_PLATE_CEILING = 280
 #: How close each walk has to end to its tile centre. A placement binds to the
 #: character's tile, so this keeps `floor(position)` on the chosen tile, and the
 #: character's 0.4-tile body clear of the neighbouring tiles.
@@ -746,6 +779,44 @@ WALK_ATTEMPTS = 5
 #: Standing this far (tiles, Euclidean) from a machine is inside its 10-tile
 #: interaction reach with room to spare.
 FUEL_REACH = 6.0
+
+
+@dataclass(frozen=True)
+class FuelPlan:
+    """Whole coal per machine, and the plates it is sized for."""
+
+    plates: int
+    drill: int
+    furnace: int
+    output_inserter: int
+    chest_inserter: int
+
+
+def fuel_plan(coal: int, drills: int = 2, furnaces: int = 2, output_inserters: int = 2) -> FuelPlan:
+    """The most plates `coal` can buy through the reference cell, and how to split it.
+
+    The drills are fuelled for exactly the ore of `plates`, everything after
+    them for `FUEL_MARGIN` times that, so a rounding loss lands on an idle
+    furnace rather than on the delivery. 20 coal is sized for 53 plates, and
+    60 (the reference's 20 plus `EXTRA_COAL`) for 200.
+    """
+
+    def coal_for(joules: float) -> int:
+        return max(0, math.ceil(joules / COAL_J - 1e-9))
+
+    for plates in range(min(CELL_PLATE_CEILING, coal * COAL_J // DRILL_J_PER_ORE), 0, -1):
+        downstream = plates * FUEL_MARGIN
+        drill = coal_for(plates / drills * DRILL_J_PER_ORE)
+        furnace = coal_for(downstream / furnaces * FURNACE_J_PER_PLATE)
+        output = max(
+            1,
+            coal_for(downstream / output_inserters * INSERTER_J_PER_SWING - INSERTER_BUILT_J),
+        )
+        chest = max(1, coal_for(downstream * INSERTER_J_PER_BELT_PICKUP - INSERTER_BUILT_J))
+        total = drill * drills + furnace * furnaces + output * output_inserters + chest
+        if total <= coal:
+            return FuelPlan(plates, drill, furnace, output, chest)
+    return FuelPlan(0, 0, 0, 0, 0)
 
 
 def _episode_scene(env) -> Scene:
@@ -951,7 +1022,16 @@ class _Builder:
                 count -= amount
         return True
 
+    def coal_held(self) -> int:
+        return int(self.driver.inventory().get("coal", 0))
+
     def mine_coal(self, count: int) -> bool:
+        """Stand on the coal patch and hand-mine `count` coal.
+
+        `mine_tile` (`parameterized-v3`) names the tile and takes a count from
+        the amount domain; a catalog without it falls back to `mine_at`, one
+        coal a request. One coal is 120 ticks of hand-mining, four decisions.
+        """
         coal = set(self.scene.coal)
         cost, parent = self.costs_from(self.here())
         reachable = [(cost[t], t) for t in coal if t in cost]
@@ -959,8 +1039,10 @@ class _Builder:
             return self.fail("no coal tile is reachable")
         if not self.walk_tile(min(reachable)[1], parent):
             return False
-        for _ in range(count):
-            held = int(self.driver.inventory().get("coal", 0))
+        by_tile = self.driver.available("mine_tile")
+        goal = self.coal_held() + count
+        while self.coal_held() < goal:
+            held = self.coal_held()
             tiles = [
                 tile
                 for tile in (self.driver.env._observation.get("resources") or {}).get("tiles") or []
@@ -968,28 +1050,32 @@ class _Builder:
             ]
             if not tiles:
                 return self.fail("no coal tile in the observation at the coal patch")
-            nearest = min(tiles, key=lambda t: math.dist(t["p"], self.driver.position))
-            if not self.act("mine_at", handle=str(nearest["h"])):
-                return False
-            # Hand-mining one coal takes 120 ticks, four decisions.
-            for _ in range(12):
-                if int(self.driver.inventory().get("coal", 0)) > held:
+            nearest = str(min(tiles, key=lambda t: math.dist(t["p"], self.driver.position))["h"])
+            if by_tile:
+                batch = next(n for n in (20, 5, 1) if n <= goal - held)
+                if not self.act("mine_tile", tile=nearest, count=batch):
+                    return False
+            else:
+                batch = 1
+                if not self.act("mine_at", handle=nearest):
+                    return False
+            for _ in range(4 * batch + 8):
+                if self.coal_held() >= held + batch:
                     break
                 if not self.act("wait"):
                     return False
             else:
-                return self.fail("hand-mining produced no coal")
+                return self.fail(f"hand-mining {batch} coal yielded {self.coal_held() - held}")
         return True
 
 
 def solve(driver) -> None:
     """Evaluator-only solvability witness; it never runs on evaluated episodes.
 
-    Build the planned cell on the iron patch, fuel its furnaces and output
-    inserters, lay the belt to the chest, build and fuel the chest inserter,
-    walk back and fuel the drills with the rest, then run the verification
-    window. No coal line and no hand-mining: 20 coal, spent well, is the whole
-    fuel supply (see `FUEL_*`).
+    Hand-mine `EXTRA_COAL` at the coal patch, build the planned cell on the
+    iron patch, fuel its furnaces and output inserters, lay the belt to the
+    chest, build and fuel the chest inserter, walk back and fuel the drills
+    last, then `finish`. `fuel_plan` splits the coal.
     """
     s = _episode_scene(driver.env)
     plan = plan_line(s)
@@ -999,29 +1085,38 @@ def solve(driver) -> None:
     builder = _Builder(driver, s, plan)
     if EXTRA_COAL and not builder.mine_coal(EXTRA_COAL):
         return
+    fuel = fuel_plan(builder.coal_held())
+    driver.fuel_plan = fuel
     for placement in [*plan.machines, *plan.inserters]:
         if not builder.place(placement):
             return
     for placement in plan.inserters:
-        if not builder.give_coal(placement, FUEL_OUTPUT_INSERTER):
+        if not builder.give_coal(placement, fuel.output_inserter):
             return
     for placement in plan.furnaces:
-        if not builder.give_coal(placement, FUEL_FURNACE):
+        if not builder.give_coal(placement, fuel.furnace):
             return
     for placement in [*plan.belts, plan.chest_inserter]:
         if not builder.place(placement):
             return
-    if not builder.give_coal(plan.chest_inserter, FUEL_CHEST_INSERTER):
+    if not builder.give_coal(plan.chest_inserter, fuel.chest_inserter):
         return
-    remaining = int(driver.inventory().get("coal", 0))
-    share = remaining // len(plan.drills)
+    # Anything left over goes to the drills as well: extra ore waits in a furnace.
+    share = builder.coal_held() // len(plan.drills)
     for placement in plan.drills:
-        if not builder.give_coal(placement, share):
+        if not builder.give_coal(placement, max(fuel.drill, share)):
             return
-    outcome = driver.env.run_verification()
+    # `finish` (`parameterized-v3`) declares construction done and runs the
+    # window; a catalog without it gets the same window from the evaluator.
+    if driver.available("finish"):
+        if not driver.do("finish"):
+            return
+        outcome = dict(driver.env._verification or {})
+    else:
+        outcome = driver.env.run_verification()
+        driver.success = bool(outcome["success"])
     driver.verification = outcome
-    driver.success = bool(outcome["success"])
-    if not driver.success:
+    if not driver.success and outcome:
         driver.trace.stuck_reason = (
             f"line delivered {outcome['machine_output']:g} of {TARGET_PLATES} plates "
             f"(uncapped {outcome['uncapped_output']:g}, ore mined in window "

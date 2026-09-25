@@ -6,7 +6,7 @@
       "informative_components": [],
       "has_gradient": true,
       "terminal_verifier": true,
-      "version": "1.0.0",
+      "version": "1.1.0",
       "budget": 2500,
       "step_cost_weight": 0.0,
       "pressure": 0.0,
