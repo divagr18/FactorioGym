@@ -1001,6 +1001,148 @@ def hand_mine_rules(s: Script) -> None:
     s.wait(3)
 
 
+#: (g) Where ore goes with no room (tools/probe_handmine2.py, `spill`): a drill
+#: south of the patch centre jams on its own pile, which lies 52/256 north of
+#: a tile centre -- too far off to cover the tile, near enough to keep a drop
+#: off it -- and the character mines that tile with its last slot filled
+#: mid-mine. The ore lands round the centre, ring by ring, clockwise from the
+#: top-left, and the drill's box keeps it off the ring's nearest points.
+HAND_MINE_SPILLS = [
+    _two("burner-mining-drill", (0, -2), "south", contents=COAL),
+    _one("wooden-chest", (-3, 2), contents={"iron-plate": 20}),
+]
+
+
+def hand_mine_spills(s: Script) -> None:
+    px, py = (math.floor(v) for v in s.observation["character"]["position"])
+    # The character stands on (1, 1); the drill's pile is on (0, -1).
+    chest = s.entity("wooden-chest", (px - 3.5, py + 1.5))
+    s.wait(10)
+    handle = s.tile_handle((px - 1, py - 2))
+    if handle is None:
+        raise RuntimeError("no resource tile under the drill's pile")
+    s.do("mine_at", handle=handle)
+    s.take(chest, "iron-plate", 5)
+    s.wait(40)
+    s.do("nudge_west")
+    s.wait(2)
+
+
+#: (h) Contents that do not all fit (probe_handmine2 `entity`, `extra`): a
+#: chest's slots in order, stopping at the first that does not fit, not
+#: skipping to one that would; a furnace's fuel before its source; a belt's
+#: lanes, then the belt itself, onto the ground round it when there is no
+#: room; a jammed drill's fuel, then the drill and its pending ore onto the
+#: ground. The character holds stone and wood, one slot free.
+HAND_MINE_CONTENTS = [
+    _one("wooden-chest", (-6, 0), contents={"coal": 5, "iron-plate": 10, "wood": 5}),
+    _two("stone-furnace", (-5, -3), contents={"coal": 5, "iron-ore": 10}),
+    _one("transport-belt", (-6, 3), "east"),
+    _one("wooden-chest", (-6, 1), contents={"coal": 2}),
+    _one("burner-inserter", (-6, 2), "north", contents=FUEL),
+    _one("wooden-chest", (-6, 5), contents={"iron-plate": 2}),
+    _one("burner-inserter", (-6, 4), "south", contents=FUEL),
+    _two("burner-mining-drill", (-1, 2), "west", contents=COAL),
+]
+
+
+def hand_mine_contents(s: Script) -> None:
+    px, py = (math.floor(v) for v in s.observation["character"]["position"])
+    # The character stands on (-4, 0).
+    chest = s.entity("wooden-chest", (px - 1.5, py + 0.5))
+    furnace = s.entity("stone-furnace", (px - 1, py - 3))
+    belt = s.entity("transport-belt", (px - 1.5, py + 3.5))
+    drill = s.entity("burner-mining-drill", (px + 3, py + 2))
+    # The chest: its coal goes into the free slot, its plates do not fit, and
+    # its wood, which would, stays behind them. Mined again and again.
+    s.do("mine_at", handle=chest)
+    s.wait(2)
+    s.do("nudge_east")
+    s.give(chest, "coal", 5)
+    # The furnace: its fuel goes, its ore does not fit.
+    s.do("mine_at", handle=furnace)
+    s.wait(2)
+    s.do("nudge_west")
+    s.give(furnace, "coal", 5)
+    # The belt: lane 1's plates into the free slot, lane 2's coal and the belt
+    # onto the ground round it.
+    s.do("mine_at", handle=belt)
+    s.wait(2)
+    s.give(chest, "iron-plate", 5)
+    # The drill, jammed on its own pile with its next ore held: the fuel, then
+    # the drill and the ore onto the ground.
+    s.wait(3)
+    s.do("mine_at", handle=drill)
+    s.wait(3)
+
+
+#: (i) Building over piles (probe_handmine2 `beltpick`, `cover`): a belt built
+#: on a jammed drill's pile takes it onto a lane and the drill goes on onto
+#: the belt; then ore spilled onto a tile centre, a chest built over it, and
+#: the tile mined: the chest first, then the pile, never the ore.
+HAND_MINE_BUILD_OVER = [
+    _two("burner-mining-drill", (0, -2), "south", contents=COAL),
+    _one("wooden-chest", (-3, 2), contents={"iron-plate": 20}),
+]
+
+
+def hand_mine_build_over(s: Script) -> None:
+    px, py = (math.floor(v) for v in s.observation["character"]["position"])
+    # The character stands on (1, 1); the drill's pile is on (0, -1).
+    chest = s.entity("wooden-chest", (px - 3.5, py + 1.5))
+    s.wait(10)
+    s.do(
+        "place_at",
+        item="transport-belt",
+        position=s.placement((px - 1, py - 2)),
+        direction="east",
+    )
+    s.wait(9)
+    ore = (px + 1, py + 1)
+
+    def tile() -> str:
+        handle = s.tile_handle(ore)
+        if handle is None:
+            raise RuntimeError(f"no resource tile at {ore}")
+        return handle
+
+    s.do("mine_at", handle=tile())
+    s.take(chest, "iron-plate", 5)
+    s.wait(5)
+    s.do("nudge_west")
+    s.give(chest, "iron-plate", 5)
+    s.do("place_at", item="wooden-chest", position=s.placement(ore), direction="north")
+    s.do("mine_at", handle=tile())
+    s.wait(3)
+
+
+#: (j) Carried out of reach mid-mine (probe_handmine2 `carry`, `reenter`): a
+#: belt row south of the patch carries the character east while it mines the
+#: tile above the belt, out of the resource reach and to the row's end. Out of
+#: reach nothing is mined and progress reads 0, and the mine runs on. Walked
+#: back into reach off the belt, the same tile is mined again.
+HAND_MINE_CARRIED = _belts([(x, 4) for x in range(-1, 5)], "east")
+
+
+def hand_mine_carried(s: Script) -> None:
+    px, py = (math.floor(v) for v in s.observation["character"]["position"])
+    # The character stands on (1, 5), south of the belt row at y = 4, and the
+    # patch's last row is y = 3.
+    handle = s.tile_handle((px - 1, py - 2))
+    if handle is None:
+        raise RuntimeError("no resource tile above the belt row")
+    s.do("step_north")
+    s.do("mine_at", handle=handle)
+    s.wait(3)
+    s.do("step_north")
+    s.do("step_north")
+    s.do("step_west")
+    s.do("step_west")
+    s.do("step_west")
+    s.do("mine_at", handle=handle)
+    s.wait(5)
+
+
 def belt_rotate_and_mine(s: Script) -> None:
     # The character stands on (9, -7), just south of the belt row at y = -8.
     px, py = (math.floor(v) for v in s.observation["character"]["position"])
@@ -1213,6 +1355,54 @@ SCENARIOS: tuple[Scenario, ...] = (
         "mined without end), a refusal when full, and an ore tile under a chest",
         hand_mine_rules,
         edit=logistics_scene(HAND_MINE_RULES, (0, 0), {"wood": 7800, "iron-ore": 49}),
+        requires="logistics",
+    ),
+    Scenario(
+        "hand_mine_spills",
+        SMELTING,
+        "train",
+        0,
+        "ore mined with no room lands round the tile centre ring by ring, kept off a "
+        "pile and a drill",
+        hand_mine_spills,
+        edit=logistics_scene(HAND_MINE_SPILLS, (1, 1), {"iron-ore": 50, "wood": 7800}),
+        requires="logistics",
+    ),
+    Scenario(
+        "hand_mine_contents",
+        SMELTING,
+        "train",
+        0,
+        "a chest, a furnace, a loaded belt and a jammed drill mined with room for part "
+        "of what they hold",
+        hand_mine_contents,
+        edit=logistics_scene(HAND_MINE_CONTENTS, (-4, 0), {"stone": 50, "wood": 7795}),
+        requires="logistics",
+    ),
+    Scenario(
+        "hand_mine_build_over",
+        SMELTING,
+        "train",
+        0,
+        "a belt built on a drill's pile takes it; a chest built over spilled ore is "
+        "mined before the pile, and the ore under both is not",
+        hand_mine_build_over,
+        edit=logistics_scene(
+            HAND_MINE_BUILD_OVER,
+            (1, 1),
+            {"iron-ore": 50, "transport-belt": 5, "wood": 7600, "wooden-chest": 2},
+        ),
+        requires="logistics",
+    ),
+    Scenario(
+        "hand_mine_carried",
+        SMELTING,
+        "train",
+        0,
+        "carried out of resource reach by a belt mid-mine, then walked back and mining "
+        "the same tile again",
+        hand_mine_carried,
+        edit=logistics_scene(HAND_MINE_CARRIED, (1, 5)),
         requires="logistics",
     ),
 )
@@ -1543,6 +1733,11 @@ def main() -> int:
         help="replay the mechanics scenarios one tick at a time and record hidden state",
     )
     parser.add_argument(
+        "--worker",
+        default="sim-parity",
+        help="the worker's id, which names its directory (one per concurrent recorder)",
+    )
+    parser.add_argument(
         "--check",
         action="store_true",
         help="record and compare with the committed traces instead of writing them",
@@ -1562,7 +1757,7 @@ def main() -> int:
     index_path = OUT_DIR / "index.json"
     index = json.loads(index_path.read_text(encoding="utf-8")) if index_path.exists() else {}
     manager = WorkerManager()
-    handle = manager.launch("sim-parity")
+    handle = manager.launch(args.worker)
     failures = 0
     try:
         with RCONClient(handle.spec.rcon_endpoint, timeout=30.0) as client:

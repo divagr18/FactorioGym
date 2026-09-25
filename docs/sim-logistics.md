@@ -1271,13 +1271,15 @@ rays at 1/256 (`docs/evidence/handmine-reach.json.xz`).
   next item still comes off the resource (amount -1, and it counts as produced)
   but lands on the ground at the resource's position, one item; the pile then
   lies over the tile and is mined instead, every fourth tick, and never taken
-  (`full_no_room`, `full_partial_stack`, `full_mine_pile`).
+  (`full_no_room`, `full_partial_stack`, `full_mine_pile`). Where the centre
+  is taken, it lands round it: "Mining at the edges" below.
 - **A tile something stands on.** The mod mines a resource by selecting at its
   position, and selection prefers any entity whose selection box holds that
   point: a belt, chest, inserter, wall, furnace, drill or pile over the ore is
-  mined instead and goes into the inventory, and then nothing more is mined
-  while mining stays asked for (`cover_*`, `under_drill`) -- the mod's mine
-  then runs until a move cancels it. Stopping and asking again mines the ore
+  mined instead and goes into the inventory, and then no resource is mined
+  while mining stays asked for (`cover_*`, `under_drill`), only another entity
+  at that point ("Mining at the edges") -- the mod's mine then runs until a
+  move cancels it. Stopping and asking again mines the ore
   (`cover_then_retry`). A pile 0.203 tiles off the tile centre (where a drill
   or inserter drops) is not over it (`cover_pile_off_centre`); the character's
   own box never is (`self_cover_*`); a pile cannot lie on a belt.
@@ -1303,6 +1305,84 @@ furnace 0.796875, drill 1, pile 0.16796875.
 - **Hand-mining.** The mod refuses a resource farther than
   `resource_reach_distance` (2.7) from the character's position to the
   resource's centre, straight-line.
+
+### Mining at the edges
+
+`tools/probe_handmine2.py`, the same harness, 13 families
+(`docs/evidence/handmine2-*.json.xz`): piles and entities mined with part of
+the room they need, where what does not fit lands, a belt built over piles,
+which of several coverers is mined, and the character carried by a belt while
+it mines.
+
+- **A pile with part of the room.** The inventory takes what fits and the pile
+  stays with the rest; mining goes on, and once there is room the rest is
+  taken (`pile`). A pile made by a full inventory or a drop holds one item, so
+  through the action space this does not arise.
+- **An entity with contents.** What it holds goes first, each stack as much as
+  fits, in order: a chest's slots from the first; a furnace's fuel, source,
+  result; a drill's or an inserter's fuel. The first stack that does not all
+  fit keeps the entity standing: the next stack is not tried even when it
+  would fit (`entity`, `extra`), and the character mines it again and again,
+  each completion taking what now fits (the mod's mine runs until a move
+  cancels it). With everything out the entity is removed, and then what cannot
+  keep it standing follows, into the inventory or onto the ground round where
+  it stood: a belt's lane 1 then lane 2, front to back; a furnace's ingredient
+  in progress; the entity's own item; a drill's pending ore or an inserter's
+  hand.
+- **Where it lands.** On a grid of 88/256 round the drop point: the point
+  itself, then ring after ring, each clockwise from its top-left corner (top
+  row left to right, right column down, bottom row right to left, left column
+  up), at the first point where a pile's collision box (0.13671875) overlaps no
+  other pile and no colliding entity's collision box; the character does not
+  block, and water was not measured. One item a pile (`spill`, `cover`). A full
+  inventory's ore does the same round the tile centre, so with a drill's pile
+  52/256 north of the centre -- too far off to be selected there (a pile's
+  selection half-size is 43/256), near enough to keep a drop off it -- the ore
+  lands round it and mining goes on
+  (`hand_mine_spills` fills ring 1 without its top-middle point, then ring 2
+  from the one point the drill's box leaves, clear of it by 2/256).
+- **Carried while mining.** A belt carries the character while it mines; the
+  target is not pinned. Each tick mines from where the character's walking
+  step left it, before the belt's carry, so the tick the carry takes it out of
+  reach still mines; while the target is out of reach from where the character
+  stands, progress reads 0, nothing is mined, and what was is kept: back in
+  reach, carried or walked and asked again, it goes on from there (`carry`,
+  `reenter`, `reach`, and the `hand_mine_carried` trace: 26 ticks kept where
+  the last reading was 25). Reach per tick is the rule of "Reach" above: a
+  resource within 2.7 of its box (25/256), an entity within 10 of its
+  collision box.
+- **Which coverer.** Selection at a point takes a building over a pile, and
+  among piles the one nearest the point, the newest on a tie (`select`,
+  `select2`). After an entity is taken, mining still asked for mines only
+  another entity at the point, never the resource under it, until mining stops
+  (`cover`). A building can stand over a pile: a pile a full inventory left on
+  a tile centre stays under a chest built there, and mining the tile takes the
+  chest, then the pile (`hand_mine_build_over`).
+- **A belt built over piles.** It takes the piles on its tile onto its lanes,
+  the newest first, each where a drop at its position would go and behind
+  what is already ahead of it on that lane; one that would land more than 64
+  behind its point is dropped round the belt instead (`beltpick`,
+  `beltpick2`, `beltpick3`). An item pushed past the lane's upstream end reads
+  at the lane's last position. A jammed drill whose pile is taken this way goes
+  on onto the belt (`hand_mine_build_over`).
+
+factory-sim implements each rule; four parity traces pin them through the
+mod's own actions, tick by tick: `hand_mine_spills`, `hand_mine_contents` (a
+chest stopping at its plates with its wood behind them, a furnace's fuel before
+its ore, a loaded belt and a jammed drill with no room for most of what they
+hold), `hand_mine_build_over` and `hand_mine_carried`. What is not exact yet:
+
+- with nine piles under a new belt, five or six of them going onto one lane,
+  the engine refused one item more than the rule in 4 of the 5 `bp_ring9_*`
+  rigs (`beltpick2`); the other 48 rigs with piles under a new belt agree. Not
+  reduced to a rule;
+- which of several piles on one tile a tile handle resolves to (the mod's
+  `find_entities_filtered{limit = 1}`): factory-sim takes the first made;
+- a belt built over piles next to a loaded belt, and water in a drop's rings:
+  not measured;
+- a one-step sync cannot load the progress kept out of reach, since the engine
+  reads 0 there; factory-sim keeps its own when a recorded 0 falls out of
+  reach.
 
 ### Decisions (user, 2026-09-25)
 

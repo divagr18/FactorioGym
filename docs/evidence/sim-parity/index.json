@@ -301,6 +301,197 @@
     "verification": null,
     "wall_seconds": 1.6
   },
+  "hand_mine_build_over": {
+    "about": "a belt built on a drill's pile takes it; a chest built over spilled ore is mined before the pile, and the ore under both is not",
+    "action_outcomes": {
+      "give_to:completed": 1,
+      "mine_at:completed": 1,
+      "mine_at:running": 1,
+      "nudge_west:completed": 1,
+      "place_at:completed": 2,
+      "take_from:completed": 1,
+      "wait:completed": 27
+    },
+    "decisions": 34,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "burner-mining-drill",
+        "status": "waiting_for_space_in_destination"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      }
+    ],
+    "final_ground_items": 0,
+    "final_tick": 1020,
+    "layout_family": "offset_patch",
+    "mod_source_digest": "fa0ea5b27c6f3cb8",
+    "replay_identical": true,
+    "replay_sha256": "9060047fb5aa359558685f3dd9c32871da05b17671cdf0bc7834b12169d994c4",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 1020,
+      "trace": "hand_mine_build_over.ticks.jsonl.xz",
+      "trace_sha256": "cc51c8b086ca246e8898e1c928a39aef791597c5d881fecdfc07919fa35da4e4",
+      "wall_seconds": 59.9
+    },
+    "trace": "hand_mine_build_over.jsonl.xz",
+    "trace_sha256": "9060047fb5aa359558685f3dd9c32871da05b17671cdf0bc7834b12169d994c4",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 2.4
+  },
+  "hand_mine_carried": {
+    "about": "carried out of resource reach by a belt mid-mine, then walked back and mining the same tile again",
+    "action_outcomes": {
+      "mine_at:running": 2,
+      "step_north:completed": 3,
+      "step_west:completed": 3,
+      "wait:completed": 8
+    },
+    "decisions": 16,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      },
+      {
+        "name": "transport-belt",
+        "status": "working"
+      }
+    ],
+    "final_ground_items": 0,
+    "final_tick": 480,
+    "layout_family": "open_patch",
+    "mod_source_digest": "fa0ea5b27c6f3cb8",
+    "replay_identical": true,
+    "replay_sha256": "ccc50b1acada660475ad57539a654a37196fee93465d2c5d3bfe16cd9ca2f39c",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 480,
+      "trace": "hand_mine_carried.ticks.jsonl.xz",
+      "trace_sha256": "9132cdd95ee0307fefbecd803802806495b17b02f816c93bf966f28ecec8fd76",
+      "wall_seconds": 22.9
+    },
+    "trace": "hand_mine_carried.jsonl.xz",
+    "trace_sha256": "ccc50b1acada660475ad57539a654a37196fee93465d2c5d3bfe16cd9ca2f39c",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 1.2
+  },
+  "hand_mine_contents": {
+    "about": "a chest, a furnace, a loaded belt and a jammed drill mined with room for part of what they hold",
+    "action_outcomes": {
+      "give_to:completed": 3,
+      "mine_at:failed": 1,
+      "mine_at:running": 3,
+      "nudge_east:completed": 1,
+      "nudge_west:completed": 1,
+      "wait:completed": 12
+    },
+    "decisions": 21,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "stone-furnace",
+        "status": "working"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "waiting_for_source_items"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "waiting_for_source_items"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      }
+    ],
+    "final_ground_items": 6,
+    "final_tick": 630,
+    "layout_family": "cluttered_patch",
+    "mod_source_digest": "fa0ea5b27c6f3cb8",
+    "replay_identical": true,
+    "replay_sha256": "3d39b446bb4a160f64babe1578dce45ce0663d1d7885574368a81fd25bb2ff5d",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 630,
+      "trace": "hand_mine_contents.ticks.jsonl.xz",
+      "trace_sha256": "f51c19974cfe732a872698d1f439789a33d916e202fea6c322cef0cd22a7cb7b",
+      "wall_seconds": 38.9
+    },
+    "trace": "hand_mine_contents.jsonl.xz",
+    "trace_sha256": "3d39b446bb4a160f64babe1578dce45ce0663d1d7885574368a81fd25bb2ff5d",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 1.9
+  },
   "hand_mine_exhaustion": {
     "about": "hand-mining 121-tick ore, a second mine mid-mine, walking away, tiles to zero",
     "action_outcomes": {
@@ -389,6 +580,56 @@
     "unencodable_actions": 0,
     "verification": null,
     "wall_seconds": 3.0
+  },
+  "hand_mine_spills": {
+    "about": "ore mined with no room lands round the tile centre ring by ring, kept off a pile and a drill",
+    "action_outcomes": {
+      "mine_at:running": 1,
+      "nudge_west:completed": 1,
+      "take_from:completed": 1,
+      "wait:completed": 52
+    },
+    "decisions": 55,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "burner-mining-drill",
+        "status": "waiting_for_space_in_destination"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      }
+    ],
+    "final_ground_items": 11,
+    "final_tick": 1650,
+    "layout_family": "offset_patch",
+    "mod_source_digest": "fa0ea5b27c6f3cb8",
+    "replay_identical": true,
+    "replay_sha256": "fd2a256bfa8a28e1c4358fc84783308fdf734a1232001adce8d22dd75aeb3174",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 1650,
+      "trace": "hand_mine_spills.ticks.jsonl.xz",
+      "trace_sha256": "c3996aafaba108aaaa138f1708e4b7cea546bc10cd5791412e1f8a5c37acdfb1",
+      "wall_seconds": 100.0
+    },
+    "trace": "hand_mine_spills.jsonl.xz",
+    "trace_sha256": "fd2a256bfa8a28e1c4358fc84783308fdf734a1232001adce8d22dd75aeb3174",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 4.9
   },
   "logistics_belt_pickup": {
     "about": "inserters on both sides picking from a moving belt into chests",
