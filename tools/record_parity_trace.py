@@ -34,6 +34,8 @@ order of first appearance). Wall-clock time is kept out of the trace.
 Run (needs the engine):
   uv run python tools/record_parity_trace.py --all
   uv run python tools/record_parity_trace.py drill_furnace_facings walk_and_reach
+  uv run python tools/record_parity_trace.py --tick-resolution walk_and_reach
+  uv run python tools/record_parity_trace.py --sensor      # local-v3 observations
 """
 
 from __future__ import annotations
@@ -1414,8 +1416,25 @@ LOGISTICS = tuple(s.name for s in SCENARIOS if s.requires == "logistics")
 # ---------------------------------------------------------------- running
 
 
-def make_env(scenario: Scenario, session: WorkerSession, task=None) -> tuple[FactorioEnv, dict]:
-    """A fresh env whose next reset installs the scenario's scene."""
+class RecordedScene:
+    """A recorded trace's blueprint payload, installed exactly as it was.
+
+    A task's generator can change after a trace is recorded (a new layout
+    family moves what the seed draws); replaying the trace needs its own scene.
+    """
+
+    def __init__(self, payload: dict) -> None:
+        self.payload = payload
+
+    def to_dict(self, public_markers=(), extra_tracked_items=()) -> dict:
+        return self.payload
+
+
+def make_env(
+    scenario: Scenario, session: WorkerSession, task=None, recorded: dict | None = None
+) -> tuple[FactorioEnv, dict]:
+    """A fresh env whose next reset installs the scenario's scene, or, given a
+    recorded trace's header, the scene that trace recorded."""
     env = FactorioEnv(
         task or get(scenario.task),
         session,
@@ -1427,6 +1446,11 @@ def make_env(scenario: Scenario, session: WorkerSession, task=None) -> tuple[Fac
 
     def prepare_scene(episode_index: int) -> str:
         families = env._families()
+        if recorded is not None:
+            env._family = next(f for f in families if f.name == recorded["layout_family"])
+            installed["payload"] = recorded["blueprint"]
+            installed["family"] = env._family.name
+            return env._install(RecordedScene(recorded["blueprint"]))
         rng = env.seed_plan.generator_rng(env.branch, episode_index)
         env._family = families[rng.randrange(len(families))]
         blueprint = env.task.generate(env._family, rng)
@@ -1472,8 +1496,14 @@ def header_for(scenario: Scenario, env: FactorioEnv, recorder: Recorder, install
     }
 
 
-def record(scenario: Scenario, session: WorkerSession, replay: list[dict] | None = None):
-    env, installed = make_env(scenario, session)
+def record(
+    scenario: Scenario,
+    session: WorkerSession,
+    replay: list[dict] | None = None,
+    task=None,
+    recorded: dict | None = None,
+):
+    env, installed = make_env(scenario, session, task=task, recorded=recorded)
     recorder = Recorder(env, session)
     encoded, _ = env.reset(options={"scene_index": scenario.episode_index})
     recorder.begin(encoded)
@@ -1713,6 +1743,105 @@ def tick_resolution(scenario: Scenario, session: WorkerSession, index: dict) -> 
     return 0 if first == second and mismatch is None else 1
 
 
+#: The sensor profile `--sensor` re-records under, and what it adds.
+SENSOR_V3 = "local-v3"
+
+
+def _differences(a, b, path: str = "") -> set[str]:
+    """Every path at which `a` and `b` differ, list indices written `[*]`."""
+    if type(a) is not type(b):
+        return {path}
+    if isinstance(a, dict):
+        out: set[str] = set()
+        for key in set(a) | set(b):
+            if key not in a or key not in b:
+                out.add(f"{path}.{key}")
+            else:
+                out |= _differences(a[key], b[key], f"{path}.{key}")
+        return out
+    if isinstance(a, list):
+        if len(a) != len(b):
+            return {f"{path}[len]"}
+        out = set()
+        for x, y in zip(a, b, strict=True):
+            out |= _differences(x, y, f"{path}[*]")
+        return out
+    return set() if a == b else {path}
+
+
+def sensor_v3(scenario: Scenario, session: WorkerSession, index: dict) -> int:
+    """Replay a committed trace under the `local-v3` sensor and keep its observations.
+
+    The golden traces are recorded under the task's own profile, `local-v2`.
+    `local-v3` adds each visible belt's lane counts and shape, each inserter's
+    pickup, drop and hand and each drill's drop point (`sensor.logistics_detail`),
+    and keeps 96 entities rather than 48. This replays the recorded vectors
+    under it and writes each decision's wire observation, for
+    `tools/v3_contract_golden.py` to encode. Everything else a record holds --
+    the `v1` tensor hashes, mask and goal, the truth, the hidden state and the
+    transitions -- must come out identical to the committed trace, and the
+    observation may differ only by what `local-v3` adds.
+    """
+    started = time.perf_counter()
+    committed_header, committed = read_trace(OUT_DIR / f"{scenario.name}.jsonl.xz")
+    actions = [r["transition"]["action"] for r in committed if r["transition"]]
+    base = get(scenario.task)
+    task = dataclasses.replace(
+        base, spec=dataclasses.replace(base.spec, observation_profile=SENSOR_V3)
+    )
+    header, records, error = record(
+        scenario, session, replay=actions, task=task, recorded=committed_header
+    )
+    mismatch = None
+    added: set[str] = set()
+    if error:
+        mismatch = {"error": error}
+    elif len(records) != len(committed):
+        mismatch = {"decisions": [len(committed), len(records)]}
+    else:
+        # The task's version string may have moved since the trace was
+        # recorded (a layout family added); the scene is the recorded one.
+        found = first_difference(
+            {**committed_header, "observation_profile": SENSOR_V3},
+            {**header, "task_version": committed_header["task_version"]},
+        )
+        if found:
+            mismatch = {"header": found}
+        for old, new in zip(committed, records, strict=True):
+            if mismatch:
+                break
+            rest = [k for k in old if k != "observation"]
+            found = first_difference({k: old[k] for k in rest}, {k: new.get(k) for k in rest})
+            if found:
+                mismatch = {"decision": old["decision"], "path": found}
+                break
+            added |= _differences(old["observation"], new["observation"])
+    rows = [{"decision": r["decision"], "observation": r["observation"]} for r in records]
+    sensor_header = {
+        "scenario": scenario.name,
+        "observation_profile": SENSOR_V3,
+        "source_trace": f"{scenario.name}.jsonl.xz",
+        "source_trace_sha256": trace_hash(committed_header, committed),
+    }
+    name = f"{scenario.name}.{SENSOR_V3}.jsonl.xz"
+    write_trace(OUT_DIR / name, sensor_header, rows)
+    entry = index.setdefault(scenario.name, {})
+    entry[SENSOR_V3.replace("-", "_")] = {
+        "trace": name,
+        "trace_sha256": trace_hash(sensor_header, rows),
+        "v1_fields_identical": mismatch is None,
+        "first_mismatch": mismatch,
+        "observation_differences": sorted(added),
+        "wall_seconds": round(time.perf_counter() - started, 1),
+    }
+    print(
+        f"{scenario.name:36} {SENSOR_V3} v1_fields_identical={mismatch or True} "
+        f"differences={sorted(added)}",
+        flush=True,
+    )
+    return 0 if mismatch is None else 1
+
+
 def replay_note(entry: dict) -> str:
     if "replay_identical" not in entry:
         return "skipped"
@@ -1731,6 +1860,11 @@ def main() -> int:
         "--tick-resolution",
         action="store_true",
         help="replay the mechanics scenarios one tick at a time and record hidden state",
+    )
+    parser.add_argument(
+        "--sensor",
+        action="store_true",
+        help=f"replay committed traces under the {SENSOR_V3} sensor and keep its observations",
     )
     parser.add_argument(
         "--worker",
@@ -1769,6 +1903,11 @@ def main() -> int:
             names = args.scenarios or list(TICK_SCENARIOS)
             for name in names:
                 failures += tick_resolution(by_name[name], session, index)
+                index_path.write_text(json.dumps(index, indent=2, sort_keys=True) + "\n", "utf-8")
+            chosen = []
+        if args.sensor:
+            for scenario in chosen:
+                failures += sensor_v3(scenario, session, index)
                 index_path.write_text(json.dumps(index, indent=2, sort_keys=True) + "\n", "utf-8")
             chosen = []
         for scenario in chosen:

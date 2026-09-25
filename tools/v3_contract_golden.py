@@ -1,31 +1,18 @@
 """The `v3` tensors and masks of every golden trace, for the simulator's contract test.
 
-The golden traces (`docs/evidence/sim-parity`) were recorded under `local-v2`
-and `parameterized-v1`, so their tensor hashes are the `v1` layout's. This
-re-encodes every recorded decision under the `v3` layout and action profile
-with FactorioRL's own code -- `encoders.encode(layout=LAYOUT_V3)`,
+The golden traces (`docs/evidence/sim-parity`) are recorded under the task's
+`local-v2` and `parameterized-v1`, so their tensor hashes are the `v1`
+layout's. Each is also replayed on the engine under the `local-v3` sensor
+(`tools/record_parity_trace.py --sensor`), which keeps every decision's wire
+observation with what `local-v3` adds -- belt lanes and shape, an inserter's
+pickup, drop and hand, a drill's drop point -- in `<name>.local-v3.jsonl.xz`,
+and checks that everything else the trace holds comes out identical. This
+encodes those observations under the `v3` layout and action profile with
+FactorioRL's own code -- `encoders.encode(layout=LAYOUT_V3)`,
 `FactorioEnv.marker_slots` and `ParameterizedEnv(profile="v3").action_masks`
 -- and writes one hash set and one flat mask per decision. factory-sim steps
 the same recorded vectors and must produce the same `v3` tensors and masks bit
 for bit (`tests/test_rl_contract.py`).
-
-**What stands in for the engine.** `local-v3` adds belt lanes and shape, the
-inserter's pickup, drop and hand, and a drill's drop point to each visible
-record (`sensor.logistics_detail`). The traces predate that profile, so those
-fields are rebuilt here from the engine state each record also carries
-(`hidden`), by the mapping the Lua function applies:
-
-- belt: `lanes` = the number of items on each of `hidden.lanes`,
-  `shape` = `hidden.belt_shape`;
-- inserter: `pickup` / `drop` = `hidden.pickup_position` / `drop_position`
-  (1/256 tiles), `held` = `hidden.held.name`;
-- burner drill: `drop` = its centre plus the engine-measured offset for its
-  facing (`tasks.potentials.DROP_OFFSETS`; `hidden` does not carry it).
-
-The sweep keeps 48 entities under `local-v2` and 96 under `local-v3`; no trace
-has more than 48 in view, so the recorded sweep is the `local-v3` sweep too
-(checked below). Re-recording the traces under `local-v3` on the engine
-replaces this bridge with the sensor's own output; the hashes must not move.
 
     uv run python tools/v3_contract_golden.py
     uv run python tools/v3_contract_golden.py --copy-to ../factory-sim/tests/golden
@@ -51,14 +38,10 @@ from factoriorl import encoders  # noqa: E402
 from factoriorl.env import PLACEMENT_RADIUS_V3, FactorioEnv  # noqa: E402
 from factoriorl.parameterized import ParameterizedEnv  # noqa: E402
 from factoriorl.tasks import get  # noqa: E402
-from factoriorl.tasks.potentials import DROP_OFFSETS  # noqa: E402
 
 EVIDENCE = ROOT / "docs" / "evidence" / "sim-parity"
 OUT = EVIDENCE / "v3_contract.json.xz"
 VERSION = 1
-#: `local-v2`'s `entity_cap`; a recorded sweep this full may have clipped what
-#: `local-v3` would have shown.
-LOCAL_V2_CAP = 48
 
 
 def read_trace(path: Path) -> tuple[dict, list[dict]]:
@@ -78,45 +61,33 @@ def tensor_hashes(encoded: dict) -> dict:
     return out
 
 
-def _tiles(point) -> list[float]:
-    return [point[0] / 256, point[1] / 256]
+def trace_hash(header: dict, records: list[dict]) -> str:
+    """`record_parity_trace.trace_hash`, restated for the same reason."""
+    digest = hashlib.sha256()
+    digest.update(_canonical(header).encode())
+    for record in records:
+        digest.update(b"\n")
+        digest.update(_canonical(record).encode())
+    return digest.hexdigest()
 
 
-def logistics_fields(hidden: dict) -> dict:
-    """What `sensor.logistics_detail` would add to this entity's record."""
-    name = hidden.get("name")
-    out: dict = {}
-    if name == "transport-belt":
-        lanes = hidden.get("lanes") or [[], []]
-        out["lanes"] = [len(lanes[0]), len(lanes[1])]
-        if hidden.get("belt_shape"):
-            out["shape"] = hidden["belt_shape"]
-    elif name == "burner-inserter":
-        if hidden.get("pickup_position"):
-            out["pickup"] = _tiles(hidden["pickup_position"])
-        if hidden.get("drop_position"):
-            out["drop"] = _tiles(hidden["drop_position"])
-        held = hidden.get("held")
-        if held and held.get("name"):
-            out["held"] = held["name"]
-    elif name == "burner-mining-drill":
-        dx, dy = DROP_OFFSETS[int(hidden.get("direction", 0))]
-        x, y = _tiles(hidden["position"])
-        out["drop"] = [x + dx, y + dy]
-    return out
+def _canonical(value) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
-def bridge(observation: dict, hidden: dict) -> dict:
-    """The recorded observation with each visible record's `local-v3` fields."""
-    by_place = {
-        (e.get("name"), tuple(e.get("position") or ())): e for e in hidden.get("entities") or []
-    }
-    entities = []
-    for record in observation.get("entities") or []:
-        key = (record.get("name"), (round(record["p"][0] * 256), round(record["p"][1] * 256)))
-        engine = by_place.get(key)
-        entities.append({**record, **logistics_fields(engine)} if engine else dict(record))
-    return {**observation, "entities": entities}
+def sensor_observations(name: str, entry: dict) -> dict[int, dict]:
+    """The trace's `local-v3` observations by decision, checked against the index."""
+    sensor = entry.get("local_v3")
+    if not sensor:
+        raise SystemExit(f"{name}: no local-v3 observations; record_parity_trace.py --sensor")
+    if not sensor.get("v1_fields_identical"):
+        raise SystemExit(f"{name}: the local-v3 replay departs from the trace: {sensor}")
+    header, rows = read_trace(EVIDENCE / sensor["trace"])
+    if trace_hash(header, rows) != sensor["trace_sha256"]:
+        raise SystemExit(f"{name}: {sensor['trace']} does not hash to the index")
+    if header["source_trace_sha256"] != entry["trace_sha256"]:
+        raise SystemExit(f"{name}: {sensor['trace']} replays another recording of the trace")
+    return {row["decision"]: row["observation"] for row in rows}
 
 
 def v3_env(task_id: str) -> tuple[FactorioEnv, ParameterizedEnv]:
@@ -131,16 +102,14 @@ def v3_env(task_id: str) -> tuple[FactorioEnv, ParameterizedEnv]:
 
 def scenario(name: str, entry: dict) -> list[dict]:
     header, records = read_trace(EVIDENCE / entry["trace"])
+    sensed = sensor_observations(name, entry)
     env, penv = v3_env(header["task"])
     public = tuple(header["blueprint"].get("public_markers") or ())
     if public != tuple(env.spec_.public_markers):
         raise SystemExit(f"{name}: blueprint markers {public} != spec {env.spec_.public_markers}")
     out = []
     for record in records:
-        observation = record["observation"]
-        if len(observation.get("entities") or []) >= LOCAL_V2_CAP:
-            raise SystemExit(f"{name} decision {record['decision']}: the sweep is at its cap")
-        observation = bridge(observation, record.get("hidden") or {})
+        observation = sensed[record["decision"]]
         env._observation = observation
         goal = np.concatenate(
             [np.asarray(record["goal"], dtype=np.float32), env.marker_slots(observation)]

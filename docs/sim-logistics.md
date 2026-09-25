@@ -1453,6 +1453,16 @@ the trace through `Normaliser.hidden`. Records for every other entity type keep
 exactly the keys they had before, so traces recorded before these fields
 existed still match.
 
+The traces are recorded under the task's `local-v2`. `--sensor` replays each
+under `local-v3` and keeps its wire observations (`<name>.local-v3.jsonl.xz`),
+for the `v3` contract (`tools/v3_contract_golden.py`); everything else the
+replay records -- tensor hashes, mask, goal, truth, hidden state, transitions
+-- is checked identical to the trace, and the observations differ only by
+`local-v3`'s additions (belt `lanes` and `shape`, inserter `pickup`, `drop`
+and `held`, drill `drop`, the profile's name and version). All 22 traces
+replay identically, and the `v3` hashes and masks encoded from the sensor's
+own observations are the ones the earlier mapping from `hidden` gave.
+
 Common to every record in `hidden.entities`, as before:
 
 - **`position`**: `[x, y]`, integers, map coordinates in 1/256 tile. A belt,
