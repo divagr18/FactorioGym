@@ -1342,8 +1342,9 @@ it mines.
   itself, then ring after ring, each clockwise from its top-left corner (top
   row left to right, right column down, bottom row right to left, left column
   up), at the first point where a pile's collision box (0.13671875) overlaps no
-  other pile and no colliding entity's collision box; the character does not
-  block, and water was not measured. One item a pile (`spill`, `cover`). A full
+  other pile, no colliding entity's collision box and no water tile -- a point
+  whose box reaches 3/256 into water is passed over (`water`); the character
+  does not block. One item a pile (`spill`, `cover`, `water`). A full
   inventory's ore does the same round the tile centre, so with a drill's pile
   52/256 north of the centre -- too far off to be selected there (a pile's
   selection half-size is 43/256), near enough to keep a drop off it -- the ore
@@ -1368,30 +1369,53 @@ it mines.
   a tile centre stays under a chest built there, and mining the tile takes the
   chest, then the pile (`hand_mine_build_over`).
 - **A belt built over piles.** It takes the piles on its tile onto its lanes,
-  the newest first, each where a drop at its position would go and behind
-  what is already ahead of it on that lane; one that would land more than 64
-  behind its point is dropped round the belt instead (`beltpick`,
-  `beltpick2`, `beltpick3`). An item pushed past the lane's upstream end reads
-  at the lane's last position. A jammed drill whose pile is taken this way goes
-  on onto the belt (`hand_mine_build_over`).
+  the newest first, each onto the lane a drop at its position would go to, at
+  the point t that drop would take, as follows (`beltpick`..`beltpick6`,
+  `extra`, `beltnext`: all 308 rigs):
+  - the items already taken lie where they landed, each having moved on once
+    (up to 8, never closer than 64 to the item ahead);
+  - the pile lands at q: starting from t, behind every item within 64 ahead
+    of it, item by item -- each item at or ahead of q with q less than 64
+    behind it moves q to 64 behind that item;
+  - it is refused if q is 64 or more behind t; and if landing took it past two
+    items or more (q moved twice), it is refused when any item on the lane
+    lies behind q -- only the lane's back end takes such an item;
+  - landed, it moves on once, as the others did.
+
+  The belt is a line of its own while it takes them: the belt it feeds and the
+  belt that feeds it are not looked at (an item 40 from a loaded downstream
+  belt's last item lands all the same and waits), and a pile within 8 of the
+  edge stays on the new belt at 0 (`beltnext`). A refused pile is dropped round
+  the belt, whose box keeps rings 0 and 1 clear. An item pushed past the lane's
+  upstream end reads at the lane's last position. A jammed drill whose pile is
+  taken this way goes on onto the belt (`hand_mine_build_over`). The nine-pile
+  disagreement came apart this way: `beltpick4` gave the nine piles nine
+  different items (the refused one is the last taken, the centre pile), and
+  `beltpick5` and `beltpick6` swept the pushback limit (71 accepted in the
+  first frame, 72 refused -- 63 and 64 once the items taken first are read
+  where they landed) and the second rule (refused exactly when an item lies
+  behind and the target is within 64 of the item two ahead).
+- **Which pile a tile handle names.** The mod resolves a tile handle with
+  `find_entities_filtered` round the tile's centre, radius 0.5, limit 1: the
+  engine lists the piles whose position lies within half a tile of the centre,
+  0.5 included, newest first, so it is the newest of them (`resolve`; a pile on
+  the next tile whose box reaches into the circle is not listed). Several piles
+  on one off-patch tile are reachable (spills round an entity), but none can be
+  mined or given to -- the mod refuses a pile as a mining target ("yields
+  nothing") and it has no inventory -- so the pile named decides only whether
+  such an action is refused `out_of_reach` or for the other reason, at the edge
+  of reach. factory-sim resolves to the same pile.
 
 factory-sim implements each rule; four parity traces pin them through the
 mod's own actions, tick by tick: `hand_mine_spills`, `hand_mine_contents` (a
 chest stopping at its plates with its wood behind them, a furnace's fuel before
 its ore, a loaded belt and a jammed drill with no room for most of what they
-hold), `hand_mine_build_over` and `hand_mine_carried`. What is not exact yet:
-
-- with nine piles under a new belt, five or six of them going onto one lane,
-  the engine refused one item more than the rule in 4 of the 5 `bp_ring9_*`
-  rigs (`beltpick2`); the other 48 rigs with piles under a new belt agree. Not
-  reduced to a rule;
-- which of several piles on one tile a tile handle resolves to (the mod's
-  `find_entities_filtered{limit = 1}`): factory-sim takes the first made;
-- a belt built over piles next to a loaded belt, and water in a drop's rings:
-  not measured;
-- a one-step sync cannot load the progress kept out of reach, since the engine
-  reads 0 there; factory-sim keeps its own when a recorded 0 falls out of
-  reach.
+hold), `hand_mine_build_over` and `hand_mine_carried`; factory-sim's
+`tests/test_handmine2_rules.py` rebuilds every `beltpick*`, `extra`, `beltnext`,
+`resolve` and `water` rig and matches the engine on all 327. One limit remains,
+of the check rather than of the simulator: a one-step sync cannot load the
+progress kept out of reach, since the engine reads 0 there; factory-sim keeps
+its own when a recorded 0 falls out of reach.
 
 ### Decisions (user, 2026-09-25)
 

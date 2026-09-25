@@ -37,6 +37,18 @@ Families:
   on, and how one pushes another along its lane.
 - `beltpick3`: two piles on one lane of a new belt: the spacing at which the
   second is still taken, and past the lane's end.
+- `beltpick4`: the nine piles of `beltpick2` with nine different items, and
+  single-lane sequences that take the disagreement apart.
+- `beltpick5`: sweeps of the pushback limit and of the item behind against
+  the gap in front of the item a pile lands behind.
+- `beltpick6`: where the last pile lands as its target sweeps past fixed items.
+- `canins`: `LuaTransportLine.can_insert_at` at every position of a lane just
+  built over piles.
+- `beltnext`: a belt built over piles next to loaded belts: the belt it feeds,
+  the belt that feeds it, a turn, a side it loads; a pile within 8 of the edge.
+- `resolve`: several piles on one tile, the order `find_entities_filtered`
+  lists them round the tile centre (radius 0.5, as `handles.resolve`).
+- `water`: ore mined with no room next to water tiles.
 
 Ops, at rig-relative ticks (0 builds the rig, before its first reading):
 
@@ -50,7 +62,12 @@ Ops, at rig-relative ticks (0 builds the rig, before its first reading):
   taken from the main inventory (a refusal is logged in `notes`);
 - `slot` index name count: set (count 0: clear) one main-inventory slot,
   standing in for a `give_to` or `take_from` elsewhere;
-- `rotate` label: `LuaEntity.rotate`, as the mod's `rotate` does.
+- `rotate` label: `LuaEntity.rotate`, as the mod's `rotate` does;
+- `resolve` x y: the piles `find_entities_filtered` lists round tile (x, y)'s
+  centre, radius 0.5, in its order, and the one `limit = 1` gives;
+- `canins` label line: `can_insert_at` at positions 0..255 of that line.
+
+A rig's `water` tiles are painted water before anything is built.
 
 Every reading has: `p` position, `m` mining, `g` mining progress, `w`
 walking, `inv` counts of `TRACKED`, `e` empty main slots, `a` resource
@@ -108,6 +125,8 @@ class Rig:
         self.resources: list[list] = []
         self.entities: list[dict] = []
         self.ops: list[list] = []
+        #: Tiles (dx, dy) painted water before anything is built.
+        self.water: list[list] = []
 
     def res(self, dx, dy, name="iron-ore", amount=50):
         self.resources.append([dx, dy, name, amount])
@@ -125,7 +144,7 @@ class Rig:
     def to_dict(self):
         return {"name": self.name, "base": list(self.base), "ticks": self.ticks,
                 "start": list(self.start), "slots": self.slots, "resources": self.resources,
-                "entities": self.entities, "ops": self.ops}  # fmt: skip
+                "entities": self.entities, "ops": self.ops, "water": self.water}  # fmt: skip
 
 
 def wood(n):
@@ -709,6 +728,347 @@ def beltpick3_rigs() -> list[Rig]:
     return rigs
 
 
+#: Items that are all different, for rigs whose piles must be told apart.
+DISTINCT = (
+    "coal",
+    "iron-plate",
+    "stone",
+    "iron-ore",
+    "copper-ore",
+    "wood",
+    "copper-plate",
+    "iron-gear-wheel",
+    "stone-brick",
+    "iron-stick",
+    "wooden-chest",
+    "stone-furnace",
+)
+
+
+def beltpick4_rigs() -> list[Rig]:
+    """The nine-pile disagreement, taken apart: the same nine piles with nine
+    different items (which one the engine refuses), then single-lane
+    sequences on an east belt that vary what lies ahead of and behind the
+    pile that lands last."""
+    rigs = []
+    k = 0
+
+    def rig(name, piles, d=E):
+        nonlocal k
+        r = Rig(name, _grid(k), 40, slots=[["transport-belt", 5]])
+        for j, (dx, dy) in enumerate(piles):
+            r.ent(f"p{j}", "item-on-ground", 2.5 + dx / 256, 0.5 + dy / 256,
+                  stack=[DISTINCT[j], 1])  # fmt: skip
+        r.op(1, "place", "belt", "transport-belt", 2.5, 0.5, d)
+        rigs.append(r)
+        k += 1
+
+    ring9 = [(0, 0), *RING1]
+    for d, dname in ((E, "e"), (W, "w"), (N, "n"), (S, "s")):
+        rig(f"bp9_ring9_{dname}", ring9, d)
+    rig("bp9_ring9_rev_e", list(reversed(ring9)), E)
+
+    # One lane (line 2 of an east belt): targets in the order they are taken
+    # onto the belt, the newest pile first, so the piles are made in reverse.
+    # Same-target piles alternate 72/256 and 0 off the centre line.
+    def lane(name, targets, lats=None):
+        piles = []
+        for j, t in enumerate(targets):
+            lat = lats[j] if lats else (72 if j % 2 == 0 else 0)
+            piles.append((128 - t, lat))
+        rig(f"bpl_{name}", list(reversed(piles)))
+
+    full = [216, 216, 128, 40, 40, 128]  # the east ring's lane 2, in order
+    lane("full", full)
+    lane("full_ring", full, [0, 88, 88, 88, 0, 0])  # the ring's own offsets
+    lane("full_72", full, [72] * 6)
+    lane("full_0", full, [0, 1, 2, 3, 4, 5])
+    for i in range(len(full)):
+        lane(f"drop{i}", full[:i] + full[i + 1 :])
+    for name, targets in [
+        ("s216_216_128_128", [216, 216, 128, 128]),
+        ("s216_128_128", [216, 128, 128]),
+        ("s128_40_40_128", [128, 40, 40, 128]),
+        ("s128_128", [128, 128]),
+        ("s200_128_128", [200, 128, 128]),
+        ("s230_128_128", [230, 128, 128]),
+        ("s250_128_128", [250, 128, 128]),
+        ("s104_128", [104, 128]),
+        ("s40_104_128", [40, 104, 128]),
+        ("s104_40_128", [104, 40, 128]),
+        ("s128_104_128", [128, 104, 128]),
+        ("s216_128_104_128", [216, 128, 104, 128]),
+        ("s216_216_128_104_128", [216, 216, 128, 104, 128]),
+        ("s128_64_128", [128, 64, 128]),
+        ("s128_72_128", [128, 72, 128]),
+        ("s128_100_128", [128, 100, 128]),
+        ("s130_104_128", [130, 104, 128]),
+        ("s150_104_128", [150, 104, 128]),
+        ("s140_100_128", [140, 100, 128]),
+        ("s128_90_150", [128, 90, 150]),
+        ("s40_40_40", [40, 40, 40]),
+        ("s40_40_60", [40, 40, 60]),
+        ("s40_104_104", [40, 104, 104]),
+    ]:
+        lane(name, targets)
+    return rigs
+
+
+def beltpick5_rigs() -> list[Rig]:
+    """Sweeps for the rule `beltpick4` narrowed down: the pushback limit, and
+    the item behind the landing point against the gap in front of the item it
+    lands behind. Targets in the order they are taken, on line 2 of an east
+    belt; same-target piles 72/256 and 0 off the centre line."""
+    rigs = []
+    k = 0
+
+    def lane(name, targets):
+        nonlocal k
+        r = Rig(f"bp5_{name}", _grid(k), 40, slots=[["transport-belt", 5]])
+        piles = [(128 - t, 72 if j % 2 == 0 else 0) for j, t in enumerate(targets)]
+        for j, (dx, dy) in enumerate(reversed(piles)):
+            r.ent(f"p{j}", "item-on-ground", 2.5 + dx / 256, 0.5 + dy / 256,
+                  stack=[DISTINCT[j], 1])  # fmt: skip
+        r.op(1, "place", "belt", "transport-belt", 2.5, 0.5, E)
+        rigs.append(r)
+        k += 1
+
+    # A: pushback x - 64 past an item x just behind t = 128 (x, then 104
+    # ahead of it, then the new pile).
+    for x in range(129, 138):
+        lane(f"limit_{x}", [x, 104, 128])
+    # B, C, D: an item b behind, g in front of the item at 128; the new pile
+    # lands at 192.
+    for g in (24, 40, 56, 63, 64):
+        for b in (200, 216, 232, 248, 255):
+            lane(f"g{g}_b{b}", [b, 128, 128 - g, 128])
+    # E: one hop over an overcompressed item, b behind.
+    lane("hop_216_128_100_150", [216, 128, 100, 150])
+    lane("hop_128_100_150", [128, 100, 150])
+    # F: the same neighbours, the new pile landing exactly at its target.
+    lane("exact_216_128_104_192", [216, 128, 104, 192])
+    lane("exact_216_128_104_200", [216, 128, 104, 200])
+    lane("exact_200_128_104_192", [200, 128, 104, 192])
+    return rigs
+
+
+def beltpick6_rigs() -> list[Rig]:
+    """Where the last pile lands, as its target sweeps past a fixed set of
+    items on line 2 of an east belt (the items taken first, in order)."""
+    rigs = []
+    k = 0
+    configs = {
+        "d": [128],
+        "c": [216, 128],
+        "a": [128, 104],
+        "b": [216, 128, 104],
+        "e": [216, 128, 72],
+        "f": [216, 128, 88],
+    }
+    for cname, before in configs.items():
+        for t in range(96, 204, 4):
+            targets = [*before, t]
+            r = Rig(f"bp6_{cname}_{t}", _grid(k, per_row=16), 30,
+                    slots=[["transport-belt", 5]])  # fmt: skip
+            piles = [(128 - x, 72 if j % 2 == 0 else 0) for j, x in enumerate(targets)]
+            if piles[-1] in piles[:-1]:
+                piles[-1] = (piles[-1][0], 36)
+            for j, (dx, dy) in enumerate(reversed(piles)):
+                r.ent(f"p{j}", "item-on-ground", 2.5 + dx / 256, 0.5 + dy / 256,
+                      stack=[DISTINCT[j], 1])  # fmt: skip
+            r.op(1, "place", "belt", "transport-belt", 2.5, 0.5, E)
+            rigs.append(r)
+            k += 1
+    return rigs
+
+
+def canins_rigs() -> list[Rig]:
+    """What `LuaTransportLine.can_insert_at` says at every position of line 2
+    of a belt just built over piles (the configurations `beltpick5` built
+    before its last pile), and after `insert_at` at each position."""
+    rigs = []
+    k = 0
+
+    def lane(name, targets):
+        nonlocal k
+        r = Rig(f"ci_{name}", _grid(k), 6, slots=[["transport-belt", 5]])
+        piles = [(128 - t, 72 if j % 2 == 0 else 0) for j, t in enumerate(targets)]
+        for j, (dx, dy) in enumerate(reversed(piles)):
+            r.ent(f"p{j}", "item-on-ground", 2.5 + dx / 256, 0.5 + dy / 256,
+                  stack=[DISTINCT[j], 1])  # fmt: skip
+        r.op(1, "place", "belt", "transport-belt", 2.5, 0.5, E)
+        r.op(1, "canins", "belt", 2)
+        rigs.append(r)
+        k += 1
+
+    for name, targets in [
+        ("empty", []),
+        ("t128", [128]),
+        ("t128_200", [200, 128]),
+        ("t128_216", [216, 128]),
+        ("t104_128", [128, 104]),
+        ("g24_b216", [216, 128, 104]),
+        ("g24_b200", [200, 128, 104]),
+        ("g40_b216", [216, 128, 88]),
+        ("g56_b216", [216, 128, 72]),
+        ("g48_b216", [216, 128, 80]),
+        ("t104_130", [130, 104]),
+        ("t40_104_128_216", [216, 128, 40, 40]),
+        ("asc_170_130", [170, 130]),
+    ]:
+        lane(name, targets)
+    return rigs
+
+
+def resolve_rigs() -> list[Rig]:
+    """Several piles on one tile: the order `find_entities_filtered` lists
+    them in round the tile centre (radius 0.5, the mod's `handles.resolve`),
+    and so which one a tile handle resolves to."""
+    rigs = []
+    k = 0
+
+    def rig(name, points):
+        nonlocal k
+        r = Rig(name, _grid(k), 6)
+        for j, (dx, dy) in enumerate(points):
+            r.ent(f"p{j}", "item-on-ground", 2.5 + dx / 256, 0.5 + dy / 256,
+                  stack=[DISTINCT[j], 1])  # fmt: skip
+        r.op(1, "resolve", 2, 0)
+        rigs.append(r)
+        k += 1
+
+    three = [(-88, -88), (88, 88), (0, 0)]
+    rig("rs_three", three)
+    rig("rs_three_rev", list(reversed(three)))
+    row = [(-88, 0), (0, 0), (88, 0)]
+    rig("rs_row", row)
+    rig("rs_row_rev", list(reversed(row)))
+    col = [(0, -88), (0, 0), (0, 88)]
+    rig("rs_col", col)
+    rig("rs_col_rev", list(reversed(col)))
+    five = [(40, -100), (-100, 30), (0, 0), (100, 100), (-60, -60)]
+    rig("rs_five", five)
+    rig("rs_five_rev", list(reversed(five)))
+    # A pile on the next tile, its box reaching into the circle.
+    rig("rs_neighbour", [(0, 0), (150, 0)])
+    rig("rs_neighbour_only", [(150, 0)])
+    rig("rs_neighbour_far", [(0, 0), (170, 0)])
+    # Exactly 0.5 from the centre, and just inside.
+    rig("rs_edge_only", [(128, 0)])
+    rig("rs_edge_in", [(127, 0)])
+    rig("rs_edge_diag", [(91, 90)])
+    return rigs
+
+
+def _ring_points(k: int) -> list[tuple[int, int]]:
+    """Ring k's points in spill order, as (dx, dy) in 1/256 tile."""
+    if k == 0:
+        return [(0, 0)]
+    out = [(-k + i, -k) for i in range(2 * k + 1)]
+    out += [(k, -k + 1 + i) for i in range(2 * k)]
+    out += [(k - 1 - i, k) for i in range(2 * k)]
+    out += [(-k, k - 1 - i) for i in range(2 * k - 1)]
+    return [(88 * x, 88 * y) for x, y in out]
+
+
+def water_rigs() -> list[Rig]:
+    """Whether water keeps a dropped item off: an ore mined with no room, its
+    tile's rings filled by piles up to the ring under test, water next to it."""
+    rigs = []
+    full = [*wood(79), ["iron-ore", 50]]
+
+    def rig(k, name, rings, water, extra_blocked=()):
+        r = Rig(name, _grid(k), 400, slots=full)
+        r.res(2, 0)
+        r.water = [list(w) for w in water]
+        wet = {tuple(w) for w in water}
+        # The centre is kept off by a pile 52/256 north of it, which does not
+        # cover the tile (a pile on the centre would be mined instead).
+        blockers = [(0, -52)] + [pt for ring in range(1, rings) for pt in _ring_points(ring)]
+        blockers += list(extra_blocked)
+        n = 0
+        for dx, dy in blockers:
+            x, y = 2.5 + dx / 256, 0.5 + dy / 256
+            if (int(x // 1), int(y // 1)) in wet:
+                continue  # a pile cannot be made on water
+            r.ent(f"b{n}", "item-on-ground", x, y, stack=["iron-plate", 1])
+            n += 1
+        r.op(1, "mine", 2, 0).op(380, "stop")
+        rigs.append(r)
+
+    column_west = [(1, y) for y in range(-3, 4)]
+    # Rings 0 and 1 blocked: ring 2's first point (-2, -2) lies wholly on
+    # tile (1, -1).
+    rig(0, "water_ring2_west", 2, column_west)
+    rig(1, "water_ring2_dry", 2, [])
+    # Rings 0..3 blocked and ring 4's top row but its last point, which
+    # reaches 3/256 into the water column at x = 4.
+    column_east = [(4, y) for y in range(-3, 4)]
+    top4 = _ring_points(4)[:8]
+    rig(2, "water_ring4_edge", 4, column_east, top4)
+    rig(3, "water_ring4_edge_dry", 4, [], top4)
+    # Everything round the tile water but the tile itself: rings 0 and 1
+    # blocked, all of ring 2 on water.
+    around = [(x, y) for x in (1, 2, 3) for y in (-1, 0, 1) if (x, y) != (2, 0)]
+    rig(4, "water_all_round", 2, around)
+    return rigs
+
+
+def beltnext_rigs() -> list[Rig]:
+    """A belt built over piles next to a loaded belt: the belt it feeds, the
+    belt that feeds it, a turn it makes, a side it loads."""
+    rigs = []
+    k = 0
+
+    def rig(name, belts, piles, ticks=40):
+        nonlocal k
+        r = Rig(name, _grid(k), ticks, slots=[["transport-belt", 5]])
+        for label, x, y, d, lanes in belts:
+            r.ent(label, "transport-belt", x, y, d, lanes=lanes)
+        for j, (dx, dy) in enumerate(piles):
+            r.ent(f"p{j}", "item-on-ground", 2.5 + dx / 256, 0.5 + dy / 256,
+                  stack=[DISTINCT[j], 1])  # fmt: skip
+        r.op(2, "place", "belt", "transport-belt", 2.5, 0.5, E)
+        rigs.append(r)
+        k += 1
+
+    # The belt it feeds, east of it, one item on line 2 at 255 - gap.
+    for gap in (0, 20, 40, 60, 80):
+        rig(f"nx_down_{gap}", [("down", 3.5, 0.5, E, [[2, 250 - gap, "iron-plate"]])],
+            [(118, 72)])  # fmt: skip
+    rig("nx_down_full", [("down", 3.5, 0.5, E,
+                          [[2, p, "iron-plate"] for p in (16, 80, 144, 208)])],
+        [(118, 72), (40, 0)])  # fmt: skip
+    # The belt that feeds it, west of it, items near its end on line 2.
+    rig("nx_up", [("up", 1.5, 0.5, E, [[2, 20, "iron-plate"], [2, 90, "iron-plate"]])],
+        [(-120, 72), (-60, 0)])  # fmt: skip
+    # The belt it feeds turns: south (right) and north (left).
+    for d, dname in ((S, "right"), (N, "left")):
+        rig(f"nx_turn_{dname}", [("down", 3.5, 0.5, d, [[1, 200, "iron-plate"],
+                                                       [2, 200, "copper-plate"]])],
+            [(118, 72), (118, -72)])  # fmt: skip
+    # It loads the side of a north belt fed from the south.
+    rig("nx_side", [("side", 3.5, 0.5, N, [[1, 128, "iron-plate"], [2, 128, "copper-plate"]]),
+                    ("feed", 3.5, 1.5, N, [])],
+        [(118, 72), (118, -72)])  # fmt: skip
+    # Between two loaded belts.
+    rig("nx_between", [("up", 1.5, 0.5, E, [[2, 30, "iron-plate"]]),
+                       ("down", 3.5, 0.5, E, [[2, 230, "copper-plate"]])],
+        [(118, 72), (-110, 0)])  # fmt: skip
+    # A pile within 8 of the downstream edge, onto an empty and a loaded belt.
+    rig("nx_edge_empty", [("down", 3.5, 0.5, E, [])], [(124, 72)])
+    rig("nx_edge_loaded", [("down", 3.5, 0.5, E, [[2, 100, "iron-plate"]])], [(124, 72)])
+    rig("nx_edge_alone", [], [(124, 72)])
+    # Two pushes with the only item behind on the belt feeding it: targets 128,
+    # 104, 128 in that order (the last pushed past two), the feeding belt
+    # loaded at its end.
+    b2 = [(0, 0), (24, 72), (0, 36)]  # made in reverse of the order taken
+    rig("nx_up_b2", [("up", 1.5, 0.5, E, [[2, 10, "iron-plate"]])], b2)
+    rig("nx_alone_b2", [], b2)
+    rig("nx_down_b2", [("down", 3.5, 0.5, E, [[2, 240, "iron-plate"]])], b2)
+    return rigs
+
+
 FAMILIES = {
     "pile": pile_rigs,
     "entity": entity_rigs,
@@ -723,6 +1083,13 @@ FAMILIES = {
     "extra": extra_rigs,
     "beltpick2": beltpick2_rigs,
     "beltpick3": beltpick3_rigs,
+    "beltpick4": beltpick4_rigs,
+    "beltpick5": beltpick5_rigs,
+    "canins": canins_rigs,
+    "beltpick6": beltpick6_rigs,
+    "resolve": resolve_rigs,
+    "water": water_rigs,
+    "beltnext": beltnext_rigs,
 }
 
 # ---------------------------------------------------------------- engine side
@@ -784,6 +1151,13 @@ local function setup(k)
   inv.clear()
   for i, st in ipairs(rig.slots) do inv[i].set_stack({name = st[1], count = st[2]}) end
   cur.res, cur.E, cur.labels = {}, {}, {}
+  if rig.water and #rig.water > 0 then
+    local tiles = {}
+    for _, w in ipairs(rig.water) do
+      tiles[#tiles + 1] = {name = "water", position = {bx + w[1], by + w[2]}}
+    end
+    s.set_tiles(tiles)
+  end
   for _, r in ipairs(rig.resources) do
     local e = s.create_entity({name = r[3], position = {bx + r[1] + 0.5, by + r[2] + 0.5},
                                amount = r[4]})
@@ -829,6 +1203,32 @@ local function apply(k, op)
     local inv = ch.get_main_inventory()
     if op[5] == 0 then inv[op[3]].clear()
     else inv[op[3]].set_stack({name = op[4], count = op[5]}) end
+  elseif kind == "resolve" then
+    -- As handles.resolve: round the tile centre, radius 0.5.
+    local at = {bx + op[3] + 0.5, by + op[4] + 0.5}
+    local function rel(pos)
+      return {math.floor(pos.x * 256 + 0.5) - bx * 256, math.floor(pos.y * 256 + 0.5) - by * 256}
+    end
+    local all = {}
+    for _, e in pairs(s.find_entities_filtered({position = at, radius = 0.5,
+                                               type = "item-entity"})) do
+      local p = rel(e.position)
+      all[#all + 1] = {p[1], p[2], e.stack.name}
+    end
+    local first = s.find_entities_filtered({position = at, radius = 0.5,
+                                           type = "item-entity", limit = 1})[1]
+    local f = first and rel(first.position) or nil
+    note("resolve", all, f and {f[1], f[2], first.stack.name} or "none")
+  elseif kind == "canins" then
+    local e = cur.E[op[3]]
+    local line = e.get_transport_line(op[4])
+    local items = {}
+    for _, it in pairs(line.get_detailed_contents()) do
+      items[#items + 1] = {math.floor(it.position * 256 + 0.5), it.stack.name}
+    end
+    local bits = {}
+    for c = 0, 255 do bits[#bits + 1] = line.can_insert_at(c / 256) and "1" or "0" end
+    note("canins", items, table.concat(bits), line.line_length and line.line_length or -1)
   elseif kind == "rotate" then
     local e = cur.E[op[3]]
     if not (e and e.valid and e.rotate()) then note("rotate failed", op[3]) end
