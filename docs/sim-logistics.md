@@ -481,6 +481,9 @@ was not tested.
   **Decision (2026-09-24): accepted.** The simulator ignores the delay. Parity
   comparisons may differ by one tick on the first pickup in the first ~300
   ticks after belts are built, and are exact after that.
+  **Explained and reproduced since** (third and fourth probes): the inserter
+  watches its belt-line segment, and young belts are segments of their own
+  until their chain merges. factory-sim compares these rigs from t=0.
 - **Hand y** (the drawn lift) is not modelled; nothing depends on it.
 - **Not measured at all:** curved or sideloaded pickup belts, underground
   belts and splitters, more than two inserters on a line, fast or express
@@ -587,23 +590,19 @@ the rigs it leaves out are named there with the reason.
 
 ### How factory-sim compares
 
-- **Young belts** (see "Not yet exact"): rigs whose first pickup falls in
-  the first ~300 ticks after the belts are built are compared from t=300,
-  with remaining fuel allowed a constant offset.
+- **Young belts** (see "Not yet exact"): compared from t=0 since the fourth
+  probe; they were compared from t=300 with a fuel offset before.
 - **Hand y**: the drawn lift of a swing that didn't start from rest is not
   known. The simulator marks such records and the comparison takes the
   engine's y (`fsim.trace.relax_hand_y`); hand x is compared exactly.
-- **Not reproduced yet:** simultaneous sideload arrivals (`side_both`,
-  `side_turn_two`, `sim_*`); pickups from a turn by an inserter on the side
+- **Not reproduced yet:** pickups from a turn by an inserter on the side
   opposite the feeding belt (`tpick_r_e`, `tpick_l_e`: hand x 1/256 off on
   two ticks each; the four other `tpick_*` rigs are exact); an item added
   onto a pickup belt that runs along the arm into a sleeping inserter
-  (`seg_*_8`, `seg_b_7`); carriage round a turn; and in the `smelting_chain`
-  parity trace, from decision 26 (t=776), the engine lets the ore inserter
-  sleep at rest with ore five belts upstream, where at t=536 in the same
-  situation it stayed awake. The third probe explains the first and the last
-  (belt-line segments and their order); reproducing them needs the merge
-  delay of every tile, see "What the simulator needs".
+  (`seg_*_8`, `seg_b_7`: the arm's first move, not segments); and carriage
+  round a turn. Simultaneous sideload arrivals (`side_both`, `side_turn_two`,
+  `sim_*`) and the `smelting_chain` sleep at t=776 were reproduced with
+  belt-line segments in the fourth probe.
 
 ## Third probe: segments, turn points, sideload order
 
@@ -702,7 +701,9 @@ the build tick) does not show it.
   59 + k). With the target already carrying items it has moved before either
   insertion and neither goes further (target-traffic rigs: an item on the
   target moves freely whether it was placed before, between or after the
-  feed items).
+  feed items). **Fourth probe:** that holds for a target whose items move; a
+  target whose items are all stopped is asleep, and the first sideload wakes
+  it like an empty one ("Stopped lines sleep").
 - With the measured merge delays these rules predict which item goes
   further in all 52 cases checked: the 24 script-fed and 6 inserter-fed rigs
   of `logistics3-sideload.json.xz`, the 18 two-item `sim_*` rigs and the two
@@ -714,15 +715,19 @@ the build tick) does not show it.
   174), the items cross two belts, and lane 2 goes further: so the lane-1
   drop was activated first in t=47. Two-inserter rigs agree: with the west
   inserter built first, lane 2 goes further, for feeds of 1, 2 and 3 belts.
-  That the first-built inserter's drop comes first does not fit the
-  "last built updates first" order the chest rigs (`order_*`) show; not
-  resolved.
+  **Settled by the fourth probe:** a burner inserter drops on the *far* lane,
+  so the west inserter drops on lane 2 of a north feed and the east one on
+  lane 1; the lane-1 drop that comes first is the last-built inserter's, as
+  in the chest rigs ("Two inserters on one tick").
 
 - **Acceptance.** In the `three` rigs a sideloaded item went on exactly 64
   behind its target (lane-2 item, t=160: target 59, item ahead at 59, placed
   at 123), where the simulator's `lane_insert` refuses at 64 and accepts
   below. Earlier the same item was refused with the items ahead chained up
-  to 192 behind (t=144 to 159). Seen once; not yet checked against drops.
+  to 192 behind (t=144 to 159). **Settled by the fourth probe:** 59 is the
+  entry point (67) less the item's move; measured from the entry, 123 is 56
+  behind it, and the simulator already put it there. A sweep of the boundary
+  found the rule ("Sideload acceptance").
 
 ### Turn item points
 
@@ -757,6 +762,197 @@ Details still open under any option: the drop order of two inserters in one
 tick (above), boundaries for sideloads and pickups in other geometries, and
 what removing or rotating a belt of a merged segment does.
 
+**Decision (2026-09-25): option 1**, done in the fourth probe: the table
+covers the scene area and the probes' rig areas, and factory-sim reproduces
+segments from it. The drop order is settled; the other two details are
+still open.
+
+## Fourth probe: the delay map, update order, sleeping lines, acceptance
+
+`tools/probe_logistics4.py` measures what factory-sim needs to reproduce
+belt-line segments. It also settles the two details the third probe left
+open. Evidence, all in `docs/evidence/`:
+
+| file | what |
+|---|---|
+| `logistics4-delay.json` | where the merge-delay table factory-sim ships comes from: area, engine, method, corrections, the sha256 of its values, and every check below |
+| `logistics4-delaycheck.json.xz` | 600 random tiles re-measured in fresh worlds: facing north twice, east, south and west once each |
+| `logistics4-order.json.xz` | 14 rigs of two burner inserters acting on the same tick, in both build orders |
+| `logistics4-sleep.json.xz` | 6 rigs: a stopped line freed three ways, on young and on old belts |
+| `logistics4-accept.json.xz` | 1,296 sideloads and 81 drops arriving next to an item moving along the lane |
+
+The full maps (`--family delaymap`, about 180 KiB each) stay in `runtime/`.
+The compact table is in factory-sim (`fsim/data/belt-delay.*`), built by its
+`tools/make_belt_delay.py`.
+
+### The delay map
+
+- **Area.** Scenes are built inside the scene box, which is 64 tiles either
+  side of the origin by default (`Blueprint.radius`; factory-sim's
+  generators use 48). The mod clears and reports neutral entities only
+  inside it. The agent can walk beyond the box, and a belt_smelting task
+  with sites 20 to 40 tiles apart still fits inside it. The table covers
+  [-128, 128)² tiles: four times the box, with 64 tiles of room past it on
+  every side. It also covers the areas the logistics probes built their rigs
+  in, [96, 352)² and [296, 340) x [456, 480), so that factory-sim can
+  replay them. That is 132,128 tiles and 264,256 tile-lanes, with `d` from 1
+  to 600.
+- **Method.** The method is the third probe's: a belt at every measured tile
+  (six worlds, one lattice offset each), with its downstream neighbour
+  destroyed and rebuilt every tick. The value is the first tick the two
+  lines are equal. One 256 x 256 facing takes about 2.5 minutes on the
+  desktop.
+- **The method's one flaw.** When the neighbour's own tile has `d = 1`, the
+  rebuilt neighbour's timer runs out before the next rebuild, and the
+  reading is 1 whatever the measured tile's `d` is. Every rectangle was
+  therefore measured twice, facing north (neighbour at y-1) and facing east
+  (neighbour at x+1), and the two maps were combined:
+  - equal readings stand;
+  - where they differ, one reads 1, its neighbour's `d` is 1, and the other
+    reading is the tile's `d`;
+  - 459 north readings and 456 east readings were corrected this way, with
+    no conflicts;
+  - no tile read 1 with both neighbours at 1, so no tile was left undecided.
+
+  The third probe's tables carry the same flaw: 17 of their 9,626 readings.
+- **Checks.**
+  - All 9,626 third-probe readings agree with the table, except those 17.
+  - The 32 x 32 tiles measured in two rectangles agree, in both facings.
+  - 600 random tiles were re-measured in fresh worlds, one run per facing.
+    Facing north (twice), east, south and west, 1,196, 1,196, 1,200, 1,200
+    and 1,198 of 1,200 tile-lanes agree. Every difference is the flaw above,
+    in that run's own facing.
+  - The two north runs are identical, so the measurement is deterministic.
+  - `d` does not depend on facing, and lane 1 is the lane left of travel in
+    every facing, as the third probe found.
+- **The hash.** Not identified. `d` is uniform on 1..600, and the two lanes
+  and neighbouring tiles are uncorrelated (|r| < 0.005). Two families of
+  candidate were tried, with the tile or 1/256 coordinates and the lane
+  encoded several ways, and mapped to 1..600 by mod 599/600/601 or
+  multiply-shift:
+  - hash finalisers: FNV-1a, splitmix64, MurmurHash3, lowbias32, Wang, PCG;
+  - generators: LCGs, minstd, taus88 and mt19937.
+
+  None beats chance: the best matched 17 of 3,000.
+
+### Two inserters on one tick
+
+The last-built inserter acts first, dropping onto a belt as well as into a
+chest. The third probe had it the other way for belt drops because it
+misread which inserter drops on which lane. A burner inserter drops 1.2
+tiles out, past the belt's centre line, so it drops on the far lane: west of
+a north feed it drops on lane 2, east of it on lane 1.
+
+`order` built 14 rigs and gave each inserter a different plate, so the
+engine's item ids on the belt record the drop order directly. In all 14 the
+last built acted first:
+
+- drops on a feed, with the chests built before either inserter;
+- drops with no coal;
+- inserters north and south of an east belt;
+- two drops competing for one free chest slot;
+- two pickups competing for one plate, dropped onto belts or into chests.
+
+This agrees with `logistics_sideload_merge`: the east inserter, built
+second, drops on lane 1, and its drop activates lane 1 first.
+
+### Stopped lines sleep
+
+- **A segment in whose update no item moves goes to sleep:** it leaves the
+  activation order. It wakes, to the end of the order, when:
+  - an item goes onto it: a drop, a sideload, an item crossing from the belt
+    behind, or a script insert;
+  - an item comes off it: an inserter's pickup or a script's `remove_item`;
+  - a belt is built, removed or turned;
+  - what it runs into moves. When the segment ahead on its chain, or the
+    lane it sideloads onto, moves, a sleeping segment behind it wakes and
+    moves at once, on the same tick.
+- **`sleep`**: a line of seven young belts, stopped at its end, was freed
+  three ways: a script took the front item, an inserter took the back item
+  of the last belt, or an eighth belt was built on the end. Every item
+  behind moved on the next tick (t=21, t=37, t=21), young belts and old
+  alike.
+- **Consequences:**
+  - The catch-up applies to a stopped target. In the `ins_*` rigs the second
+    pair of sideloads (t=139) lands on a lane holding two stopped items. The
+    first sideload wakes the lane without moving it, and the second moves
+    it, so the item inserted first goes 8 further.
+  - A segment moves the one ahead of it first only if that one is awake.
+
+### Sideload acceptance
+
+`accept` placed one feed item so that it reaches the main belt as an item on
+the target lane passes the entry point. It covered 40 positions either side,
+every phase of the 8-tick step, and both feed lanes.
+
+- **The rule.** Let E be the entry point (67 or 188) and p the feed item's
+  position before its move. Positions are read on the target lane after
+  this tick's move.
+  - Items at or ahead of E are ahead of the new item.
+  - The new item goes at the first place 64 clear of every item ahead, but
+    only if that place is less than 64 behind E.
+  - With nothing ahead within 64, it goes at E + p - 8.
+  - An item exactly at E refuses the sideload, and the feed item waits a
+    tick.
+  - An item one step behind E is not consulted, and the new item goes on 2
+    to 8 ahead of it.
+- **The `three` case.** The "exactly 64" of the third probe is 56 in these
+  terms, and the simulator already put that item there. Its rule measured
+  from E + p instead of E, which the sweep showed wrong for items between
+  the two points.
+- **Drops.** Inserter drops past a moving item follow the simulator's rule
+  at every phase (81 of 81).
+- **Script inserts.** A script insert within 8 of a belt's downstream edge
+  reads 0 on that belt, not on the next one.
+
+### Timing, as factory-sim implements it
+
+- **Merges.** A belt built between ticks at t0 merges on tick t0 + d. An
+  inserter watching the chain acts on the merge tick itself (`flow2`: lane 1
+  merges and the inserter refills at t=76).
+- **Splits.** A drop, a drill's output or a sideload counts from the tick
+  before the item first reads on the belt, since the insertion reads one
+  step on. A pickup counts from its own tick. `logistics_belt_pickup`: drops
+  read at t=47 split the line at 46 + 87 = 133. `logistics_smelting_chain`:
+  the ore read at t=243 splits the lane at 242 + 492 = 734.
+- **Wakes.** An item crossing onto a watched segment wakes the inserter on
+  the same tick (t=803). A drop by another entity wakes it from the next
+  tick, as before.
+- **Boundaries.** Every attached entity's boundary counts at a split,
+  whether it has worked yet or not: at t=133 the two pickup inserters of
+  `logistics_belt_pickup` had taken nothing, and the line split at their
+  boundaries too. The trigger is the first item an entity puts on or takes
+  off the chain.
+
+### How factory-sim compares
+
+With the table and these rules, factory-sim matches the engine exactly:
+
+- **Parity traces:** all five logistics traces, free-running, synced and
+  tick by tick. `KNOWN_GAPS` is empty.
+- **Segment classes** of the three parity scenes the third probe logged,
+  every tick.
+- **First probe:** the rigs, from t=0. The young-belt tolerance is gone,
+  and so is the `side_main` gap.
+- **Second probe:** `side_both`, `side_turn_two` and all 22 `sim_*` rigs,
+  every tick.
+- **Third probe:** the 32 sideload rigs.
+- **Fourth probe:** the 14 order rigs, the 6 sleep rigs and all 1,377
+  acceptance rigs.
+
+A belt built outside the table stops the simulator with
+`fsim.BeltDelayMissing`, rather than guess.
+
+**Not measured, and chosen:**
+
+- the place in the order of the pieces that a split or a removed belt
+  leaves holding items: they move last, like a merge;
+- what turning a belt does to its timers: nothing;
+- belt loops: they move as a whole, before the segments.
+
+**Still open:** boundaries for sideloads and pickups in other geometries,
+and what removing or rotating a belt of a merged segment does.
+
 ## Open questions and rigs to settle them
 
 1. **Sideload with traffic.** The single-item rule is exact; entries of 172 and
@@ -780,7 +976,8 @@ what removing or rotating a belt of a merged segment does.
    open: where an item sits on a turn's arc for an inserter picking from it
    (`tpick_*`), and simultaneous sideload arrivals (`sim_*`).
 5. **The energy mechanism**: settled, 50 kJ per turn plus 50 kJ per tile (see
-   "Energy" and rule 2). Still open: the young-belt wake delay of rule 6.
+   "Energy" and rule 2). The young-belt wake delay of rule 6: settled by the
+   third and fourth probes (segments).
 6. **Coal exhaustion** was not reached in 3,000 ticks (4 MJ is about 4,550
    ticks at 66,900 J per item); the wood run covers the stop behaviour.
 7. **Self-refuel timing**: settled by the `sr_*` rigs (the arm turns to its
@@ -932,3 +1129,13 @@ traces.
   t=300, with a constant remaining-fuel offset allowed.
 - **Hand y (drawn lift)**: not modelled. Where it is unknown the comparison
   takes the engine's value (`fsim.trace.relax_hand_y`).
+
+## Decisions (2026-09-25)
+
+- **Belt-line segments**: made exact in factory-sim from a measured table of
+  the merge delay (option 1 of "What the simulator needs"), covering the
+  scene area and the probes' rig areas; a belt outside the table stops the
+  simulator (`fsim.BeltDelayMissing`) rather than guess. This supersedes the
+  2026-09-24 entries on simultaneous sideloads, the belt-line sleep case and
+  the young-belt wake delay: `KNOWN_GAPS` is empty and young-belt rigs are
+  compared from t=0.

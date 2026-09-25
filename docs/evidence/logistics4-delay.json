@@ -1,0 +1,85 @@
+{
+ "about": "The belt merge-delay table factory-sim ships (fsim/data/belt-delay.*), measured by tools/probe_logistics4.py --family delaymap; docs/sim-logistics.md, 'Fourth probe'. The table itself (264,256 values, 323 KiB xz) lives in factory-sim; this records where it came from and how it was checked.",
+ "engine": {
+  "version": "2.0.60",
+  "build": 83512
+ },
+ "rects": [
+  [
+   -128,
+   -128,
+   128,
+   128
+  ],
+  [
+   96,
+   96,
+   352,
+   352
+  ],
+  [
+   296,
+   456,
+   340,
+   480
+  ]
+ ],
+ "values": 264256,
+ "sha256_uint16_le": "e07d43985f0ea5f367344973dcfe3d2f0b8326a98902993ede4ddf66b4155adc",
+ "method": "each tile measured twice, facing north and facing east: a belt at the tile, its downstream neighbour destroyed and rebuilt every tick, the first on_tick t (from the build command) at which their lines are equal; where the two differ, the one reading 1 had a neighbour whose own d is 1 and the other stands",
+ "corrected": {
+  "north_read_1": 459,
+  "east_read_1": 456
+ },
+ "range": [
+  1,
+  600
+ ],
+ "runs": "each rectangle and facing: six worlds in parallel on the desktop, 2.5 min for 256 x 256 tiles",
+ "checks": {
+  "resample": {
+   "what": "600 random tiles of the first two rectangles (seed 20260925) re-measured in fresh worlds: facing north twice (f0r0, f0r1), east, south, west once each; logistics4-delaycheck.json.xz",
+   "by_facing": {
+    "f0r0": {
+     "tile_lanes": 1200,
+     "agree": 1196,
+     "neighbour_at_1": 4,
+     "unexplained": 0
+    },
+    "f0r1": {
+     "tile_lanes": 1200,
+     "agree": 1196,
+     "neighbour_at_1": 4,
+     "unexplained": 0
+    },
+    "f12r0": {
+     "tile_lanes": 1200,
+     "agree": 1198,
+     "neighbour_at_1": 2,
+     "unexplained": 0
+    },
+    "f4r0": {
+     "tile_lanes": 1200,
+     "agree": 1200,
+     "neighbour_at_1": 0,
+     "unexplained": 0
+    },
+    "f8r0": {
+     "tile_lanes": 1200,
+     "agree": 1200,
+     "neighbour_at_1": 0,
+     "unexplained": 0
+    }
+   }
+  },
+  "third_probe": {
+   "what": "every logistics3-delay*.json.xz reading (north-facing method)",
+   "readings": 9626,
+   "agree": 9609,
+   "neighbour_at_1": 17,
+   "unexplained": 0
+  },
+  "overlap": "the 32 x 32 tiles [96,128)^2 measured in two rectangles agree, both facings"
+ },
+ "hash": "not identified: uniform on 1..600, lanes and neighbouring tiles uncorrelated (|r| < 0.005); FNV-1a, splitmix64, MurmurHash3/lowbias32/Wang/PCG finalisers, LCGs, minstd, taus88 and mt19937 seeded from tile or 1/256 coordinates and the lane (many encodings, mod 599/600/601 and multiply-shift) match at chance level (best 17 of 3,000)"
+}

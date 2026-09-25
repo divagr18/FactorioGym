@@ -151,7 +151,9 @@ def sideload_cases():
             feed, order = int(name[5]), name[-2:]
             tiles = [(201, 200 + k) for k in range(1, feed + 1)]
             merge = {lane: chain_merge(tiles, lane) for lane in (1, 2)}
-            # the west inserter drops on lane 1; the first built drops first (t=47)
+            # an inserter drops on the far lane: the east one on lane 1, the west
+            # one on lane 2; the last built drops first (t=47), as with chests
+            # (docs/sim-logistics.md, "Fourth probe")
             first = 1 if order == "WE" else 2
             pred = leading_lane(first, 47, [63 + 32 * j for j in range(feed - 1)],
                                 63 + 32 * (feed - 1), merge)  # fmt: skip
@@ -171,7 +173,8 @@ def sideload_cases():
                 pred = leading_lane(first, 0, [16 + 32 * j for j in range(where - 1)],
                                     16 + 32 * (where - 1), merge)  # fmt: skip
         out.append((name, pred, obs))
-    # the parity trace: drops at t=47 on the feed's third belt, west inserter built first
+    # the parity trace: drops at t=47 on the feed's third belt; the west inserter,
+    # built first, drops on lane 2, the east one on lane 1 and first
     tiles = [(11, y) for y in (-7, -6, -5, -4)]
     merge = {lane: chain_merge(tiles, lane) for lane in (1, 2)}
     with lzma.open(EVIDENCE / "sim-parity" / "logistics_sideload_merge.ticks.jsonl.xz", "rt") as f:
