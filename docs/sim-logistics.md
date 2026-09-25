@@ -1196,10 +1196,10 @@ Those are:
 
 ### A loaded state and the activation order
 
-One placement is still factory-sim's own: where in the activation order a
-segment goes when a loaded hidden state gives it items the simulator did
-not have there (it moves last, like a merge). Whether the engine's order
-could be loaded instead:
+A load could leave factory-sim with one placement of its own: where in the
+activation order a segment goes when a loaded hidden state gives it items
+the simulator did not have there. Whether the engine's order could be loaded
+instead:
 
 - **It cannot be read.** `LuaTransportLine` in 2.0.60 (`runtime-api.json`)
   has `can_insert_at`, `can_insert_at_back`, `clear`, `force_insert_at`,
@@ -1228,8 +1228,17 @@ could be loaded instead:
 It would matter only for loading an engine state into a simulator that has
 not replayed its history, which nothing does now. There more than the order
 is missing: segment membership (which `line_equals` could capture), merge and
-split timers, boundaries set off, and sleeping segments. What to do with the
-placement is an open question.
+split timers, boundaries set off, and sleeping segments.
+
+**Decision (2026-09-25): refuse.** `Sim.load_hidden` checks before it loads
+anything. A load that would change the items (name and position; ids are
+only names) of a belt-line segment that still holds items afterwards raises
+`fsim.BeltOrderUnknown`, as a belt outside the delay table raises
+`fsim.BeltDelayMissing`, rather than guess. A load that leaves the belts as
+the simulator has them, or that empties a segment, goes through: an empty
+segment is in no order. Every one-step sync of the golden traces still
+passes (`tests/test_parity.py`), and `tests/test_load_order.py` triggers the
+error.
 
 ## Hand-mining and reach (v3 decisions)
 
@@ -1739,6 +1748,11 @@ traces.
   handcrafting off for Stage 1, measured and added with Stage 2's recipe
   dimension. The measurements and the four records are in "Hand-mining and
   reach (v3 decisions)" above.
+- **A loaded state and the activation order**: a hidden-state load that
+  would change the items of a belt-line segment that still holds items
+  afterwards stops the simulator (`fsim.BeltOrderUnknown`) instead of
+  placing that segment in the activation order itself; see "A loaded state
+  and the activation order" above.
 - **v3 masks: per operation (option C)**, **`finish`** and **taking fuel**
   (user decisions): one revision of the v3 layout, `MultiDiscrete[25, 97, 226,
   5, 19, 4]`, with the free main slots observed; see "v3 masks per operation,
