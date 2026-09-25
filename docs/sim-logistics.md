@@ -387,7 +387,10 @@ moves that tick). Items the script adds between ticks are seen at once.
 - Energy = 50,000 J x (turns + tiles) as charged above. If the buffer holds
   less (rule 6), the extension is paid first and moves in proportion to what
   it gets; rotation gets the rest (`single`: 810 J buys 4.15/256 of extension
-  and no rotation).
+  and no rotation). As after a full step, if less than EXT is then left the
+  extension is on its target (the second probe's `seg_*_8`, `seg_b_7`: 810
+  J buy 0.0162 of a 0.0337 extension and the hand is on the item; fifth
+  probe).
 
 **3. Holding an item:** target the drop point. On arrival the item goes into
 the chest that tick; the swing back starts next tick. Chest to chest this is
@@ -599,7 +602,8 @@ the rigs it leaves out are named there with the reason.
   opposite the feeding belt (`tpick_r_e`, `tpick_l_e`: hand x 1/256 off on
   two ticks each; the four other `tpick_*` rigs are exact); an item added
   onto a pickup belt that runs along the arm into a sleeping inserter
-  (`seg_*_8`, `seg_b_7`: the arm's first move, not segments); and carriage
+  (`seg_*_8`, `seg_b_7`: the arm's first move, not segments; matched by
+  the fifth probe's reading of that move); and carriage
   round a turn. Simultaneous sideload arrivals (`side_both`, `side_turn_two`,
   `sim_*`) and the `smelting_chain` sleep at t=776 were reproduced with
   belt-line segments in the fourth probe.
@@ -764,8 +768,8 @@ what removing or rotating a belt of a merged segment does.
 
 **Decision (2026-09-25): option 1**, done in the fourth probe: the table
 covers the scene area and the probes' rig areas, and factory-sim reproduces
-segments from it. The drop order is settled; the other two details are
-still open.
+segments from it. The drop order is settled; the other two details were
+settled by the fifth probe.
 
 ## Fourth probe: the delay map, update order, sleeping lines, acceptance
 
@@ -922,7 +926,9 @@ every phase of the 8-tick step, and both feed lanes.
   whether it has worked yet or not: at t=133 the two pickup inserters of
   `logistics_belt_pickup` had taken nothing, and the line split at their
   boundaries too. The trigger is the first item an entity puts on or takes
-  off the chain.
+  off the chain. **Fifth probe:** not so. Each entity's boundary is set off
+  on its own. Those two pickups were waiting when the drops came, and a
+  waiting pickup is set off then ("Boundaries" of the fifth probe).
 
 ### How factory-sim compares
 
@@ -943,7 +949,7 @@ With the table and these rules, factory-sim matches the engine exactly:
 A belt built outside the table stops the simulator with
 `fsim.BeltDelayMissing`, rather than guess.
 
-**Not measured, and chosen:**
+**Not measured, and chosen** (all measured since, in the fifth probe):
 
 - the place in the order of the pieces that a split or a removed belt
   leaves holding items: they move last, like a merge;
@@ -951,7 +957,227 @@ A belt built outside the table stops the simulator with
 - belt loops: they move as a whole, before the segments.
 
 **Still open:** boundaries for sideloads and pickups in other geometries,
-and what removing or rotating a belt of a merged segment does.
+and what removing or rotating a belt of a merged segment does. Settled by
+the fifth probe.
+
+## Fifth probe: changed belts, loops, boundaries, the arm's first move
+
+`tools/probe_logistics5.py` measures what factory-sim had chosen or left
+open about segments. A rig is data: a base tile and timed operations (build a
+belt, a wooden chest or a burner inserter, `insert_at` an item, `rotate` or
+`destroy` an entity). The same rig list runs in the engine and in
+factory-sim's `tests/logistics_rigs5.py`. Every tick it changes, each rig
+logs every item on every belt (with the engine's ids), which belt lanes are
+one line object (`line_equals`, compared across both lanes), every
+inserter's hand and every chest. 250 rigs in ten families, one evidence file
+each, `docs/evidence/logistics5-<family>.json.xz`:
+
+| family | rigs | what |
+|---|---|---|
+| `order` | 13 | two long feeds onto one old, empty main lane; an item on each lands on the same tick; one feed is split at a boundary, loses a belt or has one turned while its item rides it |
+| `change` | 26 | lines of 8 belts, young and old: a belt turned (once, back, four times, 180 degrees), removed and built again; a turn turned; a pending split with a belt turned; merge timers re-armed |
+| `feedchg` | 16 | a five-belt feed sideloading onto an old main: each feed belt near the front, and the main belts around the target, removed and rebuilt, turned, turned four times |
+| `loop` | 15 | closed loops, young and old: 2 x 2, 4 x 3 and 6 x 4, sparse and compressed, fed by a sideload onto an empty or a busy loop lane, an inserter dropping onto one and one taking from it |
+| `loop2` | 27 | 4 x 3 loops built from five different belts, along the flow and against it, young and old; a merged loop with a belt removed and rebuilt, or turned four times |
+| `bound` | 54 | inserters picking and dropping from either side of an old line at its start, middle and end, on and next to turns, several on one line, some never working; feeds from either side, at the ends, before a turn, onto a west line |
+| `dist` | 60 | a drop, a pickup or a feed at one belt followed by 11 patterns of straights and left and right turns |
+| `trig` | 22 | what sets a boundary off: idle and full-chest pickups, script inserts upstream, downstream and onto the pickup belt, idle drops, empty feeds, pickups built after the items |
+| `trig2` | 9 | which boundaries a split uses; the delay a second split on an upstream piece counts |
+| `trig3` | 8 | boundaries one, two and three belts apart, together and one after the other |
+
+Each family ran in one or two fresh worlds on the laptop, 25 to 35 s each.
+
+### The inserter's first move from a short buffer (`seg_*_8`, `seg_b_7`)
+
+The four second-probe rigs set aside as "item added onto the pickup belt"
+were not about segments. The item goes onto the belt that runs along the arm
+into the sleeping inserter, 112/256 from its edge, so the extension to the
+item, 0.0337 tile, is less than one step (0.035). The inserter wakes with the
+810 J it kept, which buys 0.0162 tile. The model moved the arm 0.0162 and
+paid the rest of the extension on the next tick (2,400 J where the engine
+paid 2,164.31 J). The engine does what it does after a full step: with less
+than a step then left, the arm is on the target. That tick's 810 J buy the
+whole extension, and the next tick pays only the rotation plus the next
+0.0303 tile. Rule 2 of "Inserter belt pickup", for a short buffer, becomes:
+the extension moves in proportion to what it gets, and if less than EXT is
+then left, it snaps to the target. With that the four rigs agree on every
+tick. The `pe_*` rigs, whose buffers run out mid-swing, agree as before.
+
+### Changed belts
+
+Think of the edges between belts as nodes. Each belt's downstream edge
+joins:
+
+- the downstream edge of the belt feeding it;
+- the downstream edge of the belt it feeds;
+- for a feed's front (its sideload link), the downstream edge of the belt it
+  sideloads onto.
+
+When a belt is built, turned or removed, **each belt on the four tiles next
+to it** (connected to it or not) has every edge within 1 of its own
+downstream edge cut, within 2 for a removal. Rotations cut before and after
+the turn. On a straight line this cuts:
+
+| change at belt k | belts left on their own |
+|---|---|
+| built, or turned (even four times in one tick, back where it was) | k-1, k, k+1, k+2 |
+| removed | k-2, k-1, k+1, k+2, k+3 |
+| a feed's front built | the target belt and the one after it |
+| a feed's front removed | the target belt, the one before it and the two after |
+| a feed belt one short of the front built / removed | the edge after the target / the target belt and the one after |
+
+A belt running past a new feed's side, like the column of a turn that
+comes back alongside the feed, has its own cut (`dist` `side_s_RSSSS`,
+`side_n_LRSSS`: two and four more belts than the target's cut).
+
+**Timers.** Every piece next to a cut restarts its merge timer at the tick
+of the change, with d of the piece's head lane, when the cut parted lanes
+that were one. A piece that was not merged across the cut keeps a timer that
+is still running (`rm_*_young`), and starts one that has run out
+(`rot_k3_old180`). So after a removal the pieces merge again at the tick of
+the removal plus the least of their heads' delays: `rm_k0_old` at 650 + 53,
+where 53 is d of the remaining piece's head (m7), not of any belt cut loose.
+A turn of a young belt in place changes nothing that was not merged.
+
+**Membership.** A turn or a removal parts a merged segment only where the
+cut falls. The rest stays one object: `rot_k7_old` keeps m0..m5 together,
+and `rot_turn_old` keeps m0..m2.
+
+### Where the pieces go in the order
+
+The `order` rigs are sensitive both ways. Moving the split piece to the end
+of the order, or to its front, fails one of each pair (`split_S1`/`S2`,
+`rm_S1`/`S2`, `rot_S1`/`S2`).
+
+- **The piece holding the old head keeps its place**: after a split at a
+  boundary, a removed belt or a turned one, and when the head's belt is cut
+  off on its own (`rm11_*`).
+- Pieces with a new head that hold items keep moving: last in that tick when
+  the segment was awake, asleep with it when it was not. Which of them moves
+  first cannot show: they only feed the piece ahead, which a segment always
+  moves first.
+
+### Loops
+
+- **A loop is a chain whose front is its oldest belt.** Its lanes merge like
+  a chain's, the whole loop at the first timer to run out. A loop that is one
+  segment has its seam at the downstream edge of the lane of its oldest belt
+  (`loop2`: built from l0, l1, l3, l5 or l8, along the flow or against it,
+  the seam is after the first belt built; after l0 is removed and rebuilt,
+  after l1).
+- **A one-segment loop moves as one line from the seam.** Its front item is
+  held by nothing ahead. An item that crosses the seam onto the loop's own
+  back moves again, as far as it went in: 6 before the seam reads 256 - 4
+  after it, 0 reads 256 - 16 (`rect_*`, `sq_*`, `big_old`). A script insert
+  within 8 of the seam reads 0 before it (`sq_old`).
+- **A loop of several segments moves segment by segment**, in the activation
+  order. Each moves the one ahead first, as on a chain. Round the loop, that
+  comes back to the segment the move started from. An item crossing into it,
+  which has not moved yet, moves a full step again when it does
+  (`drop_old`: 2 reads 106 - 14).
+- A boundary in force on a loop parts it at the seam too (`feed_old`: pieces
+  l8..l0 and l1..l7). A loop broken open parts at the seam, and that piece
+  restarts its timer (`rm_l6`: l0 alone, merging again d of its own after the
+  removal).
+
+### Boundaries
+
+An entity marks a boundary on the lane it works on:
+
+- an inserter picking up: both lanes of the belt;
+- an inserter dropping: the lane it drops on;
+- a drill: the lane its output lands on;
+- a feed: the lane it sideloads onto.
+
+**Where.** The boundary is at the upstream edge of the belt holding the
+point R along the lane from the downstream edge of the entity's belt. A
+turn's lanes are 295 and 106 long.
+
+- For inserters, R lies in 618..657; factory-sim uses 640.
+- For a sideload, R lies in 362..401 from the target belt's edge;
+  factory-sim uses 384.
+
+On a straight line that is k+2|k+3 and k+1|k+2, as before. After an inner
+turn it is one belt further: 256 + 106 = 362 is not enough. The 20 drop, 20
+pickup and 20 feed rigs of `dist`, the turn rigs of `bound` and the loop
+rigs all agree. No belt edge any lane can reach falls inside either interval
+(inner, outer and straight lengths give 618 and 657, 362 and 401 at their
+ends). So on these patterns the choice of R inside each interval changes
+nothing. A drill's reach was measured on straight lines only (the second
+probe's eight rigs) and is taken as the inserter's.
+
+**When: a boundary is set off**:
+
+- by the entity's first item: a drop, a drill's output, or a feed's item
+  arriving, a tick before the item reads on the belt;
+- for a pickup, by the first time the inserter looks for an item on that
+  lane. That is:
+  - when it chooses one on its pickup belt: only that lane
+    (`pick_k0_both`: with items on both lanes of its pickup belt, the near
+    lane at the insert, the other when it has dropped the first item into
+    its chest);
+  - or, with none on its pickup belt, when it waits while its lane's
+    segment holds an item it would take. An item added to the segment
+    elsewhere makes a waiting inserter look as of that tick: a script's at
+    the insert, an entity's a tick before it reads.
+
+Set off nothing:
+
+- an idle inserter;
+- an inserter whose chest is full (`pick_full`);
+- an inserter dropping from an empty chest (`idle_drop_*`, `idle_drop_k7_drop_k2`);
+- a feed nothing has come down (`side_put_*`);
+- a script insert by itself.
+
+The fourth probe's "every attached entity's boundary counts at a split" was
+this. In `logistics_belt_pickup` the pickups were waiting when the drops came
+at t=46, and were set off then.
+
+**Split.** When a boundary is set off at tick T, the lane's chain is made
+into its pieces again at T plus d of the chain's front lane (not of the
+piece's head: a second split, on the upstream piece, counts the same d,
+`seq_a`/`b`/`c`). "Made into its pieces" is what a merge does. Every edge is
+joined but those at the boundaries in force, and those are parted even
+where the lanes were one. So belts cut apart by a turn in the meantime are
+one again (`split_rot_k5_4x`), and a boundary set off a few ticks before
+another's split goes with it (`multi_side_k2_drop_k6`). A merge by a timer
+does the same (`turn_side_before`: a merge at t=770 parts m6|m7).
+
+**Close together.** Take the entities in force on a chain from upstream.
+One whose belt lies between the belt of the last one kept and that one's
+boundary marks none. So of two drops one or two belts apart only the
+upstream one counts (`drops_k3_k4`, `drops_k2_k4`, `drops_k2_k3_k4`); three
+apart both count (`drops_k2_k5`).
+
+- If the downstream one comes later, nothing happens (`late_down`).
+- If the upstream one comes later, then at its split its boundary appears
+  and the downstream one goes, its two pieces one again (`late_up`: m5|m6
+  parted and m6|m7 joined, both at t=807).
+
+### Script inserts
+
+A script insert within 8 of a belt's downstream edge reads on the next belt
+(`256 - 8 + p`) when the lane is merged with it (`bound` pickups, t=620: 0
+reads 248 on the next belt). It reads 0 on its own belt when the lane is a
+segment of its own, as in the fourth probe, and before a loop's seam.
+
+### How factory-sim compares
+
+With these rules factory-sim matches all 250 rigs, every reading, every
+tick (`tests/test_segments5.py`). The four second-probe rigs `seg_a_8`,
+`seg_ar_8`, `seg_b_7` and `seg_d_8` are compared again
+(`test_mechanics_logistics2.py`). Every earlier logistics test still passes.
+Those are:
+
+- the five parity traces, free-running, synced and tick by tick;
+- the segment classes of the third probe;
+- the first and second probes' rigs;
+- the third probe's sideload rigs and the fourth probe's order, sleep and
+  acceptance rigs.
+
+**Still chosen:** the place in the order of pieces that a loaded (hidden)
+state leaves holding items. Loading is not something the engine does
+mid-game.
 
 ## Open questions and rigs to settle them
 
