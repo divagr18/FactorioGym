@@ -190,6 +190,11 @@ local function character_state(ch, observation_profile)
   if ch.mining_state and ch.mining_state.mining then
     record.mining = { active = true, progress = ch.character_mining_progress }
   end
+  -- What `actions.lua`'s `mine` checks (`count_empty_stacks`), and the whole.
+  if observation_profile.inventory_slots then
+    local main = ch.get_inventory(defines.inventory.character_main)
+    if main then record.slots = { free = main.count_empty_stacks(), total = #main } end
+  end
   local queue = ch.crafting_queue
   if queue and #queue > 0 then
     local items = {}

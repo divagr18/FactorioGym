@@ -85,14 +85,23 @@ class EngineBackend:
         return self.max_steps - self.steps
 
     def legal(self, vector) -> bool:
-        """The engine's own check: every component inside its dimension's mask,
-        and a vector the decoder accepts."""
+        """The engine's own check: every component inside its dimension's mask
+        -- under `v3`, the operation's own row of the per-operation masks -- and
+        a vector the decoder accepts."""
         if vector[0] == OP_WAIT:
             return True
         mask = self.penv.action_masks()
-        for d, value in enumerate(vector):
-            if not mask[self._bounds[d] + int(value)]:
+        if not mask[int(vector[0])]:
+            return False
+        if getattr(self.penv, "v3", False):
+            row = self.penv.operation_masks()[int(vector[0])]
+            offsets = self._bounds[1:] - self._bounds[1]
+            if not all(row[offsets[d] + int(v)] for d, v in enumerate(vector[1:])):
                 return False
+        else:
+            for d, value in enumerate(vector):
+                if not mask[self._bounds[d] + int(value)]:
+                    return False
         return self.penv.decode(np.asarray(vector, dtype=np.int64))[2] is None
 
     def step(self, vector) -> float:

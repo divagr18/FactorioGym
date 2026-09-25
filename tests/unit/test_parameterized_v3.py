@@ -79,8 +79,16 @@ class TestLayout:
         v3 = encoders.encode(observation, layout=encoders.LAYOUT_V3)
         np.testing.assert_array_equal(v3["entities"][:32, :16], v1["entities"])
         np.testing.assert_array_equal(v3["grid"], v1["grid"])
-        np.testing.assert_array_equal(v3["self"], v1["self"])
+        np.testing.assert_array_equal(v3["self"][:12], v1["self"])
         np.testing.assert_array_equal(v3["inventory"][:14], v1["inventory"])
+
+    def test_the_thirteenth_self_feature_is_the_free_share_of_the_main_inventory(self):
+        character = {"position": [0.0, 0.0], "slots": {"free": 20, "total": 80}}
+        encoded = encoders.encode(_observation(character=character), layout=encoders.LAYOUT_V3)
+        assert encoded["self"].shape == (13,)
+        assert encoded["self"][12] == np.float32(0.25)
+        # No slot count in the observation: 0, as for a full inventory.
+        assert encoders.encode(_observation(), layout=encoders.LAYOUT_V3)["self"][12] == 0.0
 
     def test_ninety_six_rows(self):
         entities = [
@@ -154,12 +162,12 @@ class TestMarkers:
 
 class TestActionSpace:
     def test_shape(self):
-        assert list(_v3().action_space.nvec) == [23, 97, 226, 5, 19, 4]
+        assert list(_v3().action_space.nvec) == [25, 97, 226, 5, 19, 4]
 
     def test_catalog_selects_the_profile(self):
         v1 = catalog_module.resolve("parameterized-v1")
         v3 = catalog_module.resolve("parameterized-v3")
-        assert v3.keys() == (*v1.keys(), "mine_tile")
+        assert v3.keys() == (*v1.keys(), "mine_tile", "take_fuel", "finish")
         assert v3.digest() != v1.digest()
         assert v1.digest() == "7222fb372fe51f63", "parameterized-v1's frozen digest moved"
         assert wrap_for_policy(_InnerV3()).profile == "v3"
@@ -196,6 +204,9 @@ class TestActionSpace:
         assert mask[encoders.ITEMS_V3.index("boiler") + 1]
         assert mask[encoders.ITEMS_V3.index("transport-belt") + 1]
         assert not mask[encoders.ITEMS_V3.index("coal") + 1]
+        # A locked recipe: the mod's `place` refuses the item.
+        locked = _v3(inventory={"boiler": 1}, recipes=["transport-belt"])
+        assert not _ops(locked)["place_at"]
 
     def test_no_rows_masks_row_operations(self):
         """v3 masks an operation whose target dimension has only the sentinel."""
@@ -337,3 +348,163 @@ class TestReachAndHandMining:
                             character,
                         )
                         k += 1
+
+
+def _op_rows(env) -> dict[str, dict[str, np.ndarray]]:
+    """Each operation's row of `operation_masks`, split by dimension."""
+    masks = env.operation_masks()
+    names = [n for n, _ in DIMENSIONS[1:]]
+    sizes = env.argument_sizes()
+    out = {}
+    for op, key in enumerate(env.env.catalog.keys()):
+        start, row = 0, {}
+        for name, size in zip(names, sizes, strict=True):
+            row[name] = masks[op, start : start + size]
+            start += size
+        out[key] = row
+    return out
+
+
+def _legal(row: np.ndarray) -> list[int]:
+    return [int(i) for i in np.flatnonzero(row)]
+
+
+class TestOperationMasks:
+    """User decision "v3 masks: per operation" (option C, 2026-09-25): per
+    operation, a mask over each argument dimension, legal where some whole
+    combination is one the game accepts; the flat mask folds them."""
+
+    ENTITIES = [
+        {"h": "belt", "name": "transport-belt", "p": [2.5, 0.5], "type": "transport-belt"},
+        {"h": "chest", "name": "wooden-chest", "p": [-2.5, 0.5], "type": "container",
+         "contents": {"iron-plate": 30}},
+        {"h": "furnace", "name": "stone-furnace", "p": [0.0, 3.0], "type": "furnace",
+         "fuel": {"coal": 4}, "contents": {"iron-ore": 5}, "output": {"iron-plate": 2}},
+        {"h": "ins", "name": "burner-inserter", "p": [0.5, -2.5], "type": "inserter",
+         "fuel": {"wood": 1}},
+        {"h": "pile", "name": "item-on-ground", "p": [-1.5, -1.5], "type": "item-entity",
+         "contents": {"coal": 1}},
+    ]  # fmt: skip
+
+    def _env(self, **overrides):
+        base = {
+            "entities": self.ENTITIES,
+            "inventory": {"coal": 10, "transport-belt": 3},
+            "character": {"position": [0.5, 0.5], "slots": {"free": 70, "total": 80}},
+            "recipes": ["transport-belt", "stone-furnace"],
+        }
+        return _v3(**{**base, **overrides})
+
+    def _rows(self, env):
+        return {h: k + 1 for k, h in enumerate(env.env.entity_row_handles())}
+
+    def test_shapes_and_no_empty_dimension(self):
+        env = self._env()
+        masks = env.operation_masks()
+        assert masks.shape == (25, 97 + 226 + 5 + 19 + 4)
+        assert env.action_masks().shape == (25 + masks.shape[1],)
+        for row in _op_rows(env).values():
+            assert all(part.any() for part in row.values())
+
+    def test_each_verb_names_only_what_it_can_act_on(self):
+        env = self._env()
+        rows, ops = self._rows(env), _op_rows(env)
+        item = {name: encoders.ITEMS_V3.index(name) + 1 for name in encoders.ITEMS_V3}
+        assert _legal(ops["rotate_at"]["target"]) == sorted([rows["belt"], rows["ins"]])
+        # Coal into the furnace's fuel slot or the chest. The inserter's one
+        # fuel slot holds wood, so it takes no coal; a belt and a pile have no
+        # inventory.
+        assert _legal(ops["give_to"]["target"]) == sorted([rows["chest"], rows["furnace"]])
+        assert _legal(ops["give_to"]["item"]) == sorted([item["coal"], item["transport-belt"]])
+        # take_from reads what some visible entity holds as contents or
+        # output (the pile's coal among them): the chest's plates, the
+        # furnace's ore, plates and -- its fuel slot is the first inventory
+        # holding coal -- coal.
+        assert _legal(ops["take_from"]["target"]) == sorted([rows["chest"], rows["furnace"]])
+        assert _legal(ops["take_from"]["item"]) == sorted(
+            [item["coal"], item["iron-ore"], item["iron-plate"]]
+        )
+        assert _legal(ops["take_fuel"]["target"]) == sorted([rows["furnace"], rows["ins"]])
+        assert _legal(ops["take_fuel"]["item"]) == [UNUSED]
+        # A pile off the patch yields nothing to mine_at.
+        assert rows["pile"] not in _legal(ops["mine_at"]["target"])
+        assert _legal(ops["place_at"]["item"]) == [item["transport-belt"]]
+        assert _legal(ops["place_at"]["direction"]) == [1, 2, 3, 4]
+        for key in ("finish", "wait", "move_north"):
+            assert all(_legal(part) == [UNUSED] for part in ops[key].values())
+
+    def test_the_flat_mask_is_the_union_over_legal_operations(self):
+        env = self._env()
+        masks, flat = env.operation_masks(), env.action_masks()
+        legal = flat[:25]
+        assert legal[env.env.catalog.keys().index("finish")]
+        np.testing.assert_array_equal(flat[25:], masks[legal].any(axis=0))
+
+    def test_a_running_mine_or_no_free_slot_masks_mining(self):
+        busy = self._env(inflight=[{"action": "mine", "request_id": "r1"}])
+        assert not _ops(busy)["mine_at"] and not _ops(busy)["mine_tile"]
+        full = self._env(character={"position": [0.5, 0.5], "slots": {"free": 0, "total": 80}})
+        assert not _ops(full)["mine_at"]
+        assert _ops(self._env())["mine_at"]
+
+    def test_no_room_masks_take(self):
+        # Every slot holds wood: no room for plates, ore or coal.
+        env = self._env(
+            inventory={"wood": 8000},
+            character={"position": [0.5, 0.5], "slots": {"free": 0, "total": 80}},
+        )
+        ops = _ops(env)
+        assert not ops["take_from"] and not ops["take_fuel"]
+        # Room for wood only (the last stack is part full): the inserter's.
+        env = self._env(
+            inventory={"wood": 7999},
+            character={"position": [0.5, 0.5], "slots": {"free": 0, "total": 80}},
+        )
+        rows = self._rows(env)
+        assert _legal(_op_rows(env)["take_fuel"]["target"]) == [rows["ins"]]
+
+    def test_a_pile_on_a_resource_tile_is_mined_through_the_tile(self):
+        tile = {"h": "t", "name": "iron-ore", "p": [1.5, 1.5]}
+        pile = {"h": "t", "name": "item-on-ground", "p": [1.5, 1.5], "type": "item-entity",
+                "contents": {"iron-ore": 1}}  # fmt: skip
+        env = self._env(entities=[pile], resources={"tiles": [tile]})
+        assert _legal(_op_rows(env)["mine_at"]["target"]) == [1]
+        env = self._env(
+            entities=[{**pile, "h": "p"}], resources={"tiles": [{**tile, "p": [9.5, 9.5]}]}
+        )
+        assert not _ops(env)["mine_at"]
+
+    def test_take_fuel_decodes_to_a_transfer_of_what_the_slot_holds(self):
+        env = self._env()
+        op = env.env.catalog.keys().index("take_fuel")
+        assert op == 23 and env.env.catalog.keys().index("finish") == 24
+        rows = self._rows(env)
+        _, arguments, failure = env.decode([op, rows["furnace"], 0, 0, 0, 3])
+        assert failure is None and arguments == {"from": "furnace", "count": 20}
+
+
+class TestFinish:
+    """User decision (2026-09-25): `finish` runs the verification window now and
+    ends the episode on its result."""
+
+    def test_finish_verifies_once_and_terminates(self, monkeypatch):
+        from test_construct_smelting_line import _stepping_env
+
+        from factoriorl.env import FactorioEnv
+
+        monkeypatch.setattr(encoders, "encode", lambda observation, goal: {})
+        env, calls = _stepping_env(
+            tick=300, steps=10, verified={"success": True, "reward": 0.7, "machine_output": 7,
+                                          "reward_components": {"verified_output": 0.7}},
+        )  # fmt: skip
+        _, reward, terminated, truncated, info = FactorioEnv.finish(env)
+        assert calls == [11], "one decision, and the verifier runs on it"
+        assert (terminated, truncated) == (True, False)
+        assert reward == pytest.approx(0.7) and info["verification"]["machine_output"] == 7
+        assert info["action_key"] == "finish"
+
+    def test_finish_decodes_with_no_arguments(self):
+        env = _v3()
+        op = env.env.catalog.keys().index("finish")
+        assert env.decode([op, 5, 7, 1, 2, 3]) == (op, {}, None)
+        assert _ops(env)["finish"]

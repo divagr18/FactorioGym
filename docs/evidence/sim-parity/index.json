@@ -29,14 +29,15 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "build_line_reference.local-v3.jsonl.xz",
-      "trace_sha256": "1b789fa9ac00ec69de2e9754b1384fab941bdff68318d81f02670ef6c409e065",
+      "trace_sha256": "6a9cfe1827c8ec75107e600b1f010b5cb0e6b926e1a3d51933ec49c946a06bd5",
       "v1_fields_identical": true,
-      "wall_seconds": 7.8
+      "wall_seconds": 5.8
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
@@ -80,14 +81,15 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "burner_run_on.local-v3.jsonl.xz",
-      "trace_sha256": "5b68a36b580dea99177e51924fb16879ef1a00eea100991f0ae21b99b9666386",
+      "trace_sha256": "27d683cb88a5e00290376adde986ae1f44a3a2bfba481f7b1c9b5378b5fbc9d9",
       "v1_fields_identical": true,
-      "wall_seconds": 3.7
+      "wall_seconds": 2.7
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
@@ -140,13 +142,14 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "construct_smelting_line_exploit.local-v3.jsonl.xz",
-      "trace_sha256": "1defaa3a95cd44af263538827188816d0f6d5ccd5c1b3abc1611c65242d37cdc",
+      "trace_sha256": "bf9262822607d89fcc8db0970d945ab416d4de2d53609388dbebe8c4a4ed8288",
       "v1_fields_identical": true,
-      "wall_seconds": 30.4
+      "wall_seconds": 23.1
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
@@ -198,14 +201,15 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "construct_smelting_line_reference.local-v3.jsonl.xz",
-      "trace_sha256": "3207ddb0c6a1717e787504718fd9fc938f89933e8a7d1c93f08c58b4ca9c9e8f",
+      "trace_sha256": "eba77d4fc5b48c789d7c918554932d82a0c6832b09e25023f437e6094ea0f9fe",
       "v1_fields_identical": true,
-      "wall_seconds": 29.6
+      "wall_seconds": 23.3
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
@@ -279,14 +283,15 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "drill_furnace_facings.local-v3.jsonl.xz",
-      "trace_sha256": "f0845353d1f612f709bb96e80c0d2ca8fb456c4fe792bbc6019ea9de7467c7fc",
+      "trace_sha256": "6a06d6a8c7cc2c9b8d0fe94e17fce496db76695daa908cfcf28498c190767feb",
       "v1_fields_identical": true,
-      "wall_seconds": 2.5
+      "wall_seconds": 1.7
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
@@ -339,14 +344,15 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "drill_jam_and_build_over_pile.local-v3.jsonl.xz",
-      "trace_sha256": "8f13ed7040a15210259b60f79a62c8f359f1ebbbb50bf84138a382c02795e642",
+      "trace_sha256": "b0d49a57331d9635fd4b19c7326aa9f529180f6376e991bf8ce9274310749e70",
       "v1_fields_identical": true,
-      "wall_seconds": 1.2
+      "wall_seconds": 0.9
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
@@ -407,6 +413,7 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".entities[*].lanes",
         ".entities[*].shape",
@@ -414,7 +421,7 @@
         ".profiles.observation_version"
       ],
       "trace": "hand_mine_build_over.local-v3.jsonl.xz",
-      "trace_sha256": "03c35bb0f5c5e6f351161a665e21ae897aac58876066d3da561f6547901fbe0c",
+      "trace_sha256": "83d015d8349b735030a0d0e818364fe0fff43363c4f5e89f63db22ff1f2028a0",
       "v1_fields_identical": true,
       "wall_seconds": 0.8
     },
@@ -487,13 +494,14 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].lanes",
         ".entities[*].shape",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "hand_mine_carried.local-v3.jsonl.xz",
-      "trace_sha256": "8db0aed01776ed08474c0ced4c85128d1aa1f9d6f00b139b35feb4ec92c8cba0",
+      "trace_sha256": "869f909b8aade72ff5497c5e926712f66861ce2aea90a28d311e640310e0a07b",
       "v1_fields_identical": true,
       "wall_seconds": 0.4
     },
@@ -568,6 +576,7 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".entities[*].held",
         ".entities[*].lanes",
@@ -577,7 +586,7 @@
         ".profiles.observation_version"
       ],
       "trace": "hand_mine_contents.local-v3.jsonl.xz",
-      "trace_sha256": "65f57ac8edce8e8b2b8be69ee1f3583505e810bad184a8af7da2fd86b756922c",
+      "trace_sha256": "fd5d3fa94f77204ee26ec0227e6ceae5e2455b4fd81831f71f8583573b4b1c02",
       "v1_fields_identical": true,
       "wall_seconds": 0.6
     },
@@ -625,13 +634,14 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "hand_mine_exhaustion.local-v3.jsonl.xz",
-      "trace_sha256": "e200a20c0f43cf47027239f67916f536d64f1eca961ecb70ffc52a0cbc7bd0cb",
+      "trace_sha256": "c6b18c97bb7b54d62ea430fd78a3ad06f375d313afb04bac25d38e1e7ddb5033",
       "v1_fields_identical": true,
-      "wall_seconds": 0.8
+      "wall_seconds": 0.5
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
@@ -684,13 +694,14 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "hand_mine_rules.local-v3.jsonl.xz",
-      "trace_sha256": "af45108fefcb3eb59eb2ef43f93e12eafc6e8bc9f71c7f48217835d8a146f8a0",
+      "trace_sha256": "11c28aafb5ef428cca7c796427242f0ff522ec9093b3a3dc6898af38a8b0c9b0",
       "v1_fields_identical": true,
-      "wall_seconds": 0.8
+      "wall_seconds": 0.7
     },
     "mod_source_digest": "fa0ea5b27c6f3cb8",
     "replay_identical": true,
@@ -745,14 +756,15 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "hand_mine_spills.local-v3.jsonl.xz",
-      "trace_sha256": "fe064f6abcfde5394931f4cfa38112a3864338f6767d8d14fc6d3947645bc644",
+      "trace_sha256": "8d14cc6e101c1b4e41857b92f276ab7cfc634eeb12c609eef0552d067dc54255",
       "v1_fields_identical": true,
-      "wall_seconds": 1.6
+      "wall_seconds": 1.4
     },
     "mod_source_digest": "fa0ea5b27c6f3cb8",
     "replay_identical": true,
@@ -892,6 +904,7 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".entities[*].held",
         ".entities[*].lanes",
@@ -901,9 +914,9 @@
         ".profiles.observation_version"
       ],
       "trace": "logistics_belt_pickup.local-v3.jsonl.xz",
-      "trace_sha256": "955c0092491d86f97ada83a278bfe8c492f8c696b4f4e64f3c41174fa15d0060",
+      "trace_sha256": "6a43e1c1ac960b3e1718c3a7203a312a55a41ec1dfeed81db943832c4625defd",
       "v1_fields_identical": true,
-      "wall_seconds": 2.9
+      "wall_seconds": 2.5
     },
     "mod_source_digest": "4fc32594d34d0228",
     "replay_identical": true,
@@ -990,6 +1003,7 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".entities[*].held",
         ".entities[*].lanes",
@@ -999,9 +1013,9 @@
         ".profiles.observation_version"
       ],
       "trace": "logistics_belt_rotate_and_mine.local-v3.jsonl.xz",
-      "trace_sha256": "143e76d383b09438c9d0d3c7a55b3b89b6a84dfa66a01869856eeed3ea0bf89a",
+      "trace_sha256": "6e506deeb0978b5a7c0aabe0793705ede5e6cda712830d098313e4308d628493",
       "v1_fields_identical": true,
-      "wall_seconds": 1.1
+      "wall_seconds": 1.0
     },
     "mod_source_digest": "4fc32594d34d0228",
     "replay_identical": true,
@@ -1082,6 +1096,7 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".entities[*].held",
         ".entities[*].pickup",
@@ -1089,9 +1104,9 @@
         ".profiles.observation_version"
       ],
       "trace": "logistics_inserter_fuel_exhaustion.local-v3.jsonl.xz",
-      "trace_sha256": "83ccc0333c866731561a8bd6f3623d7f49ac42f98a91f9e66e147c3682f96c35",
+      "trace_sha256": "3657b244a4756715989089271469aa464b7b0d11151f6ed1fe66d73b1d823804",
       "v1_fields_identical": true,
-      "wall_seconds": 2.6
+      "wall_seconds": 2.3
     },
     "mod_source_digest": "4fc32594d34d0228",
     "replay_identical": true,
@@ -1223,6 +1238,7 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".entities[*].held",
         ".entities[*].lanes",
@@ -1232,9 +1248,9 @@
         ".profiles.observation_version"
       ],
       "trace": "logistics_sideload_merge.local-v3.jsonl.xz",
-      "trace_sha256": "35f6f6ab12f6f65a89ce8e5e6446338bf8d528adebd3c6f943733672b74fdf31",
+      "trace_sha256": "48ea701c548ea447501f9f819a5907bbd56c19548dd31f61c5286ed569d271c1",
       "v1_fields_identical": true,
-      "wall_seconds": 3.0
+      "wall_seconds": 2.5
     },
     "mod_source_digest": "4fc32594d34d0228",
     "replay_identical": true,
@@ -1350,6 +1366,7 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".entities[*].held",
         ".entities[*].lanes",
@@ -1359,9 +1376,9 @@
         ".profiles.observation_version"
       ],
       "trace": "logistics_smelting_chain.local-v3.jsonl.xz",
-      "trace_sha256": "7e0a0375c2a07ec5de4fae3379884267db5aac205e3e28d6cc922408023ead9f",
+      "trace_sha256": "54848a28d3fbaea90c66484301c99338936cf77349ef6cf591fcaa5276f1c55e",
       "v1_fields_identical": true,
-      "wall_seconds": 3.5
+      "wall_seconds": 2.9
     },
     "mod_source_digest": "ea6d47dd1e614c88",
     "replay_identical": true,
@@ -1426,13 +1443,14 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "masked_random_rollout.local-v3.jsonl.xz",
-      "trace_sha256": "23ca929ac855f83b365af7d843b35ae83a30a8e2cdcf98944c98742a583ea6bf",
+      "trace_sha256": "101fab01acd292ce006c6669416cdc62977fae19105ddf306d747289fdb7b070",
       "v1_fields_identical": true,
-      "wall_seconds": 6.0
+      "wall_seconds": 4.9
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
@@ -1469,14 +1487,15 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "mine_machine_returns_contents.local-v3.jsonl.xz",
-      "trace_sha256": "a509f3662b08149f3611490737e04fa0a2b3c69b0f9b01fe6b8f8d408670d582",
+      "trace_sha256": "933e62b23183a79df105fb87827c35350d9f8a18910abd30c55dd09d413ef537",
       "v1_fields_identical": true,
-      "wall_seconds": 0.8
+      "wall_seconds": 0.6
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
@@ -1532,12 +1551,13 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".entities[*].drop",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "placement_footprints.local-v3.jsonl.xz",
-      "trace_sha256": "29ceb57ee02470bb8c4f51e1a4a52ac69135b8152a6c0d38483511d2460a6cf3",
+      "trace_sha256": "daa7fab990bd6a5f08e1e93a06c3590a41d8ed2b997c7120689ce887b36b479c",
       "v1_fields_identical": true,
       "wall_seconds": 0.3
     },
@@ -1590,13 +1610,14 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "transfer_clamping.local-v3.jsonl.xz",
-      "trace_sha256": "f96b970ac35a5cb870ca828c8b24c5b0a891c9bddbb55fbab869b0146b42f839",
+      "trace_sha256": "2a586c7a8e1ac197753081fc7a68a9bccddeb061ca7f428fb7b879d490e10d08",
       "v1_fields_identical": true,
-      "wall_seconds": 0.8
+      "wall_seconds": 0.7
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,
@@ -1621,6 +1642,114 @@
     "unencodable_actions": 0,
     "verification": null,
     "wall_seconds": 1.2
+  },
+  "v3_finish": {
+    "about": "v3: a mine_tile, then finish with a drill feeding a furnace: the verification window runs at once and ends the episode",
+    "action_outcomes": {
+      "finish:completed": 1,
+      "mine_tile:running": 1,
+      "wait:completed": 8
+    },
+    "decisions": 10,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "stone-furnace",
+        "status": "working"
+      },
+      {
+        "name": "burner-mining-drill",
+        "status": "working"
+      }
+    ],
+    "final_ground_items": 0,
+    "final_tick": 3870,
+    "layout_family": "offset_patch",
+    "mod_source_digest": "9b7b10b6f9d4ce19",
+    "replay_identical": true,
+    "replay_sha256": "3287fcb4c258f11bb20ca4c516aaf2589352aa32bb16414dc4fe9bde0f9afd66",
+    "requires": "logistics",
+    "return": 1.0,
+    "success": true,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": true,
+    "trace": "v3_finish.jsonl.xz",
+    "trace_sha256": "3287fcb4c258f11bb20ca4c516aaf2589352aa32bb16414dc4fe9bde0f9afd66",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": {
+      "machine_output": 15.0,
+      "machine_source": 15.0,
+      "reward": 1.0,
+      "success": true,
+      "uncapped_output": 15.0
+    },
+    "wall_seconds": 3.6
+  },
+  "v3_take_fuel": {
+    "about": "v3: fuel taken out of a drill, a furnace and an inserter mid-burn, with room for part of it, none, and after room is made",
+    "action_outcomes": {
+      "give_to:completed": 1,
+      "take_fuel:completed": 3,
+      "take_fuel:rejected:no_space": 2,
+      "wait:completed": 22
+    },
+    "decisions": 28,
+    "decode_failures": 0,
+    "engine_build": 83512,
+    "error": null,
+    "final_entities": [
+      {
+        "name": "stone-furnace",
+        "status": "working"
+      },
+      {
+        "name": "burner-mining-drill",
+        "status": "working"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      },
+      {
+        "name": "burner-inserter",
+        "status": "working"
+      },
+      {
+        "name": "wooden-chest",
+        "status": "normal"
+      }
+    ],
+    "final_ground_items": 0,
+    "final_tick": 840,
+    "layout_family": "varied_patch",
+    "mod_source_digest": "9b7b10b6f9d4ce19",
+    "replay_identical": true,
+    "replay_sha256": "d4519e41908ac49637f23d07d6d4885eb967d05e6647961f5e24d344a8e3069c",
+    "requires": "logistics",
+    "return": 0.0,
+    "success": false,
+    "task": "construct_smelting_line",
+    "task_version": "1.2.0",
+    "terminated": false,
+    "ticks": {
+      "first_mismatch": null,
+      "matches_decision_trace": true,
+      "repeat_identical": true,
+      "ticks": 840,
+      "trace": "v3_take_fuel.ticks.jsonl.xz",
+      "trace_sha256": "b82d60390c8a6ce4576894622928365539b0aac4e7f18fa501965da75ed0fa50",
+      "wall_seconds": 23.8
+    },
+    "trace": "v3_take_fuel.jsonl.xz",
+    "trace_sha256": "d4519e41908ac49637f23d07d6d4885eb967d05e6647961f5e24d344a8e3069c",
+    "truncated": false,
+    "unencodable_actions": 0,
+    "verification": null,
+    "wall_seconds": 1.3
   },
   "walk_and_reach": {
     "about": "strides into a wall, along its face and round it; resource reach",
@@ -1648,13 +1777,14 @@
     "local_v3": {
       "first_mismatch": null,
       "observation_differences": [
+        ".character.slots",
         ".profiles.observation",
         ".profiles.observation_version"
       ],
       "trace": "walk_and_reach.local-v3.jsonl.xz",
-      "trace_sha256": "1f8ab8a3a91f45bb4b64cb44f2c068eae2d91c32e356c347e2c454e3084ceef9",
+      "trace_sha256": "e6e5f40711f52f84e1a0c1bc81bcb4b068cff993ac89efcef41ae4eeb99c10ac",
       "v1_fields_identical": true,
-      "wall_seconds": 0.6
+      "wall_seconds": 0.4
     },
     "mod_source_digest": "c53124ef0df14b20",
     "replay_identical": true,

@@ -221,7 +221,14 @@ class ParameterizedEnv(gym.Env):
         return all(ARGUMENT_DIMENSION.get(name) in self._sizes for name in template.arguments)
 
     def action_masks(self) -> np.ndarray:
-        """Flat concatenation, in `nvec` order -- the shape sb3 splits."""
+        """Flat concatenation, in `nvec` order -- the shape sb3 splits.
+
+        Under `v3` it is `operation_masks` folded: the operation mask, then each
+        argument dimension as the union over the legal operations of what each
+        allows there, so stock sb3's factorised masked categorical runs on it
+        unchanged."""
+        if self.v3:
+            return self._folded(self.operation_masks())
         values = self._domain_values()
         available = self.env.argument_domains()
         operations = np.asarray(self.env.action_masks(), dtype=bool).copy()
@@ -249,51 +256,237 @@ class ParameterizedEnv(gym.Env):
                 nameable = set(available["items"]) | set(available.get("source_items") or ())
                 for index, item in enumerate(legal):
                     mask[index + 1] = item in nameable
-            elif name == "placement" and self.v3:
-                # A slot is legal if a placement there is accepted (free, and
-                # within build distance) or a `mine_tile` there is (a resource
-                # tile within resource reach). One dimension serves both verbs,
-                # and its mask is built before either is sampled, so it is the
-                # union; `decode` refuses the one that does not apply.
-                free = self.env.placement_grid()[1][: size - 1]
-                mineable = self.env.resource_tile_grid()[: size - 1]
-                for index, ok in enumerate(free):
-                    mask[index + 1] = ok or mineable[index] is not None
             elif name == "placement" and self.v2:
                 # Every slot names its tile whether or not anything stands
                 # there, so occupancy is what the mask carries.
                 for index, free in enumerate(self.env.placement_grid()[1][: size - 1]):
                     mask[index + 1] = free
-            elif name == "target" and self.v3:
-                # A row is legal if an action naming it is accepted: visible,
-                # and within the engine's reach (`env.entity_in_reach`).
-                for index, ok in enumerate(self.env.target_row_legal()[: size - 1]):
-                    mask[index + 1] = ok
             else:
                 for index in range(min(len(legal), size - 1)):
                     mask[index + 1] = True
             parts.append(mask)
-        if self.v3:
-            # An operation is legal only if every argument it takes has a legal
-            # value to choose. Under `v1` the domains the operation mask reads
-            # and the ones the argument dimensions offer are the same lists;
-            # under row targets they are not -- `targets` counts resource tiles
-            # and nothing else in view, the rows count remembered entities -- so
-            # an operation could be legal with nothing in its dimension but the
-            # sentinel, which only ever decodes to a counted no-op. `v2` keeps
-            # that behaviour, since its masks are what its results were
-            # measured under.
-            dimensions = {name: part for (name, _), part in zip(DIMENSIONS, parts, strict=True)}
-            for index in range(len(operations)):
-                if not operations[index]:
-                    continue
-                template = self.env.catalog.templates[index]
-                for argument in template.arguments:
-                    dimension = ARGUMENT_DIMENSION.get(argument)
-                    if dimension in dimensions and not dimensions[dimension][1:].any():
-                        operations[index] = False
-                        break
         return np.concatenate(parts)
+
+    # ---- v3: a mask per operation ---------------------------------------
+    def argument_sizes(self) -> list[int]:
+        """The argument dimensions' sizes, in `nvec` order after the operation."""
+        return [self._sizes[name] for name, _ in DIMENSIONS[1:]]
+
+    def operation_masks(self) -> np.ndarray:
+        """`v3`: per operation, which value of each argument dimension is legal.
+
+        User decision, "v3 masks: per operation" (option C, 2026-09-25). A flat
+        mask is fetched before the operation is sampled, so it can only offer
+        each dimension's union over every verb: a row an inserter could be
+        turned at was a legal `give_to` target. Row *o* here is operation *o*'s
+        own mask over the argument dimensions concatenated (target, placement,
+        direction, item, amount; `argument_sizes`), for a policy that samples
+        the operation first and then its arguments under that row.
+
+        Each row is the projection of the operation's legal argument
+        combinations: a value is legal when some full combination holding it is
+        one the game accepts, by the rules `inventory_rules` holds to the engine
+        and `env`'s reach rules; an operation is legal when it has one. A
+        dimension the operation does not read offers only its sentinel, as does
+        every dimension of an illegal operation, so no row is ever all false.
+        Placement per item is not in it: a 2x2 machine's other three tiles and
+        an item's own collision are still the game's `can_place_entity`
+        (docs/sim-logistics.md, "v3 masks: per operation").
+        """
+        if not self.v3:
+            raise ValueError("per-operation masks are defined for the v3 profile only")
+        sizes = self.argument_sizes()
+        offsets = np.cumsum([0, *sizes[:-1]])
+        names = [name for name, _ in DIMENSIONS[1:]]
+        out = np.zeros((len(self.env.catalog), sum(sizes)), dtype=bool)
+        out[:, offsets] = True
+        facts = self._v3_facts()
+        for op, template in enumerate(self.env.catalog.templates):
+            legal = self._legal_arguments(op, template, facts)
+            if legal is None:
+                continue
+            for name, values in legal.items():
+                d = names.index(name)
+                row = out[op, offsets[d] : offsets[d] + sizes[d]]
+                row[UNUSED] = False
+                row[[v for v in values if 0 < v < sizes[d]]] = True
+        return out
+
+    def operation_legal(self, masks: np.ndarray | None = None) -> np.ndarray:
+        """`v3`: which operations have a legal argument combination -- those
+        whose rows name something other than the sentinel in every dimension
+        they read, and every operation that reads none."""
+        masks = self.operation_masks() if masks is None else masks
+        names = [name for name, _ in DIMENSIONS[1:]]
+        offsets = np.cumsum([0, *self.argument_sizes()[:-1]])
+        legal = np.zeros(len(masks), dtype=bool)
+        for op, template in enumerate(self.env.catalog.templates):
+            used = [ARGUMENT_DIMENSION.get(a) for a in template.arguments]
+            legal[op] = self.decodable(op) and all(
+                not masks[op, offsets[names.index(n)]] for n in used
+            )
+        return legal
+
+    def packed_operation_masks(self) -> dict[str, str]:
+        """`operation_masks` for a record: the legal operations' rows as hex,
+        the first value the highest bit. An illegal operation's row is its
+        sentinels only, by definition, and is left out."""
+        masks = self.operation_masks()
+        legal = self.operation_legal(masks)
+        width = (masks.shape[1] + 3) // 4
+        return {
+            str(op): format(int("".join("1" if b else "0" for b in masks[op]), 2), f"0{width}x")
+            for op in range(len(masks))
+            if legal[op]
+        }
+
+    def _folded(self, masks: np.ndarray) -> np.ndarray:
+        """The flat `v3` mask: the operations, then per argument dimension the
+        union of every legal operation's row (the sentinel is always in it:
+        `wait` reads nothing and is always legal)."""
+        operations = self.operation_legal(masks)
+        union = masks[operations].any(axis=0)
+        return np.concatenate([operations, union])
+
+    def _v3_facts(self) -> dict:
+        """What the `v3` rules read -- all of it from the observation."""
+        from factoriorl import inventory_rules as rules
+        from factoriorl.env import RESOURCE_REACH, straight_distance
+
+        env = self.env
+        observation = env._observation or {}
+        character = observation.get("character") or {}
+        origin = character.get("position") or [0.0, 0.0]
+        rows = [
+            (record, remembered)
+            for _d, record, remembered in encoders_row_order(env, observation, origin)
+            if record.get("h")
+        ][: self.max_targets]
+        held = {k: int(v) for k, v in (observation.get("inventory") or {}).items() if v}
+        free = (character.get("slots") or {}).get("free")
+        busy = any(
+            isinstance(e, dict) and e.get("action") == "mine"
+            for e in observation.get("inflight") or []
+        )
+        return {
+            "origin": origin,
+            "rows": rows,
+            "reach": env.target_row_legal()[: self.max_targets],
+            "tiles": {
+                str(tile["h"]): tile.get("p")
+                for tile in (observation.get("resources") or {}).get("tiles") or []
+                if tile.get("h")
+            },
+            "resource_reach": RESOURCE_REACH,
+            "straight": straight_distance,
+            "held": held,
+            "room": {item: rules.room(held, rules.MAIN_SLOTS, item) for item in self._items()},
+            # The mod refuses a mine while one runs and when no main slot is
+            # free. A profile with no slot count (before `local-v3` v2) cannot
+            # show the second, so it is left to the mod there.
+            "can_mine": not busy and (free is None or int(free) > 0),
+            # A profile without `recipes` cannot show a locked one; the mod's
+            # `place` refuses those, and is left to.
+            "recipes": set(observation["recipes"]) if "recipes" in observation else None,
+            "sources": set(env.argument_domains().get("source_items") or ()),
+            "free_tiles": env.placement_grid()[1][: self.max_placements],
+            "mineable": env.resource_tile_grid()[: self.max_placements],
+        }
+
+    def _legal_arguments(self, op: int, template, facts: dict) -> dict | None:
+        """The legal values (1-based indices) of each dimension an operation
+        reads, or None when it has no legal combination."""
+        from factoriorl import catalog as catalog_module
+        from factoriorl import inventory_rules as rules
+
+        if not template.arguments:
+            return {}
+        if not self.decodable(op):
+            return None
+        items = list(self._items())
+        amounts = list(range(1, self._amount_slots() + 1))
+        rows, reach, tiles = facts["rows"], facts["reach"], facts["tiles"]
+        key = template.key
+
+        def reachable(k: int) -> bool:
+            # Visible, within reach, and not a pile sharing a resource tile's
+            # handle (which the mod resolves to the resource).
+            record, remembered = rows[k]
+            return not remembered and reach[k] and str(record["h"]) not in tiles
+
+        if key == "place_at":
+            chosen = [
+                items.index(i) + 1
+                for i in items
+                if facts["held"].get(i, 0) > 0
+                and i in rules.PLACES
+                and (facts["recipes"] is None or i in facts["recipes"])
+            ]
+            slots = [k + 1 for k, ok in enumerate(facts["free_tiles"]) if ok]
+            if not chosen or not slots:
+                return None
+            return {"placement": slots, "direction": [1, 2, 3, 4], "item": chosen}
+        if key in ("mine_at", "mine_tile"):
+            if not facts["can_mine"]:
+                return None
+            if key == "mine_tile":
+                slots = [k + 1 for k, h in enumerate(facts["mineable"]) if h is not None]
+                return {"placement": slots, "amount": amounts} if slots else None
+            targets = []
+            for k, (record, remembered) in enumerate(rows):
+                if remembered:
+                    continue
+                at = tiles.get(str(record["h"]), False)
+                if at is not False:
+                    # The resource the shared handle resolves to: resource reach.
+                    ok = (
+                        bool(at)
+                        and facts["straight"](facts["origin"], at) <= facts["resource_reach"]
+                    )
+                else:
+                    ok = reach[k] and record.get("name") not in rules.YIELDS_NOTHING
+                if ok:
+                    targets.append(k + 1)
+            return {"target": targets} if targets else None
+        if key in ("rotate_at", "rotate_at_reverse"):
+            targets = [
+                k + 1
+                for k, (record, _r) in enumerate(rows)
+                if reachable(k) and record.get("name") in rules.ROTATABLE
+            ]
+            return {"target": targets} if targets else None
+        if key == catalog_module.TAKE_FUEL:
+            targets = []
+            for k, (record, _r) in enumerate(rows):
+                fuel = rules.fuel_item(record) if reachable(k) else None
+                if fuel is not None and facts["room"].get(fuel, 0) >= 1:
+                    targets.append(k + 1)
+            return {"target": targets, "amount": amounts} if targets else None
+        if key == "give_to":
+            pairs = [
+                (k + 1, items.index(i) + 1)
+                for k, (record, _r) in enumerate(rows)
+                if reachable(k)
+                for i in items
+                if facts["held"].get(i, 0) > 0 and rules.accepts(record, i)
+            ]
+        elif key == "take_from":
+            pairs = [
+                (k + 1, items.index(i) + 1)
+                for k, (record, _r) in enumerate(rows)
+                if reachable(k)
+                for i in items
+                if i in facts["sources"] and rules.holds(record, i) > 0 and facts["room"][i] >= 1
+            ]
+        else:
+            return None
+        if not pairs:
+            return None
+        return {
+            "target": sorted({t for t, _ in pairs}),
+            "item": sorted({i for _, i in pairs}),
+            "amount": amounts,
+        }
 
     # ---- decode -------------------------------------------------------
     def decode(self, action) -> tuple[int, dict, str | None]:
@@ -410,6 +603,14 @@ class ParameterizedEnv(gym.Env):
 
     def reset(self, **kwargs):
         return self.env.reset(**kwargs)
+
+
+def encoders_row_order(env: Any, observation: dict, origin) -> list:
+    """`encoders.entity_row_order` over the env's layout: the rows a `v2` or
+    `v3` target index names."""
+    from factoriorl import encoders
+
+    return encoders.entity_row_order(observation, origin, env.layout.max_entities)
 
 
 def wrap_for_policy(env: Any, skills: bool = False) -> Any:

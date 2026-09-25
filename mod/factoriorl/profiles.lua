@@ -168,13 +168,18 @@ profiles.OBSERVATION = {
   --     makes 96 enough: the encoder keeps the nearest 96 of visible and
   --     remembered together, and a visible entity at rank 97 already has 96 at
   --     least as close. The sweep limit stays at v1's candidate budget.
+  --   * `inventory_slots` (version 2): the character's free and total main
+  --     inventory slots. The mod refuses a mine when no slot is free, even with
+  --     room in a part stack, and item counts alone cannot tell that apart; the
+  --     v3 mask needs it (user decision, "v3 masks: per operation").
   ["local-v3"] = {
     name = "local-v3",
-    version = 1,
+    version = 2,
     event_window = 8,
     flat_events = true,
     deterministic_order = true,
     logistics_detail = true,
+    inventory_slots = true,
     radius = 32,
     entity_cap = 96,
     entity_sweep_limit = 257,

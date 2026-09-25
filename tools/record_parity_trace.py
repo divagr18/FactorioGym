@@ -308,7 +308,8 @@ class Recorder:
 
     def __init__(self, env: FactorioEnv, session: WorkerSession) -> None:
         self.env = env
-        self.penv = ParameterizedEnv(env)
+        #: A `v3` catalog's vectors are `v3` vectors (`wrap_for_policy`).
+        self.penv = ParameterizedEnv(env, profile="v3" if env.v3 else "v1")
         self.session = session
         self.normaliser = Normaliser()
         self.records: list[dict] = []
@@ -379,7 +380,9 @@ class Recorder:
         digest = self.session.world_digest(hidden=True).response.result or {}
         lines = digest.get("lines") or []
         mask = self.penv.action_masks()
+        extra = {"op_masks": self.penv.packed_operation_masks()} if self.penv.v3 else {}
         return {
+            **extra,
             "decision": len(self.records),
             "transition": transition,
             "tick": int(self.env._observation.get("tick") or 0),
@@ -1145,6 +1148,57 @@ def hand_mine_carried(s: Script) -> None:
     s.wait(5)
 
 
+#: (k) `v3`'s `take_fuel` (tools/probe_inventory.py, `fuel`): fuel out of a
+#: drill, a furnace and an inserter mid-burn -- the burning item stays in the
+#: burner and burns on -- with the character's room for coal 3: a take larger
+#: than the room moves what fits and is refused `no_space`, one with no room
+#: moves nothing. Then room made, and the rest taken.
+V3_TAKE_FUEL = [
+    _two("burner-mining-drill", (0, -2), "north", contents={"coal": 5}),
+    _two("stone-furnace", (0, -4), "north", contents={"coal": 5, "iron-ore": 10}),
+    _one("wooden-chest", (3, 0)),
+    _one("burner-inserter", (3, 1), "north", contents={"coal": 2}),
+    _one("wooden-chest", (3, 2)),
+]
+
+
+def v3_take_fuel(s: Script) -> None:
+    px, py = (math.floor(v) for v in s.observation["character"]["position"])
+    # The character stands on (2, 0).
+    drill = s.entity("burner-mining-drill", (px - 2, py - 2))
+    furnace = s.entity("stone-furnace", (px - 2, py - 4))
+    inserter = s.entity("burner-inserter", (px + 1.5, py + 1.5))
+    chest = s.entity("wooden-chest", (px + 1.5, py + 0.5))
+    s.wait(2)
+    s.do("take_fuel", **{"from": drill}, count=1)
+    s.do("take_fuel", **{"from": furnace}, count=20)
+    s.do("take_fuel", **{"from": inserter}, count=5)
+    s.give(chest, "coal", 20)
+    s.do("take_fuel", **{"from": inserter}, count=5)
+    s.do("take_fuel", **{"from": drill}, count=20)
+    s.wait(20)
+
+
+#: (l) `v3`'s `finish`: a drill feeding a furnace, fuelled, then `finish` a
+#: few decisions in. The verification window runs at once and the episode
+#: ends on it. A `mine_tile` first, `v3`'s hand-mining verb.
+V3_FINISH = [
+    _two("burner-mining-drill", (0, -2), "north", contents={"coal": 5}),
+    _two("stone-furnace", (0, -4), "north", contents={"coal": 5}),
+]
+
+
+def v3_finish(s: Script) -> None:
+    px, py = (math.floor(v) for v in s.observation["character"]["position"])
+    # The character stands on (2, 0), next to ore on (2, 1).
+    tile = s.tile_handle((px, py + 1))
+    if tile is None:
+        raise RuntimeError("no resource tile beside the character")
+    s.do("mine_tile", tile=tile, count=1)
+    s.wait(8)
+    s.do("finish")
+
+
 def belt_rotate_and_mine(s: Script) -> None:
     # The character stands on (9, -7), just south of the belt row at y = -8.
     px, py = (math.floor(v) for v in s.observation["character"]["position"])
@@ -1181,6 +1235,21 @@ class Scenario:
     #: furnaces and walls, written to the index so a simulator can tell which
     #: traces it is not yet expected to reproduce.
     requires: str | None = None
+    #: Task-spec fields replaced for this scenario (`V3`: the task under the
+    #: `parameterized-v3` catalog and the `local-v3` sensor).
+    spec: tuple = ()
+
+
+def task_for(scenario: Scenario):
+    """The scenario's task, with its spec overrides."""
+    base = get(scenario.task)
+    if not scenario.spec:
+        return base
+    return dataclasses.replace(base, spec=dataclasses.replace(base.spec, **dict(scenario.spec)))
+
+
+#: A task run under the `v3` profile: its catalog and its sensor.
+V3 = (("catalog", "parameterized-v3"), ("observation_profile", "local-v3"))
 
 
 SMELTING = "construct_smelting_line"
@@ -1407,6 +1476,30 @@ SCENARIOS: tuple[Scenario, ...] = (
         edit=logistics_scene(HAND_MINE_CARRIED, (1, 5)),
         requires="logistics",
     ),
+    Scenario(
+        "v3_take_fuel",
+        SMELTING,
+        "train",
+        0,
+        "v3: fuel taken out of a drill, a furnace and an inserter mid-burn, with room for "
+        "part of it, none, and after room is made",
+        v3_take_fuel,
+        edit=logistics_scene(V3_TAKE_FUEL, (2, 0), {"coal": 47, "wood": 7900}),
+        requires="logistics",
+        spec=V3,
+    ),
+    Scenario(
+        "v3_finish",
+        SMELTING,
+        "train",
+        0,
+        "v3: a mine_tile, then finish with a drill feeding a furnace: the verification "
+        "window runs at once and ends the episode",
+        v3_finish,
+        edit=logistics_scene(V3_FINISH, (2, 0), {"wood": 100}),
+        requires="logistics",
+        spec=V3,
+    ),
 )
 
 #: The logistics scenarios, by name.
@@ -1436,7 +1529,7 @@ def make_env(
     """A fresh env whose next reset installs the scenario's scene, or, given a
     recorded trace's header, the scene that trace recorded."""
     env = FactorioEnv(
-        task or get(scenario.task),
+        task or task_for(scenario),
         session,
         SeedPlan(master=MASTER_SEED, run_id=f"sim-parity-{scenario.name}"),
         branch=Branch.TRAIN,
@@ -1491,7 +1584,7 @@ def header_for(scenario: Scenario, env: FactorioEnv, recorder: Recorder, install
         "action_space": {
             "dimensions": [name for name, _ in DIMENSIONS],
             "nvec": [int(n) for n in recorder.penv.action_space.nvec],
-            "items": list(encoders.ITEMS),
+            "items": list(encoders.ITEMS_V3 if env.v3 else encoders.ITEMS),
         },
     }
 
@@ -1535,7 +1628,8 @@ def record(
 
 #: Scenarios replayed tick by tick with `--tick-resolution`: the mechanics ones.
 #: The three long ones are a 600-decision reference, an exploit and a random
-#: rollout, whose mechanics these already cover, at 18,000 ticks apiece.
+#: rollout, whose mechanics these already cover, at 18,000 ticks apiece;
+#: `v3_finish` is a verification window, 3,600 ticks of `wait`.
 TICK_SCENARIOS = (
     "walk_and_reach",
     "hand_mine_exhaustion",
@@ -1545,7 +1639,7 @@ TICK_SCENARIOS = (
     "burner_run_on",
     "transfer_clamping",
     "mine_machine_returns_contents",
-    *LOGISTICS,
+    *(name for name in LOGISTICS if name != "v3_finish"),
 )
 
 
@@ -1598,7 +1692,7 @@ def record_ticks(scenario: Scenario, session: WorkerSession, actions: list[dict]
     state at every decision boundary must equal the decision trace's; the
     caller checks that before trusting the ticks in between.
     """
-    base = get(scenario.task)
+    base = task_for(scenario)
     ticks_per_decision = base.spec.decision_ticks
     spec = dataclasses.replace(base.spec, decision_ticks=1, max_decision_steps=10**9)
     env, installed = make_env(scenario, session, task=dataclasses.replace(base, spec=spec))
@@ -1783,6 +1877,9 @@ def sensor_v3(scenario: Scenario, session: WorkerSession, index: dict) -> int:
     observation may differ only by what `local-v3` adds.
     """
     started = time.perf_counter()
+    if dict(scenario.spec).get("observation_profile") == SENSOR_V3:
+        print(f"{scenario.name:36} recorded under {SENSOR_V3} already", flush=True)
+        return 0
     committed_header, committed = read_trace(OUT_DIR / f"{scenario.name}.jsonl.xz")
     actions = [r["transition"]["action"] for r in committed if r["transition"]]
     base = get(scenario.task)

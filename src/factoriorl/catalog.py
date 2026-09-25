@@ -34,6 +34,17 @@ INSPECT = "inspect"
 WAIT_FOR = "wait_for"
 ENV_HANDLED = (INSPECT, WAIT_FOR)
 
+#: `parameterized-v3`'s `finish`: the agent declares construction done, the
+#: task's verification window runs at once and the episode ends on its result
+#: (user decision, 2026-09-25). Answered by the environment, like the two
+#: above, and never sent to the mod.
+FINISH = "finish"
+
+#: `parameterized-v3`'s `take_fuel`: a transfer out of a burner's fuel slot.
+#: The item is the one the slot holds, filled in from the observed record, so
+#: the verb names a target and an amount only.
+TAKE_FUEL = "take_fuel"
+
 #: Payload values beginning with this are *arguments*: the caller supplies them.
 #: Values beginning with "$" are bound from the observation-derived context
 #: instead, which is the older, fully-bound form.
@@ -420,9 +431,21 @@ OPEN_V1: tuple[ActionTemplate, ...] = tuple(
 #:
 #: Stage 2's `set_recipe_at` with a recipe dimension lands here too, without
 #: moving `parameterized-v1`'s frozen digest.
+#:
+#: Then two more (user decisions, 2026-09-25): `take_fuel`, a transfer out of a
+#: burner's fuel slot -- `take_from` offers what an entity holds as contents or
+#: output, never its fuel -- measured first by `tools/probe_inventory.py`
+#: (`inventory-fuel`); and `finish`, which runs the task's verification now and
+#: ends the episode on it.
 PARAMETERIZED_V3: tuple[ActionTemplate, ...] = (
     *PARAMETERIZED_V1,
     ActionTemplate("mine_tile", "mine", {"handle": "?tile", "count": "?count"}),
+    ActionTemplate(
+        TAKE_FUEL,
+        "transfer",
+        {"from": "?from", "to": "character", "item": "$fuel_item", "count": "?count"},
+    ),
+    ActionTemplate(FINISH, "wait", {}),
 )
 
 #: Catalogs whose argument indices follow the `v3` profile.

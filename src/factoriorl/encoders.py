@@ -179,6 +179,9 @@ class TensorLayout:
     goal_features: int
     #: Named-marker triples after the 12-slot v1 goal vector (`v3` only).
     marker_slots: int = 0
+    #: `SELF_FEATURES`, and under `v3` one more: the free share of the
+    #: character's main inventory slots (`SELF_FEATURES_V3`).
+    self_features: int = SELF_FEATURES
 
 
 LAYOUT_V1 = TensorLayout(
@@ -217,6 +220,13 @@ LANE_CAP = 8.0
 #: exact in float32 and well inside [-1, 1].
 OFFSET_SCALE = 2.0
 
+#: The `v3` self vector: `SELF_FEATURES`, then the character's free main
+#: inventory slots over its total (`local-v3` v2's `character.slots`). The mod
+#: refuses a mine with no slot free even when a part stack has room, and the
+#: inventory's item counts cannot tell those apart (user decision, "v3 masks:
+#: per operation").
+SELF_FEATURES_V3 = SELF_FEATURES + 1
+
 LAYOUT_V3 = TensorLayout(
     name="v3",
     max_entities=MAX_ENTITIES_V3,
@@ -224,6 +234,7 @@ LAYOUT_V3 = TensorLayout(
     items=ITEMS_V3,
     goal_features=GOAL_FEATURES_V3,
     marker_slots=MARKER_SLOTS_V3,
+    self_features=SELF_FEATURES_V3,
 )
 
 LAYOUTS: dict[str, TensorLayout] = {"v1": LAYOUT_V1, "v3": LAYOUT_V3}
@@ -265,7 +276,7 @@ def observation_space(
             ),
             "entities": spaces.Box(-1.0, 1.0, (rows, features), np.float32),
             "entity_mask": spaces.Box(0, 1, (rows,), np.int8),
-            "self": spaces.Box(-1.0, 1.0, (SELF_FEATURES,), np.float32),
+            "self": spaces.Box(-1.0, 1.0, (layout.self_features,), np.float32),
             "inventory": spaces.Box(0.0, 1.0, (len(layout.items),), np.float32),
             "goal": spaces.Box(-1.0, 1.0, (layout.goal_features,), np.float32),
         }
@@ -434,7 +445,7 @@ def encode(
 
     character = observation.get("character") or {}
     position = character.get("position", [0, 0])
-    self_vector = np.zeros(SELF_FEATURES, dtype=np.float32)
+    self_vector = np.zeros(layout.self_features, dtype=np.float32)
     self_vector[0] = _norm(position[0], 128.0)
     self_vector[1] = _norm(position[1], 128.0)
     self_vector[2] = 1.0 if character.get("walking") else 0.0
@@ -466,6 +477,10 @@ def encode(
     counts = observation.get("event_counts")
     if isinstance(counts, dict) and counts.get("settled"):
         self_vector[11] = float(counts.get("refused") or 0) / float(counts["settled"])
+    if layout.self_features > SELF_FEATURES:
+        slots = character.get("slots") or {}
+        if slots.get("total"):
+            self_vector[SELF_FEATURES] = float(slots.get("free") or 0) / float(slots["total"])
 
     inventory = np.zeros(len(layout.items), dtype=np.float32)
     for index, item in enumerate(layout.items):

@@ -1392,7 +1392,8 @@ hold), `hand_mine_build_over` and `hand_mine_carried`. What is not exact yet:
    dimension (1, 5, 20), sent to the mod's `mine` action as `mine_at` is.
    Target-by-tile rather than new rows, because resource tiles have no row in
    the entity table and a row per tile would crowd out the entities. The
-   action vector is `MultiDiscrete[23, 97, 226, 5, 19, 4]`. factory-sim
+   action vector was `MultiDiscrete[23, 97, 226, 5, 19, 4]`; with `take_fuel`
+   and `finish` (below) it is `MultiDiscrete[25, 97, 226, 5, 19, 4]`. factory-sim
    implements every rule above, pinned tick by tick by the `hand_mine_rules`
    parity trace (a spill with the inventory filling mid-mine, a refusal when
    full, the ore tile under a chest); `WorldV3.mine_resource(x, y, amount)`.
@@ -1400,12 +1401,13 @@ hold), `hand_mine_build_over` and `hand_mine_carried`. What is not exact yet:
    when it is visible and within reach by the rule above; a placement slot when
    its tile is free and its centre within build distance; the same slot is
    also legal for `mine_tile` when a visible resource tile within resource
-   reach lies on it. What a factorised mask cannot say is still left to the
-   decoder or the game: the placement dimension is shared by `place_at` and
-   `mine_tile` (the union), a row is shared by every verb that takes one, a
-   2x2 machine's other three tiles and an item's own collision are the game's
-   `can_place_entity`, and "no free inventory slot" (which the observation's
-   item counts cannot always tell) is the mod's refusal.
+   reach lies on it. What a factorised mask could not say was left to the
+   decoder or the game: the placement dimension shared by `place_at` and
+   `mine_tile` (the union), a row shared by every verb that takes one, a 2x2
+   machine's other three tiles and an item's own collision (the game's
+   `can_place_entity`), and "no free inventory slot" (the mod's refusal).
+   Superseded by the per-operation masks ("v3 masks: per operation", below),
+   which keep only the placement-per-item case.
 3. **Remembered rows carry no belt or inserter detail.** Accepted as is:
    memory keeps a record's name, type, position, direction, contents and
    recipe, nothing else. Under decision 2 a remembered row is also masked.
@@ -1413,6 +1415,127 @@ hold), `hand_mine_build_over` and `hand_mine_carried`. What is not exact yet:
    inventory, so nothing needs crafting, and an unmeasured mechanic would break
    parity. It is measured and implemented exactly together with Stage 2's
    recipe dimension.
+
+## v3 masks per operation, `finish` and taking fuel (user decisions, 2026-09-25)
+
+One revision of the v3 action layout, before anything trains on it. The
+action vector is `MultiDiscrete[25, 97, 226, 5, 19, 4]`: `parameterized-v1`'s
+22 operations, `mine_tile` (22), `take_fuel` (23) and `finish` (24); the flat
+mask is 376 entries, the per-operation masks 25 x 351 bits a step (25 rows of
+88 hex digits in a trace), and the self vector 13 slots. `parameterized-v1`'s
+digest (`7222fb372fe51f63`) and every `v1` and `v2` tensor, mask and vector
+are unchanged; `parameterized-v3`'s is `6cba96b001f19107`.
+
+### What the engine accepts, measured
+
+`tools/probe_inventory.py` reads the facts off the running engine
+(`docs/evidence/inventory-prototypes.json.xz`, `inventory-fuel.json.xz`), and
+`factoriorl.inventory_rules` holds them, pinned to that evidence by
+`tests/unit/test_inventory_rules.py`; factory-sim carries the same table
+(`csrc/fsim_rl.c`).
+
+- **The character.** 80 main inventory slots. Stack sizes: 100 for plates,
+  gears, belts and wood, 10 for a steam engine, 20 for an offshore pump, 50
+  for everything else in `ITEMS_V3`.
+- **Fuel.** Coal (4 MJ) and wood (2 MJ); both chemical.
+- **Turning.** `LuaEntity.rotate` turns a belt, an inserter, a drill and a
+  boiler; a steam engine and an offshore pump take a direction but refuse to
+  turn once built.
+- **Inventories.** A wooden chest's 16 slots take anything; a burner's fuel
+  inventory (drill, furnace, inserter, boiler) is one slot that takes coal or
+  wood; a stone furnace's source is one slot that takes iron ore, copper ore
+  or stone, 54 of them by one insert (over the stack of 50); its result slot
+  takes anything by script, which is where a give of coal lands once the fuel
+  slot is full.
+- **Mining.** A ground pile is minable but yields nothing, and the mod's
+  `mine` refuses it ("yields nothing"); a pile over a resource tile shares the
+  tile's handle, which resolves to the resource, and is mined through it
+  ("Mining at the edges").
+- **Part of the room.** The mod's transfer takes `min(count, available)` if
+  `can_insert` says at least one fits, inserts what fits, puts the rest back
+  and reports `rejected`/`no_space` -- and what moved stays moved. With no
+  room at all nothing moves (`take_partial`, `give_partial`,
+  `take_fuel_partial`).
+- **Fuel out of a burner** (decision 3 below). A transfer from a drill,
+  furnace, inserter or boiler naming its fuel item comes out of the fuel slot,
+  inventory 1 (`defines.inventory.fuel`, the number `chest` shares): the mod's
+  `inventory_of` tries it first. More than is there moves what is there. The
+  item burning is not in the slot: it stays in the burner and burns on (its
+  `remaining_burning_fuel` runs down unchanged), so a furnace given one coal
+  has an empty slot from its first tick and nothing to take.
+
+### The decisions
+
+1. **v3 masks: per operation (option C).** Per operation, a mask over each
+   argument dimension (target, placement, direction, item, amount): a value is
+   legal when some whole argument combination holding it is one the game
+   accepts, and an operation when it has one. A dimension an operation does
+   not read offers only its sentinel, as does every dimension of an illegal
+   operation, so no row is ever all false. The flat mask stays, as the
+   operations then per dimension the union of the legal operations' rows, so
+   stock sb3's `MaskableMultiCategorical` runs on it unchanged. FactorioRL:
+   `ParameterizedEnv.operation_masks()` (and `packed_operation_masks()` for a
+   record); factory-sim: `fsim_rl_opmask3` and `RlEnv.op_masks()`, identical,
+   pinned per decision by the contract golden's `op_masks`
+   (`tools/v3_contract_golden.py`, factory-sim `tests/test_rl_contract.py`).
+   The rules, all from what the observation shows:
+   - `place_at`: an item held that places an entity and whose recipe is
+     enabled, a free slot within build distance, any facing;
+   - `mine_at`: a visible row within reach, not a pile off a resource tile;
+     a pile on a resource tile within resource reach of the tile's centre;
+     no mine running and a free main slot (the mod refuses both);
+   - `mine_tile`: a slot holding a visible resource tile within resource
+     reach, the same two refusals;
+   - `rotate_at`, `rotate_at_reverse`: a visible row within reach that turns;
+   - `give_to`: a row within reach and an item held that one of its
+     inventories takes at least one of, by the room its record shows;
+   - `take_from`: a row within reach holding the item (fuel included, as the
+     mod reads it), the item in `take_from`'s domain, and room for at least
+     one;
+   - `take_fuel`: a row within reach whose fuel slot holds fuel, and room for
+     at least one of it;
+   - `finish`, `wait` and the moves: always.
+   Room is computed from the item totals the observation carries, with every
+   other item taken to lie in whole stacks: an upper bound, so a legal action
+   is never masked and "no room" is exact.
+
+   Known observable limitation (user decision): placement per item is not in
+   it. A 2x2 machine's other three tiles and an item's own collision are still
+   the game's `can_place_entity`, refused `collision`. And the rows are
+   projections: a target legal for one item and an item legal for another
+   target can make a pair the game refuses (a belt given to a furnace), which
+   is the game's refusal, never a decode failure.
+2. **The free main slots are observed.** `local-v3` v2 publishes
+   `character.slots = {free, total}` (`count_empty_stacks` and the slot
+   count), and the v3 self vector's 13th slot is `free / total`. It is what
+   the mine refusal reads; item counts alone cannot tell "full" from "a part
+   stack has room".
+3. **Taking fuel is its own verb, `take_fuel`** (op 23): a row and an amount;
+   the item is the one the fuel slot holds, read from the record. Chosen over
+   a fuel option on `take_from` because the per-operation mask gives it its
+   own row -- the burners with fuel in the slot and room for it -- with no item
+   dimension to fill (a fuel slot holds one item), while `take_from` keeps its
+   `v1` meaning and domain. `take_from` naming a fuel item already takes from
+   the fuel slot when that item is in its domain (the mod tries the fuel
+   inventory first), as measured, and its mask says so.
+4. **`finish`** (op 24): no arguments, always legal. The task's verification
+   window runs at once through `run_verification`, the path the exhausted
+   budget takes, and the episode terminates on its result; nothing is sent to
+   the mod. A task without a window ends on its success condition as it
+   stands. factory-sim: `rl_finish`; the program API: `WorldV3.finish()`, and a
+   `v3` program's return is its `finish`.
+
+Pinned by the `v3_take_fuel` trace (fuel out of a drill, a furnace and an
+inserter mid-burn, with room for part of it, none, and after room is made;
+tick by tick) and the `v3_finish` trace (a `mine_tile`, then `finish` with a
+line running), both recorded under the `v3` catalog and `local-v3`; every
+trace's `local-v3` observations (`--sensor`) are also factory-sim's own
+rendering, checked decision by decision (`test_the_local_v3_sensor`).
+factory-sim's `Policy(action_space="v3")` draws the arguments under the
+sampled operation's row and scores a stored action under the row of the
+operation it stores, so the PPO ratio is taken under the masks the action was
+sampled under (`tests/test_policy_v3.py`); there is no `v3` training loop yet
+(the batched `VecEnv` is `v1`/`v2`).
 
 ## Open questions and rigs to settle them
 
@@ -1616,3 +1739,8 @@ traces.
   handcrafting off for Stage 1, measured and added with Stage 2's recipe
   dimension. The measurements and the four records are in "Hand-mining and
   reach (v3 decisions)" above.
+- **v3 masks: per operation (option C)**, **`finish`** and **taking fuel**
+  (user decisions): one revision of the v3 layout, `MultiDiscrete[25, 97, 226,
+  5, 19, 4]`, with the free main slots observed; see "v3 masks per operation,
+  `finish` and taking fuel" above, which also records placement per item as a
+  known observable limitation.

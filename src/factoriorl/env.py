@@ -29,7 +29,7 @@ import numpy as np
 from gymnasium import spaces
 
 from factoriorl import catalog as catalog_module
-from factoriorl import encoders
+from factoriorl import encoders, inventory_rules
 from factoriorl import rewards as rewards_module
 from factoriorl.errors import FactorioRLError, InfrastructureFailure, ProtocolError
 from factoriorl.production import ProductionMetrics
@@ -644,6 +644,8 @@ class FactorioEnv(gym.Env):
         error with a name, not a generic rejection.
         """
         template = self.catalog.templates[int(action)]
+        if template.key == catalog_module.FINISH:
+            return self.finish()
         domains = self.argument_domains()
         for name in template.arguments:
             if name not in arguments:
@@ -665,8 +667,62 @@ class FactorioEnv(gym.Env):
             # validated above like any other, and then never reach the wire: the
             # mod declares `wait` with an empty payload and would refuse them.
             return self._env_action(template, arguments)
-        payload = template.bind(self._context(), arguments)
+        context = self._context()
+        if template.key == catalog_module.TAKE_FUEL:
+            context = {**context, "fuel_item": self._fuel_item(str(arguments["from"]))}
+        payload = template.bind(context, arguments)
         return self.step_payload(payload, action_key=template.key)
+
+    def _fuel_item(self, handle: str) -> str:
+        """What the visible entity `handle`'s fuel slot holds, for `take_fuel`.
+
+        From the observed record, so the verb takes no item argument: a
+        burner's fuel inventory is one slot (`inventory-prototypes`)."""
+        for record in self._observation.get("entities") or []:
+            if str(record.get("h")) == handle:
+                item = inventory_rules.fuel_item(record)
+                if item is None:
+                    raise ValueError(f"{catalog_module.TAKE_FUEL}: {handle} holds no fuel")
+                return item
+        raise ValueError(f"{catalog_module.TAKE_FUEL}: {handle} is not in view")
+
+    def finish(self):
+        """`finish`: construction is declared done (user decision, 2026-09-25).
+
+        The task's verification window runs now, through `run_verification` as
+        when the decision budget runs out, and the episode terminates on its
+        result; nothing else is sent to the mod. A task without a verification
+        window ends here, scored on its success condition as it stands. One
+        decision, as any other action.
+        """
+        self._steps += 1
+        verification = None
+        if self.spec_.verification is not None and self._verification is None:
+            verification = self.run_verification()
+            reward = float(verification["reward"])
+            succeeded = bool(verification["success"])
+            components = dict(verification["reward_components"])
+        else:
+            succeeded = self._succeeded()
+            components = self.accountant.step(
+                self._observation, self._truth, succeeded, terminated=True
+            )
+            reward = RewardAccountant.total(components)
+        info: dict[str, Any] = {
+            "reward_components": components,
+            "success": succeeded,
+            "action_key": catalog_module.FINISH,
+            "action_status": "completed",
+            "action_error": None,
+            "layout_family": self._family.name if self._family else None,
+            "action_mask": self.action_masks(),
+            "steps": self._steps,
+            "primitive_steps": 1,
+            "production": self.metrics.report(),
+        }
+        if verification is not None:
+            info["verification"] = verification
+        return self._encode(), reward, True, False, info
 
     def _wait_once(self, action_key: str):
         """One `wait`, which is a no-op that spends the step's game time."""
@@ -1172,6 +1228,8 @@ class FactorioEnv(gym.Env):
     def step(self, action: int):
         """Take one action by catalog index -- the policy's interface."""
         template = self.catalog.templates[int(action)]
+        if template.key == catalog_module.FINISH:
+            return self.finish()
         return self.step_payload(template.bind(self._context()), action_key=template.key)
 
     def _apply_due_disruptions(self) -> None:

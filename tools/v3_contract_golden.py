@@ -10,9 +10,13 @@ and checks that everything else the trace holds comes out identical. This
 encodes those observations under the `v3` layout and action profile with
 FactorioRL's own code -- `encoders.encode(layout=LAYOUT_V3)`,
 `FactorioEnv.marker_slots` and `ParameterizedEnv(profile="v3").action_masks`
--- and writes one hash set and one flat mask per decision. factory-sim steps
-the same recorded vectors and must produce the same `v3` tensors and masks bit
-for bit (`tests/test_rl_contract.py`).
+-- and writes one hash set, one flat mask and the per-operation masks
+(`ParameterizedEnv.operation_masks`, user decision "v3 masks: per operation")
+per decision. factory-sim steps the same recorded vectors and must produce the
+same `v3` tensors and masks bit for bit (`tests/test_rl_contract.py`).
+
+A trace recorded under the `v3` catalog and `local-v3` itself carries those
+observations already, and is encoded from its own.
 
     uv run python tools/v3_contract_golden.py
     uv run python tools/v3_contract_golden.py --copy-to ../factory-sim/tests/golden
@@ -41,7 +45,9 @@ from factoriorl.tasks import get  # noqa: E402
 
 EVIDENCE = ROOT / "docs" / "evidence" / "sim-parity"
 OUT = EVIDENCE / "v3_contract.json.xz"
-VERSION = 1
+#: 2: the per-operation masks; the self vector's free-slot feature (`local-v3`
+#: v2); `take_fuel` and `finish`.
+VERSION = 2
 
 
 def read_trace(path: Path) -> tuple[dict, list[dict]]:
@@ -77,6 +83,9 @@ def _canonical(value) -> str:
 
 def sensor_observations(name: str, entry: dict) -> dict[int, dict]:
     """The trace's `local-v3` observations by decision, checked against the index."""
+    header, records = read_trace(EVIDENCE / entry["trace"])
+    if header.get("observation_profile") == "local-v3":
+        return {record["decision"]: record["observation"] for record in records}
     sensor = entry.get("local_v3")
     if not sensor:
         raise SystemExit(f"{name}: no local-v3 observations; record_parity_trace.py --sensor")
@@ -111,13 +120,18 @@ def scenario(name: str, entry: dict) -> list[dict]:
     for record in records:
         observation = sensed[record["decision"]]
         env._observation = observation
-        goal = np.concatenate(
-            [np.asarray(record["goal"], dtype=np.float32), env.marker_slots(observation)]
-        )
+        goal = np.asarray(record["goal"], dtype=np.float32)
+        if len(goal) != encoders.GOAL_FEATURES_V3:  # a v1 trace's 12
+            goal = np.concatenate([goal, env.marker_slots(observation)])
         encoded = encoders.encode(observation, goal, layout=encoders.LAYOUT_V3)
         mask = "".join("1" if b else "0" for b in penv.action_masks())
         out.append(
-            {"decision": record["decision"], "tensors": tensor_hashes(encoded), "mask": mask}
+            {
+                "decision": record["decision"],
+                "tensors": tensor_hashes(encoded),
+                "mask": mask,
+                "op_masks": penv.packed_operation_masks(),
+            }
         )
     return out
 
