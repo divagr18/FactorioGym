@@ -77,7 +77,7 @@ Evidence: [program search](docs/evidence/program-transfer.json),
 recipes, and the Evolve & Reinforce model that keeps most of the base model's
 planning ability, are in factory-sim's README and its
 [factorio-build](https://github.com/divagr18/factory-sim/tree/main/integrations/verifiers/factorio_build)
-environment; the models are in the [models collection].
+environment; the models are in the [models collection](https://huggingface.co/collections/divagr1925/factoriogym-models-wip).
 
 ## Belts and inserters
 
@@ -208,7 +208,7 @@ The contracts the implementation is written against are in
   scenes per program, so the intervals are wide.
 - **Tested on Windows only.** Other platforms may work, but haven't been tried.
 - **No policy checkpoints are distributed.** The trained language models are
-  in the [models collection].
+  in the [models collection](https://huggingface.co/collections/divagr1925/factoriogym-models-wip).
 
 [docs/LIMITATIONS.md](docs/LIMITATIONS.md) has the details and the
 measurements behind each one.
