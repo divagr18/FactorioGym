@@ -8,10 +8,11 @@ Reinforcement learning on Factorio construction tasks, with the real game as
 the judge.
 
 FactorioGym drives headless Factorio 2.0 from Python through a Lua mod. An agent
-walks, mines, places burner drills and stone furnaces, and fuels them. A task
-is scored on what the factory it built actually produces. Every task has
-held-out layout families, and a frozen, hashed holdout set, so a result names
-the exact scenes it was measured on.
+walks, mines by hand, places burner drills, stone furnaces, transport belts,
+burner inserters and chests, and fuels them. A task is scored on what the
+factory it built actually produces. Every task has held-out layout families,
+and a frozen, hashed holdout set, so a result names the exact scenes it was
+measured on.
 
 The game is too slow to train in: about 260 decisions per second across eight
 workers. Training happens in **[factory-sim](https://github.com/divagr18/factory-sim)**,
@@ -57,6 +58,48 @@ can be replayed in the simulator:
 These are sampled policies. Played greedily (argmax), the same checkpoints
 succeed about 3% of the time: they rely on sampling to break out of repeated
 actions.
+
+## Results: programs written by language models, played in the game
+
+factory-sim can also score short Python programs, `def build(world):`, that
+act through the same action space. `tools/program_transfer.py` plays them on
+the engine, checks each scene's digest against the simulator's, and replays
+every episode in the simulator.
+
+| Programs | Scenes | Factorio | Agrees with the simulator |
+|---|---|---|---|
+| Found by program search: from each of 4 runs, the program with the best validation score | the same 100 held-out `construct_smelting_line` scenes | 397/400 (99.3%) | 400/400 |
+| Written by Qwen3.5-9B after SFT + GRPO on factorio-build: a random 16 of its holdout programs | the same 10 held-out scenes | 136/160 (85%) | 160/160 |
+
+Evidence: [program search](docs/evidence/program-transfer.json),
+[Qwen3.5-9B](docs/evidence/program-transfer-grpo-pc.json) (and its
+[second half](docs/evidence/program-transfer-grpo-laptop.json)). The training
+recipes, and the Evolve & Reinforce model that keeps most of the base model's
+planning ability, are in factory-sim's README and its
+[factorio-build](https://github.com/divagr18/factory-sim/tree/main/integrations/verifiers/factorio_build)
+environment; the models are in the [models collection].
+
+## Belts and inserters
+
+Transport belts, burner inserters and wooden chests are measured tick by tick
+on the engine: belt-line segments and their merge delays, turns, sideloads,
+loops, inserter swings and fuel, and inserters picking from moving belts.
+[docs/sim-logistics.md](docs/sim-logistics.md) records every measurement and
+the rule factory-sim implements from it; the probes are the
+`tools/probe_logistics*.py`, `tools/probe_inserter_*.py` and
+`tools/probe_handmine*.py` scripts.
+
+`belt_smelting` 1.1.0 uses them. An iron patch, a coal patch and an output
+chest are too far apart for one standing spot to reach two of them. The agent
+starts with 4 drills, 4 furnaces, 40 belts, 10 burner inserters and 20 coal,
+and must deliver 150 iron plates into the chest during an action-locked
+ten-minute window. Twenty coal runs a line for only about 79 plates, so the
+line also needs coal from the coal patch. The reference solver hand-mines 40
+coal first and delivers 197-198 plates in 200 of 200 engine episodes (100
+train, 100 test scenes;
+[evidence](docs/evidence/belt-smelting-gate.json)). factory-sim ports the
+task draw for draw, and its port of the solver succeeds on 599 of the first
+600 simulator scenes.
 
 ## What you need
 
@@ -131,9 +174,15 @@ and runtimes.
   operation, target, placement tile, direction, item and amount, each with its
   own mask. Engine edge cases are guarded in the mod: for example, the game
   accepts a second drill placed on top of the first
-  ([probe](tools/probe_duplicate_drill.py)).
+  ([probe](tools/probe_duplicate_drill.py)). The v3 profile, which
+  `belt_smelting` uses, is `MultiDiscrete([25, 97, 226, 5, 19, 4])`: the same
+  22 operations plus hand-mining a resource tile, `take_fuel` and `finish`,
+  with a mask per operation that follows the engine's own reach rules.
 - **Observations.** A local tile grid around the character, a table of nearby
-  entities, the inventory, character state and the task goal.
+  entities, the inventory, character state and the task goal. `local-v3` adds
+  each belt's lane counts and turn, each inserter's hand and its pickup and
+  drop points, a drill's drop point, the task's public markers and the free
+  inventory slots.
 - **Tasks.** A task declares its layout families, train/test split, reward and
   success predicate ([authoring guide](docs/AUTHORING_TASKS.md)). The
   construction tasks count only plates made by machines during a verification
@@ -149,13 +198,17 @@ The contracts the implementation is written against are in
 ## Limits
 
 - **Small factories.** The learned results are a drill, a furnace and fuel.
-  No belts, inserters or power in any learned result yet.
+  No belts, inserters or power in any learned result yet: `belt_smelting` has
+  a reference solver, measured mechanics and a simulator port, but no trained
+  policy or model.
 - **Engine training is weak.** The strong results above come from simulator
   training. Policies trained directly on the engine haven't met the project's
   own bar (three task families at 80% held out).
-- **Small engine samples.** 32 episodes per split, so the intervals are wide.
+- **Small engine samples.** 32 episodes per split for the policies, 10 to 100
+  scenes per program, so the intervals are wide.
 - **Tested on Windows only.** Other platforms may work, but haven't been tried.
-- **No checkpoints are distributed.**
+- **No policy checkpoints are distributed.** The trained language models are
+  in the [models collection].
 
 [docs/LIMITATIONS.md](docs/LIMITATIONS.md) has the details and the
 measurements behind each one.
@@ -172,6 +225,8 @@ measurements behind each one.
 | `uv run factoriorl bench transport` | Measure engine round-trip latency |
 | `uv run factoriorl doctor-agent` | Check a language-model provider ([agent guide](docs/AGENT.md)) |
 | `uv run factoriorl replay <run_dir>` | Render an HTML replay of a language-model agent's run |
+| `uv run python tools/program_transfer.py --program-db <genealogy.sqlite>` | Play `def build(world):` programs on the engine beside the simulator |
+| `uv run python tools/demo_play.py --record <file>` | Film a scripted build of coal, iron and copper sites in a watching client; `tools/make_clip.py` and `tools/make_showreel.py` cut the recording |
 
 ## Citing
 
