@@ -1,0 +1,232 @@
+{
+  "about": "belt_smelting's reference solver (tasks/families/belt_smelting.py `solve`) played on the real engine: the solvability gate behind 1.1.0's 150-plate target",
+  "engine": {
+    "build": 83512,
+    "platform": "win64",
+    "version": "2.0.60"
+  },
+  "episodes_file": "belt-smelting-gate.episodes.jsonl.xz",
+  "extract": {
+    "contains": "the completed episodes of gates f, j, n0 and n70 ({'f': 128, 'j': 155, 'n0': 10, 'n70': 10}), the records factory-sim's port of the reference (fsim/belt_expert.py) is checked against. Gates r and m0 were not part of that check.",
+    "file": "belt-smelting-reference.json",
+    "same_blob_as": "factory-sim tests/golden/belt_smelting_reference.json (git blob 9deaa61faea6cdda2fbf1f57f13c346a5825e2b8)",
+    "sha256_lf": "9da302fb6f05a63c3c526594d6116cec02c8e385dcc31398deaf502fc612694e"
+  },
+  "fields": {
+    "extra_coal": "coal hand-mined at the coal patch before building",
+    "fuel_plan": "fuel_plan's split of the coal held",
+    "ore_in_window": "iron ore mined by machines in the window (machine_source)",
+    "plates": "the verifier's machine_output: the chest's increase over the 36,000-tick window, capped by ore_in_window",
+    "steps": "the solver's decisions",
+    "stuck": "why the solver stopped early; a transport error is infrastructure, and that episode has no verification",
+    "tail": "the last six actions",
+    "tick_at_verify": "the tick the verification window started",
+    "uncapped": "the chest's increase alone"
+  },
+  "gates": {
+    "f": {
+      "about": "The 1.1.0 gate: 40 coal hand-mined at the coal patch (60 in all), the build ending on `finish`. Four workers of 50 indices each; stopped by hand after 130 episodes.",
+      "completed": 128,
+      "episodes": 130,
+      "extra_coal": 40,
+      "plates": [
+        197.0,
+        198.0
+      ],
+      "runs": {
+        "belt_f1": {
+          "args": "--episodes 50 --start 0 --splits train --extra 40",
+          "episodes": 33
+        },
+        "belt_f2": {
+          "args": "--episodes 50 --start 50 --splits train --extra 40",
+          "episodes": 33
+        },
+        "belt_f3": {
+          "args": "--episodes 50 --start 0 --splits test --extra 40",
+          "episodes": 32
+        },
+        "belt_f4": {
+          "args": "--episodes 50 --start 50 --splits test --extra 40",
+          "episodes": 32
+        }
+      },
+      "success": 128,
+      "successful_scenes": {
+        "test": 62,
+        "train": 66
+      },
+      "transport_errors": [
+        {
+          "index": 31,
+          "log": "belt_f3",
+          "split": "test",
+          "stuck": "solver raised ProtocolError: transport failure: [WinError 10054] An existing connection was forcibly closed by the remote host"
+        },
+        {
+          "index": 81,
+          "log": "belt_f4",
+          "split": "test",
+          "stuck": "solver raised ProtocolError: transport failure: [WinError 10054] An existing connection was forcibly closed by the remote host"
+        }
+      ]
+    },
+    "j": {
+      "about": "The same coal and split, run earlier the same day, before `finish` existed: each episode's verification runs when the solver's build ends. Each worker stopped on a transport error before reaching its last index.",
+      "completed": 155,
+      "episodes": 158,
+      "extra_coal": 40,
+      "plates": [
+        197.0,
+        198.0
+      ],
+      "runs": {
+        "belt_j1": {
+          "args": "--episodes 50 --start 0 --splits train --extra 40",
+          "episodes": 41
+        },
+        "belt_j2": {
+          "args": "--episodes 50 --start 50 --splits train --extra 40",
+          "episodes": 41
+        },
+        "belt_j3": {
+          "args": "--episodes 50 --start 0 --splits test --extra 40",
+          "episodes": 38
+        },
+        "belt_j4": {
+          "args": "--episodes 50 --start 50 --splits test --extra 40",
+          "episodes": 38
+        }
+      },
+      "success": 155,
+      "successful_scenes": {
+        "test": 74,
+        "train": 81
+      },
+      "transport_errors": [
+        {
+          "index": 90,
+          "log": "belt_j2",
+          "split": "train",
+          "stuck": "solver raised ProtocolError: step step-97295727-419939 did not settle within 30.0s"
+        },
+        {
+          "index": 37,
+          "log": "belt_j3",
+          "split": "test",
+          "stuck": "solver raised ProtocolError: step step-9a20228a-397276 did not settle within 30.0s"
+        },
+        {
+          "index": 87,
+          "log": "belt_j4",
+          "split": "test",
+          "stuck": "solver raised ProtocolError: transport failure: timed out"
+        }
+      ]
+    },
+    "m0": {
+      "about": "20 coal and none hand-mined, with the 1.0.0 fuel split (sized for 66 plates).",
+      "completed": 20,
+      "episodes": 20,
+      "extra_coal": 0,
+      "plates": [
+        65.0,
+        66.0
+      ],
+      "runs": {
+        "belt_m0": {
+          "args": "--episodes 10 --start 300 --splits train,test --extra 0",
+          "episodes": 20
+        }
+      },
+      "success": 0,
+      "successful_scenes": {},
+      "transport_errors": []
+    },
+    "n0": {
+      "about": "20 coal and none hand-mined, with the 1.1.0 fuel split.",
+      "completed": 10,
+      "episodes": 10,
+      "extra_coal": 0,
+      "plates": [
+        51.0,
+        52.0
+      ],
+      "runs": {
+        "belt_n0": {
+          "args": "--episodes 5 --start 300 --splits train,test --extra 0",
+          "episodes": 10
+        }
+      },
+      "success": 0,
+      "successful_scenes": {},
+      "transport_errors": []
+    },
+    "n70": {
+      "about": "70 coal hand-mined (90 in all).",
+      "completed": 10,
+      "episodes": 10,
+      "extra_coal": 70,
+      "plates": [
+        290.0,
+        293.0
+      ],
+      "runs": {
+        "belt_n70": {
+          "args": "--episodes 5 --start 300 --splits train,test --extra 70",
+          "episodes": 10
+        }
+      },
+      "success": 10,
+      "successful_scenes": {
+        "test": 5,
+        "train": 5
+      },
+      "transport_errors": []
+    },
+    "r": {
+      "about": "The rest of gate f: the indices f had not reached, and the two f episodes that ended on a transport error.",
+      "completed": 72,
+      "episodes": 72,
+      "extra_coal": 40,
+      "plates": [
+        197.0,
+        198.0
+      ],
+      "runs": {
+        "belt_r1": {
+          "args": "--episodes 17 --start 33 --splits train --extra 40",
+          "episodes": 17
+        },
+        "belt_r2": {
+          "args": "--episodes 17 --start 83 --splits train --extra 40",
+          "episodes": 17
+        },
+        "belt_r3": {
+          "args": "--episodes 19 --start 31 --splits test --extra 40",
+          "episodes": 19
+        },
+        "belt_r4": {
+          "args": "--episodes 19 --start 81 --splits test --extra 40",
+          "episodes": 19
+        }
+      },
+      "success": 72,
+      "successful_scenes": {
+        "test": 38,
+        "train": 34
+      },
+      "transport_errors": []
+    }
+  },
+  "how_recorded": "2026-09-25 (gate r just after midnight), on the desktop PC, FACTORIO_RL_GAME_SPEED=120, one worker per run. A job script reset `FactorioEnv(belt_smelting, split)` to each index of the seed plan, set `belt_smelting.EXTRA_COAL` to the run's --extra, ran `tasks.reference._solver_for('belt_smelting')` through a `Driver`, and printed one JSON record per episode. Gates f and r ran on a checkout at b0efe7c whose belt_smelting.py matches e49f28c's code (only its docstring's episode count differs); j, m0, n0 and n70 ran earlier that day, before `finish` was added.",
+  "result": "Gates f and r together, 60 coal, the build ending on `finish`: 200 of 200 scenes delivered at least 150 plates, every train and test index 0-99 once, 197-198 plates each. Two f episodes ended on a transport error and were rerun in r. No completed episode at 60 or 90 coal failed; at 20 coal none succeeded.",
+  "seed_plan": {
+    "branch": "train",
+    "episode_seed_algorithm": "blake2b(master|run_id|branch|index)[:8]",
+    "master": 777,
+    "run_id": "belt-smelting-gate"
+  },
+  "task": "belt_smelting",
+  "task_version": "1.1.0"
+}

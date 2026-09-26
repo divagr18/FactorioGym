@@ -1,0 +1,6072 @@
+{
+"episodes": [
+{
+"ended_by": "run_verification",
+"extra_coal": 0,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 3,
+"drill": 4,
+"furnace": 3,
+"output_inserter": 1,
+"plates": 53
+},
+"gate": "n0",
+"index": 300,
+"ore_in_window": 51.0,
+"plates": 51.0,
+"split": "train",
+"steps": 117,
+"tick_at_verify": 3510,
+"uncapped": 52.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 0,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 3,
+"drill": 4,
+"furnace": 3,
+"output_inserter": 1,
+"plates": 53
+},
+"gate": "n0",
+"index": 301,
+"ore_in_window": 52.0,
+"plates": 52.0,
+"split": "train",
+"steps": 151,
+"tick_at_verify": 4530,
+"uncapped": 52.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 0,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 3,
+"drill": 4,
+"furnace": 3,
+"output_inserter": 1,
+"plates": 53
+},
+"gate": "n0",
+"index": 302,
+"ore_in_window": 52.0,
+"plates": 52.0,
+"split": "train",
+"steps": 137,
+"tick_at_verify": 4110,
+"uncapped": 52.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 0,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 3,
+"drill": 4,
+"furnace": 3,
+"output_inserter": 1,
+"plates": 53
+},
+"gate": "n0",
+"index": 303,
+"ore_in_window": 51.0,
+"plates": 51.0,
+"split": "train",
+"steps": 147,
+"tick_at_verify": 4410,
+"uncapped": 52.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 0,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 3,
+"drill": 4,
+"furnace": 3,
+"output_inserter": 1,
+"plates": 53
+},
+"gate": "n0",
+"index": 304,
+"ore_in_window": 51.0,
+"plates": 51.0,
+"split": "train",
+"steps": 138,
+"tick_at_verify": 4140,
+"uncapped": 52.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 0,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 3,
+"drill": 4,
+"furnace": 3,
+"output_inserter": 1,
+"plates": 53
+},
+"gate": "n0",
+"index": 300,
+"ore_in_window": 51.0,
+"plates": 51.0,
+"split": "test",
+"steps": 186,
+"tick_at_verify": 5580,
+"uncapped": 52.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 0,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 3,
+"drill": 4,
+"furnace": 3,
+"output_inserter": 1,
+"plates": 53
+},
+"gate": "n0",
+"index": 301,
+"ore_in_window": 51.0,
+"plates": 51.0,
+"split": "test",
+"steps": 159,
+"tick_at_verify": 4770,
+"uncapped": 52.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 0,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 3,
+"drill": 4,
+"furnace": 3,
+"output_inserter": 1,
+"plates": 53
+},
+"gate": "n0",
+"index": 302,
+"ore_in_window": 52.0,
+"plates": 52.0,
+"split": "test",
+"steps": 157,
+"tick_at_verify": 4710,
+"uncapped": 52.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 0,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 3,
+"drill": 4,
+"furnace": 3,
+"output_inserter": 1,
+"plates": 53
+},
+"gate": "n0",
+"index": 303,
+"ore_in_window": 51.0,
+"plates": 51.0,
+"split": "test",
+"steps": 196,
+"tick_at_verify": 5880,
+"uncapped": 52.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 0,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 3,
+"drill": 4,
+"furnace": 3,
+"output_inserter": 1,
+"plates": 53
+},
+"gate": "n0",
+"index": 304,
+"ore_in_window": 51.0,
+"plates": 51.0,
+"split": "test",
+"steps": 187,
+"tick_at_verify": 5610,
+"uncapped": 52.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 70,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 12,
+"drill": 21,
+"furnace": 12,
+"output_inserter": 3,
+"plates": 280
+},
+"gate": "n70",
+"index": 300,
+"ore_in_window": 300.0,
+"plates": 293.0,
+"split": "train",
+"steps": 423,
+"tick_at_verify": 12690,
+"uncapped": 293.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 70,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 12,
+"drill": 21,
+"furnace": 12,
+"output_inserter": 3,
+"plates": 280
+},
+"gate": "n70",
+"index": 301,
+"ore_in_window": 300.0,
+"plates": 291.0,
+"split": "train",
+"steps": 465,
+"tick_at_verify": 13950,
+"uncapped": 291.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 70,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 12,
+"drill": 21,
+"furnace": 12,
+"output_inserter": 3,
+"plates": 280
+},
+"gate": "n70",
+"index": 302,
+"ore_in_window": 300.0,
+"plates": 292.0,
+"split": "train",
+"steps": 482,
+"tick_at_verify": 14460,
+"uncapped": 292.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 70,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 12,
+"drill": 21,
+"furnace": 12,
+"output_inserter": 3,
+"plates": 280
+},
+"gate": "n70",
+"index": 303,
+"ore_in_window": 300.0,
+"plates": 293.0,
+"split": "train",
+"steps": 452,
+"tick_at_verify": 13560,
+"uncapped": 293.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 70,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 12,
+"drill": 21,
+"furnace": 12,
+"output_inserter": 3,
+"plates": 280
+},
+"gate": "n70",
+"index": 304,
+"ore_in_window": 300.0,
+"plates": 292.0,
+"split": "train",
+"steps": 444,
+"tick_at_verify": 13320,
+"uncapped": 292.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 70,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 12,
+"drill": 21,
+"furnace": 12,
+"output_inserter": 3,
+"plates": 280
+},
+"gate": "n70",
+"index": 300,
+"ore_in_window": 300.0,
+"plates": 292.0,
+"split": "test",
+"steps": 493,
+"tick_at_verify": 14790,
+"uncapped": 292.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 70,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 12,
+"drill": 21,
+"furnace": 12,
+"output_inserter": 3,
+"plates": 280
+},
+"gate": "n70",
+"index": 301,
+"ore_in_window": 300.0,
+"plates": 290.0,
+"split": "test",
+"steps": 519,
+"tick_at_verify": 15570,
+"uncapped": 290.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 70,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 12,
+"drill": 21,
+"furnace": 12,
+"output_inserter": 3,
+"plates": 280
+},
+"gate": "n70",
+"index": 302,
+"ore_in_window": 300.0,
+"plates": 292.0,
+"split": "test",
+"steps": 470,
+"tick_at_verify": 14100,
+"uncapped": 292.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 70,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 12,
+"drill": 21,
+"furnace": 12,
+"output_inserter": 3,
+"plates": 280
+},
+"gate": "n70",
+"index": 303,
+"ore_in_window": 300.0,
+"plates": 290.0,
+"split": "test",
+"steps": 476,
+"tick_at_verify": 14280,
+"uncapped": 290.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 70,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 12,
+"drill": 21,
+"furnace": 12,
+"output_inserter": 3,
+"plates": 280
+},
+"gate": "n70",
+"index": 304,
+"ore_in_window": 300.0,
+"plates": 291.0,
+"split": "test",
+"steps": 500,
+"tick_at_verify": 15000,
+"uncapped": 291.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 0,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 340,
+"tick_at_verify": 10200,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 1,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 298,
+"tick_at_verify": 8940,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 2,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 382,
+"tick_at_verify": 11460,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 3,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 323,
+"tick_at_verify": 9690,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 4,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 317,
+"tick_at_verify": 9510,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 5,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 361,
+"tick_at_verify": 10830,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 6,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 354,
+"tick_at_verify": 10620,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 7,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 318,
+"tick_at_verify": 9540,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 8,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 307,
+"tick_at_verify": 9210,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 9,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 316,
+"tick_at_verify": 9480,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 10,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 354,
+"tick_at_verify": 10620,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 11,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 335,
+"tick_at_verify": 10050,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 12,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 309,
+"tick_at_verify": 9270,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 13,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 333,
+"tick_at_verify": 9990,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 14,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 309,
+"tick_at_verify": 9270,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 15,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 362,
+"tick_at_verify": 10860,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 16,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 338,
+"tick_at_verify": 10140,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 17,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 317,
+"tick_at_verify": 9510,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 18,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 338,
+"tick_at_verify": 10140,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 19,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 348,
+"tick_at_verify": 10440,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 20,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 336,
+"tick_at_verify": 10080,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 21,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 381,
+"tick_at_verify": 11430,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 22,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 323,
+"tick_at_verify": 9690,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 23,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 345,
+"tick_at_verify": 10350,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 24,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 306,
+"tick_at_verify": 9180,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 25,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 353,
+"tick_at_verify": 10590,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 26,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 302,
+"tick_at_verify": 9060,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 27,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 299,
+"tick_at_verify": 8970,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 28,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 364,
+"tick_at_verify": 10920,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 29,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 305,
+"tick_at_verify": 9150,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 30,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 311,
+"tick_at_verify": 9330,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 31,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 352,
+"tick_at_verify": 10560,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 32,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 327,
+"tick_at_verify": 9810,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 33,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 326,
+"tick_at_verify": 9780,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 34,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 350,
+"tick_at_verify": 10500,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 35,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 349,
+"tick_at_verify": 10470,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 36,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 331,
+"tick_at_verify": 9930,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 37,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 314,
+"tick_at_verify": 9420,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 38,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 311,
+"tick_at_verify": 9330,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 39,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 318,
+"tick_at_verify": 9540,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 40,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 358,
+"tick_at_verify": 10740,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 50,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 298,
+"tick_at_verify": 8940,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 51,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 323,
+"tick_at_verify": 9690,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 52,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 334,
+"tick_at_verify": 10020,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 53,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 315,
+"tick_at_verify": 9450,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 54,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 336,
+"tick_at_verify": 10080,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 55,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 335,
+"tick_at_verify": 10050,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 56,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 301,
+"tick_at_verify": 9030,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 57,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 280,
+"tick_at_verify": 8400,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 58,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 307,
+"tick_at_verify": 9210,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 59,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 308,
+"tick_at_verify": 9240,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 60,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 316,
+"tick_at_verify": 9480,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 61,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 355,
+"tick_at_verify": 10650,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 62,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 348,
+"tick_at_verify": 10440,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 63,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 361,
+"tick_at_verify": 10830,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 64,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 325,
+"tick_at_verify": 9750,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 65,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 349,
+"tick_at_verify": 10470,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 66,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 355,
+"tick_at_verify": 10650,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 67,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 370,
+"tick_at_verify": 11100,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 68,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 378,
+"tick_at_verify": 11340,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 69,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 334,
+"tick_at_verify": 10020,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 70,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 325,
+"tick_at_verify": 9750,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 71,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 357,
+"tick_at_verify": 10710,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 72,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 328,
+"tick_at_verify": 9840,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 73,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 378,
+"tick_at_verify": 11340,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 74,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 301,
+"tick_at_verify": 9030,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 75,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 343,
+"tick_at_verify": 10290,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 76,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 324,
+"tick_at_verify": 9720,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 77,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 325,
+"tick_at_verify": 9750,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 78,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 360,
+"tick_at_verify": 10800,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 79,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 342,
+"tick_at_verify": 10260,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 80,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 324,
+"tick_at_verify": 9720,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 81,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 362,
+"tick_at_verify": 10860,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 82,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 334,
+"tick_at_verify": 10020,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 83,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 346,
+"tick_at_verify": 10380,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 84,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 307,
+"tick_at_verify": 9210,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 85,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 354,
+"tick_at_verify": 10620,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 86,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 312,
+"tick_at_verify": 9360,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 87,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 339,
+"tick_at_verify": 10170,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 88,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 337,
+"tick_at_verify": 10110,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 89,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 298,
+"tick_at_verify": 8940,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 0,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 398,
+"tick_at_verify": 11940,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 1,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 344,
+"tick_at_verify": 10320,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 2,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 342,
+"tick_at_verify": 10260,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 3,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 370,
+"tick_at_verify": 11100,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 4,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 329,
+"tick_at_verify": 9870,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 5,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 318,
+"tick_at_verify": 9540,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 6,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 379,
+"tick_at_verify": 11370,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 7,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 383,
+"tick_at_verify": 11490,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 8,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 322,
+"tick_at_verify": 9660,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 9,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 392,
+"tick_at_verify": 11760,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 10,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 347,
+"tick_at_verify": 10410,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 11,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 329,
+"tick_at_verify": 9870,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 12,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 606,
+"tick_at_verify": 18180,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 13,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 363,
+"tick_at_verify": 10890,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 14,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 315,
+"tick_at_verify": 9450,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 15,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 319,
+"tick_at_verify": 9570,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 16,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 353,
+"tick_at_verify": 10590,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 17,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 338,
+"tick_at_verify": 10140,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 18,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 344,
+"tick_at_verify": 10320,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 19,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 364,
+"tick_at_verify": 10920,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 20,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 366,
+"tick_at_verify": 10980,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 21,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 363,
+"tick_at_verify": 10890,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 22,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 342,
+"tick_at_verify": 10260,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 23,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 349,
+"tick_at_verify": 10470,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 24,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 354,
+"tick_at_verify": 10620,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 25,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 391,
+"tick_at_verify": 11730,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 26,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 323,
+"tick_at_verify": 9690,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 27,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 406,
+"tick_at_verify": 12180,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 28,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 298,
+"tick_at_verify": 8940,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 29,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 375,
+"tick_at_verify": 11250,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 30,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 376,
+"tick_at_verify": 11280,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 31,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 341,
+"tick_at_verify": 10230,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 32,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 355,
+"tick_at_verify": 10650,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 33,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 352,
+"tick_at_verify": 10560,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 34,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 350,
+"tick_at_verify": 10500,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 35,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 368,
+"tick_at_verify": 11040,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 36,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 335,
+"tick_at_verify": 10050,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 50,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 349,
+"tick_at_verify": 10470,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 51,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 365,
+"tick_at_verify": 10950,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 52,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 375,
+"tick_at_verify": 11250,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 53,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 384,
+"tick_at_verify": 11520,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 54,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 378,
+"tick_at_verify": 11340,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 55,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 350,
+"tick_at_verify": 10500,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 56,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 379,
+"tick_at_verify": 11370,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 57,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 387,
+"tick_at_verify": 11610,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 58,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 322,
+"tick_at_verify": 9660,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 59,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 374,
+"tick_at_verify": 11220,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 60,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 394,
+"tick_at_verify": 11820,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 61,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 362,
+"tick_at_verify": 10860,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 62,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 366,
+"tick_at_verify": 10980,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 63,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 360,
+"tick_at_verify": 10800,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 64,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 401,
+"tick_at_verify": 12030,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 65,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 331,
+"tick_at_verify": 9930,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 66,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 321,
+"tick_at_verify": 9630,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 67,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 381,
+"tick_at_verify": 11430,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 68,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 385,
+"tick_at_verify": 11550,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 69,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 357,
+"tick_at_verify": 10710,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 70,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 377,
+"tick_at_verify": 11310,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 71,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 331,
+"tick_at_verify": 9930,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 72,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 339,
+"tick_at_verify": 10170,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 73,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 367,
+"tick_at_verify": 11010,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 74,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 339,
+"tick_at_verify": 10170,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 75,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 369,
+"tick_at_verify": 11070,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 76,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 371,
+"tick_at_verify": 11130,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 77,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 385,
+"tick_at_verify": 11550,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 78,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 328,
+"tick_at_verify": 9840,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 79,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 306,
+"tick_at_verify": 9180,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 80,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 329,
+"tick_at_verify": 9870,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 81,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 366,
+"tick_at_verify": 10980,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 82,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 359,
+"tick_at_verify": 10770,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 83,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 340,
+"tick_at_verify": 10200,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 84,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 370,
+"tick_at_verify": 11100,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 85,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 363,
+"tick_at_verify": 10890,
+"uncapped": 198.0
+},
+{
+"ended_by": "run_verification",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "j",
+"index": 86,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 391,
+"tick_at_verify": 11730,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 0,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 341,
+"tick_at_verify": 10200,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 1,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 299,
+"tick_at_verify": 8940,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 2,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 383,
+"tick_at_verify": 11460,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 3,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 324,
+"tick_at_verify": 9690,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 4,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 318,
+"tick_at_verify": 9510,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 5,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 362,
+"tick_at_verify": 10830,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 6,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 355,
+"tick_at_verify": 10620,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 7,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 319,
+"tick_at_verify": 9540,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 8,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 308,
+"tick_at_verify": 9210,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 9,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 317,
+"tick_at_verify": 9480,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 10,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 355,
+"tick_at_verify": 10620,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 11,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 336,
+"tick_at_verify": 10050,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 12,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 310,
+"tick_at_verify": 9270,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 13,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 334,
+"tick_at_verify": 9990,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 14,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 310,
+"tick_at_verify": 9270,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 15,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 363,
+"tick_at_verify": 10860,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 16,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 339,
+"tick_at_verify": 10140,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 17,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 318,
+"tick_at_verify": 9510,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 18,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 339,
+"tick_at_verify": 10140,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 19,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 349,
+"tick_at_verify": 10440,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 20,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 337,
+"tick_at_verify": 10080,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 21,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 382,
+"tick_at_verify": 11430,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 22,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 324,
+"tick_at_verify": 9690,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 23,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 346,
+"tick_at_verify": 10350,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 24,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 307,
+"tick_at_verify": 9180,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 25,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 354,
+"tick_at_verify": 10590,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 26,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 303,
+"tick_at_verify": 9060,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 27,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 300,
+"tick_at_verify": 8970,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 28,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 365,
+"tick_at_verify": 10920,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 29,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 306,
+"tick_at_verify": 9150,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 30,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 312,
+"tick_at_verify": 9330,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 31,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 353,
+"tick_at_verify": 10560,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 32,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 328,
+"tick_at_verify": 9810,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 50,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 299,
+"tick_at_verify": 8940,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 51,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 324,
+"tick_at_verify": 9690,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 52,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 335,
+"tick_at_verify": 10020,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 53,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 316,
+"tick_at_verify": 9450,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 54,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 337,
+"tick_at_verify": 10080,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 55,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 336,
+"tick_at_verify": 10050,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 56,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 302,
+"tick_at_verify": 9030,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 57,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 281,
+"tick_at_verify": 8400,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 58,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 308,
+"tick_at_verify": 9210,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 59,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 309,
+"tick_at_verify": 9240,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 60,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 317,
+"tick_at_verify": 9480,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 61,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 356,
+"tick_at_verify": 10650,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 62,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 349,
+"tick_at_verify": 10440,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 63,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 362,
+"tick_at_verify": 10830,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 64,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 326,
+"tick_at_verify": 9750,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 65,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 350,
+"tick_at_verify": 10470,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 66,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 356,
+"tick_at_verify": 10650,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 67,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 371,
+"tick_at_verify": 11100,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 68,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 379,
+"tick_at_verify": 11340,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 69,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 335,
+"tick_at_verify": 10020,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 70,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 326,
+"tick_at_verify": 9750,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 71,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 358,
+"tick_at_verify": 10710,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 72,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 329,
+"tick_at_verify": 9840,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 73,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 379,
+"tick_at_verify": 11340,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 74,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 302,
+"tick_at_verify": 9030,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 75,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 344,
+"tick_at_verify": 10290,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 76,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 325,
+"tick_at_verify": 9720,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 77,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 326,
+"tick_at_verify": 9750,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 78,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 361,
+"tick_at_verify": 10800,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "open",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 79,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 343,
+"tick_at_verify": 10260,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "split_patch",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 80,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "train",
+"steps": 325,
+"tick_at_verify": 9720,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 81,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 363,
+"tick_at_verify": 10860,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "walled",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 82,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "train",
+"steps": 335,
+"tick_at_verify": 10020,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 0,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 399,
+"tick_at_verify": 11940,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 1,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 345,
+"tick_at_verify": 10320,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 2,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 343,
+"tick_at_verify": 10260,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 3,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 371,
+"tick_at_verify": 11100,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 4,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 330,
+"tick_at_verify": 9870,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 5,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 319,
+"tick_at_verify": 9540,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 6,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 380,
+"tick_at_verify": 11370,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 7,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 384,
+"tick_at_verify": 11490,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 8,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 323,
+"tick_at_verify": 9660,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 9,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 393,
+"tick_at_verify": 11760,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 10,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 348,
+"tick_at_verify": 10410,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 11,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 330,
+"tick_at_verify": 9870,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 12,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 607,
+"tick_at_verify": 18180,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 13,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 364,
+"tick_at_verify": 10890,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 14,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 316,
+"tick_at_verify": 9450,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 15,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 320,
+"tick_at_verify": 9570,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 16,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 354,
+"tick_at_verify": 10590,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 17,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 339,
+"tick_at_verify": 10140,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 18,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 345,
+"tick_at_verify": 10320,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 19,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 365,
+"tick_at_verify": 10920,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 20,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 367,
+"tick_at_verify": 10980,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 21,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 364,
+"tick_at_verify": 10890,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 22,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 343,
+"tick_at_verify": 10260,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 23,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 350,
+"tick_at_verify": 10470,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 24,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 355,
+"tick_at_verify": 10620,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 25,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 392,
+"tick_at_verify": 11730,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 26,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 324,
+"tick_at_verify": 9690,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 27,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 407,
+"tick_at_verify": 12180,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 28,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 299,
+"tick_at_verify": 8940,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 29,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 376,
+"tick_at_verify": 11250,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 30,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 377,
+"tick_at_verify": 11280,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 50,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 350,
+"tick_at_verify": 10470,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 51,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 366,
+"tick_at_verify": 10950,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 52,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 376,
+"tick_at_verify": 11250,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 53,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 385,
+"tick_at_verify": 11520,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 54,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 379,
+"tick_at_verify": 11340,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 55,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 351,
+"tick_at_verify": 10500,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 56,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 380,
+"tick_at_verify": 11370,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 57,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 388,
+"tick_at_verify": 11610,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 58,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 323,
+"tick_at_verify": 9660,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 59,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 375,
+"tick_at_verify": 11220,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 60,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 395,
+"tick_at_verify": 11820,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 61,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 363,
+"tick_at_verify": 10860,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 62,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 367,
+"tick_at_verify": 10980,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 63,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 361,
+"tick_at_verify": 10800,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 64,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 402,
+"tick_at_verify": 12030,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 65,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 332,
+"tick_at_verify": 9930,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 66,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 322,
+"tick_at_verify": 9630,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 67,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 382,
+"tick_at_verify": 11430,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 68,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 386,
+"tick_at_verify": 11550,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 69,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 358,
+"tick_at_verify": 10710,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 70,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 378,
+"tick_at_verify": 11310,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 71,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 332,
+"tick_at_verify": 9930,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 72,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 340,
+"tick_at_verify": 10170,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 73,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 368,
+"tick_at_verify": 11010,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 74,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 340,
+"tick_at_verify": 10170,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 75,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 370,
+"tick_at_verify": 11070,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 76,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 372,
+"tick_at_verify": 11130,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "far_chest",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 77,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 386,
+"tick_at_verify": 11550,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 78,
+"ore_in_window": 197.0,
+"plates": 197.0,
+"split": "test",
+"steps": 329,
+"tick_at_verify": 9840,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 79,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 307,
+"tick_at_verify": 9180,
+"uncapped": 198.0
+},
+{
+"ended_by": "finish",
+"extra_coal": 40,
+"family": "obstructed",
+"fuel_plan": {
+"chest_inserter": 9,
+"drill": 15,
+"furnace": 8,
+"output_inserter": 2,
+"plates": 200
+},
+"gate": "f",
+"index": 80,
+"ore_in_window": 198.0,
+"plates": 198.0,
+"split": "test",
+"steps": 330,
+"tick_at_verify": 9870,
+"uncapped": 198.0
+}
+],
+"seed_plan": {
+"branch": "train",
+"episode_seed_algorithm": "blake2b(master|run_id|branch|index)[:8]",
+"master": 777,
+"run_id": "belt-smelting-gate"
+},
+"source": "FactorioRL belt_smelting 1.1.0 reference solver (tasks/families/belt_smelting.py `solve`) on Factorio 2.0, the solvability gate of 2026-09-25: one record per completed episode (episodes that ended on an infrastructure error are left out). `plates` is the verifier's machine_output (the chest's increase over the 36,000-tick window, capped by `ore_in_window`, its machine_source); `uncapped` the chest's increase alone; `steps` the solver's decisions; `extra_coal` the coal it hand-mined before building.",
+"task_version": "1.1.0"
+}
